@@ -302,19 +302,21 @@ export default function Index() {
         </div>
       </section>
 
-      <div className="px-6 md:px-12 pb-8 text-center">
-        <div className="font-black uppercase tracking-widest text-sm">AlgoGuru</div>
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1">
-          Built with ❤️ by{" "}
-          <a
-            href="https://portfolio-aritra-pearl.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline decoration-2 underline-offset-2"
-          >
-            Aritra
-          </a>
-        </p>
+      <div className="w-full border-t-4 border-border bg-[#4EB8DD] px-6 md:px-12 py-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-black">
+          <div className="text-sm font-black uppercase tracking-widest">AlgoGuru</div>
+          <p className="text-xs font-black uppercase tracking-widest text-center md:text-right">
+            Built with ❤️ by{" "}
+            <a
+              href="https://portfolio-aritra-pearl.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-2 underline-offset-2"
+            >
+              Aritra
+            </a>
+          </p>
+        </div>
       </div>
 
     </div>
