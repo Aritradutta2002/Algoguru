@@ -795,8 +795,8 @@ export default function Playground() {
     const formatted: string[] = [];
     let indent = 0;
 
-    for (let line of lines) {
-      let trimmed = line.trim();
+    for (const line of lines) {
+      const trimmed = line.trim();
       if (!trimmed) { formatted.push(''); continue; }
 
       const closers = (trimmed.match(/^[}\])]/g) || []).length;
