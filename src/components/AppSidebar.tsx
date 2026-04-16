@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAvatarUrl } from "@/lib/avatarUrl";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -230,27 +230,30 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r" style={{ borderColor: "hsl(var(--sidebar-border))", background: "hsl(var(--sidebar-background))" }}>
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b-4" style={{ borderColor: "hsl(var(--border))" }}>
-        <div
-          className="flex items-center justify-center w-10 h-10 font-black text-sm font-mono border-4 shadow-[3px_3px_0_0_hsl(var(--border))]"
-          style={{
-            background: "hsl(var(--primary))",
-            color: "#000",
-            borderColor: "hsl(var(--border))",
-          }}
-        >
-          AG
-        </div>
-        <div>
-          <div className="text-sm font-black uppercase tracking-widest" style={{ color: "hsl(var(--foreground))" }}>
-            AlgoGuru
+      <Link to="/" className="block">
+        <div className="flex items-center gap-3 px-5 py-5 border-b-4 hover:bg-muted/50 transition-colors" style={{ 
+          borderColor: "hsl(var(--border))" 
+        }}>
+          <div
+            className="flex items-center justify-center w-10 h-10 font-black text-sm font-mono border-4 shadow-[3px_3px_0_0_hsl(var(--border))]"
+            style={{
+              background: "hsl(var(--primary))",
+              color: "#000",
+              borderColor: "hsl(var(--border))",
+            }}
+          >
+            AG
           </div>
-          <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {currentMode.description}
+          <div>
+            <div className="text-sm font-black uppercase tracking-widest" style={{ color: "hsl(var(--foreground))" }}>
+              AlgoGuru
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
+              {currentMode.description}
+            </div>
           </div>
         </div>
-      </div>
-
+      </Link>
       <SidebarContent className="px-3 py-4">
 
         {/* Home */}
