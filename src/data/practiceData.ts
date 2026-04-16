@@ -39,6 +39,37 @@ const LEETCODE_SOURCE: ProblemSource = {
   url: "https://leetcode.com/problemset/",
 };
 
+// Add exact GeeksforGeeks links here in bulk by problem id.
+const GFG_LINK_OVERRIDES: Record<string, string> = {
+  "arr-tp-1": "https://www.geeksforgeeks.org/problems/move-all-zeroes-to-end-of-array0751/1",
+  "arr-tp-2": "https://www.geeksforgeeks.org/problems/key-pair1554/1",
+  "arr-tp-3": "https://www.geeksforgeeks.org/problems/triplet-sum-in-array-1587115621/1",
+  "arr-tp-4": "https://www.geeksforgeeks.org/problems/sort-an-array-of-0s-1s-and-2s4231/1",
+  "arr-tp-5": "https://www.geeksforgeeks.org/problems/container-with-most-water4145/1",
+  "arr-tp-6": "https://www.geeksforgeeks.org/problems/trapping-rain-water-1587115621/1",
+  "arr-sw-1": "https://www.geeksforgeeks.org/problems/max-sum-subarray-of-size-k5313/1",
+  "arr-sw-2": "https://www.geeksforgeeks.org/problems/maximum-consecutive-ones/1",
+  "arr-sw-3": "https://www.geeksforgeeks.org/problems/maximum-consecutive-ones-iii/1",
+  "arr-sw-4": "https://www.geeksforgeeks.org/problems/count-the-subarrays-having-product-less-than-k1708/1",
+  "arr-sw-5": "https://www.geeksforgeeks.org/problems/fruit-into-baskets-1663137462/1",
+  "arr-sw-6": "https://www.geeksforgeeks.org/problems/minimum-size-subarray-sum/1",
+  "arr-sw-7": "https://www.geeksforgeeks.org/problems/maximum-of-all-subarrays-of-size-k3101/1",
+  "arr-sw-8": "https://www.geeksforgeeks.org/problems/subarrays-with-k-distinct-integers/1",
+  "arr-kd-1": "https://www.geeksforgeeks.org/problems/kadanes-algorithm-1587115620/1",
+  "arr-kd-2": "https://www.geeksforgeeks.org/problems/maximum-product-subarray3604/1",
+  "arr-kd-3": "https://www.geeksforgeeks.org/problems/max-circular-subarray-sum-1587115620/1",
+  "arr-kd-4": "https://www.geeksforgeeks.org/problems/smallest-sum-contiguous-subarray/1",
+  "arr-kd-5": "https://www.geeksforgeeks.org/problems/maximum-sum-rectangle0832/1",
+  "str-tp-2": "https://www.geeksforgeeks.org/problems/palindrome-string0817/1",
+  "str-tp-3": "https://www.geeksforgeeks.org/problems/valid-palindrome-ii/1",
+  "str-tp-4": "https://www.geeksforgeeks.org/problems/longest-palindromic-substring0806/1",
+  "str-sw-1": "https://www.geeksforgeeks.org/problems/count-occurences-of-anagrams5839/1",
+  "str-sw-2": "https://www.geeksforgeeks.org/problems/longest-distinct-characters-in-string5848/1",
+  "str-sw-3": "https://www.geeksforgeeks.org/problems/longest-k-unique-characters-substring0853/1",
+  "str-sw-4": "https://www.geeksforgeeks.org/problems/check-if-two-strings-are-k-anagrams-or-not/1",
+  "str-sw-5": "https://www.geeksforgeeks.org/problems/smallest-window-in-a-string-containing-all-the-characters-of-another-string-1587115621/1",
+};
+
 type BuildProblemInput = {
   id: string;
   title: string;
@@ -60,9 +91,8 @@ function buildProblem(input: BuildProblemInput): Problem {
 
   const gfgLink =
     input.gfgLink ??
-    (input.slug
-      ? `https://www.geeksforgeeks.org/problems/${encodeURIComponent(input.slug)}/1`
-      : `https://www.geeksforgeeks.org/search/?q=${encodeURIComponent(input.title)}`);
+    GFG_LINK_OVERRIDES[input.id] ??
+    `https://www.geeksforgeeks.org/?s=${encodeURIComponent(input.title)}`;
 
   const solutionLink =
     input.solutionLink ??
