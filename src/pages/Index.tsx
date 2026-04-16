@@ -115,7 +115,7 @@ export default function Index() {
         <div className="absolute inset-0 pointer-events-none opacity-[0.04] dark:opacity-[0.06]"
           style={{ backgroundImage: 'radial-gradient(hsl(var(--foreground)) 1.5px, transparent 0)', backgroundSize: '32px 32px' }} />
 
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="relative grid grid-cols-1 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -186,32 +186,6 @@ export default function Index() {
                 Try Playground <Terminal size={15} />
               </motion.button>
             </div>
-          </motion.div>
-
-          {/* Stats Panel */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="hidden lg:grid grid-cols-2 gap-4"
-          >
-            {[
-              { num: "500+", label: "Practice Problems", color: "bg-[#FFD500]" },
-              { num: "12", label: "DSA Modules", color: "bg-[#FF3366] text-white" },
-              { num: "9", label: "Java Modules", color: "bg-[#A3E635]" },
-              { num: "300+", label: "Code Examples", color: "bg-[#7C3AED] text-white" },
-            ].map(({ num, label, color }, i) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.08 }}
-                className={`p-4 border-[3px] border-black dark:border-white shadow-[4px_4px_0_0_hsl(var(--border))] ${color} ${i % 2 !== 0 ? "mt-5" : ""}`}
-              >
-                <div className={`text-3xl font-black tracking-tighter mb-0.5 ${color.includes("text-white") ? "text-white" : "text-black"}`}>{num}</div>
-                <div className={`text-[10px] font-black uppercase tracking-widest ${color.includes("text-white") ? "text-white/80" : "text-black/70"}`}>{label}</div>
-              </motion.div>
-            ))}
           </motion.div>
         </div>
       </section>
