@@ -120,6 +120,7 @@ export default function Index() {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            style={{ containerType: "inline-size" }}
           >
             {/* Badge */}
             <div className="inline-flex items-center gap-1.5 neo-btn bg-card px-3 py-1 text-[10px] font-black uppercase tracking-widest mb-5">
@@ -128,16 +129,16 @@ export default function Index() {
             </div>
 
             {/* Hero Title */}
-            <h1 className="text-3xl md:text-4xl xl:text-5xl font-black uppercase leading-[1.05] tracking-tighter mb-5 flex flex-wrap items-center gap-3">
+            <h1 className="font-black uppercase leading-[1.05] tracking-tighter mb-5 flex items-center justify-start gap-1 sm:gap-2 lg:gap-3 whitespace-nowrap" style={{ fontSize: "clamp(0.8rem, 6cqw, 3rem)" }}>
               <span>MASTER</span>
               <span className="relative inline-block">
-                <span className="relative z-10 bg-primary text-black px-2 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
+                <span className="relative z-10 bg-primary text-black px-1.5 py-0.5 md:px-2 md:py-0.5 border-[2px] md:border-[3px] border-black dark:border-white inline-block shadow-[3px_3px_0_0_hsl(var(--border))] md:shadow-[4px_4px_0_0_hsl(var(--border))]">
                   CODE.
                 </span>
               </span>
               <span>ACE</span>
               <span className="relative inline-block">
-                <span className="relative z-10 bg-[#FF3366] text-white px-2 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
+                <span className="relative z-10 bg-[#FF3366] text-white px-1.5 py-0.5 md:px-2 md:py-0.5 border-[2px] md:border-[3px] border-black dark:border-white inline-block shadow-[3px_3px_0_0_hsl(var(--border))] md:shadow-[4px_4px_0_0_hsl(var(--border))]">
                   INTERVIEWS.
                 </span>
               </span>

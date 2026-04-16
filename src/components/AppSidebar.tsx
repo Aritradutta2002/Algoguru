@@ -313,15 +313,20 @@ export function AppSidebar() {
                       >
                         {topic.icon}
                       </span>
-                      <span style={{ color: isActive ? color : "hsl(var(--sidebar-foreground))" }}>
+                      <span
+                        className="transition-colors group-hover:text-sidebar-accent-foreground"
+                        style={isActive ? { color } : undefined}
+                      >
                         {topic.title}
                       </span>
                     </div>
                     <ChevronDown
                       size={13}
-                      className="transition-transform duration-300"
+                      className={cn(
+                        "transition-transform duration-300 group-hover:text-sidebar-accent-foreground",
+                        !isActive && "text-muted-foreground"
+                      )}
                       style={{
-                        color: "hsl(var(--muted-foreground))",
                         transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                       }}
                     />
@@ -345,16 +350,19 @@ export function AppSidebar() {
                               <SidebarMenuSubButton asChild className="h-auto p-0">
                                 <button
                                   onClick={() => navigate(`/${topic.id}#${sub.id}`)}
-                                  className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-xs transition-all duration-200 text-left"
+                                  className={cn(
+                                    "flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 text-left",
+                                    !active && "text-sidebar-foreground/90 hover:text-sidebar-accent-foreground"
+                                  )}
                                   style={{
-                                    color: active ? color : "hsl(var(--sidebar-foreground)/0.75)",
+                                    color: active ? color : undefined,
                                     background: active ? `${color}10` : undefined,
-                                    fontWeight: active ? 600 : 400,
+                                    fontWeight: active ? 600 : 500,
                                   }}
                                 >
                                   <span
-                                    className="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors"
-                                    style={{ background: active ? color : "hsl(var(--muted-foreground)/0.3)" }}
+                                    className="w-2 h-2 rounded-full flex-shrink-0 transition-colors"
+                                    style={{ background: active ? color : "hsl(var(--muted-foreground)/0.5)" }}
                                   />
                                   {sub.title}
                                 </button>
