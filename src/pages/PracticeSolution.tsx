@@ -78,7 +78,7 @@ export default function PracticeSolution() {
               </Badge>
             )}
           </div>
-          <CardTitle className="text-2xl md:text-3xl font-black uppercase tracking-tight">
+          <CardTitle className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
             {detail.problem.title}
           </CardTitle>
           <CardDescription className="text-sm font-semibold leading-relaxed max-w-4xl">

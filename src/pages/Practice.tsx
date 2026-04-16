@@ -31,6 +31,14 @@ type CelebrationBurst = {
 const CELEBRATION_COLORS = ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#eab308", "#10b981"];
 const CELEBRATION_PARTICLE_COUNT = 18;
 
+function toProblemSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
 export default function Practice() {
   const NOTE_POPUP_WIDTH = 520;
   const NOTE_POPUP_HEIGHT = 420;
@@ -452,7 +460,7 @@ export default function Practice() {
                                       </a>
 
                                       <Link
-                                        to={`/practice/solution/${prob.id}`}
+                                        to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`}
                                         className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                       >
                                         Solution

@@ -520,7 +520,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   minWidth: "30%",
                 }}
               >
-                {children}
+                <div className="min-h-full pb-10">
+                  {children}
+                </div>
               </main>
 
               {/* ── Drag handle ── */}
@@ -581,7 +583,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           ) : (
             <main className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
-              {children}
+              <div className="min-h-full pb-10">
+                {children}
+              </div>
             </main>
           )}
         </div>
@@ -610,6 +614,7 @@ const App = () => (
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/practice" element={<Practice />} />
                         <Route path="/practice/solution/:problemId" element={<PracticeSolution />} />
+                        <Route path="/practice/solution/:problemId/:problemSlug" element={<PracticeSolution />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/admin" element={<Admin />} />
                         <Route path="/:topicId" element={<TopicPage />} />
