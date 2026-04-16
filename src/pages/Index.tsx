@@ -129,16 +129,33 @@ export default function Index() {
             </div>
 
             {/* Hero Title */}
-            <h1 className="font-black uppercase leading-[1.05] tracking-tighter mb-5 flex items-center justify-start gap-1 sm:gap-2 lg:gap-3 whitespace-nowrap" style={{ fontSize: "clamp(0.8rem, 6cqw, 3rem)" }}>
+            <h1 
+              className="font-black uppercase leading-[1.05] tracking-tighter mb-5 flex items-center justify-start whitespace-nowrap" 
+              style={{ fontSize: "clamp(0.8rem, 5.5cqw, 3rem)", gap: "0.25em" }}
+            >
               <span>MASTER</span>
               <span className="relative inline-block">
-                <span className="relative z-10 bg-primary text-black px-1.5 py-0.5 md:px-2 md:py-0.5 border-[2px] md:border-[3px] border-black dark:border-white inline-block shadow-[3px_3px_0_0_hsl(var(--border))] md:shadow-[4px_4px_0_0_hsl(var(--border))]">
+                <span 
+                  className="relative z-10 bg-primary text-black inline-block"
+                  style={{ 
+                    padding: "0.15em 0.3em", 
+                    border: "0.06em solid hsl(var(--border))", 
+                    boxShadow: "0.08em 0.08em 0 0 hsl(var(--border))" 
+                  }}
+                >
                   CODE.
                 </span>
               </span>
               <span>ACE</span>
               <span className="relative inline-block">
-                <span className="relative z-10 bg-[#FF3366] text-white px-1.5 py-0.5 md:px-2 md:py-0.5 border-[2px] md:border-[3px] border-black dark:border-white inline-block shadow-[3px_3px_0_0_hsl(var(--border))] md:shadow-[4px_4px_0_0_hsl(var(--border))]">
+                <span 
+                  className="relative z-10 bg-[#FF3366] text-white inline-block"
+                  style={{ 
+                    padding: "0.15em 0.3em", 
+                    border: "0.06em solid hsl(var(--border))", 
+                    boxShadow: "0.08em 0.08em 0 0 hsl(var(--border))" 
+                  }}
+                >
                   INTERVIEWS.
                 </span>
               </span>
