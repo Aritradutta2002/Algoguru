@@ -10,6 +10,8 @@ import {
   BookOpen, ArrowLeft, Download, Bug,
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
+import * as prettier from "prettier/standalone";
+import * as prettierPluginJava from "prettier-plugin-java";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { ALL_SNIPPETS, PRIORITY_LABELS } from "@/data/javaSnippets";
 import { STATIC_COMPLETIONS_MAP, INSTANCE_COMPLETIONS_MAP, ALL_INSTANCE_METHODS, JAVA_KEYWORDS, JAVA_TYPES } from "@/data/javaAutoComplete";
@@ -821,31 +823,42 @@ export default function Playground() {
     });
   };
 
-  const formatCode = useCallback(() => {
+  const formatCode = useCallback(async () => {
     const raw = code;
     if (!raw.trim()) return;
 
-    const lines = raw.split('\n');
-    const formatted: string[] = [];
-    let indent = 0;
+    try {
+      const formatted = await prettier.format(raw, {
+        parser: "java",
+        plugins: [prettierPluginJava],
+        tabWidth: 4,
+        printWidth: 100,
+      });
+      setCode(formatted);
+    } catch (error) {
+      console.error("Formatting error:", error);
+      // Fallback to naive formatting if there's a syntax error preventing Prettier from running
+      const lines = raw.split('\n');
+      const formattedFallback: string[] = [];
+      let indent = 0;
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) { formatted.push(''); continue; }
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) { formattedFallback.push(''); continue; }
 
-      const closers = (trimmed.match(/^[}\])]/g) || []).length;
-      if (closers > 0 && indent > 0) indent--;
+        const closers = (trimmed.match(/^[}\])]/g) || []).length;
+        if (closers > 0 && indent > 0) indent--;
 
-      formatted.push('    '.repeat(Math.max(indent, 0)) + trimmed);
+        formattedFallback.push('    '.repeat(Math.max(indent, 0)) + trimmed);
 
-      const opens = (trimmed.match(/[{(\[]/g) || []).length;
-      const closes = (trimmed.match(/[}\])]/g) || []).length;
-      indent += opens - closes;
-      if (closers > 0) indent += closers;
-      indent = Math.max(indent, 0);
+        const opens = (trimmed.match(/[{(\[]/g) || []).length;
+        const closes = (trimmed.match(/[}\])]/g) || []).length;
+        indent += opens - closes;
+        if (closers > 0) indent += closers;
+        indent = Math.max(indent, 0);
+      }
+      setCode(formattedFallback.join('\n'));
     }
-
-    setCode(formatted.join('\n'));
   }, [code]);
 
   const resetCode = useCallback(() => {
