@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
@@ -405,6 +405,7 @@ function DragHandle({ onMouseDown, isDragging }: { onMouseDown: (e: React.MouseE
 }
 
 function AppLayout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
   const [guruOpen, setGuruOpen] = useState(false);
   const [splitPct, setSplitPct] = useState(() => {
     try {
@@ -428,6 +429,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isNarrow = guruPct < 30;
   // When Guru panel narrower than ~22%, hide non-essential UI entirely
   const isTiny = guruPct < 22;
+  const contentBottomPaddingClass = location.pathname === "/" ? "pb-0" : "pb-10";
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -520,7 +522,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   minWidth: "30%",
                 }}
               >
-                <div className="min-h-full pb-10">
+                <div className={`min-h-full ${contentBottomPaddingClass}`}>
                   {children}
                 </div>
               </main>
@@ -583,7 +585,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           ) : (
             <main className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
-              <div className="min-h-full pb-10">
+              <div className={`min-h-full ${contentBottomPaddingClass}`}>
                 {children}
               </div>
             </main>
