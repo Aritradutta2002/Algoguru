@@ -361,7 +361,7 @@ export default function Practice() {
                                         href={prob.leetcodeLink}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="ml-1 text-[10px] font-black uppercase tracking-wide text-primary hover:underline"
+                                        className="ml-1 text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                       >
                                         LeetCode
                                       </a>
@@ -370,7 +370,7 @@ export default function Practice() {
                                         href={prob.gfgLink}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-[10px] font-black uppercase tracking-wide text-primary hover:underline"
+                                        className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                       >
                                         GFG
                                       </a>
@@ -379,7 +379,7 @@ export default function Practice() {
                                         href={prob.solutionLink}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-[10px] font-black uppercase tracking-wide text-primary hover:underline"
+                                        className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                       >
                                         Solution
                                       </a>
@@ -389,12 +389,12 @@ export default function Practice() {
                                           href={prob.source.url}
                                           target="_blank"
                                           rel="noreferrer"
-                                          className="ml-1 text-[10px] font-black uppercase tracking-wide text-primary hover:underline"
+                                          className="ml-1 text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                         >
                                           {prob.source.label}
                                         </a>
                                       ) : (
-                                        <span className="ml-1 text-[10px] font-black uppercase tracking-wide text-muted-foreground">
+                                        <span className="ml-1 text-xs font-black uppercase tracking-wide text-muted-foreground">
                                           {prob.source.label}
                                         </span>
                                       )}
