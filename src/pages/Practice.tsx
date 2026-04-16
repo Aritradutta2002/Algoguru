@@ -372,7 +372,7 @@ export default function Practice() {
                                         rel="noreferrer"
                                         className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                       >
-                                        GeeksForGeeks
+                                        GeeksforGeeks
                                       </a>
 
                                       <a
