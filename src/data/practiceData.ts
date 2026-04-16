@@ -58,7 +58,11 @@ function buildProblem(input: BuildProblemInput): Problem {
       ? `https://leetcode.com/problems/${input.slug}/`
       : `https://leetcode.com/problemset/?search=${encodeURIComponent(input.title)}`);
 
-  const gfgLink = input.gfgLink ?? `https://www.geeksforgeeks.org/search/?q=${encodeURIComponent(input.title)}`;
+  const gfgLink =
+    input.gfgLink ??
+    (input.slug
+      ? `https://www.geeksforgeeks.org/problems/${encodeURIComponent(input.slug)}/1`
+      : `https://www.geeksforgeeks.org/search/?q=${encodeURIComponent(input.title)}`);
 
   const solutionLink =
     input.solutionLink ??
