@@ -17,6 +17,7 @@ interface ModelOption {
 }
 
 const MODELS: ModelOption[] = [
+  { key: "auto", label: "Auto (Fastest)", tag: "Speed" },
   { key: "nemotron", label: "Nemotron 120B", tag: "NVIDIA" },
   { key: "deepseek", label: "DeepSeek V3.2", tag: "DeepSeek" },
   { key: "qwen", label: "Qwen 3.5 397B", tag: "Alibaba" },

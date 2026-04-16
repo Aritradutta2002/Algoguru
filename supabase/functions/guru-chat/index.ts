@@ -39,48 +39,72 @@ serve(async (req) => {
 
   try {
     const { messages, model: modelKey } = await req.json();
-    const selected = ALLOWED_MODELS[modelKey] || ALLOWED_MODELS["nemotron"];
 
-    const isModal = selected.provider === "modal";
-    const apiKey = isModal ? Deno.env.get("MODAL_API_KEY") : Deno.env.get("NVIDIA_API_KEY");
-    const baseUrl = isModal ? "https://api.us-west-2.modal.direct/v1/chat/completions" : "https://integrate.api.nvidia.com/v1/chat/completions";
+    const doRequest = async (selected: { id: string; maxTokens: number; provider: "nvidia" | "modal" }, signal?: AbortSignal) => {
+      const isModal = selected.provider === "modal";
+      const apiKey = isModal ? Deno.env.get("MODAL_API_KEY") : Deno.env.get("NVIDIA_API_KEY");
+      const baseUrl = isModal ? "https://api.us-west-2.modal.direct/v1/chat/completions" : "https://integrate.api.nvidia.com/v1/chat/completions";
 
-    if (!apiKey) {
-      throw new Error(`${selected.provider.toUpperCase()}_API_KEY is not configured`);
-    }
-
-    const response = await fetch(
-      baseUrl,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: selected.id,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            ...messages,
-          ],
-          temperature: 0.7,
-          top_p: 0.95,
-          max_tokens: selected.maxTokens,
-          stream: true,
-        }),
+      if (!apiKey) {
+        throw new Error(`${selected.provider.toUpperCase()}_API_KEY is not configured`);
       }
-    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("NVIDIA API error:", response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: `NVIDIA API error: ${response.status}` }),
+      const response = await fetch(
+        baseUrl,
         {
-          status: response.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: selected.id,
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              ...messages,
+            ],
+            temperature: 0.7,
+            top_p: 0.95,
+            max_tokens: selected.maxTokens,
+            stream: true,
+          }),
+          signal,
         }
       );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error: ${response.status} - ${errorText}`);
+      }
+
+      return response;
+    };
+
+    let response: Response;
+
+    if (modelKey === "auto") {
+      const fastModels = ["nemotron", "deepseek", "qwen", "minimax"]; // Subset to avoid overloading too many GPUs
+      const abortControllers = fastModels.map(() => new AbortController());
+      
+      try {
+        response = await Promise.any(
+          fastModels.map(async (key, index) => {
+            const res = await doRequest(ALLOWED_MODELS[key], abortControllers[index].signal);
+            
+            // Abort all other slower requests immediately when one wins
+            abortControllers.forEach((ac, i) => {
+              if (i !== index) ac.abort();
+            });
+
+            return res;
+          })
+        );
+      } catch (aggregateError) {
+        throw new Error("All AI models failed to respond or timed out.");
+      }
+    } else {
+      const selected = ALLOWED_MODELS[modelKey] || ALLOWED_MODELS["nemotron"];
+      response = await doRequest(selected);
     }
 
     return new Response(response.body, {
