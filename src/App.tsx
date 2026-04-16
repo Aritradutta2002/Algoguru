@@ -511,7 +511,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 style={{
                   width: `${splitPct}%`,
                   overscrollBehavior: "contain",
-                  minWidth: "40%",
+                  minWidth: "30%",
                 }}
               >
                 {children}
@@ -523,7 +523,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               {/* Guru panel */}
               <div
                 className="flex-1 min-w-0 overflow-hidden flex flex-col"
-                style={{ minWidth: "300px" }}
+                style={{ minWidth: "250px" }}
               >
                 {/* Guru panel title bar — truncates when narrow */}
                 {!isTiny && (
