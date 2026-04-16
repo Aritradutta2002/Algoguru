@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import TopicPage from "./pages/TopicPage";
@@ -154,12 +153,13 @@ function SearchButton() {
       <button
         onClick={() => setOpen(true)}
         title="Search topics (Ctrl+K)"
-        className="neo-btn flex items-center gap-2.5 px-4 py-2 bg-card text-foreground"
+        className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-border bg-card text-foreground rounded transition-all duration-150 hover:bg-muted"
+        style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
       >
-        <Search size={16} strokeWidth={2.5} />
-        <span className="hidden sm:inline text-sm font-black uppercase tracking-widest">Search</span>
+        <Search size={13} strokeWidth={2.5} />
+        <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">Search</span>
         <kbd
-          className="hidden sm:inline text-[10px] font-mono font-black px-2 py-0.5 border-2 border-border ml-1"
+          className="hidden sm:inline text-[9px] font-mono font-black px-1.5 py-0.5 border border-border ml-0.5"
           style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
         >
           ⌘K
@@ -298,43 +298,45 @@ function HeaderControls() {
   const isMax = fontSize === "xl";
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5">
       {/* Zoom controls */}
       <button
         onClick={decreaseFontSize}
         disabled={isMin}
         title="Zoom out"
-        className="flex items-center justify-center w-8 h-8 rounded transition-all duration-150 disabled:opacity-25 neo-btn bg-background"
+        className="flex items-center justify-center w-6 h-6 rounded transition-all duration-150 disabled:opacity-25 hover:bg-muted"
         style={{ color: "hsl(var(--muted-foreground))" }}
       >
-        <ZoomOut size={14} />
+        <ZoomOut size={12} />
       </button>
-      <span className="text-[11px] font-mono font-bold min-w-[36px] text-center" style={{ color: "hsl(var(--foreground))" }}>
+      <span className="text-[10px] font-mono font-bold min-w-[28px] text-center" style={{ color: "hsl(var(--foreground))" }}>
         {ZOOM_MAP[fontSize] || "100%"}
       </span>
       <button
         onClick={increaseFontSize}
         disabled={isMax}
         title="Zoom in"
-        className="flex items-center justify-center w-8 h-8 rounded transition-all duration-150 disabled:opacity-25 neo-btn bg-background"
+        className="flex items-center justify-center w-6 h-6 rounded transition-all duration-150 disabled:opacity-25 hover:bg-muted"
         style={{ color: "hsl(var(--muted-foreground))" }}
       >
-        <ZoomIn size={14} />
+        <ZoomIn size={12} />
       </button>
 
-      <div className="w-px h-5 mx-2" style={{ background: "hsl(var(--border))" }} />
+      <div className="w-px h-4 mx-1.5" style={{ background: "hsl(var(--border))" }} />
 
-      {/* Day/Night Toggle - Neo-Brutalist Style */}
+      {/* Day/Night Toggle */}
       <button
         onClick={toggleTheme}
         title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        className="flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase tracking-widest neo-btn transition-all duration-150"
+        className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-black uppercase tracking-wider transition-all duration-150 hover:opacity-90 rounded"
         style={{
           background: isDark ? "hsl(43 95% 55%)" : "hsl(25 40% 18%)",
           color: isDark ? "#1a0a00" : "#FAF6EE",
+          border: "2px solid hsl(var(--border))",
+          boxShadow: "2px 2px 0px 0px hsl(var(--border))",
         }}
       >
-        {isDark ? <Sun size={14} /> : <Moon size={14} />}
+        {isDark ? <Sun size={11} /> : <Moon size={11} />}
         <span className="hidden sm:inline">{isDark ? "Day" : "Night"}</span>
       </button>
     </div>
@@ -355,66 +357,210 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/* ── Custom Drag Handle ──────────────────────────── */
+function DragHandle({ onMouseDown, isDragging }: { onMouseDown: (e: React.MouseEvent) => void; isDragging: boolean }) {
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      title="Drag to resize"
+      className="group flex-shrink-0 relative flex flex-col items-center justify-center z-10 select-none"
+      style={{
+        width: "14px",
+        cursor: "col-resize",
+        background: isDragging ? "hsl(var(--primary))" : "hsl(var(--muted))",
+        borderLeft: "2px solid hsl(var(--border))",
+        borderRight: "2px solid hsl(var(--border))",
+        transition: "background 0.15s ease",
+      }}
+    >
+      {/* Grip dots */}
+      <div className="flex flex-col gap-[5px]">
+        {[0,1,2,3,4,5].map(i => (
+          <div
+            key={i}
+            className="rounded-full transition-all duration-150"
+            style={{
+              width: 4, height: 4,
+              background: isDragging
+                ? "hsl(var(--primary-foreground))"
+                : "hsl(var(--muted-foreground))",
+              opacity: isDragging ? 1 : 0.5,
+            }}
+          />
+        ))}
+      </div>
+      {/* Hover highlight line */}
+      <div
+        className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+        style={{ background: "hsl(var(--primary))" }}
+      />
+    </div>
+  );
+}
+
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [guruOpen, setGuruOpen] = useState(false);
+  const [splitPct, setSplitPct] = useState(63); // main panel width %
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Derived: how wide is the Guru panel?
+  const guruPct = 100 - splitPct;
+  // When Guru panel narrower than ~30%, truncate labels inside it
+  const isNarrow = guruPct < 30;
+  // When Guru panel narrower than ~22%, hide non-essential UI entirely
+  const isTiny = guruPct < 22;
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const rawPct = ((ev.clientX - rect.left) / rect.width) * 100;
+      // Constrain: main panel 30%–74%
+      setSplitPct(Math.min(Math.max(rawPct, 30), 74));
+    };
+
+    const onMouseUp = () => {
+      setIsDragging(false);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, []);
 
   return (
     <SidebarProvider>
-      <div className="flex h-[100dvh] w-full overflow-hidden" style={{ background: "hsl(var(--background))" }}>
+      <div
+        className="flex h-[100dvh] w-full overflow-hidden"
+        style={{
+          background: "hsl(var(--background))",
+          cursor: isDragging ? "col-resize" : "auto",
+          userSelect: isDragging ? "none" : "auto",
+        }}
+      >
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top bar */}
           <header
-            className="h-14 flex items-center gap-3 px-5 border-b-2 flex-shrink-0 sticky top-0 z-40"
+            className="h-11 flex items-center gap-2 px-4 border-b-2 flex-shrink-0 sticky top-0 z-40"
             style={{
               borderColor: "hsl(var(--border))",
               background: "hsl(var(--background))",
             }}
           >
             <SidebarTrigger
-              className="neo-btn flex items-center justify-center w-8 h-8 bg-background"
+              className="flex items-center justify-center w-7 h-7 hover:bg-muted rounded transition-all duration-150"
               style={{ color: "hsl(var(--foreground))" }}
             >
-              <Menu size={16} />
+              <Menu size={15} />
             </SidebarTrigger>
-            <div className="h-5 w-0.5" style={{ background: "hsl(var(--border))" }} />
-            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+            <div className="h-4 w-px" style={{ background: "hsl(var(--border))" }} />
+            <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
               AlgoGuru
             </span>
             <div className="flex-1" />
 
             <SearchButton />
-            <div className="h-4 w-px mx-1" style={{ background: "hsl(var(--border))" }} />
+            <div className="h-4 w-px mx-0.5" style={{ background: "hsl(var(--border))" }} />
             <HeaderControls />
-            <div className="h-4 w-px mx-1" style={{ background: "hsl(var(--border))" }} />
+            <div className="h-4 w-px mx-0.5" style={{ background: "hsl(var(--border))" }} />
             <UserMenu />
-            <div className="h-4 w-px mx-1" style={{ background: "hsl(var(--border))" }} />
+            <div className="h-4 w-px mx-0.5" style={{ background: "hsl(var(--border))" }} />
             <button
               onClick={() => setGuruOpen((o) => !o)}
               title={guruOpen ? "Close Guru" : "Open Guru"}
-              className="neo-btn flex items-center gap-1.5 px-3 py-2 transition-all duration-150"
+              className="flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-wider rounded transition-all duration-150"
               style={{
                 background: guruOpen ? "hsl(var(--primary))" : "hsl(var(--card))",
-                color: guruOpen ? "#000" : "hsl(var(--foreground))",
+                color: guruOpen ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
+                border: "2px solid hsl(var(--border))",
+                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
               }}
             >
-              <Sparkles size={14} />
-              <span className="text-xs font-bold hidden sm:inline">Guru</span>
+              <Sparkles size={12} />
+              <span className="hidden sm:inline">Guru</span>
             </button>
           </header>
 
           {guruOpen ? (
-            <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
-              <ResizablePanel defaultSize={65} minSize={35}>
-                <main className="h-full overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
-                  {children}
-                </main>
-              </ResizablePanel>
-              <ResizableHandle />
-              <ResizablePanel defaultSize={35} minSize={22} maxSize={50}>
+            /* ── Custom flex split with mouse-event drag ── */
+            <div
+              ref={containerRef}
+              className="flex-1 flex flex-row min-h-0 overflow-hidden"
+            >
+              {/* Main content panel */}
+              <main
+                className="overflow-y-auto flex-shrink-0"
+                style={{
+                  width: `${splitPct}%`,
+                  overscrollBehavior: "contain",
+                  minWidth: "30%",
+                }}
+              >
+                {children}
+              </main>
+
+              {/* ── Drag handle ── */}
+              <DragHandle onMouseDown={handleDragStart} isDragging={isDragging} />
+
+              {/* Guru panel */}
+              <div
+                className="flex-1 min-w-0 overflow-hidden flex flex-col"
+                style={{ minWidth: "26%" }}
+              >
+                {/* Guru panel title bar — truncates when narrow */}
+                {!isTiny && (
+                  <div
+                    className="flex-shrink-0 flex items-center gap-2 px-3 py-2 border-b-2"
+                    style={{
+                      borderColor: "hsl(var(--border))",
+                      background: "hsl(var(--card))",
+                    }}
+                  >
+                    <Sparkles size={13} style={{ color: "hsl(var(--primary))", flexShrink: 0 }} />
+                    <span
+                      className="text-xs font-black uppercase tracking-widest"
+                      style={{
+                        color: "hsl(var(--foreground))",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {isNarrow ? "Guru" : "Guru AI Assistant"}
+                    </span>
+                    <div className="flex-1" />
+                    {!isNarrow && (
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5"
+                        style={{
+                          background: "hsl(var(--primary) / 0.15)",
+                          color: "hsl(var(--primary))",
+                          border: "1.5px solid hsl(var(--primary) / 0.4)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        AI
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setGuruOpen(false)}
+                      className="neo-btn flex-shrink-0 w-6 h-6 flex items-center justify-center bg-card"
+                      style={{ color: "hsl(var(--muted-foreground))" }}
+                      title="Close Guru"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
                 <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
-              </ResizablePanel>
-            </ResizablePanelGroup>
+              </div>
+            </div>
           ) : (
             <main className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
               {children}

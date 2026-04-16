@@ -110,7 +110,7 @@ export default function Index() {
       </div>
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="px-6 md:px-12 lg:px-20 py-16 md:py-24 lg:py-32 max-w-7xl mx-auto relative">
+      <section className="px-6 md:px-10 lg:px-16 py-10 md:py-16 max-w-7xl mx-auto relative">
         {/* Background grid */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.04] dark:opacity-[0.06]"
           style={{ backgroundImage: 'radial-gradient(hsl(var(--foreground)) 1.5px, transparent 0)', backgroundSize: '32px 32px' }} />
@@ -122,50 +122,50 @@ export default function Index() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 neo-btn bg-card px-4 py-2 text-xs font-black uppercase tracking-widest mb-8">
-              <Zap size={14} className="text-primary" />
+            <div className="inline-flex items-center gap-1.5 neo-btn bg-card px-3 py-1 text-[10px] font-black uppercase tracking-widest mb-5">
+              <Zap size={11} className="text-primary" />
               <span>The Unapologetic Dev Platform</span>
             </div>
 
             {/* Hero Title */}
-            <h1 className="text-5xl md:text-6xl xl:text-7xl font-black uppercase leading-[1.0] tracking-tighter mb-8">
+            <h1 className="text-3xl md:text-4xl xl:text-5xl font-black uppercase leading-[1.05] tracking-tighter mb-5">
               <span className="block">MASTER</span>
               <span className="relative inline-block">
-                <span className="relative z-10 bg-primary text-black px-4 py-1 border-4 border-black dark:border-white inline-block shadow-[6px_6px_0_0_hsl(var(--border))]">
+                <span className="relative z-10 bg-primary text-black px-3 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
                   CODE.
                 </span>
               </span>
-              <span className="block mt-3">ACE</span>
+              <span className="block mt-2">ACE</span>
               <span className="relative inline-block mt-1">
-                <span className="relative z-10 bg-[#FF3366] text-white px-4 py-1 border-4 border-black dark:border-white inline-block shadow-[6px_6px_0_0_hsl(var(--border))]">
+                <span className="relative z-10 bg-[#FF3366] text-white px-3 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
                   INTERVIEWS.
                 </span>
               </span>
             </h1>
 
-            <p className="text-base md:text-lg font-bold text-muted-foreground max-w-md leading-relaxed mb-10 border-l-4 border-primary pl-5">
+            <p className="text-sm font-semibold text-muted-foreground max-w-sm leading-relaxed mb-7 border-l-[3px] border-primary pl-4">
               The straight-to-the-point platform built for developers who want
               to crack DSA, ace interviews, and understand Java deeply. No fluff. Just code.
             </p>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3">
               <motion.button
-                whileHover={{ x: -3, y: -3, boxShadow: "8px 8px 0px 0px hsl(var(--border))" }}
-                whileTap={{ x: 3, y: 3, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
+                whileHover={{ x: -2, y: -2, boxShadow: "6px 6px 0px 0px hsl(var(--border))" }}
+                whileTap={{ x: 2, y: 2, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
                 onClick={() => navigate("/recursion")}
-                className="neo-btn bg-primary text-black px-8 py-4 text-base uppercase"
+                className="neo-btn bg-primary text-black px-5 py-2.5 text-sm uppercase"
                 style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}
               >
-                Start Learning <ArrowRight size={18} />
+                Start Learning <ArrowRight size={15} />
               </motion.button>
               <motion.button
-                whileHover={{ x: -3, y: -3, boxShadow: "8px 8px 0px 0px hsl(var(--border))" }}
-                whileTap={{ x: 3, y: 3, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
+                whileHover={{ x: -2, y: -2, boxShadow: "6px 6px 0px 0px hsl(var(--border))" }}
+                whileTap={{ x: 2, y: 2, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
                 onClick={() => navigate("/playground")}
-                className="neo-btn bg-card text-foreground px-8 py-4 text-base uppercase"
+                className="neo-btn bg-card text-foreground px-5 py-2.5 text-sm uppercase"
                 style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}
               >
-                Try Playground <Terminal size={18} />
+                Try Playground <Terminal size={15} />
               </motion.button>
             </div>
           </motion.div>
@@ -175,7 +175,7 @@ export default function Index() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="hidden lg:grid grid-cols-2 gap-5"
+            className="hidden lg:grid grid-cols-2 gap-4"
           >
             {[
               { num: "500+", label: "Practice Problems", color: "bg-[#FFD500]" },
@@ -188,10 +188,10 @@ export default function Index() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + i * 0.08 }}
-                className={`p-7 border-4 border-black dark:border-white shadow-[6px_6px_0_0_hsl(var(--border))] ${color} ${i % 2 !== 0 ? "mt-6" : ""}`}
+                className={`p-4 border-[3px] border-black dark:border-white shadow-[4px_4px_0_0_hsl(var(--border))] ${color} ${i % 2 !== 0 ? "mt-5" : ""}`}
               >
-                <div className={`text-5xl font-black tracking-tighter mb-1 ${color.includes("text-white") ? "text-white" : "text-black"}`}>{num}</div>
-                <div className={`text-xs font-black uppercase tracking-widest ${color.includes("text-white") ? "text-white/80" : "text-black/70"}`}>{label}</div>
+                <div className={`text-3xl font-black tracking-tighter mb-0.5 ${color.includes("text-white") ? "text-white" : "text-black"}`}>{num}</div>
+                <div className={`text-[10px] font-black uppercase tracking-widest ${color.includes("text-white") ? "text-white/80" : "text-black/70"}`}>{label}</div>
               </motion.div>
             ))}
           </motion.div>
