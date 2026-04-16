@@ -441,6 +441,9 @@ export default function Playground() {
     monacoRef.current = monaco;
     monaco.editor.defineTheme("dracula", DRACULA_THEME as any);
     monaco.editor.defineTheme("solarized-dark", SOLARIZED_DARK_THEME);
+    
+    // Explicitly apply the theme since defining it inside onMount might be too late for the initial render
+    monaco.editor.setTheme(currentTheme.id);
 
     // Add breakpoint click handler on gutter (line number margin)
     editor.onMouseDown((e: any) => {
