@@ -18,8 +18,7 @@ interface ModelOption {
 
 const MODELS: ModelOption[] = [
   { key: "auto", label: "Auto (Fastest)", tag: "Speed" },
-  { key: "nemotron", label: "Nemotron 120B", tag: "NVIDIA" },
-  { key: "deepseek", label: "DeepSeek V3.2", tag: "DeepSeek" },
+  { key: "gemini", label: "Gemini", tag: "Google" },
   { key: "qwen", label: "Qwen 3.5 397B", tag: "Alibaba" },
   { key: "kimi", label: "Kimi K2.5", tag: "Moonshot" },
   { key: "minimax", label: "MiniMax M2.7", tag: "MiniMax" },
@@ -195,8 +194,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState(() => {
-    try { return localStorage.getItem("guru-chat-model") || "nemotron"; }
-    catch { return "nemotron"; }
+    try { return localStorage.getItem("guru-chat-model") || "gemini"; }
+    catch { return "gemini"; }
   });
   
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -329,7 +328,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
                   sessions.map(s => (
                     <div 
                       key={s.id}
-                      onClick={() => { setCurrentId(s.id); setShowHistory(false); setModel(s.model || 'nemotron'); }}
+                        onClick={() => { setCurrentId(s.id); setShowHistory(false); setModel(s.model || 'gemini'); }}
                       className={`group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${s.id === currentId ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80 hover:text-foreground'}`}
                     >
                       <div className="flex items-center gap-2.5 overflow-hidden">

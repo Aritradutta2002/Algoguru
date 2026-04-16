@@ -6,9 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ALLOWED_MODELS: Record<string, { id: string; maxTokens: number; provider: "nvidia" | "modal" }> = {
-  "nemotron": { id: "nvidia/nemotron-3-super-120b-a12b", maxTokens: 4096, provider: "nvidia" },
-  "deepseek": { id: "deepseek-ai/deepseek-v3.2", maxTokens: 8192, provider: "nvidia" },
+const ALLOWED_MODELS: Record<string, { id: string; maxTokens: number; provider: "nvidia" | "modal" | "google" }> = {
+  "gemini": { id: "gemini-1.5-flash", maxTokens: 8192, provider: "google" },
   "qwen": { id: "qwen/qwen3.5-397b-a17b", maxTokens: 16384, provider: "nvidia" },
   "kimi": { id: "moonshotai/kimi-k2.5", maxTokens: 16384, provider: "nvidia" },
   "minimax": { id: "minimaxai/minimax-m2.7", maxTokens: 8192, provider: "nvidia" },
@@ -40,10 +39,23 @@ serve(async (req) => {
   try {
     const { messages, model: modelKey } = await req.json();
 
-    const doRequest = async (selected: { id: string; maxTokens: number; provider: "nvidia" | "modal" }, signal?: AbortSignal) => {
+    const doRequest = async (selected: { id: string; maxTokens: number; provider: "nvidia" | "modal" | "google" }, signal?: AbortSignal) => {
       const isModal = selected.provider === "modal";
-      const apiKey = isModal ? Deno.env.get("MODAL_API_KEY") : Deno.env.get("NVIDIA_API_KEY");
-      const baseUrl = isModal ? "https://api.us-west-2.modal.direct/v1/chat/completions" : "https://integrate.api.nvidia.com/v1/chat/completions";
+      const isGoogle = selected.provider === "google";
+      
+      let apiKey = "";
+      let baseUrl = "";
+      
+      if (isGoogle) {
+          apiKey = Deno.env.get("GOOGLE_API_KEY") || "";
+          baseUrl = Deno.env.get("GOOGLE_API_URL") || "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+      } else if (isModal) {
+          apiKey = Deno.env.get("MODAL_API_KEY") || "";
+          baseUrl = "https://api.us-west-2.modal.direct/v1/chat/completions";
+      } else {
+          apiKey = Deno.env.get("NVIDIA_API_KEY") || "";
+          baseUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
+      }
 
       if (!apiKey) {
         throw new Error(`${selected.provider.toUpperCase()}_API_KEY is not configured`);
@@ -83,7 +95,7 @@ serve(async (req) => {
     let response: Response;
 
     if (modelKey === "auto") {
-      const fastModels = ["nemotron", "deepseek", "qwen", "minimax"]; // Subset to avoid overloading too many GPUs
+      const fastModels = ["gemini", "qwen", "minimax"]; // Subset to avoid overloading too many GPUs
       const abortControllers = fastModels.map(() => new AbortController());
       
       try {
@@ -103,7 +115,7 @@ serve(async (req) => {
         throw new Error("All AI models failed to respond or timed out.");
       }
     } else {
-      const selected = ALLOWED_MODELS[modelKey] || ALLOWED_MODELS["nemotron"];
+      const selected = ALLOWED_MODELS[modelKey] || ALLOWED_MODELS["gemini"];
       response = await doRequest(selected);
     }
 
