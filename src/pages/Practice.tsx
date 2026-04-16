@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { practiceData } from "../data/practiceData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Loader2, Save, TrendingUp } from "lucide-react";
+import { CheckCircle2, Loader2, Notebook, Save, TrendingUp, X } from "lucide-react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 export default function Practice() {
+  const NOTE_POPUP_WIDTH = 520;
+  const NOTE_POPUP_HEIGHT = 420;
+  const NOTE_POPUP_MARGIN = 16;
+
   const { user } = useAuth();
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [savedForRevision, setSavedForRevision] = useState<Set<string>>(new Set());
@@ -18,6 +22,11 @@ export default function Practice() {
   const [loadingState, setLoadingState] = useState(false);
   const [upsertingProblemId, setUpsertingProblemId] = useState<string | null>(null);
   const [savingNotesFor, setSavingNotesFor] = useState<Record<string, boolean>>({});
+  const [openSubtopicId, setOpenSubtopicId] = useState<string | null>(null);
+  const [activeNotesProblem, setActiveNotesProblem] = useState<{ id: string; title: string } | null>(null);
+  const [notesPopupPosition, setNotesPopupPosition] = useState({ x: 24, y: 120 });
+  const [isDraggingNotesPopup, setIsDraggingNotesPopup] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!user) {
@@ -159,6 +168,54 @@ export default function Practice() {
     }
   };
 
+  const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+  const openNotesPopup = (id: string, title: string) => {
+    const popupWidth = Math.min(NOTE_POPUP_WIDTH, window.innerWidth - NOTE_POPUP_MARGIN * 2);
+    const centeredX = Math.max(NOTE_POPUP_MARGIN, Math.round((window.innerWidth - popupWidth) / 2));
+    const topY = Math.max(NOTE_POPUP_MARGIN, Math.round(window.innerHeight * 0.12));
+
+    setNotesPopupPosition({ x: centeredX, y: topY });
+    setActiveNotesProblem({ id, title });
+  };
+
+  const startDraggingNotesPopup = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    setIsDraggingNotesPopup(true);
+    setDragOffset({
+      x: event.clientX - notesPopupPosition.x,
+      y: event.clientY - notesPopupPosition.y,
+    });
+  };
+
+  useEffect(() => {
+    if (!isDraggingNotesPopup) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const popupWidth = Math.min(NOTE_POPUP_WIDTH, window.innerWidth - NOTE_POPUP_MARGIN * 2);
+      const popupHeight = Math.min(NOTE_POPUP_HEIGHT, window.innerHeight - NOTE_POPUP_MARGIN * 2);
+      const maxX = window.innerWidth - popupWidth - NOTE_POPUP_MARGIN;
+      const maxY = window.innerHeight - popupHeight - NOTE_POPUP_MARGIN;
+
+      const nextX = clamp(event.clientX - dragOffset.x, NOTE_POPUP_MARGIN, maxX);
+      const nextY = clamp(event.clientY - dragOffset.y, NOTE_POPUP_MARGIN, maxY);
+
+      setNotesPopupPosition({ x: nextX, y: nextY });
+    };
+
+    const handlePointerUp = () => {
+      setIsDraggingNotesPopup(false);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [dragOffset.x, dragOffset.y, isDraggingNotesPopup]);
+
   const getDifficultyColor = (diff: string) => {
     switch (diff) {
       case "Easy": return "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30";
@@ -201,7 +258,7 @@ export default function Practice() {
                 <p className="text-sm font-semibold text-muted-foreground">{topic.description}</p>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6">
                 {topic.subtopics.map((sub) => {
                   const total = sub.problems.length;
                   const completedSub = sub.problems.filter((p) => completed.has(p.id)).length;
@@ -210,7 +267,13 @@ export default function Practice() {
 
                   return (
                     <Card key={sub.id} className="border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] hover:shadow-[0px_0px_0_0_hsl(var(--border))] transition-all">
-                      <Accordion type="single" collapsible className="w-full">
+                      <Accordion
+                        type="single"
+                        collapsible
+                        value={openSubtopicId === sub.id ? sub.id : undefined}
+                        onValueChange={(nextValue) => setOpenSubtopicId(nextValue === sub.id ? sub.id : null)}
+                        className="w-full"
+                      >
                         <AccordionItem value={sub.id} className="border-none">
                           <CardHeader className="pb-3 pt-5 px-5">
                             <AccordionTrigger className="hover:no-underline py-0 group">
@@ -246,6 +309,7 @@ export default function Practice() {
                                 const checked = completed.has(prob.id);
                                 const isRevisionSaved = savedForRevision.has(prob.id);
                                 const isSavingNotes = savingNotesFor[prob.id] ?? false;
+                                const hasNotes = (notesByProblem[prob.id] ?? "").trim().length > 0;
                                 const rowBusy = upsertingProblemId === prob.id;
                                 return (
                                   <div
@@ -336,43 +400,32 @@ export default function Practice() {
                                       )}
                                     </div>
 
-                                    <div className="mt-3 grid gap-2">
-                                      <textarea
-                                        value={notesByProblem[prob.id] ?? ""}
-                                        onChange={(e) =>
-                                          setNotesByProblem((prev) => ({
-                                            ...prev,
-                                            [prob.id]: e.target.value,
-                                          }))
-                                        }
-                                        placeholder="Add your personal notes for this problem..."
-                                        rows={3}
-                                        className="w-full rounded-md border-2 border-border bg-card px-3 py-2 text-xs font-medium outline-none focus:border-primary"
-                                      />
+                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => openNotesPopup(prob.id, prob.title)}
+                                        disabled={isSavingNotes}
+                                        className={`inline-flex items-center gap-1 rounded-md border-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide disabled:opacity-60 ${
+                                          hasNotes
+                                            ? "border-primary bg-primary/15 text-primary"
+                                            : "border-border bg-card hover:bg-secondary"
+                                        }`}
+                                      >
+                                        {isSavingNotes ? <Loader2 size={12} className="animate-spin" /> : <Notebook size={12} />}
+                                        Note
+                                      </button>
 
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <button
-                                          type="button"
-                                          onClick={() => void saveNotes(prob.id)}
-                                          disabled={isSavingNotes}
-                                          className="inline-flex items-center gap-1 rounded-md border-2 border-border bg-card px-2.5 py-1 text-[10px] font-black uppercase tracking-wide hover:bg-secondary disabled:opacity-60"
-                                        >
-                                          {isSavingNotes ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
-                                          Save Notes
-                                        </button>
-
-                                        <button
-                                          type="button"
-                                          onClick={() => void toggleSaveForRevision(prob.id)}
-                                          className={`inline-flex items-center rounded-md border-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${
-                                            isRevisionSaved
-                                              ? "border-primary bg-primary text-black"
-                                              : "border-border bg-card hover:bg-secondary"
-                                          }`}
-                                        >
-                                          {isRevisionSaved ? "Saved for Revision" : "Save for Revision"}
-                                        </button>
-                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => void toggleSaveForRevision(prob.id)}
+                                        className={`inline-flex items-center rounded-md border-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${
+                                          isRevisionSaved
+                                            ? "border-primary bg-primary text-black"
+                                            : "border-border bg-card hover:bg-secondary"
+                                        }`}
+                                      >
+                                        {isRevisionSaved ? "Saved for Revision" : "Save for Revision"}
+                                      </button>
                                     </div>
                                   </div>
                                 );
@@ -389,6 +442,65 @@ export default function Practice() {
           );
         })}
       </div>
+
+      {activeNotesProblem && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <div
+            className="absolute pointer-events-auto w-[min(520px,calc(100vw-2rem))] max-h-[min(420px,calc(100vh-2rem))] overflow-hidden rounded-xl border-2 border-border bg-card shadow-[8px_8px_0_0_hsl(var(--border))]"
+            style={{ left: `${notesPopupPosition.x}px`, top: `${notesPopupPosition.y}px` }}
+          >
+            <div
+              onPointerDown={startDraggingNotesPopup}
+              className="flex cursor-move items-center justify-between border-b-2 border-border bg-secondary/50 px-3 py-2 select-none"
+            >
+              <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide">
+                <Notebook size={14} />
+                Notes
+              </div>
+              <button
+                type="button"
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={() => setActiveNotesProblem(null)}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-card hover:bg-secondary"
+                aria-label="Close notes"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="grid gap-3 p-3">
+              <p className="truncate text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                {activeNotesProblem.title}
+              </p>
+              <textarea
+                value={notesByProblem[activeNotesProblem.id] ?? ""}
+                onChange={(event) =>
+                  setNotesByProblem((prev) => ({
+                    ...prev,
+                    [activeNotesProblem.id]: event.target.value,
+                  }))
+                }
+                placeholder="Add your personal notes for this problem..."
+                rows={10}
+                className="min-h-[220px] w-full rounded-md border-2 border-border bg-background px-3 py-2 text-sm font-medium outline-none focus:border-primary"
+              />
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => void saveNotes(activeNotesProblem.id)}
+                  disabled={savingNotesFor[activeNotesProblem.id] ?? false}
+                  className="inline-flex items-center gap-1 rounded-md border-2 border-border bg-card px-2.5 py-1 text-[10px] font-black uppercase tracking-wide hover:bg-secondary disabled:opacity-60"
+                >
+                  {(savingNotesFor[activeNotesProblem.id] ?? false)
+                    ? <Loader2 size={12} className="animate-spin" />
+                    : <Save size={12} />}
+                  Save Notes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
