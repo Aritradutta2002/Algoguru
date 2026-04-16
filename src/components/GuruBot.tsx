@@ -18,7 +18,7 @@ interface ModelOption {
 
 const MODELS: ModelOption[] = [
   { key: "auto", label: "Auto (Fastest)", tag: "Speed" },
-  { key: "gemini", label: "Gemini", tag: "Google" },
+  { key: "openrouter", label: "OpenRouter Free", tag: "OpenRouter" },
   { key: "qwen", label: "Qwen 3.5 397B", tag: "Alibaba" },
   { key: "kimi", label: "Kimi K2.5", tag: "Moonshot" },
   { key: "minimax", label: "MiniMax M2.7", tag: "MiniMax" },
@@ -194,8 +194,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState(() => {
-    try { return localStorage.getItem("guru-chat-model") || "gemini"; }
-    catch { return "gemini"; }
+    try { return localStorage.getItem("guru-chat-model") || "openrouter"; }
+    catch { return "openrouter"; }
   });
   
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -328,7 +328,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
                   sessions.map(s => (
                     <div 
                       key={s.id}
-                        onClick={() => { setCurrentId(s.id); setShowHistory(false); setModel(s.model || 'gemini'); }}
+                        onClick={() => { setCurrentId(s.id); setShowHistory(false); setModel(s.model || 'openrouter'); }}
                       className={`group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${s.id === currentId ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80 hover:text-foreground'}`}
                     >
                       <div className="flex items-center gap-2.5 overflow-hidden">

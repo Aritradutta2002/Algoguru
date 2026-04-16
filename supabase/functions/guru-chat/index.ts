@@ -6,8 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ALLOWED_MODELS: Record<string, { id: string; maxTokens: number; provider: "nvidia" | "modal" | "google" }> = {
-  "gemini": { id: "gemini-1.5-flash", maxTokens: 8192, provider: "google" },
+const ALLOWED_MODELS: Record<string, { id: string; maxTokens: number; provider: "nvidia" | "modal" | "openrouter" }> = {
+  "openrouter": { id: "openrouter/free", maxTokens: 8192, provider: "openrouter" },
   "qwen": { id: "qwen/qwen3.5-397b-a17b", maxTokens: 16384, provider: "nvidia" },
   "kimi": { id: "moonshotai/kimi-k2.5", maxTokens: 16384, provider: "nvidia" },
   "minimax": { id: "minimaxai/minimax-m2.7", maxTokens: 8192, provider: "nvidia" },
@@ -39,16 +39,22 @@ serve(async (req) => {
   try {
     const { messages, model: modelKey } = await req.json();
 
-    const doRequest = async (selected: { id: string; maxTokens: number; provider: "nvidia" | "modal" | "google" }, signal?: AbortSignal) => {
+    const doRequest = async (selected: { id: string; maxTokens: number; provider: "nvidia" | "modal" | "openrouter" }, signal?: AbortSignal) => {
       const isModal = selected.provider === "modal";
-      const isGoogle = selected.provider === "google";
+      const isOpenRouter = selected.provider === "openrouter";
       
       let apiKey = "";
       let baseUrl = "";
       
-      if (isGoogle) {
-          apiKey = Deno.env.get("GOOGLE_API_KEY") || "";
-          baseUrl = Deno.env.get("GOOGLE_API_URL") || "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+      let headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (isOpenRouter) {
+          apiKey = Deno.env.get("OPENROUTER_API_KEY") || "";
+          baseUrl = "https://openrouter.ai/api/v1/chat/completions";
+          headers["HTTP-Referer"] = "https://algoguru.app"; // Optional, for including your app on openrouter.ai rankings.
+          headers["X-Title"] = "AlgoGuru"; // Optional. Shows in rankings on openrouter.ai.
       } else if (isModal) {
           apiKey = Deno.env.get("MODAL_API_KEY") || "";
           baseUrl = "https://api.us-west-2.modal.direct/v1/chat/completions";
@@ -60,15 +66,14 @@ serve(async (req) => {
       if (!apiKey) {
         throw new Error(`${selected.provider.toUpperCase()}_API_KEY is not configured`);
       }
+      
+      headers["Authorization"] = `Bearer ${apiKey}`;
 
       const response = await fetch(
         baseUrl,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify({
             model: selected.id,
             messages: [
@@ -95,7 +100,7 @@ serve(async (req) => {
     let response: Response;
 
     if (modelKey === "auto") {
-      const fastModels = ["gemini", "qwen", "minimax"]; // Subset to avoid overloading too many GPUs
+      const fastModels = ["openrouter", "qwen", "minimax"]; // Subset to avoid overloading too many GPUs
       const abortControllers = fastModels.map(() => new AbortController());
       
       try {
@@ -115,7 +120,7 @@ serve(async (req) => {
         throw new Error("All AI models failed to respond or timed out.");
       }
     } else {
-      const selected = ALLOWED_MODELS[modelKey] || ALLOWED_MODELS["gemini"];
+      const selected = ALLOWED_MODELS[modelKey] || ALLOWED_MODELS["openrouter"];
       response = await doRequest(selected);
     }
 
