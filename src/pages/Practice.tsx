@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { practiceData } from "../data/practiceData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -450,14 +451,12 @@ export default function Practice() {
                                         />
                                       </a>
 
-                                      <a
-                                        href={prob.solutionLink}
-                                        target="_blank"
-                                        rel="noreferrer"
+                                      <Link
+                                        to={`/practice/solution/${prob.id}`}
                                         className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                       >
                                         Solution
-                                      </a>
+                                      </Link>
 
                                     </div>
 

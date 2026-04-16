@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import TopicPage from "./pages/TopicPage";
 import Playground from "./pages/Playground";
 import Practice from "./pages/Practice";
+import PracticeSolution from "./pages/PracticeSolution";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -608,6 +609,7 @@ const App = () => (
                         <Route path="/" element={<Index />} />
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/practice" element={<Practice />} />
+                        <Route path="/practice/solution/:problemId" element={<PracticeSolution />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/admin" element={<Admin />} />
                         <Route path="/:topicId" element={<TopicPage />} />
