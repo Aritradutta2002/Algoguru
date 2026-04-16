@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -16,7 +16,7 @@
     --popover-foreground: 25 40% 12%;
 
     --primary: 18 78% 58%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 25 40% 12%; /* changed to dark for better visibility on orange primary */
 
     --secondary: 30 55% 82%;
     --secondary-foreground: 25 40% 18%;
@@ -374,6 +374,7 @@
   .cr-theory-list li {
     @apply text-[15px] leading-[1.85] relative pl-4;
     color: hsl(var(--reading-foreground) / 0.92);
+    font-family: 'Roboto', sans-serif;
   }
 
   .cr-theory-list li::before {
@@ -389,11 +390,13 @@
   .cr-subtitle {
     @apply text-[17px] font-bold mb-3;
     color: hsl(var(--reading-foreground));
+    font-family: 'Roboto', sans-serif;
   }
 
   .cr-para {
     @apply text-[15px] leading-[1.85] mb-4;
     color: hsl(var(--reading-foreground) / 0.9);
+    font-family: 'Roboto', sans-serif;
   }
 
   .cr-bold {
@@ -464,6 +467,7 @@
   .cr-approach-text {
     @apply text-[15px] leading-[1.85];
     color: hsl(var(--reading-foreground) / 0.92);
+    font-family: 'Roboto', sans-serif;
   }
 
   .cr-table-wrap {

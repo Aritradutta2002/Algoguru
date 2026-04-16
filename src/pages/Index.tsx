@@ -128,22 +128,22 @@ export default function Index() {
             </div>
 
             {/* Hero Title */}
-            <h1 className="text-3xl md:text-4xl xl:text-5xl font-black uppercase leading-[1.05] tracking-tighter mb-5">
-              <span className="block">MASTER</span>
+            <h1 className="text-3xl md:text-4xl xl:text-5xl font-black uppercase leading-[1.05] tracking-tighter mb-5 flex flex-wrap items-center gap-3">
+              <span>MASTER</span>
               <span className="relative inline-block">
-                <span className="relative z-10 bg-primary text-black px-3 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
+                <span className="relative z-10 bg-primary text-black px-2 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
                   CODE.
                 </span>
               </span>
-              <span className="block mt-2">ACE</span>
-              <span className="relative inline-block mt-1">
-                <span className="relative z-10 bg-[#FF3366] text-white px-3 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
+              <span>ACE</span>
+              <span className="relative inline-block">
+                <span className="relative z-10 bg-[#FF3366] text-white px-2 py-0.5 border-[3px] border-black dark:border-white inline-block shadow-[4px_4px_0_0_hsl(var(--border))]">
                   INTERVIEWS.
                 </span>
               </span>
             </h1>
 
-            <p className="text-sm font-semibold text-muted-foreground max-w-sm leading-relaxed mb-7 border-l-[3px] border-primary pl-4">
+            <p className="text-sm font-semibold text-muted-foreground max-w-xl leading-relaxed mb-7 border-l-[3px] border-primary pl-4">
               The straight-to-the-point platform built for developers who want
               to crack DSA, ace interviews, and understand Java deeply. No fluff. Just code.
             </p>
@@ -238,34 +238,36 @@ export default function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.07, type: "spring", stiffness: 80 }}
-              whileHover={{ x: -5, y: -5, boxShadow: "12px 12px 0px 0px hsl(var(--border))" }}
-              whileTap={{ x: 4, y: 4, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
+              whileHover={{ x: -2, y: -2, boxShadow: "5px 5px 0px 0px hsl(var(--border))" }}
+              whileTap={{ x: 2, y: 2, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
               onClick={() => navigate(sec.route)}
-              className={`${sec.bg} ${sec.textColor} border-4 border-black dark:border-white p-8 cursor-pointer flex flex-col`}
-              style={{ boxShadow: "6px 6px 0px 0px hsl(var(--border))", transition: "all 0.15s ease" }}
+              className={`${sec.bg} ${sec.textColor} border-2 border-black dark:border-white p-5 cursor-pointer flex flex-col`}
+              style={{ boxShadow: "3px 3px 0px 0px hsl(var(--border))", transition: "all 0.15s ease" }}
             >
               {/* Tag */}
-              <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] mb-6 px-2 py-1 bg-black/15 w-fit">
+              <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.2em] mb-4 px-1.5 py-0.5 bg-black/15 w-fit">
                 {sec.tag}
               </div>
 
               {/* Icon */}
-              <div className="mb-8 p-4 bg-black/15 w-fit border-2 border-black/20">
-                {sec.icon}
+              <div className="mb-4 p-2.5 bg-black/15 w-fit border-[1.5px] border-black/20">
+                <div style={{ transform: 'scale(0.75)', transformOrigin: 'center' }}>
+                  {sec.icon}
+                </div>
               </div>
 
               {/* Content */}
               <div className="flex-1">
-                <div className="text-xs font-black uppercase tracking-[0.2em] opacity-70 mb-1">{sec.subtitle}</div>
-                <h3 className="text-2xl lg:text-3xl font-black uppercase tracking-tight mb-4 leading-none">{sec.title}</h3>
-                <p className="text-sm font-bold opacity-85 leading-relaxed mb-auto">{sec.desc}</p>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">{sec.subtitle}</div>
+                <h3 className="text-xl lg:text-2xl font-black uppercase tracking-tight mb-2 leading-none">{sec.title}</h3>
+                <p className="text-xs font-bold opacity-85 leading-relaxed mb-auto">{sec.desc}</p>
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between mt-8 pt-5 border-t-2 border-black/25">
-                <span className="text-xs font-black uppercase tracking-widest opacity-75">{sec.stats}</span>
-                <div className="flex items-center gap-1 font-black text-sm uppercase">
-                  Enter <ArrowRight size={16} />
+              <div className="flex items-center justify-between mt-6 pt-3 border-t-[1.5px] border-black/25">
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-75">{sec.stats}</span>
+                <div className="flex items-center gap-1 font-black text-xs uppercase">
+                  Enter <ArrowRight size={14} />
                 </div>
               </div>
             </motion.div>
@@ -277,27 +279,31 @@ export default function Index() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4, type: "spring", stiffness: 80 }}
-            whileHover={{ x: -5, y: -5, boxShadow: "12px 12px 0px 0px hsl(var(--border))" }}
-            whileTap={{ x: 4, y: 4, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
+            whileHover={{ x: -2, y: -2, boxShadow: "5px 5px 0px 0px hsl(var(--border))" }}
+            whileTap={{ x: 2, y: 2, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
             onClick={() => navigate("/playground")}
-            className="border-4 border-black dark:border-white p-8 cursor-pointer flex flex-col bg-card text-foreground"
-            style={{ boxShadow: "6px 6px 0px 0px hsl(var(--border))", transition: "all 0.15s ease" }}
+            className="border-2 border-black dark:border-white p-5 cursor-pointer flex flex-col bg-card text-foreground"
+            style={{ boxShadow: "3px 3px 0px 0px hsl(var(--border))", transition: "all 0.15s ease" }}
           >
-            <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] mb-6 px-2 py-1 bg-primary/20 text-primary w-fit border-2 border-primary/30">
+            <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.2em] mb-4 px-1.5 py-0.5 bg-primary/20 text-primary w-fit border-[1.5px] border-primary/30">
               💻 Browser-native
             </div>
-            <div className="mb-8 p-4 bg-primary/10 w-fit border-2 border-primary/30">
-              <Terminal size={36} className="text-primary" />
+            
+            <div className="mb-4 p-2.5 bg-primary/10 w-fit border-[1.5px] border-primary/30">
+              <div style={{ transform: 'scale(0.75)', transformOrigin: 'center' }}>
+                <Terminal size={36} className="text-primary" />
+              </div>
             </div>
+            
             <div className="flex-1">
-              <div className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Write & Run Instantly</div>
-              <h3 className="text-2xl lg:text-3xl font-black uppercase tracking-tight mb-4 leading-none">Terminal Playground</h3>
-              <p className="text-sm font-bold text-muted-foreground leading-relaxed">Run Java natively in the browser with pre-loaded Codeforces, CodeChef, and LeetCode templates.</p>
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Write & Run Instantly</div>
+              <h3 className="text-xl lg:text-2xl font-black uppercase tracking-tight mb-2 leading-none">Terminal Playground</h3>
+              <p className="text-xs font-bold text-muted-foreground leading-relaxed mb-auto">Run Java natively in the browser with pre-loaded Codeforces, CodeChef, and LeetCode templates.</p>
             </div>
-            <div className="flex items-center justify-between mt-8 pt-5 border-t-2 border-border">
-              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">No Setup Needed</span>
-              <div className="flex items-center gap-1 font-black text-sm uppercase text-primary">
-                Launch <ArrowRight size={16} />
+            <div className="flex items-center justify-between mt-6 pt-3 border-t-[1.5px] border-border">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No Setup Needed</span>
+              <div className="flex items-center gap-1 font-black text-xs uppercase text-primary">
+                Launch <ArrowRight size={14} />
               </div>
             </div>
           </motion.div>
