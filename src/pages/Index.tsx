@@ -233,7 +233,7 @@ export default function Index() {
       </div>
 
       {/* ── MODULES GRID ─────────────────────────────────── */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 max-w-7xl mx-auto">
+      <section className="px-6 md:px-12 lg:px-20 py-20 max-w-7xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -248,7 +248,7 @@ export default function Index() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid gap-6 lg:gap-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
           {SECTIONS.map((sec, i) => (
             <motion.div
               key={sec.id}
