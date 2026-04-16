@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,17 @@ function difficultyClasses(difficulty: string): string {
 
 export default function PracticeSolution() {
   const { problemId } = useParams<{ problemId: string }>();
+  const pageRootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const scrollHost = pageRootRef.current?.closest("main");
+    if (scrollHost) {
+      scrollHost.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [problemId]);
 
   if (!problemId) return <Navigate to="/practice" replace />;
 
@@ -28,7 +40,7 @@ export default function PracticeSolution() {
   if (!detail) return <Navigate to="/practice" replace />;
 
   return (
-    <div className="flex-1 h-full w-full max-w-6xl mx-auto p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div ref={pageRootRef} className="flex-1 h-full w-full max-w-6xl mx-auto p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <Link
           to="/practice"
