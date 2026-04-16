@@ -226,22 +226,22 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r" style={{ borderColor: "hsl(var(--sidebar-border))", background: "hsl(var(--sidebar-background))" }}>
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b" style={{ borderColor: "hsl(var(--sidebar-border))" }}>
+      <div className="flex items-center gap-3 px-5 py-5 border-b-4" style={{ borderColor: "hsl(var(--border))" }}>
         <div
-          className="flex items-center justify-center w-9 h-9 rounded-xl font-bold text-sm font-mono"
+          className="flex items-center justify-center w-10 h-10 font-black text-sm font-mono border-4 shadow-[3px_3px_0_0_hsl(var(--border))]"
           style={{
-            background: "var(--gradient-primary)",
-            color: "hsl(var(--primary-foreground))",
-            boxShadow: "0 2px 12px hsl(var(--primary)/0.25)",
+            background: "hsl(var(--primary))",
+            color: "#000",
+            borderColor: "hsl(var(--border))",
           }}
         >
           AG
         </div>
         <div>
-          <div className="text-sm font-bold tracking-tight" style={{ color: "hsl(var(--foreground))" }}>
+          <div className="text-sm font-black uppercase tracking-widest" style={{ color: "hsl(var(--foreground))" }}>
             AlgoGuru
           </div>
-          <div className="text-[10px] font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
             {currentMode.description}
           </div>
         </div>
@@ -254,12 +254,13 @@ export function AppSidebar() {
           <button
             onClick={() => navigate("/")}
             className={cn(
-              "flex items-center gap-2.5 w-full px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-              currentPath === "/" ? "" : "hover:bg-muted/50"
+              "flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-black uppercase tracking-wide transition-all duration-150",
+              currentPath === "/" ? "neo-btn" : "hover:bg-muted/50 border-2 border-transparent"
             )}
             style={{
-              color: currentPath === "/" ? "hsl(var(--primary))" : "hsl(var(--sidebar-foreground))",
-              background: currentPath === "/" ? "hsl(var(--primary)/0.08)" : undefined,
+              color: currentPath === "/" ? "hsl(var(--primary-foreground))" : "hsl(var(--sidebar-foreground))",
+              background: currentPath === "/" ? "hsl(var(--primary))" : undefined,
+              borderColor: currentPath === "/" ? "hsl(var(--border))" : undefined,
             }}
           >
             <Home size={15} />
@@ -268,12 +269,13 @@ export function AppSidebar() {
           <button
             onClick={() => navigate("/playground")}
             className={cn(
-              "flex items-center gap-2.5 w-full px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-              currentPath === "/playground" ? "" : "hover:bg-muted/50"
+              "flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-black uppercase tracking-wide transition-all duration-150",
+              currentPath === "/playground" ? "neo-btn" : "hover:bg-muted/50 border-2 border-transparent"
             )}
             style={{
-              color: currentPath === "/playground" ? "hsl(var(--success))" : "hsl(var(--sidebar-foreground))",
-              background: currentPath === "/playground" ? "hsl(var(--success)/0.08)" : undefined,
+              color: currentPath === "/playground" ? "hsl(var(--primary-foreground))" : "hsl(var(--sidebar-foreground))",
+              background: currentPath === "/playground" ? "hsl(var(--primary))" : undefined,
+              borderColor: currentPath === "/playground" ? "hsl(var(--border))" : undefined,
             }}
           >
             <Code2 size={15} />

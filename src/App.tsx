@@ -154,18 +154,13 @@ function SearchButton() {
       <button
         onClick={() => setOpen(true)}
         title="Search topics (Ctrl+K)"
-        className="flex items-center gap-2.5 px-4 py-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-        style={{
-          background: "hsl(var(--muted)/0.5)",
-          border: "1px solid hsl(var(--border))",
-          color: "hsl(var(--muted-foreground))",
-        }}
+        className="neo-btn flex items-center gap-2.5 px-4 py-2 bg-card text-foreground"
       >
-        <Search size={18} strokeWidth={2.5} />
-        <span className="hidden sm:inline text-sm font-medium">Search everything...</span>
+        <Search size={16} strokeWidth={2.5} />
+        <span className="hidden sm:inline text-sm font-black uppercase tracking-widest">Search</span>
         <kbd
-          className="hidden sm:inline text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ml-2"
-          style={{ background: "hsl(var(--background))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+          className="hidden sm:inline text-[10px] font-mono font-black px-2 py-0.5 border-2 border-border ml-1"
+          style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
         >
           ⌘K
         </kbd>
@@ -175,8 +170,8 @@ function SearchButton() {
         <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999 }} onClick={() => setOpen(false)}>
           <div className="fixed inset-0" style={{ background: "hsl(var(--background)/0.75)", backdropFilter: "blur(8px)" }} />
           <div
-            className="relative w-full max-w-md mx-4 rounded-2xl overflow-hidden flex flex-col"
-            style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", boxShadow: "0 25px 80px hsl(var(--foreground)/0.2)", maxHeight: "65vh" }}
+            className="relative w-full max-w-md mx-4 overflow-hidden flex flex-col border-4 border-black dark:border-white"
+            style={{ background: "hsl(var(--card))", boxShadow: "8px 8px 0px 0px hsl(var(--border))", maxHeight: "65vh" }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Search header */}
@@ -309,33 +304,38 @@ function HeaderControls() {
         onClick={decreaseFontSize}
         disabled={isMin}
         title="Zoom out"
-        className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 disabled:opacity-25 hover:bg-muted"
+        className="flex items-center justify-center w-8 h-8 rounded transition-all duration-150 disabled:opacity-25 neo-btn bg-background"
         style={{ color: "hsl(var(--muted-foreground))" }}
       >
         <ZoomOut size={14} />
       </button>
-      <span className="text-[11px] font-mono font-semibold min-w-[36px] text-center" style={{ color: "hsl(var(--foreground))" }}>
+      <span className="text-[11px] font-mono font-bold min-w-[36px] text-center" style={{ color: "hsl(var(--foreground))" }}>
         {ZOOM_MAP[fontSize] || "100%"}
       </span>
       <button
         onClick={increaseFontSize}
         disabled={isMax}
         title="Zoom in"
-        className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 disabled:opacity-25 hover:bg-muted"
+        className="flex items-center justify-center w-8 h-8 rounded transition-all duration-150 disabled:opacity-25 neo-btn bg-background"
         style={{ color: "hsl(var(--muted-foreground))" }}
       >
         <ZoomIn size={14} />
       </button>
 
-      <div className="w-px h-4 mx-1.5" style={{ background: "hsl(var(--border))" }} />
+      <div className="w-px h-5 mx-2" style={{ background: "hsl(var(--border))" }} />
 
+      {/* Day/Night Toggle - Neo-Brutalist Style */}
       <button
         onClick={toggleTheme}
         title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 hover:bg-muted"
-        style={{ color: "hsl(var(--muted-foreground))" }}
+        className="flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase tracking-widest neo-btn transition-all duration-150"
+        style={{
+          background: isDark ? "hsl(43 95% 55%)" : "hsl(25 40% 18%)",
+          color: isDark ? "#1a0a00" : "#FAF6EE",
+        }}
       >
         {isDark ? <Sun size={14} /> : <Moon size={14} />}
+        <span className="hidden sm:inline">{isDark ? "Day" : "Night"}</span>
       </button>
     </div>
   );
@@ -344,7 +344,13 @@ function HeaderControls() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))", color: "hsl(var(--muted-foreground))" }}>Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ background: "hsl(var(--background))" }}>
+      <div className="text-4xl font-black uppercase tracking-tighter" style={{ color: "hsl(var(--primary))" }}>AG</div>
+      <div className="w-12 h-1 bg-primary animate-pulse" />
+      <p className="text-sm font-bold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>Initializing...</p>
+    </div>
+  );
   if (!session) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 }
@@ -359,21 +365,20 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top bar */}
           <header
-            className="h-14 flex items-center gap-3 px-5 border-b flex-shrink-0 sticky top-0 z-40"
+            className="h-14 flex items-center gap-3 px-5 border-b-2 flex-shrink-0 sticky top-0 z-40"
             style={{
               borderColor: "hsl(var(--border))",
-              background: "hsl(var(--background)/0.85)",
-              backdropFilter: "blur(16px)",
+              background: "hsl(var(--background))",
             }}
           >
             <SidebarTrigger
-              className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 hover:bg-muted"
-              style={{ color: "hsl(var(--muted-foreground))" }}
+              className="neo-btn flex items-center justify-center w-8 h-8 bg-background"
+              style={{ color: "hsl(var(--foreground))" }}
             >
               <Menu size={16} />
             </SidebarTrigger>
-            <div className="h-4 w-px" style={{ background: "hsl(var(--border))" }} />
-            <span className="text-xs font-medium tracking-wide" style={{ color: "hsl(var(--muted-foreground))" }}>
+            <div className="h-5 w-0.5" style={{ background: "hsl(var(--border))" }} />
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
               AlgoGuru
             </span>
             <div className="flex-1" />
@@ -387,10 +392,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setGuruOpen((o) => !o)}
               title={guruOpen ? "Close Guru" : "Open Guru"}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
+              className="neo-btn flex items-center gap-1.5 px-3 py-2 transition-all duration-150"
               style={{
-                background: guruOpen ? "hsl(var(--primary))" : "hsl(var(--primary)/0.1)",
-                color: guruOpen ? "hsl(var(--primary-foreground))" : "hsl(var(--primary))",
+                background: guruOpen ? "hsl(var(--primary))" : "hsl(var(--card))",
+                color: guruOpen ? "#000" : "hsl(var(--foreground))",
               }}
             >
               <Sparkles size={14} />

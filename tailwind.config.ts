@@ -13,8 +13,8 @@ export default {
     extend: {
       fontFamily: {
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
-        sans: ["Outfit", "Inter", "system-ui", "sans-serif"],
-        display: ["Outfit", "Inter", "system-ui", "sans-serif"],
+        sans: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -108,10 +108,10 @@ export default {
         "fade-in": "fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
       },
       backgroundImage: {
-        "gradient-primary": "linear-gradient(135deg, hsl(var(--primary)), hsl(280 80% 65%))",
-        "gradient-card": "linear-gradient(145deg, hsl(var(--card)), hsl(230 20% 6%))",
-        "gradient-hero": "radial-gradient(ellipse 80% 50% at 50% -10%, hsl(var(--primary) / 0.15), transparent)",
-        "gradient-sidebar": "linear-gradient(180deg, hsl(var(--sidebar-background)), hsl(230 22% 4%))",
+        "gradient-primary": "none",
+        "gradient-card": "none",
+        "gradient-hero": "none",
+        "gradient-sidebar": "none",
       },
     },
   },

@@ -26,7 +26,7 @@ const FONT_SIZE_CSS: Record<FontSize, string> = {
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem("cp-theme") as Theme) || "dark";
+    return (localStorage.getItem("cp-theme") as Theme) || "light";
   });
 
   const [fontSize, setFontSize] = useState<FontSize>(() => {
@@ -46,7 +46,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
-    if (theme === "light") root.classList.add("light");
+    root.classList.add(theme); // adds "dark" or "light"
     localStorage.setItem("cp-theme", theme);
   }, [theme]);
 
