@@ -400,9 +400,21 @@ function DragHandle({ onMouseDown, isDragging }: { onMouseDown: (e: React.MouseE
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [guruOpen, setGuruOpen] = useState(false);
-  const [splitPct, setSplitPct] = useState(63); // main panel width %
+  const [splitPct, setSplitPct] = useState(() => {
+    try {
+      const saved = localStorage.getItem("guru-split-pct");
+      return saved ? parseFloat(saved) : 75; // Default main panel 75% wide so content isn't squished
+    } catch {
+      return 75;
+    }
+  });
+  
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem("guru-split-pct", splitPct.toString());
+  }, [splitPct]);
 
   // Derived: how wide is the Guru panel?
   const guruPct = 100 - splitPct;
@@ -419,8 +431,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const rawPct = ((ev.clientX - rect.left) / rect.width) * 100;
-      // Constrain: main panel 30%–74%
-      setSplitPct(Math.min(Math.max(rawPct, 30), 74));
+      // Constrain: main panel 30%–85% (so Guru panel can be narrow)
+      setSplitPct(Math.min(Math.max(rawPct, 30), 85));
     };
 
     const onMouseUp = () => {
@@ -499,7 +511,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 style={{
                   width: `${splitPct}%`,
                   overscrollBehavior: "contain",
-                  minWidth: "30%",
+                  minWidth: "40%",
                 }}
               >
                 {children}
@@ -511,7 +523,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               {/* Guru panel */}
               <div
                 className="flex-1 min-w-0 overflow-hidden flex flex-col"
-                style={{ minWidth: "26%" }}
+                style={{ minWidth: "300px" }}
               >
                 {/* Guru panel title bar — truncates when narrow */}
                 {!isTiny && (
