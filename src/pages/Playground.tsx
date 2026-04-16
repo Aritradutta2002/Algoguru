@@ -57,6 +57,7 @@ const FALLBACK_JAVA_COMPILERS = [
 ];
 
 const THEMES = [
+  { id: "dracula", label: "Dracula", icon: <Palette size={13} /> },
   { id: "vs-dark", label: "Dark", icon: <Moon size={13} /> },
   { id: "light", label: "Light", icon: <Sun size={13} /> },
   { id: "solarized-dark", label: "Solarized Dark", icon: <Palette size={13} /> },
@@ -88,6 +89,35 @@ const addAutoImports = (source: string) => {
   }
 
   return `${missingImports.join("\n")}\n\n${source}`;
+};
+
+// Dracula theme definition
+const DRACULA_THEME = {
+  base: "vs-dark" as const,
+  inherit: true,
+  rules: [
+    { token: "", foreground: "f8f8f2", background: "282a36" },
+    { token: "comment", foreground: "6272a4", fontStyle: "italic" },
+    { token: "keyword", foreground: "ff79c6" },
+    { token: "string", foreground: "f1fa8c" },
+    { token: "number", foreground: "bd93f9" },
+    { token: "type", foreground: "8be9fd", fontStyle: "italic" },
+    { token: "class", foreground: "50fa7b" },
+    { token: "interface", foreground: "50fa7b" },
+    { token: "function", foreground: "50fa7b" },
+    { token: "variable", foreground: "f8f8f2" },
+    { token: "operator", foreground: "ff79c6" },
+    { token: "annotation", foreground: "f1fa8c" },
+  ],
+  colors: {
+    "editor.background": "#282a36",
+    "editor.foreground": "#f8f8f2",
+    "editor.lineHighlightBackground": "#44475a",
+    "editor.selectionBackground": "#44475a",
+    "editorCursor.foreground": "#f8f8f0",
+    "editorIndentGuide.background": "#44475a",
+    "editorLineNumber.foreground": "#6272a4",
+  },
 };
 
 // Solarized Dark theme definition
@@ -409,6 +439,7 @@ export default function Playground() {
   const handleEditorMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    monaco.editor.defineTheme("dracula", DRACULA_THEME as any);
     monaco.editor.defineTheme("solarized-dark", SOLARIZED_DARK_THEME);
 
     // Add breakpoint click handler on gutter (line number margin)
