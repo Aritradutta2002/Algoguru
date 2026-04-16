@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { Send, Copy, Check, PanelRightClose, Bot, ChevronDown, RotateCcw, MessageSquarePlus, Square, MessageSquare, Trash2, X } from "lucide-react";
+import { Send, Copy, Check, PanelRightClose, Bot, ChevronDown, RotateCcw, MessageSquarePlus, Square, MessageSquare, Trash2, X, History } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -23,191 +23,423 @@ const MODELS: ModelOption[] = [
   { key: "glm", label: "GLM 5.1", tag: "Zhipu" },
 ];
 
-// └ Streaming helper ────────────────────────────────────────────────)��幌��չ�ѥ�����ɕ��
-��С�(�����ͅ��̰������������ф���������ͥ�����)���(�����ͅ����5͝mt쁵�������ɥ���(������ф耡ѕ�����ɥ�������ٽ��쁽����耠�����ٽ���ͥ����������M������)����(������Ёɕ����݅�Ё��э��
-!Q}UI0���(������ѡ��耉A=MP��(�������������(�������
-��ѕ�еQ����耉�������ѥ����ͽ���(�������ѡ�ɥ�ѥ��聁	��ɕȀ�������й��ф���عY%Q}MUA	M}AU	1%M!	1}-e���(������(���������)M=8���ɥ�����쁵��ͅ��̰����������(����ͥ�����(�����(�������ɕ����������ɕ������䤁�(��������Ё��Ȁ�݅�Ёɕ���ѕ�Р��(����ѡɽ܁��܁�ɽȡ��ȁ����M�ɕ������������(���(������Ёɕ���Ȁ�ɕ������九��I����Ƞ��(������Ё������Ȁ􁹕܁Q��������Ƞ��(����Ё�՘�􀈈�(��ݡ�������Ք���(��������Ё쁑�����م�Ք���݅�Ёɕ���ȹɕ�����(���������������ɕ���(�����՘��􁑕����ȹ�������م�Ք�����ɕ�����Ք����(������Ё��聹յ����(����ݡ����������՘������=���q��������Ĥ��(��������Ё������՘�ͱ�����������(�������՘��՘�ͱ���������Ĥ�(�������������������]�Ѡ��qȈ��������􁱥���ͱ��������Ĥ�(�����������������х���]�Ѡ����ф耈������ѥ�Ք�(����������Ё�ͽ��􁱥���ͱ����ؤ��ɥ����(�����������ͽ�����m=9t���쁽�������ɕ��ɸ��(����������(������������Ё���͕���)M=8����͔��ͽ���(������������Ё���ѕ�Ѐ����͕����������l�t�����ф��7G&��rҒ��6��7B�6��VB�6WD6��VE��W6U7FFR�f�6R���6��7B��r�6�74��S��&W�6R�&��wVvR�"�""���&6�FR#����&WGW&����F�b6�74��S�&�ג�2&�V�FVB��r�fW&f��rֆ�FFV�&�&FW"6�F�r�6�&V�F�fR"7G��S׷�&�&FW$6���#�&�6f"���&�&FW"���R�"�&6�w&�V�C�&�6f"����WFVB���"�"����F�b6�74��S�&f�W��FV�2�6V�FW"�W7F�g��&WGvVV���2���R"7G��S׷�&6�w&�V�C�&�6f"����WFVB���b�"�&�&FW$&�GF�Ӣ#�6�ƖB�6f"���&�&FW"���B�"����7�6�74��S�'FW�Bճ��f��B�����f��B�&��BWW&66RG&6���r�v�FW7B"7G��S׷�6���#�&�6f"����WFVB�f�&Vw&�V�B��"�����w���7���'WGF����6Ɩ6�׶7��2�����v�B�f�vF�"�6Ɨ&�&B�w&�FUFW�B�6���G&V⓲6WD6��VB�G'VR��6WEF��V�WB�����6WD6��VB�f�6R��#���Т6�74��S׶f�W��FV�2�6V�FW"v��RFW�Bճ��f��B�&��B��"��&�V�FVB��BG&�6�F������Т7G��S�׷�6���#�6��VB�&�6f"���&��'���"�&�6f"����WFVB�f�&Vw&�V�B��"�&6�w&�V�C�6��VB�&�6f"���&��'����"�'G&�7&V�B"�Т��6��VB��6�V6�6��S׳'�����6��6��S׳'���Т�6��VB�$6��VB"�$6��6�FR'Т��'WGF�����F�c��F�b6�74��S�'�2�R�fW&f��rׂ�WF�FW�Bճ7���VF��rճ�cU�f��B�����f��B��VF�V�"7G��S�׷�6���#�&�6f"���f�&Vw&�V�B��"�f��Df֖Ǔ�"tf�&6�FRr�t�WD'&��2����r�6��6��2�����76R"����&S��6�FR6�74��S׶6�74��W��6���G&V����6�FS���&S���F�c���F�c����Р����gV�7F�����FV�6V�V7F�"��6V�V7FVB���6V�V7BӢ�6V�V7FVC�7G&��s���6V�V7C����7G&��r���f��BҒ��6��7B��V��6WD�V���W6U7FFR�f�6R���6��7B'F�&Vb�W6U&VcąD��'WGF��V�V�V�C��V���6��7BG&�&Vb�W6U&VcąD��F�dV�V�V�C��V���6��7B7W'&V�B���DT�2�f��B��Ғ����W����6V�V7FVB�����DT�5�Ӱ��W6TVffV7B�������6��7B��F�W"��S���W6TWfV�B������b�'F�&Vb�7W'&V�Bbb'F�&Vb�7W'&V�B�6��F��2�R�F&vWB2��FR�bbG&�&Vb�7W'&V�BbbG&�&Vb�7W'&V�B�6��F��2�R�F&vWB2��FR��6WD�V�f�6R���Ӱ�F�7V�V�B�FDWfV�DƗ7FV�W"�&��W6VF�v�"���F�W"���&WGW&�����F�7V�V�B�&V��fTWfV�DƗ7FV�W"�&��W6VF�v�"���F�W"������ғ���6��7B��2�6WE�5��W6U7FFR��F����VgC�ғ��W6TVffV7B��������b��V�bb'F�&Vb�7W'&V�B���6��7B&V7B�'F�&Vb�7W'&V�B�vWD&�V�F��t6ƖV�E&V7B����6WE�2��F��&V7B�&�GF���B��VgC��F�����&V7B�&�v�B�##���ғ��Т����V�ғ���&WGW&������'WGF��&Vc׶'F�&VgТ��6Ɩ6�ײ����6WD�V₆����Т6�74��S�&f�W��FV�2�6V�FW"v��R��"���R&�V�FVB��BFW�Bճ��f��B�6V֖&��BG&�6�F��������fW#�&r��WFVB �7G��S׷�6���#�&�6f"���f�&Vw&�V�B��㒒"�&6�w&�V�C�&�6f"����WFVB���B�"�&�&FW#���6�ƖB�6f"���&�&FW"���R�"�Т��7�6�74��S�'G'V�6FR���rճ���#�7W'&V�B��&V����7���6�Wg&��F�v�6��S׳�6�74��S׶f�W��6�&���G&�6�F����G&�6f�&�G��V��'&�FFR��"�"'��7G��S׷�6���#�&�6f"����WFVB�f�&Vw&�V�B��"������'WGF��ࠢ��V�bb7&VFU�'F��F�`�&Vc׶G&�&VgТ6�74��S�&f��VBrճ##��&�V�FVB��r�fW&f��rֆ�FFV�&�&FW"6�F�r�'�� �7G��S�׷�F���2�F���VgC��2��VgB����FW�������&6�w&�V�C�&�6f"���6&B��"�&�&FW$6���#�&�6f"���&�&FW"��"�Т��F�b6�74��S�'��2��"FW�Bճ���f��B�&��BWW&66RG&6���r�v�FW7B"7G��S׷�6���#�&�6f"����WFVB�f�&Vw&�V�B���b�"�&�&FW$&�GF�Ӣ#�6�ƖB�6f"���&�&FW"���B�"���6V�V7B��FV����F�c����DT�2����Ғ�����'WGF���W�׶��W�Т��6Ɩ6�ׂ�������6V�V7B���W���6WD�V�f�6R���Т6�74��S�'r�gV��f�W��FV�2�6V�FW"v�"�R��2��"FW�B��VgBG&�6�F����6���'2��fW#�&r��WFVB�S �7G��S׷�&6�w&�V�C���W����6V�V7FVB�&�6f"���&��'������"�'G&�7&V�B"�Т��F�b6�74��S�'r��R���R&�V�FVB�gV��f�W��6�&���"7G��S׷�&6�w&�V�C���W����6V�V7FVB�&�6f"���&��'���"�&�6f"����WFVB�f�&Vw&�V�B���2�"�����F�b6�74��S�&f�W��֖��r�#��7�6�74��S�'FW�Bճ�W��f��B�6V֖&��B"7G��S׷�6���#�&�6f"���f�&Vw&�V�B��"������&V����7����F�c��7�6�74��S�'FW�Bճ���f��B�&��BWW&66RG&6���r�v�FW"���R���R&�V�FVB"7G��S׷�6���#�&�6f"����WFVB�f�&Vw&�V�B��"�&6�w&�V�C�&�6f"����WFVB���r�"�����Fw���7����'WGF�����Т��F�c���F�7V�V�B�&�G���Т������Р���)IB���6����V�B)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H)H�[�\��X�H�\�P�������[�����X[��ې���N�
+async function streamChat({
+  messages, model, onDelta, onDone, signal,
+}: {
+  messages: Msg[]; model: string;
+  onDelta: (text: string) => void; onDone: () => void; signal?: AbortSignal;
+}) {
+  const resp = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages, model }),
+    signal,
+  });
+  if (!resp.ok || !resp.body) {
+    const err = await resp.text();
+    throw new Error(err || "Stream failed");
+  }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) !== -1) {
+      let line = buf.slice(0, nl);
+      buf = buf.slice(nl + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6).trim();
+      if (json === "[DONE]") { onDone(); return; }
+      try {
+        const parsed = JSON.parse(json);
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) onDelta(content);
+      } catch {
+        buf = line + "\n" + buf;
+        break;
+      }
+    }
+  }
+  onDone();
+}
 
-HO���Y�B��^ܝ�ۜ��\�P��H�ܝ�\��Y�S]�[[Y[��\�P����ϊ�[��[ۈ�\�P��
-��[�ې���HK�Y�H�ۜ���\��[ۜ��]�\��[ۜ�HH\�T�]O�\��[ۖ�O�
+function CodeBlock({ children, className }: { children: string; className?: string }) {
+  const [copied, setCopied] = useState(false);
+  const lang = className?.replace("language-", "") || "code";
 
-HO��H��ۜ��ܙYH��[�ܘY�K��]][J��\�KX�]\�\��[ۜȊN��]\���ܙY���Ӌ�\��J�ܙY
-H��N�H�]���]\���N�B�JN�ۜ���\��[�Y�]�\��[�YHH\�T�]O��[���[�
+  return (
+    <div className="my-3 rounded-xl overflow-hidden border bg-[#1E1E1E] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.4)] border-white/10">
+      <div className="flex items-center justify-between px-3 py-2 bg-[#2D2D30] border-b border-[#404040]">
+        <span className="text-[10.5px] font-medium font-sans uppercase tracking-[0.1em] text-white/50">{lang}</span>
+        <button
+          onClick={async () => { await navigator.clipboard.writeText(children); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+          className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md transition-all hover:bg-white/10 text-white/80 active:bg-white/20"
+        >
+          {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} className="opacity-70" />}
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <pre className="overflow-x-auto p-4 text-[13px] leading-[1.7] whitespace-pre font-['Fira_Code','Cascadia_Code','JetBrains_Mono',monospace] text-[#D4D4D4] selection:bg-[#264F78]">
+        <code>{children}</code>
+      </pre>
+    </div>
+  );
+}
 
-HO��H��]\����[�ܘY�K��]][J��\�KX�]X�\��[��H�[�H�]���]\���[�B�JN��ۜ��[�]�][�]HH\�T�]J��N�ۜ���Y[���]�Y[��HH\�T�]J�[�JN�ۜ��[�[�][�[HH\�T�]J��[[��ۈ�N�ۜ�����\�ܞK�]���\�ܞWHH\�T�]J�[�JN��ۜ����T�Y�H\�T�Y�S]�[[Y[���[
-N�ۜ�[�]�Y�H\�T�Y�S[�][[Y[���[
-N�ۜ�X�ܝ�Y�H\�T�Y�X�ܝ�۝��\��[��[
-N��ۜ�X�]�T�\��[ۈH\�SY[[�
+function ModelSelector({ selected, onSelect }: { selected: string; onSelect: (k: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const current = MODELS.find((m) => m.key === selected) || MODELS[0];
 
-HO��\��[ۜ˙�[�
-�O�˚YOOH�\��[�Y
-K��\��[ۜ��\��[�YJN�ۜ�Y\��Y�\�HX�]�T�\��[ۏ˛Y\��Y�\��N�\�QY��X�
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (btnRef.current && !btnRef.current.contains(e.target as Node) && dropRef.current && !dropRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  useEffect(() => {
+    if (open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 6, left: Math.max(rect.right - 230, 8) });
+    }
+  }, [open]);
 
-HO����[�ܘY�K��]][J��\�KX�]\�\��[ۜȋ��Ӌ���[��Y�J�\��[ۜ�JN�K��\��[ۜ�JN\�QY��X�
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-bold transition-all shadow-sm bg-muted/60 border border-border/50 hover:bg-muted text-foreground/90"
+      >
+        <span className="truncate max-w-[100px]">{current.label}</span>
+        <ChevronDown size={13} className={`flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} style={{ color: "hsl(var(--muted-foreground))" }} />
+      </button>
 
+      {open && createPortal(
+        <div
+          ref={dropRef}
+          className="fixed w-[230px] rounded-xl overflow-hidden border shadow-xl bg-card animate-in fade-in zoom-in-95 duration-100"
+          style={{ top: pos.top, left: pos.left, zIndex: 9999, borderColor: "hsl(var(--border))" }}
+        >
+          <div className="px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 border-b border-border/40">
+            Select Intelligence Model
+          </div>
+          <div className="p-1">
+            {MODELS.map((m) => (
+              <button
+                key={m.key}
+                onClick={() => { onSelect(m.key); setOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-md transition-colors hover:bg-muted"
+                style={{ background: m.key === selected ? "hsl(var(--primary)/0.08)" : "transparent" }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 shadow-sm" style={{ background: m.key === selected ? "hsl(var(--primary))" : "hsl(var(--muted-foreground)/0.3)" }} />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[12px] font-bold text-foreground block">{m.label}</span>
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm" style={{ color: "hsl(var(--muted-foreground)/0.8)", background: "hsl(var(--muted))" }}>
+                  {m.tag}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
 
-HO��Y�
-�\��[�Y
-H��[�ܘY�K��]][J��\�KX�]X�\��[���\��[�Y
-N�[�H��[�ܘY�K��[[ݙR][J��\�KX�]X�\��[��N�K��\��[�YJN�\�QY��X�
+interface GuruBotProps { open: boolean; onClose: () => void; }
 
+export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot({ open, onClose }, ref) {
+  const [sessions, setSessions] = useState<Session[]>(() => {
+    try { const saved = localStorage.getItem("guru-chat-sessions"); return saved ? JSON.parse(saved) : []; }
+    catch { return []; }
+  });
+  
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [model, setModel] = useState("nemotron");
+  
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-HO�����T�Y���\��[�˜�ܛ�[�՚Y]���Z]�[܎���[���JN�K�Y\��Y�\����\�ܞWJN\�QY��X�
+  const activeSession = useMemo(() => sessions.find(s => s.id === currentId), [sessions, currentId]);
+  const messages = activeSession?.messages || [];
 
+  useEffect(() => { localStorage.setItem("guru-chat-sessions", JSON.stringify(sessions)); }, [sessions]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => { if (open && !showHistory) setTimeout(() => inputRef.current?.focus(), 200); }, [open, showHistory]);
 
-HO��Y�
-�[�	��\���\�ܞJH�][Y[�]
+  const saveToSession = (newMessages: Msg[], curModel: string) => {
+    setSessions(prev => {
+      const now = Date.now();
+      if (!currentId) {
+        const fallbackTitle = newMessages.find(m => m.role === 'user')?.content.slice(0, 30) + '...';
+        const newId = crypto.randomUUID();
+        setCurrentId(newId);
+        return [{ id: newId, title: fallbackTitle, messages: newMessages, model: curModel, date: now }, ...prev];
+      }
+      return prev.map(s => s.id === currentId ? { ...s, messages: newMessages, model: curModel, date: now } : s);
+    });
+  };
 
+  const send = async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    
+    setInput("");
+    if (inputRef.current) inputRef.current.style.height = 'auto';
 
-HO�[�]�Y���\��[�˙���\�
-K�
-N�K��[����\�ܞWJN��ۜ��]�U��\��[ۈH
-\��Έ\���K\]U]OΈ���X[�HO��]�\��[ۜ��]�O�]�^Hˋ���]�N]H��]��]�Y�
-\]U]H	��\��˛[���
-HH\����K��۝[���X�J�
-H
-�������Y�
-X�\��[�Y
-H�ۜ��]�YH]K����
-K����[��
-N�]�\��[�Y
-�]�Y
-N�]\����Y��]�Y]N�Y\��Y�\Έ\���[�[]N�]K����
-HK����^NB��]\���^�X\
-�O�˚YOOH�\��[�Y� prev.map(s => s.id === currentId ? { ...s, messages: [...newMessages, { role: "assistant", content: "⚠️ Error connecting to Guru. Please try again." }] } : s));
+    const userMsg: Msg = { role: "user", content: text };
+    const newMessages = [...messages, userMsg];
+    saveToSession(newMessages, model);
+    setLoading(true);
+    
+    let assistantSoFar = "";
+    const upsert = (chunk: string) => {
+      assistantSoFar += chunk;
+      setSessions(prev => {
+        if (!currentId) return prev;
+        return prev.map(s => {
+          if (s.id === currentId) {
+            const msgs = [...s.messages];
+            const last = msgs[msgs.length - 1];
+            if (last?.role === "assistant") {
+              msgs[msgs.length - 1] = { ...last, content: assistantSoFar };
+            } else {
+              msgs.push({ role: "assistant", content: assistantSoFar });
+            }
+            return { ...s, messages: msgs };
+          }
+          return s;
+        });
+      });
+    };
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+    
+    try {
+      await streamChat({ 
+        messages: newMessages, 
+        model, 
+        onDelta: upsert, 
+        onDone: () => setLoading(false), 
+        signal: controller.signal 
+      });
+    } catch (e: any) {
+      if (e.name !== "AbortError") {
+        setSessions(prev => prev.map(s => s.id === currentId ? { ...s, messages: [...newMessages, { role: "assistant", content: "⚠️ Error connecting to Guru. Please try again." }] } : s));
       }
       setLoading(false);
     }
-  ;
-};
+  };
 
-  const stopChat = () => { abortRef.current?.abort(); };
-
+  const stopChat = () => { abortRef.current?.abort(); setLoading(false); };
   const startNewChat = () => { setCurrentId(null); setShowHistory(false); };
   const deleteSession = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSessions(sessions.filter(s => s.id !== id));
     if (currentId === id) setCurrentId(null);
   };
-
   const handleClose = () => { if (showHistory) { setShowHistory(false); return; } onClose(); };
 
   if (!open) return null;
 
   return (
-    <div ref={ref} className="flex flex-col h-full bg-background">
-      {/* ╠╠╠ Header ╠╠╠ */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b bg-background/95 backdrop-blur z-20" style={{ borderColor: "hsl(var(--border*)" }}>
-        <button onClick={() => setShowHistory(o => !o)} className={`p-xs rounded-md transition-colors ${showHistory ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted"}`} title="Chat History">
-          {showHistory ? <X size=2{15} /> : <RewOS size={15} /> }
+    <div ref={ref} className="flex flex-col h-full bg-background font-sans relative">
+      {/* ─── Header ─── */}
+      <div className="flex items-center justify-between px-3 py-2.5 border-b bg-background/95 backdrop-blur z-20" style={{ borderColor: 'hsl(var(--border))' }}>
+        <button 
+          onClick={() => setShowHistory(o => !o)} 
+          className={`p-1.5 rounded-lg transition-colors ${showHistory ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`} 
+          title="Chat History"
+        >
+          {showHistory ? <X size={16} /> : <History size={16} />}
         </button>
         <div className="flex items-center gap-1.5 pl-1">
-           <strong className="text-[14px] font-bold text-foreground">Guru</strong>
+          <strong className="text-[14px] font-bold text-foreground tracking-tight">Guru</strong>
         </div>
         <div className="flex-1" />
         <ModelSelector selected={model} onSelect={setModel} />
-        <button onClicj�^��\��]��]H�\�Ә[YOH�LK�H��[�Y[Y�[��][ۋX��ܜ�^[]]YY�ܙYܛ�[�ݙ\����[]]Yݙ\��^Y�ܙYܛ�[��]OH��]��]���Y\��Y�T�]X\�T\��^�O^�M_Hς�؝]ۏ���]ۈې�X��^�[�P���_H�\�Ә[YOH�LK�H��[�Y[Y�[��][ۋX��ܜ�^[]]YY�ܙYܛ�[�ݙ\����[]]Y[L�H�]OH����H�YX�\����[�[�Y����H�^�O^�M_Hς�؝]ۏ���]�����ʈ8�h8�h8�h��H8�h8�h8�h
-��B�]��\�Ә[YOH��^LHݙ\����^KX]]�Z[�ZL�[]]�H��[O^��ݙ\��ܛ��Z]�[܎���۝Z[��_O������\�ܞH�
-�]��\�Ә[YOH�L��X�K^KL�X���]H[��]L�LLݙ\��ܛ�X�۝Z[�ݙ\����^KX]]��Y�[Y�[��[O^���X��ܛ�[����
-�\�KX�X��ܛ�[�
-JH�_O��]��\�Ә[YOH��^][\�X�[�\��\�Y�KX�]�Y[�X�L�LH]LH����[��\�Ә[YOH�^V�L\H�۝X��\\��\�H�X��[��]�Y\�^[]]YY�ܙYܛ�[����X�[��]���[�����\��[ۜ˛[���	���[��\�Ә[YOH�^V�LH^[]]YY�ܙYܛ�[��۝[YY][H��[]]Y�LL�KL�H��[�Y����\��[ۜ˛[��H�XY���[��B��]�����\��[ۜ˛[��OOH�
-�]��\�Ә[YOH��^�^X��][\�X�[�\��\�Y�KX�[�\�KLL�^X�[�\�^[]]YY�ܙYܛ�[����Y\��Y�T�]X\�H�^�O^̍H�\�Ә[YOH�X�L��X�]KL��ς��[��\�Ә[YOH�^V�L�H�۝[YY][H�����]\�ܞHY]���[����]���
-H�
-��\��[ۜ˛X\
-�O�
-�]��^O^�˚YHې�X��^�
-HO���]�\��[�Y
-˚Y
-N��]���\�ܞJ�[�JN�_H�\�Ә[YO^��^][\�X�[�\��\L�L��][�K[�ۙH��[�Y[��\��܋\�[�\��[��][ۋX[�ܙ\�ܛ�\	��\��[�YOOH˚Y����\�[X\�K�H�ܙ\�\�[X\�Ǩ^Y�ܙYܛ�[������[]]Y�L�ܙ\�]�[��\�[�ݙ\����[]]Y�L^[]]YY�ܙYܛ�[�ݙ\��^Y�ܙYܛ�[��XO��Y\��Y�T�]X\�H�^�O^�MH�\�Ә[YO^X�^\��[��L	��\��[�YOOH˚Y��^\�[X\�H����X�]KM��XHς�]��\�Ә[YOH��^LHZ[�]�L���]��\�Ә[YOH�^V�L�H�۝\�[ZX���[��]H���˝]H�[�]Y�]�O�]���]��\�Ә[YOH�^V�LH�X�]KM�]LH�۝[YY][H��ۙ]�]J˙]JK����[Q]T��[��
-_H��˛Y\��Y�\˛[��HY\�Y�\��]����]����]ۈې�X��^�JHO�[]T�\��[ۊ˚YJ_H]OH�[]H�]��\�Ә[YOH�LK�H�X�]KLܛ�\Zݙ\���X�]KLLݙ\��^Y\��X�]�Hݙ\����Y\��X�]�K�L��[�Y[Y�[��][ۋX[����\���^�O^�L�Hς�؝]ۏ���]���
-JB�
-_B��]���
-H�
-�]��\�Ә[YOH�L�KM�X�K^KM����Y\��Y�\˛[��OOH	��
-�]��\�Ә[YOH��^�^X��][\�X�[�\��\�Y�KX�[�\�KLL�^X�[�\��\Lȏ��]��\�Ә[YOH��LMLM��[�YL��^][\�X�[�\��\�Y�KX�[�\��Y��\�H�ܙ\���[OK^���X��ܛ�[����
-�\�K\�[X\�JK��
-H��ܙ\���܎���
-�\�K\�[X\�JK��MJH�_O�����^�O^̎H�[O^����܎���
-�\�K\�[X\�JJH�_Hς��]���]���]��\�Ә[YOH�^V�MH�۝X��X�LH��[O^����܎���
-�\�KY�ܙYܛ�[�
-JH�_O��\�H\��\�[��]���]��\�Ә[YOH�^V�LK�\HXY[��\�[^YX^]�V̌�H�۝[YY][H��[O^����܎���
-�\�K[]]YY�ܙYܛ�[�
-JH�X\��[���]]Ȉ_O��^\�[�X]�]�K]H��X�\�\�[�ܚ]\�	�[\����]����]���]��\�Ә[YOH��^�^]ܘ\�\�Y�KX�[�\��\L�]L��V�
-IWH^X]]ȏ���ȑ^Z[�Z����I��[�ܚ]H��ܚ]HH�]�H�\�K���]\���]\��]�]X\��ȗK�X\
+        <button onClick={startNewChat} className="p-1.5 rounded-lg transition-colors text-muted-foreground hover:bg-muted mx-1" title="New Chat">
+          <MessageSquarePlus size={16} />
+        </button>
+        <button onClick={handleClose} className="p-1.5 rounded-lg transition-colors text-muted-foreground hover:bg-muted" title="Close">
+          <PanelRightClose size={16} />
+        </button>
+      </div>
 
-JHO�
-��]ۂ��^O^�_B�ې�X��^�
-HO���][�]
-JN��][Y[�]
+      {/* ─── Body ─── */}
+      <div className="flex-1 overflow-hidden relative bg-card/10">
+        {/* Chat History Sidebar */}
+        {showHistory ? (
+          <div className="absolute inset-0 z-10 bg-background overflow-y-auto animate-in slide-in-from-left-2 duration-200">
+            <div className="p-3">
+              <h3 className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70 mb-3 px-1">Recent Conversations</h3>
+              <div className="space-y-1">
+                {sessions.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-[12px]">No history yet</div>
+                ) : (
+                  sessions.map(s => (
+                    <div 
+                      key={s.id}
+                      onClick={() => { setCurrentId(s.id); setShowHistory(false); setModel(s.model || 'nemotron'); }}
+                      className={`group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${s.id === currentId ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80'}`}
+                    >
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <MessageSquare size={14} className={`flex-shrink-0 ${s.id === currentId ? 'text-primary' : 'opacity-60'}`} />
+                        <div className="truncate text-[13px]">{s.title}</div>
+                      </div>
+                      <button 
+                        onClick={(e) => deleteSession(s.id, e)}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:text-destructive transition-opacity"
+                        title="Delete Chat"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="h-full overflow-y-auto p-4 space-y-5" style={{ overscrollBehavior: 'contain' }}>
+            {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full text-center gap-4 animate-in fade-in zoom-in-95 duration-500">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-primary/10 shadow-inner">
+                  <Bot size={28} className="text-primary" />
+                </div>
+                <div>
+                  <div className="text-[15px] font-bold text-foreground mb-1 tracking-tight">Guru Assistant</div>
+                  <div className="text-[12px] text-muted-foreground max-w-[200px] leading-relaxed mx-auto">
+                    DSA • Java • SQL • Competitive Programming
+                  </div>
+                </div>
+                <div className="flex flex-col w-full max-w-[240px] gap-2 mt-4">
+                  {["Explain BFS vs DFS", "What is AlgoGuru?", "Merge sort code in Java"].map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => { setInput(q); setTimeout(() => inputRef.current?.focus(), 50); }}
+                      className="text-[12px] font-medium px-4 py-2.5 rounded-xl text-left border bg-card hover:bg-muted/50 transition-all shadow-sm"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
+                <div className={`flex gap-3 max-w-[90%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  {m.role === 'assistant' && (
+                    <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-primary/10 border border-primary/20 shadow-sm">
+                      <Bot size={14} className="text-primary" />
+                    </div>
+                  )}
+                  {m.role === 'assistant' ? (
+                     <div className="text-[14px] leading-[1.7] text-foreground prose-sm prose-p:my-1.5 prose-pre:my-0 prose-pre:p-0 max-w-full overflow-hidden">
+                        <ReactMarkdown
+                          components={{
+                            code({ className, children, ...props }) {
+                              const isBlock = className?.startsWith('language-') || String(children).includes('\n');
+                              if (isBlock) return <CodeBlock className={className}>{String(children).replace(/\n$/, '')}</CodeBlock>;
+                              return (
+                                <code
+                                  className="px-1.5 py-0.5 rounded-md text-[13px] font-mono font-bold mx-0.5"
+                                  style={{ background: 'hsl(var(--muted))', color: 'hsl(var(--primary))' }}
+                                  {...props}
+                                >{children}</code>
+                              );
+                            },
+                            pre({ children }) { return <>{children}</>; },
+                          }}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl rounded-tr-sm px-4 py-2.5 text-[14px] leading-[1.5] font-medium shadow-sm bg-primary text-primary-foreground">
+                      {m.content}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
 
-HO�[�]�Y���\��[�˙���\�
-K
-L
-N�_B��\�Ә[YOH�^V�L�\H�۝\�[ZX��L�KLK�H��[�Y[��[��][ۋX[ݙ\��]�[��]K^KL�H�Y��\�HX�]�N��[��]K^KL���[O^���X��ܛ�[����
-�\�KY�ܙYܛ�[�
-K��
-H��X��ܛ�[����
-�\�K[]]Y
-K��JH��ܙ\���\��Y�
-�\�KX�ܙ\�K���H�_B����_B�؝]ۏ��
-J_B��]����]���B���Y\��Y�\˛X\
+            {loading && messages[messages.length - 1]?.role !== 'assistant' && (
+              <div className="flex gap-3 items-start animate-in fade-in">
+                <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-primary/10 border border-primary/20 shadow-sm">
+                  <Bot size={14} className="text-primary" />
+                </div>
+                <div className="flex gap-1.5 pt-3 pl-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-[bounce_1s_infinite]" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-[bounce_1s_infinite]" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-[bounce_1s_infinite]" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} className="h-2" />
+          </div>
+        )}
+      </div>
 
-KJHO�
-�]��^O^�_H�\�Ә[YO^��^�\L��H	�K���HOOH�\�\�����\�Y�KY[�����\�Y�K\�\��XO���K���HOOH�\��\�[��	��
-�]��\�Ә[YOH��M�M���[�Y[Y�^][\�X�[�\��\�Y�KX�[�\��^\��[��L]L�H�ܙ\��Y��\�H��[OK^���X��ܛ�[����
-�\�K\�[X\�JK��JH��ܙ\���܎���
-�\�K\�[X\�JK���H�_O�����^�O^�L�H�[O^����܎���
-�\�K\�[X\�JJH�_Hς��]���
-_B�]��\�Ә[YOH�X^]�V�
-�WHZ[�]�L��[O^���ܙ��XZΈ���XZ�]�ܙ�ݙ\����ܘ\��[�]�\�H�_O���K���HOOH�\��\�[���
-�]��\�Ә[YOH�^V�Lˍ\HXY[��V�K��WH��[O^����܎���
-�\�KY�ܙYܛ�[�
-JH�_O��]��\�Ә[YOH����H���K\�H\������KZ[��\�X^]�[�ۙHɘ[\���WN�Lɘ[\���WN���]�[��\�[�ɘ[\���WN�KLɘ[\����WN�^V�L��\Hɘ[\����WN�XY[��V�K��Hɘ[\��N�KLɘ[\��N�X�L��Hɘ[\��N�XY[��V�K��WHɘ[\��N�^V�Lˍ\Hɘ[\��[N�KLɘ[\��[N�X�L��Hɘ[\��[N�MHɘ[\��[N�^V�Lˍ\Hɘ[\���N�KLɘ[\���N�X�L��Hɘ[\���N�MHɘ[\���N�^V�Lˍ\Hɘ[\��WN�KLɘ[\��WN�X�LHɘ[\��WN�XY[��V�K��Hɘ[\��WN�^V�M\Hɘ[\��WN��۝X��ɘ[\��WN�X�L�ɘ[\��WN�]Mɘ[\���N�^V�M�\Hɘ[\���N��۝X��ɘ[\���N�X�LK�Hɘ[\���N�]LˍHɘ[\���N�^V�MHɘ[\���N��۝\�[ZX��ɘ[\���N�X�LHɘ[\���N�]L�ɘ[\����ۙ�N��۝X��ɘ[\����ۙ�N�^Y�ܙYܛ�[�ɘ[\�؛���][�WN��ܙ\�[L�ɘ[\�؛���][�WN��ܙ\�\�[X\�K��ɘ[\�؛���][�WN�L�ɘ[\�؛���][�WN�][X�ɘ[\�؛���][�WN�^[]]YY�ܙYܛ�[�ɘ[\�؛���][�WN�^KL�ɘ[\���N�^KMɘ[\���N��ܙ\�X�ܙ\���ɘ[\��X�WN�^V�L��\Hɘ[\��X�WN��Y�[ɘ[\��X�WN�X�L�ɘ[\��N�^[Y�ɘ[\��N��۝\�[ZX��ɘ[\��N�L��Hɘ[\��N�KLK�Hɘ[\��N��ܙ\�X�ɘ[\��N�L��Hɘ[\��N�KLK�Hɘ[\��N��ܙ\�X�ɘ[\��N��ܙ\�X�ܙ\�̌ݙ\����ZY[�����XX�X\���ۂ���\ۙ[��^���J��\�Ә[YK�[�[�������JH�ۜ�\Л���H�\�Ә[YO˜�\���]
-�[��XY�KH�H��[���[�[�K�[��Y\����NY�
-\Л���H�]\����P�����\�Ә[YO^��\�Ә[Y_O����[���[�[�K��\X�J�����_O���P���ώ�]\��
-���B��\�Ә[YOH�LK�HKL�H��[�Y^V�LK�\H�۝[[ۛ��۝X��^L�H�Y��\�H���[O^���X��ܛ�[����
-�\�K[]]Y
-K���H���܎���
-�\�K\�[X\�JJH��ܙ\���\��Y�
-�\�KX�ܙ\�K���H�_B�ˋ�����B����[�[�O���O��
-NK��J��[�[�JH��]\�����[�[�O��K�_B����K��۝[�B�ԙXX�X\���ۏ���]����]���
-H�
-�]���\�Ә[YOH���[�YL���[�Y]�\�HMKL��H^V�Lˍ\HXY[��V�K��WH�۝[YY][H�Y��\�H���[OK^���X��ܛ�[����
-�\�K\�[X\�JJH���܎���
-�\�K\�[X\�KY�ܙYܛ�[�
-JH�_B����K��۝[�B��]���
-_B��]����]���
-JHB����Y[��	��Y\��Y�\��Y\��Y�\˛[��HWO˜��HOOH�\��\�[��	��
-�]��\�Ә[YOH��^�\L�][\�\�\����]��\�Ә[YOH��M�M���[�Y[Y�^][\�X�[�\��\�Y�KX�[�\��^\��[��L]L�H�ܙ\��Y��\�H��[OK^���X��ܛ�[����
-�\�K\�[X\�JK��H��ܙ\���܎���
-�\�K\�[X\�JK���H�_O�����^�O^�L�H�[O^����܎���
-�\�K\�[X\�JJH�_Hς��]���]��\�Ә[YOH��^�\LK�HL��HKLH����[��\�Ә[YOH��LK�HLK�H��[�YY�[[�[X]KX��[��H��[O^���X��ܛ�[����
-�\�K\�[X\�JK���H�[�[X][ۑ[^N��\Ȉ_Hς��[��\�Ә[YOH��LK�HLK�H��[�YY�[[�[X]KX��[��H��[O^���X��ܛ�[����
-�\�K\�[X\�JK���H�[�[X][ۑ[^N��ML\Ȉ_Hς��[��\�Ә[YOH��LK�HLK�H��[�YY�[[�[X]KX��[��H��[O^���X��ܛ�[����
-�\�K\�[X\�JK���H�[�[X][ۑ[^N���\Ȉ_Hς��]����]���
-_B�]��Y�^؛��T�Y�H�\�Ә[YOH�LH�ς��]���
-_B��]������ʈ8�h8�h8�h[�]8�h8�h8�h
-��B�]��\�Ә[YOH�L�KL��ܙ\�]�^\��[��L��X�X��ܛ�[��MH�X����X�\��L���[OK^���ܙ\���܎���
-�\�KX�ܙ\�JH�_O��]���\�Ә[YOH��^][\�Y[��\L�L��HKL���[�YV�MH�Y��\�H���[O^���X��ܛ�[����
-�\�K[]]Y
-K���H��ܙ\���\��Y�
-�\�KX�ܙ\�K���H��[��][ێ���ܙ\�X��܈��Ȉ_B���^\�XB��Y�^�[�]�Y�B��[YOK^�[�]B�ې�[��O^�JHO��][�]
-K�\��]��[YJNK�\��]��[K�ZY�H�]]("K�\��]��[K�ZY�HX]�Z[�K�\��]��ܛ�ZY�L�
-H
-���_B�ے�^Q�ۏ^�JHO���Y�
-K��^HOOH�[�\��	��YK��Y��^JH��K��]�[�Y�][
+      {/* ─── Input ─── */}
+      <div className="px-3 py-3 border-t bg-background/95 backdrop-blur z-20" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="flex items-end gap-2 px-2.5 py-2 rounded-[14px] bg-muted/40 border border-border/70 focus-within:border-primary/50 focus-within:bg-muted/20 transition-all shadow-sm">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => {
+               setInput(e.target.value);
+               e.target.style.height = 'auto';
+               e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+            }}
+            onKeyDown={(e) => { 
+                if (e.key === 'Enter' && !e.shiftKey) { 
+                    e.preventDefault(); 
+                    if (!loading) send(); 
+                } 
+            }}
+            placeholder="Message Guru..."
+            disabled={loading && !input}
+            className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 disabled:opacity-50 resize-none min-h-[36px] max-h-[120px] py-1.5 pt-2 font-medium"
+            rows={1}
+          />
+          <button
+            onClick={loading ? stopChat : send}
+            disabled={(!input.trim() && !loading) || (loading && !input && messages.length === 0)}
+            className={`p-2.5 rounded-xl transition-all flex items-center justify-center min-w-[40px] min-h-[40px] mb-0.5 shadow-sm active:scale-95 ${loading ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:hover:bg-primary/90'}`}
+            title={loading ? 'Stop generating' : 'Send message'}
+          >
+            {loading ? <Square fill="currentColor" size={15} className="rounded-sm" /> : <Send size={16} className="ml-0.5" />}
+          </button>
+        </div>
+        <div className="text-center mt-2.5">
+          <span className="text-[10px] font-semibold tracking-wider text-muted-foreground/50 uppercase">
+            Powered by AlgoGuru • AI can make mistakes
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+});
 
-N��Y�
-[�Y[��H�[�
-
-N��H�_B�X�Z�\�H�Y\��Y�H�\�K�����\�X�Y^��Y[��	��Z[�]B��\�Ә[YOH��^LH��]�[��\�[�^V�Lˍ\H�][�K[�ۙHX�Z�\��^[]]YY�ܙYܛ�[�͌\�X�Y��X�]KML�\�^�K[�ۙHZ[�ZV�͜HX^ZV�L�HKLK�HL��۝[YY][H���[OK^����܎���
-�\�KY�ܙYܛ�[�
-JH�_B�����^�_B�ς��]ۂ�ې�X��^��Y[������]��[�B�\�X�Y^�Z[�]��[J
-H	��[�Y[��H
-�Y[��	��Z[�]	��Y\��Y�\˛[��OOH
-_B��\�Ә[YO^�L���[�Y^�[��][ۋX[�^][\�X�[�\��\�Y�KX�[�\�Z[�]�V�͜HZ[�ZV�͜HX�L�H�Y��\�H	�Y[�������Y\��X�]�H^Y\��X�]�KY�ܙYܛ�[�ݙ\����Y\��X�]�K�L������\�[X\�H^\�[X\�KY�ܙYܛ�[�ݙ\����\�[X\�K�L\�X�Y��X�]KL�\�X�Y�ݙ\����\�[X\�K�L��XB�]O^��Y[�������[�\�][�Ȉ���[�Y\��Y�H�B�����Y[����]X\�H�[H��\��[���܈��^�O^�MH�\�Ә[YOH���[�Y^Ȉψ��[��^�O^�M_H�\�Ә[YOH�[L�H�ϟB�؝]ۏ���]���]��\�Ә[YOH�^X�[�\�]L�����[��\�Ә[YOH�^V�LH�۝\�[ZX���X��[��]�YH��[O^����܎���
-�\�K[]]YY�ܙYܛ�[�
-K��JH�_O����\�Y�H[���\�H0��RH�[�XZ�HZ\�Z�\��[����]����]����]���
-NJN��\�P���\�^S�[YHH��\�P����
+GuruBot.displayName = 'GuruBot';
