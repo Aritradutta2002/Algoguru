@@ -372,7 +372,7 @@ export default function Practice() {
                                         rel="noreferrer"
                                         className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
                                       >
-                                        GFG
+                                        GeeksForGeeks
                                       </a>
 
                                       <a
@@ -384,20 +384,6 @@ export default function Practice() {
                                         Solution
                                       </a>
 
-                                      {prob.source.url ? (
-                                        <a
-                                          href={prob.source.url}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="ml-1 text-xs font-black uppercase tracking-wide text-primary hover:underline"
-                                        >
-                                          {prob.source.label}
-                                        </a>
-                                      ) : (
-                                        <span className="ml-1 text-xs font-black uppercase tracking-wide text-muted-foreground">
-                                          {prob.source.label}
-                                        </span>
-                                      )}
                                     </div>
 
                                     <div className="mt-3 flex flex-wrap items-center gap-2">
