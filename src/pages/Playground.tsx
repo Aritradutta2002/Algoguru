@@ -822,10 +822,31 @@ export default function Playground() {
   };
 
   const formatCode = useCallback(() => {
-    if (editorRef.current) {
-      editorRef.current.getAction('editor.action.formatDocument')?.run();
+    const raw = code;
+    if (!raw.trim()) return;
+
+    const lines = raw.split('\n');
+    const formatted: string[] = [];
+    let indent = 0;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) { formatted.push(''); continue; }
+
+      const closers = (trimmed.match(/^[}\])]/g) || []).length;
+      if (closers > 0 && indent > 0) indent--;
+
+      formatted.push('    '.repeat(Math.max(indent, 0)) + trimmed);
+
+      const opens = (trimmed.match(/[{(\[]/g) || []).length;
+      const closes = (trimmed.match(/[}\])]/g) || []).length;
+      indent += opens - closes;
+      if (closers > 0) indent += closers;
+      indent = Math.max(indent, 0);
     }
-  }, []);
+
+    setCode(formatted.join('\n'));
+  }, [code]);
 
   const resetCode = useCallback(() => {
     setCode(DEFAULT_CODE);
