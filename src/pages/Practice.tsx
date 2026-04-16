@@ -226,7 +226,7 @@ export default function Practice() {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col items-center p-6 md:p-10 w-full max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex-1 h-full flex flex-col items-center p-6 md:p-10 w-full max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Header Section */}
       <div className="text-center space-y-4 max-w-2xl">
