@@ -157,16 +157,16 @@ function SearchButton() {
       <button
         onClick={() => setOpen(true)}
         title="Search topics (Ctrl+K)"
-        className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-border bg-card text-foreground rounded transition-all duration-150 hover:bg-muted"
+        className="flex items-center gap-1.5 px-3 py-1.5 border-2 border-border bg-card text-foreground rounded-lg transition-all duration-200 hover:bg-muted/80 w-auto sm:w-64"
         style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
       >
-        <Search size={13} strokeWidth={2.5} />
-        <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">Search</span>
+        <Search size={14} strokeWidth={2} className="text-muted-foreground" />
+        <span className="hidden sm:inline-block flex-1 text-left text-xs font-medium text-muted-foreground mr-2">Search AlgoGuru...</span>
         <kbd
-          className="hidden sm:inline text-[9px] font-mono font-black px-1.5 py-0.5 border border-border ml-0.5"
-          style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
+          className="hidden sm:flex items-center gap-1 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded ml-auto border border-border/50 bg-background"
+          style={{ color: "hsl(var(--muted-foreground))" }}
         >
-          ⌘K
+          <span className="text-[9px]">⌘</span>K
         </kbd>
       </button>
 
