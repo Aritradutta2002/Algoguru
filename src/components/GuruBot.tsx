@@ -168,11 +168,26 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
     catch { return []; }
   });
   
-  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [currentId, setCurrentId] = useState<string | null>(() => {
+    try {
+      const savedId = sessionStorage.getItem("guru-chat-current-id");
+      if (savedId) return savedId;
+      const s = localStorage.getItem("guru-chat-sessions");
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (parsed && parsed.length > 0) return parsed[0].id;
+      }
+    } catch {}
+    return null;
+  });
+  
   const [showHistory, setShowHistory] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [model, setModel] = useState("nemotron");
+  const [model, setModel] = useState(() => {
+    try { return localStorage.getItem("guru-chat-model") || "nemotron"; }
+    catch { return "nemotron"; }
+  });
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -182,6 +197,11 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
   const messages = activeSession?.messages || [];
 
   useEffect(() => { localStorage.setItem("guru-chat-sessions", JSON.stringify(sessions)); }, [sessions]);
+  useEffect(() => {
+    if (currentId) sessionStorage.setItem("guru-chat-current-id", currentId);
+    else sessionStorage.removeItem("guru-chat-current-id");
+  }, [currentId]);
+  useEffect(() => { localStorage.setItem("guru-chat-model", model); }, [model]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
   useEffect(() => { if (open && !showHistory) setTimeout(() => inputRef.current?.focus(), 200); }, [open, showHistory]);
 
