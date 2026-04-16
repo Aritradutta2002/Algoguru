@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, forwardRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Send, Copy, Check, PanelRightClose, Bot, ChevronDown, RotateCcw, MessageSquarePlus, Square, MessageSquare, Trash2, X, History } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = { id: string; title: string; messages: Msg[]; model: string; date: number };
@@ -72,7 +74,7 @@ async function streamChat({
 
 function CodeBlock({ children, className }: { children: string; className?: string }) {
   const [copied, setCopied] = useState(false);
-  const lang = className?.replace("language-", "") || "code";
+  const lang = className?.replace("language-", "") || "text";
 
   return (
     <div className="my-3 rounded-xl overflow-hidden border bg-[#1E1E1E] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.4)] border-white/10">
@@ -86,9 +88,16 @@ function CodeBlock({ children, className }: { children: string; className?: stri
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <pre className="overflow-x-auto p-4 text-[13px] leading-[1.7] whitespace-pre font-['Fira_Code','Cascadia_Code','JetBrains_Mono',monospace] text-[#D4D4D4] selection:bg-[#264F78]">
-        <code>{children}</code>
-      </pre>
+      <div className="text-[13px] leading-[1.7] font-['Fira_Code','Cascadia_Code','JetBrains_Mono',monospace]">
+        <SyntaxHighlighter
+          language={lang}
+          style={vscDarkPlus}
+          customStyle={{ margin: 0, border: 'none', background: 'transparent', padding: '1rem' }}
+          wrapLongLines={true}
+        >
+          {children}
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 }
