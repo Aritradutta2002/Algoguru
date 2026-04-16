@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Send, Copy, Check, PanelRightClose, Bot, ChevronDown, RotateCcw, MessageSquarePlus, Square, MessageSquare, Trash2, X, History } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = { id: string; title: string; messages: Msg[]; model: string; date: number };
@@ -91,7 +91,7 @@ function CodeBlock({ children, className }: { children: string; className?: stri
       <div className="text-[13px] leading-[1.7] font-['Fira_Code','Cascadia_Code','JetBrains_Mono',monospace]">
         <SyntaxHighlighter
           language={lang}
-          style={vscDarkPlus}
+          style={dracula}
           customStyle={{ margin: 0, border: 'none', background: 'transparent', padding: '1rem' }}
           wrapLongLines={true}
         >
