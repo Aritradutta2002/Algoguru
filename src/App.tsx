@@ -116,7 +116,11 @@ function SearchButton() {
   const results = useMemo(() => {
     const q = query.toLowerCase().trim();
     if (!q) return allSearchItems.filter((i) => i.type === "topic").slice(0, 12);
-    return allSearchItems.filter((i) => i.title.toLowerCase().includes(q));
+    const terms = q.split(/\s+/);
+    return allSearchItems.filter((i) => {
+      const text = `${i.title} ${i.parent || ''} ${i.id}`.toLowerCase();
+      return terms.every(t => text.includes(t));
+    });
   }, [query]);
 
   const grouped = useMemo(() => {

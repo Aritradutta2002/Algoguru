@@ -189,8 +189,12 @@ export function AppSidebar() {
   const searchResults = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return [];
+    const terms = q.split(/\s+/);
     return allSearchItems
-      .filter((i) => i.title.toLowerCase().includes(q))
+      .filter((i) => {
+        const text = `${i.title} ${i.parent || ''} ${i.id}`.toLowerCase();
+        return terms.every(t => text.includes(t));
+      })
       .sort((a, b) => {
         const aTitle = a.title.toLowerCase();
         const bTitle = b.title.toLowerCase();
