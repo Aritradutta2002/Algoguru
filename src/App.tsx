@@ -10,6 +10,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import TopicPage from "./pages/TopicPage";
 import Playground from "./pages/Playground";
+import Practice from "./pages/Practice";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -606,6 +607,7 @@ const App = () => (
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/playground" element={<Playground />} />
+                        <Route path="/practice" element={<Practice />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/admin" element={<Admin />} />
                         <Route path="/:topicId" element={<TopicPage />} />
