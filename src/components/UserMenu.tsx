@@ -63,25 +63,25 @@ export function UserMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
+        <DropdownMenuLabel className="font-normal text-foreground">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>{name}</p>
             <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer gap-2">
+        <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer gap-2 focus:bg-muted text-foreground focus:text-foreground">
           <Settings size={14} />
           Profile Settings
         </DropdownMenuItem>
         {isAdmin && (
-          <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer gap-2">
+          <DropdownMenuItem onClick={() => navigate("/admin")} className="cursor-pointer gap-2 focus:bg-muted text-foreground focus:text-foreground">
             <Shield size={14} />
             Admin Dashboard
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
+        <DropdownMenuItem onClick={signOut} className="cursor-pointer gap-2 focus:bg-destructive/20 focus:text-destructive text-destructive">
           <LogOut size={14} />
           Sign Out
         </DropdownMenuItem>

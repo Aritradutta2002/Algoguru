@@ -149,7 +149,7 @@ function ModelSelector({ selected, onSelect }: { selected: string; onSelect: (k:
               <button
                 key={m.key}
                 onClick={() => { onSelect(m.key); setOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-md transition-colors hover:bg-muted"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-md transition-colors hover:bg-muted text-foreground hover:text-foreground"
                 style={{ background: m.key === selected ? "hsl(var(--primary)/0.08)" : "transparent" }}
               >
                 <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 shadow-sm" style={{ background: m.key === selected ? "hsl(var(--primary))" : "hsl(var(--muted-foreground)/0.3)" }} />
@@ -329,7 +329,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
                     <div 
                       key={s.id}
                       onClick={() => { setCurrentId(s.id); setShowHistory(false); setModel(s.model || 'nemotron'); }}
-                      className={`group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${s.id === currentId ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80'}`}
+                      className={`group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${s.id === currentId ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground/80 hover:text-foreground'}`}
                     >
                       <div className="flex items-center gap-2.5 overflow-hidden">
                         <MessageSquare size={14} className={`flex-shrink-0 ${s.id === currentId ? 'text-primary' : 'opacity-60'}`} />
@@ -366,7 +366,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
                     <button
                       key={q}
                       onClick={() => { setInput(q); setTimeout(() => inputRef.current?.focus(), 50); }}
-                      className="text-[12px] font-medium px-4 py-2.5 rounded-xl text-left border bg-card hover:bg-muted/50 transition-all shadow-sm"
+                      className="text-[12px] font-medium px-4 py-2.5 rounded-xl text-left border bg-card hover:bg-muted/50 transition-all shadow-sm text-foreground hover:text-foreground"
                     >
                       {q}
                     </button>
