@@ -1,14 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { practiceData } from "../data/practiceData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Loader2, Notebook, Save, TrendingUp, X } from "lucide-react";
+import { BookOpen, CheckCircle2, Code2, Loader2, Notebook, Save, TrendingUp, X } from "lucide-react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+
+type CelebrationParticle = {
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+  delay: number;
+  duration: number;
+  rotate: number;
+};
+
+type CelebrationBurst = {
+  id: number;
+  x: number;
+  y: number;
+  particles: CelebrationParticle[];
+};
+
+const CELEBRATION_COLORS = ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#eab308", "#10b981"];
+const CELEBRATION_PARTICLE_COUNT = 18;
 
 export default function Practice() {
   const NOTE_POPUP_WIDTH = 520;
@@ -27,6 +47,8 @@ export default function Practice() {
   const [notesPopupPosition, setNotesPopupPosition] = useState({ x: 24, y: 120 });
   const [isDraggingNotesPopup, setIsDraggingNotesPopup] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [celebrationBursts, setCelebrationBursts] = useState<CelebrationBurst[]>([]);
+  const celebrationIdRef = useRef(0);
 
   useEffect(() => {
     if (!user) {
@@ -126,6 +148,11 @@ export default function Practice() {
         else rollback.delete(id);
         return rollback;
       });
+      return;
+    }
+
+    if (nextCompleted) {
+      triggerCompletionCelebration(id);
     }
   };
 
@@ -169,6 +196,37 @@ export default function Practice() {
   };
 
   const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+  const triggerCompletionCelebration = (problemId: string) => {
+    const sourceElement = document.getElementById(problemId);
+    const sourceRect = sourceElement?.getBoundingClientRect();
+    const burstX = sourceRect ? sourceRect.left + sourceRect.width / 2 : window.innerWidth / 2;
+    const burstY = sourceRect ? sourceRect.top + sourceRect.height / 2 : Math.min(window.innerHeight * 0.35, 240);
+
+    celebrationIdRef.current += 1;
+    const burstId = celebrationIdRef.current;
+
+    const particles: CelebrationParticle[] = Array.from({ length: CELEBRATION_PARTICLE_COUNT }, (_, index) => {
+      const angle = (Math.PI * 2 * index) / CELEBRATION_PARTICLE_COUNT;
+      const spread = 60 + Math.random() * 80;
+
+      return {
+        x: Math.cos(angle) * spread,
+        y: Math.sin(angle) * spread - (30 + Math.random() * 30),
+        size: 5 + Math.round(Math.random() * 4),
+        color: CELEBRATION_COLORS[index % CELEBRATION_COLORS.length],
+        delay: Math.random() * 0.08,
+        duration: 0.65 + Math.random() * 0.45,
+        rotate: Math.random() * 540 - 270,
+      };
+    });
+
+    setCelebrationBursts((prev) => [...prev, { id: burstId, x: burstX, y: burstY, particles }]);
+
+    window.setTimeout(() => {
+      setCelebrationBursts((prev) => prev.filter((burst) => burst.id !== burstId));
+    }, 1300);
+  };
 
   const openNotesPopup = (id: string, title: string) => {
     const popupWidth = Math.min(NOTE_POPUP_WIDTH, window.innerWidth - NOTE_POPUP_MARGIN * 2);
@@ -361,18 +419,22 @@ export default function Practice() {
                                         href={prob.leetcodeLink}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="ml-1 text-xs font-black uppercase tracking-wide text-primary hover:underline"
+                                        title="Practice in LeetCode"
+                                        aria-label="Practice in LeetCode"
+                                        className="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-card text-primary transition-colors hover:bg-primary hover:text-black"
                                       >
-                                        LeetCode
+                                        <Code2 size={14} />
                                       </a>
 
                                       <a
                                         href={prob.gfgLink}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
+                                        title="Practice in GeeksforGeeks"
+                                        aria-label="Practice in GeeksforGeeks"
+                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-card text-primary transition-colors hover:bg-primary hover:text-black"
                                       >
-                                        GeeksforGeeks
+                                        <BookOpen size={14} />
                                       </a>
 
                                       <a
@@ -427,6 +489,38 @@ export default function Practice() {
             </div>
           );
         })}
+      </div>
+
+      <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+        {celebrationBursts.map((burst) => (
+          <div
+            key={burst.id}
+            className="absolute"
+            style={{ left: `${burst.x}px`, top: `${burst.y}px` }}
+          >
+            {burst.particles.map((particle, index) => (
+              <motion.span
+                key={`${burst.id}-${index}`}
+                className="absolute rounded-sm"
+                style={{
+                  backgroundColor: particle.color,
+                  width: `${particle.size}px`,
+                  height: `${particle.size}px`,
+                }}
+                initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+                animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0.3, rotate: particle.rotate }}
+                transition={{ duration: particle.duration, delay: particle.delay, ease: "easeOut" }}
+              />
+            ))}
+
+            <motion.div
+              className="absolute -left-7 -top-7 h-14 w-14 rounded-full border-2 border-primary/50"
+              initial={{ scale: 0.25, opacity: 0.85 }}
+              animate={{ scale: 1.7, opacity: 0 }}
+              transition={{ duration: 0.65, ease: "easeOut" }}
+            />
+          </div>
+        ))}
       </div>
 
       {activeNotesProblem && (
