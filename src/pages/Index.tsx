@@ -305,47 +305,70 @@ export default function Index() {
         </div>
       </section>
 
-      {/* ── FOOTER ──────────────────────────────────────── */}
-      <div className="w-full bg-[#4EB8DD]" style={{ borderTop: "3px solid #000" }}>
-        <div className="px-4 md:px-8 py-2">
-          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-black">
-            {/* Left: brand */}
-            <div className="text-sm font-black uppercase tracking-widest">AlgoGuru</div>
+      {/* ── MASSIVE FOOTER ──────────────────────────────────────── */}
+      <footer className="w-full bg-[#FFD500] border-t-[3px] border-black text-black mt-20 relative overflow-hidden">
+        {/* Background grid */}
+        <div className="absolute inset-0 pointer-events-none opacity-10"
+          style={{ backgroundImage: 'radial-gradient(#000 1.5px, transparent 0)', backgroundSize: '24px 24px' }} />
 
-            {/* Centre: support button */}
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
+          <div>
+            <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
+              FUEL THE <br />
+              <span className="text-white relative inline-block mt-2">
+                <span 
+                  className="bg-[#FF3366] border-[3.5px] border-black px-3 py-1 relative z-10 inline-block"
+                  style={{ boxShadow: "6px 6px 0 0 #000" }}
+                >
+                  GRIND.
+                </span>
+              </span>
+            </h2>
+            <p className="font-bold text-base md:text-lg max-w-md border-l-[4px] border-black pl-5 opacity-90 leading-relaxed">
+              AlgoGuru is 100% free and open. No paywalls, no ads.
+              If this platform helped you land a job or nail an interview, consider supporting the project to keep the servers running.
+            </p>
+          </div>
+          
+          <div className="flex flex-col items-start md:items-end gap-6">
             <motion.button
               onClick={() => setSupportOpen(true)}
-              whileHover={{ y: -2, boxShadow: "4px 4px 0 0 #000" }}
-              whileTap={{ y: 1, boxShadow: "0px 0px 0 0 #000" }}
-              className="flex items-center gap-2 px-4 py-1.5 text-xs font-black uppercase tracking-wider"
+              whileHover={{ y: -4, x: -4, boxShadow: "8px 8px 0 0 #000" }}
+              whileTap={{ y: 2, x: 2, boxShadow: "0px 0px 0 0 #000" }}
+              className="flex items-center gap-4 px-8 py-5 text-xl md:text-2xl font-black uppercase tracking-wider bg-white text-black"
               style={{
-                background: "#000",
-                color: "#fff",
-                border: "2px solid #000",
-                boxShadow: "2px 2px 0 0 #000",
-                letterSpacing: "0.12em",
+                border: "4px solid #000",
+                boxShadow: "4px 4px 0 0 #000",
               }}
             >
-              <Heart size={12} fill="#FF3366" color="#FF3366" />
-              Support
-              <Coffee size={12} />
+              <Heart size={28} fill="#FF3366" color="#FF3366" className="drop-shadow-sm" />
+              Support Us
+              <Coffee size={28} />
             </motion.button>
-
-            {/* Right: credit */}
-            <p className="text-xs font-black uppercase tracking-widest text-center">
-              Built with ❤️ by{" "}
-              <a
-                href="https://portfolio-aritra-pearl.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline decoration-2 underline-offset-2"
-              >
-                Aritra
-              </a>
+            <p className="text-xs font-black uppercase tracking-widest text-black/70">
+              UPI • Cards • Crypto Accepted
             </p>
           </div>
         </div>
-      </div>
+
+        {/* Footer Bottom Bar */}
+        <div className="w-full bg-black text-white px-6 md:px-12 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
+          <div className="text-xl font-black uppercase tracking-widest flex items-center gap-2">
+            AlgoGuru <Zap size={20} className="text-[#FFD500]" fill="#FFD500" />
+          </div>
+          <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-[#A3E635]">
+            Built with 💻 by{" "}
+            <a
+              href="https://portfolio-aritra-pearl.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-2 underline-offset-4 hover:text-white transition-colors"
+            >
+              Aritra
+            </a>
+          </p>
+        </div>
+      </footer>
 
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
 

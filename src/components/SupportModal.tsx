@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Heart, ExternalLink, Sparkles, Coffee, Zap, CreditCard } from "lucide-react";
@@ -82,7 +82,20 @@ function CopyButton({ text }: { text: string }) {
 export function SupportModal({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<Tab>("upi");
   const [selectedAmount, setSelectedAmount] = useState(99);
+  const [customAmount, setCustomAmount] = useState("");
+  const [isCustom, setIsCustom] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
   const visibleTabs = TABS.filter((t) => !("hidden" in t && t.hidden));
+
+  // Auto-close modal after user marks as paid
+  useEffect(() => {
+    if (isPaid) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [isPaid, onClose]);
 
   return createPortal(
     <AnimatePresence>
@@ -182,49 +195,116 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                   transition={{ duration: 0.15 }}
                   className="flex flex-col gap-5"
                 >
-                  {/* Amount selector */}
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      Choose Amount (₹)
-                    </p>
-                    <div className="grid grid-cols-4 gap-2">
-                      {AMOUNTS.map((amt) => (
-                        <button
-                          key={amt}
-                          onClick={() => setSelectedAmount(amt)}
-                          className="py-2 text-sm font-black uppercase tracking-wide transition-all duration-100"
-                          style={{
-                            border: "2px solid hsl(var(--border))",
-                            background: selectedAmount === amt ? "hsl(var(--primary))" : "hsl(var(--card))",
-                            color: selectedAmount === amt ? "black" : "hsl(var(--foreground))",
-                            boxShadow: selectedAmount === amt ? "0 0 0 0 hsl(var(--border))" : "2px 2px 0 0 hsl(var(--border))",
-                            transform: selectedAmount === amt ? "translate(2px,2px)" : "none",
+                  {isPaid ? (
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex flex-col items-center justify-center py-10 gap-3 text-center"
+                    >
+                      <div className="text-6xl mb-2 animate-bounce">🎉</div>
+                      <h3 className="text-2xl font-black uppercase text-foreground">Thank You!</h3>
+                      <p className="text-sm font-bold text-muted-foreground w-4/5 leading-relaxed">
+                        Your support directly helps keep AlgoGuru free and fuels new features! ☕
+                      </p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[#FF3366] mt-4 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#FF3366] animate-ping" />
+                        Closing automatically...
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <>
+                      {/* Amount selector */}
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "hsl(var(--muted-foreground))" }}>
+                          Choose Amount (₹)
+                        </p>
+                        <div className="grid grid-cols-4 gap-2 mb-3">
+                          {AMOUNTS.map((amt) => (
+                            <button
+                              key={amt}
+                              onClick={() => {
+                                setSelectedAmount(amt);
+                                setIsCustom(false);
+                                setCustomAmount("");
+                              }}
+                              className="py-2 text-sm font-black uppercase tracking-wide transition-all duration-100"
+                              style={{
+                                border: "2px solid hsl(var(--border))",
+                                background: selectedAmount === amt && !isCustom ? "hsl(var(--primary))" : "hsl(var(--card))",
+                                color: selectedAmount === amt && !isCustom ? "black" : "hsl(var(--foreground))",
+                                boxShadow: selectedAmount === amt && !isCustom ? "0 0 0 0 hsl(var(--border))" : "2px 2px 0 0 hsl(var(--border))",
+                                transform: selectedAmount === amt && !isCustom ? "translate(2px,2px)" : "none",
+                              }}
+                            >
+                              ₹{amt}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Custom Input */}
+                        <div 
+                          className="flex items-center transition-all duration-100 overflow-hidden" 
+                          style={{ 
+                            border: "2px solid hsl(var(--foreground))", 
+                            boxShadow: isCustom ? "0 0 0 0 hsl(var(--foreground))" : "2px 2px 0 0 hsl(var(--foreground))", 
+                            background: "hsl(var(--card))", 
+                            transform: isCustom ? "translate(2px, 2px)" : "none"
                           }}
                         >
-                          ₹{amt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                           <div 
+                             className="px-4 py-2 font-black border-r-2" 
+                             style={{ borderColor: "hsl(var(--foreground))", background: isCustom ? "hsl(var(--primary))" : "hsl(var(--muted)/0.5)", color: isCustom ? "black" : "hsl(var(--foreground))" }}
+                           >
+                             ₹
+                           </div>
+                           <input 
+                             type="number"
+                             min="10"
+                             placeholder="Custom amount..."
+                             value={customAmount}
+                             onChange={(e) => {
+                                setIsCustom(true);
+                                setCustomAmount(e.target.value);
+                                const val = parseInt(e.target.value);
+                                // Default to some minimum if they type something invalid while scanning
+                                setSelectedAmount(isNaN(val) || val <= 0 ? 10 : val);
+                             }}
+                             onFocus={() => setIsCustom(true)}
+                             className="flex-1 bg-transparent px-3 py-2 outline-none font-bold text-sm w-full"
+                             style={{ color: "hsl(var(--foreground))" }}
+                           />
+                        </div>
+                      </div>
 
-                  {/* QR */}
-                  <UpiQRCode upiId={UPI_ID} amount={selectedAmount} />
+                      {/* QR */}
+                      <UpiQRCode upiId={UPI_ID} amount={selectedAmount} />
 
-                  {/* UPI ID copy */}
-                  <div
-                    className="flex items-center justify-between gap-2 px-3 py-2"
-                    style={{ border: "2px solid hsl(var(--border))", background: "hsl(var(--muted)/0.4)" }}
-                  >
-                    <div className="min-w-0">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">UPI ID</p>
-                      <p className="text-sm font-black truncate" style={{ color: "hsl(var(--foreground))" }}>{UPI_ID}</p>
-                    </div>
-                    <CopyButton text={UPI_ID} />
-                  </div>
+                      {/* UPI ID copy */}
+                      <div
+                        className="flex items-center justify-between gap-2 px-3 py-2"
+                        style={{ border: "2px solid hsl(var(--border))", background: "hsl(var(--muted)/0.4)" }}
+                      >
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">UPI ID</p>
+                          <p className="text-sm font-black truncate" style={{ color: "hsl(var(--foreground))" }}>{UPI_ID}</p>
+                        </div>
+                        <CopyButton text={UPI_ID} />
+                      </div>
 
-                  <p className="text-[10px] font-bold text-center text-muted-foreground">
-                    Any UPI amount is welcome — even ₹10 helps! 🙏
-                  </p>
+                      {/* Final Mark as Paid Button */}
+                      <button
+                        onClick={() => setIsPaid(true)}
+                        className="w-full py-3 mt-1 flex items-center justify-center gap-2 text-sm font-black uppercase tracking-widest bg-black text-white hover:bg-black/80 transition-all active:translate-y-1 active:shadow-none"
+                        style={{
+                           border: "3px solid black",
+                           boxShadow: "4px 4px 0 0 hsl(var(--primary))",
+                        }}
+                      >
+                        <Check size={16} className="text-[#A3E635]" strokeWidth={3} />
+                        I have paid via UPI
+                      </button>
+                    </>
+                  )}
                 </motion.div>
               )}
 
