@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Coffee, Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, Zap, Terminal, ChevronRight, Star
+  ArrowRight, Zap, Terminal, ChevronRight, Star, Heart
 } from "lucide-react";
+import { SupportModal } from "@/components/SupportModal";
 
 const SECTIONS = [
   {
@@ -86,6 +88,7 @@ const TICKER_ITEMS = [
 
 export default function Index() {
   const navigate = useNavigate();
+  const [supportOpen, setSupportOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
@@ -302,11 +305,34 @@ export default function Index() {
         </div>
       </section>
 
-      <div className="w-full bg-[#4EB8DD]">
-        <div className="px-4 md:px-8 py-1.5">
-          <div className="w-full flex flex-col md:flex-row items-center justify-between gap-1 text-black">
-            <div className="text-sm md:text-base font-black uppercase tracking-widest">AlgoGuru</div>
-            <p className="text-xs md:text-sm font-black uppercase tracking-widest text-center md:text-right">
+      {/* ── FOOTER ──────────────────────────────────────── */}
+      <div className="w-full bg-[#4EB8DD]" style={{ borderTop: "3px solid #000" }}>
+        <div className="px-4 md:px-8 py-2">
+          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-black">
+            {/* Left: brand */}
+            <div className="text-sm font-black uppercase tracking-widest">AlgoGuru</div>
+
+            {/* Centre: support button */}
+            <motion.button
+              onClick={() => setSupportOpen(true)}
+              whileHover={{ y: -2, boxShadow: "4px 4px 0 0 #000" }}
+              whileTap={{ y: 1, boxShadow: "0px 0px 0 0 #000" }}
+              className="flex items-center gap-2 px-4 py-1.5 text-xs font-black uppercase tracking-wider"
+              style={{
+                background: "#000",
+                color: "#fff",
+                border: "2px solid #000",
+                boxShadow: "2px 2px 0 0 #000",
+                letterSpacing: "0.12em",
+              }}
+            >
+              <Heart size={12} fill="#FF3366" color="#FF3366" />
+              Support
+              <Coffee size={12} />
+            </motion.button>
+
+            {/* Right: credit */}
+            <p className="text-xs font-black uppercase tracking-widest text-center">
               Built with ❤️ by{" "}
               <a
                 href="https://portfolio-aritra-pearl.vercel.app/"
@@ -320,6 +346,8 @@ export default function Index() {
           </div>
         </div>
       </div>
+
+      {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
 
     </div>
   );
