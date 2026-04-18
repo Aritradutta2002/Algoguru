@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   ChevronRight,
+  Eye,
+  EyeOff,
   CheckCircle2,
   Circle,
   StickyNote,
@@ -57,6 +59,7 @@ export default function InterviewCoreJavaQuestionsPage() {
   const backRoute = language ? `/interview/${language}` : "/interview";
 
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [expandedQuestions, setExpandedQuestions] = useState<Record<string, boolean>>({});
   const [doneMap, setDoneMap] = useState<Record<string, boolean>>(loadDone);
   const [notesMap, setNotesMap] = useState<Record<string, string>>(loadNotes);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
@@ -162,6 +165,10 @@ export default function InterviewCoreJavaQuestionsPage() {
       })
       .filter((t) => t.questions.length > 0);
   }, [searchQuery, showOnlyUndone, doneMap]);
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedQuestions((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
 
   const toggleDone = useCallback((id: string) => {
     setDoneMap((prev) => {
@@ -523,28 +530,30 @@ export default function InterviewCoreJavaQuestionsPage() {
                   </div>
 
                   {/* Questions */}
-                  <Accordion type="multiple" className="space-y-2">
                   {topic.questions.map((question, qIdx) => {
+                    const isExpanded = expandedQuestions[question.id] || false;
                     const isDone = doneMap[question.id] || false;
                     const hasNote = !!notesMap[question.id];
 
                     return (
-                      <AccordionItem
+                      <motion.div
                         key={question.id}
-                        value={question.id}
-                        className={`border-2 bg-card transition-colors border-b-0 ${
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: qIdx * 0.03, duration: 0.2 }}
+                        className={`border-2 bg-card transition-colors ${
                           isDone ? "border-success/40" : "border-border"
                         }`}
                         style={{
                           boxShadow: isDone ? "3px 3px 0px 0px hsl(var(--success)/0.3)" : "3px 3px 0px 0px hsl(var(--border))",
                         }}
                       >
-                        {/* Question Header — Accordion Trigger */}
-                        <AccordionTrigger className="hover:no-underline p-4">
-                          <div className="flex items-start gap-3 text-left flex-1 min-w-0">
+                        {/* Question Header */}
+                        <div className="p-4">
+                          <div className="flex items-start gap-3">
                             {/* Number + Done toggle */}
                             <button
-                              onClick={(e) => { e.stopPropagation(); toggleDone(question.id); }}
+                              onClick={() => toggleDone(question.id)}
                               className="flex-shrink-0 mt-0.5 transition-colors"
                               title={isDone ? "Mark as undone" : "Mark as done"}
                             >
@@ -585,80 +594,111 @@ export default function InterviewCoreJavaQuestionsPage() {
                               <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
                                 {question.answer}
                               </p>
-
-                              {/* Action buttons */}
-                              <div className="flex items-center gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  onClick={() => toggleDone(question.id)}
-                                  className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 transition-all"
-                                  style={{
-                                    borderColor: isDone ? "hsl(var(--success))" : "hsl(var(--border))",
-                                    background: isDone ? "hsl(var(--success)/0.1)" : "hsl(var(--card))",
-                                    color: isDone ? "hsl(var(--success))" : "hsl(var(--muted-foreground))",
-                                    boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                                  }}
-                                >
-                                  <Check size={12} />
-                                  {isDone ? "Done" : "Mark as Done"}
-                                </button>
-                                <button
-                                  onClick={() => openNote(question.id)}
-                                  className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 border-border bg-card transition-all hover:border-primary"
-                                  style={{
-                                    color: hasNote ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))",
-                                    boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                                  }}
-                                >
-                                  <StickyNote size={12} />
-                                  {hasNote ? "Edit Note" : "Add Note"}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-
-                        {/* Collapsible Solution Content */}
-                        <AccordionContent className="border-t-2 border-border px-4 py-4 space-y-4" style={{ background: "hsl(var(--muted)/0.2)" }}>
-                          {/* Code Block */}
-                          {question.code && (
-                            <CodeBlock
-                              title={`Q${qIdx + 1} — ${question.codeLanguage || "java"}`}
-                              language={question.codeLanguage || "java"}
-                              code={question.code}
-                            />
-                          )}
-
-                          {/* Explanation */}
-                          <div className="space-y-2">
-                            <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2 py-1"
-                              style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
-                              <BookOpen size={10} />
-                              Explanation
-                            </div>
-                            <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "hsl(var(--foreground))" }}>
-                              {question.explanation}
                             </div>
                           </div>
 
-                          {/* Existing note display */}
-                          {hasNote && notesMap[question.id] && (
-                            <div className="p-3 border-2 border-border bg-card" style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}>
-                              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest mb-2"
-                                style={{ color: "hsl(var(--warning))" }}>
-                                <StickyNote size={10} />
-                                Your Note
+                          {/* Action buttons */}
+                          <div className="flex items-center gap-2 mt-3 ml-8">
+                            <button
+                              onClick={() => toggleExpand(question.id)}
+                              className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 border-border transition-all hover:border-primary"
+                              style={{
+                                background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--card))",
+                                color: isExpanded ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
+                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
+                              }}
+                            >
+                              {isExpanded ? <EyeOff size={12} /> : <Eye size={12} />}
+                              {isExpanded ? "Hide Solution" : "View Solution"}
+                            </button>
+                            <button
+                              onClick={() => toggleDone(question.id)}
+                              className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 transition-all"
+                              style={{
+                                borderColor: isDone ? "hsl(var(--success))" : "hsl(var(--border))",
+                                background: isDone ? "hsl(var(--success)/0.1)" : "hsl(var(--card))",
+                                color: isDone ? "hsl(var(--success))" : "hsl(var(--muted-foreground))",
+                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
+                              }}
+                            >
+                              <Check size={12} />
+                              {isDone ? "Done" : "Mark as Done"}
+                            </button>
+                            <button
+                              onClick={() => openNote(question.id)}
+                              className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 border-border bg-card transition-all hover:border-primary"
+                              style={{
+                                color: hasNote ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))",
+                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
+                              }}
+                            >
+                              <StickyNote size={12} />
+                              {hasNote ? "Edit Note" : "Add Note"}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Expanded Solution */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="border-t-2 border-border px-4 py-4 space-y-4" style={{ background: "hsl(var(--muted)/0.2)" }}>
+                                {/* Code Block */}
+                                {question.code && (
+                                  <CodeBlock
+                                    title={`Q${qIdx + 1} — ${question.codeLanguage || "java"}`}
+                                    language={question.codeLanguage || "java"}
+                                    code={question.code}
+                                  />
+                                )}
+
+                                {/* Explanation — Collapsible Accordion */}
+                                <Accordion type="single" collapsible>
+                                  <AccordionItem value={`expl-${question.id}`} className="border-0 border-b-0">
+                                    <AccordionTrigger className="hover:no-underline py-2 px-3 border-2 border-border bg-card rounded-sm text-left"
+                                      style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}>
+                                      <div className="flex items-center gap-2">
+                                        <BookOpen size={12} style={{ color: "hsl(var(--primary))" }} />
+                                        <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+                                          Detailed Explanation
+                                        </span>
+                                      </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pt-3 pb-0">
+                                      <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "hsl(var(--foreground))" }}>
+                                        {question.explanation}
+                                      </div>
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                </Accordion>
+
+                                {/* Existing note display */}
+                                {hasNote && notesMap[question.id] && (
+                                  <div className="p-3 border-2 border-border bg-card" style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest mb-2"
+                                      style={{ color: "hsl(var(--warning))" }}>
+                                      <StickyNote size={10} />
+                                      Your Note
+                                    </div>
+                                    <div
+                                      className="text-xs leading-relaxed whitespace-pre-line note-rendered"
+                                      dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(notesMap[question.id]) }}
+                                    />
+                                  </div>
+                                )}
                               </div>
-                              <div
-                                className="text-xs leading-relaxed whitespace-pre-line note-rendered"
-                                dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(notesMap[question.id]) }}
-                              />
-                            </div>
+                            </motion.div>
                           )}
-                        </AccordionContent>
-                      </AccordionItem>
+                        </AnimatePresence>
+                      </motion.div>
                     );
                   })}
-                  </Accordion>
                 </div>
               );
             })
