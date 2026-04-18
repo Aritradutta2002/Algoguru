@@ -584,7 +584,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               >
                 <div className={`min-h-full ${contentBottomPaddingClass}`}>
                   {children}
-                  <Footer onSupportClick={() => setSupportOpen(true)} />
+                  {location.pathname === "/" && (
+                    <Footer onSupportClick={() => setSupportOpen(true)} />
+                  )}
                 </div>
               </main>
 
@@ -648,7 +650,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <main ref={contentScrollRef} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
               <div className={`min-h-full ${contentBottomPaddingClass}`}>
                 {children}
-                <Footer onSupportClick={() => setSupportOpen(true)} />
+                {location.pathname === "/" && (
+                  <Footer onSupportClick={() => setSupportOpen(true)} />
+                )}
               </div>
             </main>
           )}
