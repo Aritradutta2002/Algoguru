@@ -685,8 +685,36 @@ export default function InterviewCoreJavaQuestionsPage() {
                                         transition={{ duration: 0.2 }}
                                         className="overflow-hidden"
                                       >
-                                        <div className="pt-3 text-sm leading-relaxed whitespace-pre-line" style={{ color: "hsl(var(--foreground))" }}>
-                                          {question.answer}
+                                        <div className="pt-3 space-y-3">
+                                          {question.answer.split("\n\n").map((paragraph, pIdx) => {
+                                            const trimmed = paragraph.trim();
+                                            if (!trimmed) return null;
+                                            // Check if it's a numbered point like "1. Platform Independent: ..."
+                                            const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/s);
+                                            if (numberedMatch) {
+                                              const colonSplit = numberedMatch[2].split(":");
+                                              const label = colonSplit[0];
+                                              const rest = colonSplit.length > 1 ? colonSplit.slice(1).join(":") : "";
+                                              return (
+                                                <div key={pIdx} className="flex gap-2 text-sm leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
+                                                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black"
+                                                    style={{ background: "hsl(var(--primary)/0.15)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
+                                                    {numberedMatch[1]}
+                                                  </span>
+                                                  <div>
+                                                    <span className="font-bold">{label}{rest ? ":" : ""}</span>
+                                                    {rest && <span className="leading-relaxed">{rest}</span>}
+                                                  </div>
+                                                </div>
+                                              );
+                                            }
+                                            // Regular paragraph
+                                            return (
+                                              <p key={pIdx} className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
+                                                {trimmed}
+                                              </p>
+                                            );
+                                          })}
                                         </div>
                                       </motion.div>
                                     )}

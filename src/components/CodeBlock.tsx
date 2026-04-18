@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check, Code2 } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 
@@ -22,7 +22,7 @@ export function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
 
   return (
     <div className="code-block-wrapper my-7">
-      <div className="code-block-header">
+      <div className="code-block-header" style={{ background: "#21222c" }}>
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1.5 mr-2">
             <span className="w-3 h-3 rounded-full" style={{ background: "hsl(0 70% 55% / 0.7)" }} />
@@ -55,14 +55,15 @@ export function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
       </div>
       <SyntaxHighlighter
         language={language}
-        style={theme === "dark" ? vscDarkPlus : vs}
+        style={oneDark}
         customStyle={{
           margin: 0,
           padding: "1.5rem 1.75rem",
-          background: "hsl(var(--code-bg))",
-          fontSize: "0.82rem",
+          background: "#282a36",
+          fontSize: "0.85rem",
           lineHeight: "1.75",
           borderRadius: 0,
+          fontFamily: "'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace",
         }}
         showLineNumbers
         lineNumberStyle={{
