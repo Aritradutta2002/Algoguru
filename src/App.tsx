@@ -623,48 +623,36 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 className="flex-1 min-w-0 overflow-hidden flex flex-col"
                 style={{ minWidth: "250px" }}
               >
-                {/* Guru panel title bar — truncates when narrow */}
+                {/* Guru panel title bar — premium minimal style */}
                 {!isTiny && (
                   <div
-                    className="flex-shrink-0 flex items-center gap-2 px-3 py-2 border-b-2"
+                    className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b bg-card/50 backdrop-blur-sm"
                     style={{
-                      borderColor: "hsl(var(--border))",
-                      background: "hsl(var(--card))",
+                      borderColor: "hsl(var(--border) / 0.3)",
                     }}
                   >
-                    <Sparkles size={13} style={{ color: "hsl(var(--primary))", flexShrink: 0 }} />
+                    <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                      <Sparkles size={14} className="text-primary" />
+                    </div>
                     <span
-                      className="text-xs font-black uppercase tracking-widest"
-                      style={{
-                        color: "hsl(var(--foreground))",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
+                      className="text-xs font-black uppercase tracking-[0.15em] text-foreground overflow-hidden text-ellipsis white-space-nowrap"
                     >
                       {isNarrow ? "Guru" : "Guru AI Assistant"}
                     </span>
                     <div className="flex-1" />
                     {!isNarrow && (
                       <span
-                        className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5"
-                        style={{
-                          background: "hsl(var(--primary) / 0.15)",
-                          color: "hsl(var(--primary))",
-                          border: "1.5px solid hsl(var(--primary) / 0.4)",
-                          whiteSpace: "nowrap",
-                        }}
+                        className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary"
                       >
                         AI
                       </span>
                     )}
                     <button
                       onClick={() => setGuruOpen(false)}
-                      className="neo-btn flex-shrink-0 w-6 h-6 flex items-center justify-center bg-card"
-                      style={{ color: "hsl(var(--muted-foreground))" }}
+                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
                       title="Close Guru"
                     >
-                      <X size={12} />
+                      <X size={14} />
                     </button>
                   </div>
                 )}

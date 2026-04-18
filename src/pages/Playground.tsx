@@ -74,6 +74,14 @@ const DEFAULT_CODE = `public class Main {
 
 const WANDBOX_API = "https://wandbox.org/api/compile.json";
 
+// Shared CSS Patterns
+const BUTTON_BASE_CLASSES = "flex items-center gap-2 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-lg active:scale-95";
+const PANEL_HEADER_CLASSES = "flex items-center gap-3 px-5 py-3 border-b bg-muted/20 backdrop-blur-sm";
+const PANEL_BORDER_STYLE = { borderColor: "hsl(var(--border) / 0.3)" };
+const ICON_BUTTON_CLASSES = "flex items-center justify-center w-10 h-10 rounded-2xl border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:border-primary/30 hover:text-primary transition-all duration-300 shadow-sm";
+const DROPDOWN_ITEM_CLASSES = "w-full flex items-center gap-3 px-5 py-4 text-left group";
+const DROPDOWN_ICON_BOX_CLASSES = "w-8 h-8 rounded-xl flex items-center justify-center";
+
 const JAVA_AUTO_IMPORTS = [
   "import java.util.*;",
   "import java.util.stream.*;",
@@ -1030,13 +1038,9 @@ export default function Playground() {
     <button
       onClick={() => runCode(false)}
       disabled={isRunning || !code.trim()}
-      className="flex items-center gap-1.5 rounded-lg font-bold transition-all disabled:opacity-50"
-      style={{
-        background: "hsl(142 71% 45%)",
-        color: "#fff",
-        padding: compact ? "4px 12px" : "6px 14px",
-        fontSize: "12px",
-      }}
+      className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
+        compact ? "px-4 py-2 text-[10px]" : "px-6 py-2.5 text-[11px]"
+      } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
       title="Run (Ctrl+Enter)"
     >
       {isRunning ? (
@@ -1053,16 +1057,16 @@ export default function Playground() {
     <button
       onClick={() => runCode(true)}
       disabled={isRunning || !code.trim() || breakpoints.size === 0}
-      className="flex items-center gap-1.5 rounded-lg font-bold transition-all disabled:opacity-50"
-      style={{
-        background: breakpoints.size > 0 ? "hsl(25 95% 53%)" : "hsl(var(--muted))",
-        color: breakpoints.size > 0 ? "#fff" : "hsl(var(--muted-foreground))",
-        padding: compact ? "4px 10px" : "6px 12px",
-        fontSize: "11px",
-      }}
+      className={`${BUTTON_BASE_CLASSES} disabled:opacity-20 ${
+        compact ? "px-4 py-2 text-[10px]" : "px-6 py-2.5 text-[11px]"
+      } ${
+        breakpoints.size > 0 
+          ? "bg-warning text-warning-foreground shadow-warning/20 hover:bg-warning/90" 
+          : "bg-muted/30 border border-border/30 text-muted-foreground hover:bg-muted"
+      }`}
       title={breakpoints.size > 0 ? `Debug with ${breakpoints.size} breakpoint(s)` : "Click line numbers to set breakpoints"}
     >
-      <Bug size={13} />
+      <Bug size={14} />
       Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}
     </button>
   );
@@ -1070,118 +1074,127 @@ export default function Playground() {
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => (
     <div
-      className="absolute right-0 top-full mt-1 w-64 rounded-xl overflow-hidden z-50 shadow-xl"
-      style={{ backgroundColor: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: "1px solid hsl(var(--border))" }}
+      className="absolute right-0 top-full mt-3 w-64 rounded-[28px] overflow-hidden z-50 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 animate-in fade-in zoom-in-95 duration-200"
     >
-      {/* Compiler Section — Collapsible */}
-      <button
-        onClick={() => setSettingsCompilerOpen(!settingsCompilerOpen)}
-        className="w-full flex items-center gap-2 px-3 pt-3 pb-2 text-left"
-      >
-        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
-          ☕ Compiler
-        </span>
-        <span className="text-[9px] font-mono ml-1 px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))" }}>
-          {selectedCompiler.label}
-        </span>
-        {settingsCompilerOpen ? <ChevronDown size={11} className="ml-auto" style={{ color: "hsl(var(--muted-foreground))" }} /> : <ChevronRight size={11} className="ml-auto" style={{ color: "hsl(var(--muted-foreground))" }} />}
-      </button>
-      {settingsCompilerOpen && (
-        <div className="pb-1">
-          {availableCompilers.map((c) => (
-            <button
-              key={c.compiler}
-              onClick={() => { setSelectedCompiler(c); }}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-muted"
-              style={{
-                color: selectedCompiler.compiler === c.compiler ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                fontWeight: selectedCompiler.compiler === c.compiler ? 600 : 400,
-                paddingLeft: "24px",
-              }}
-            >
-              {c.label}
-              {selectedCompiler.compiler === c.compiler && <Check size={11} className="ml-auto" />}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
-      <div className="mx-3 my-0.5 border-t" style={{ borderColor: "hsl(var(--border))" }} />
+      {/* Compiler Section — Collapsible */}
+      <div className="relative z-10">
+        <button
+          onClick={() => setSettingsCompilerOpen(!settingsCompilerOpen)}
+          className={DROPDOWN_ITEM_CLASSES}
+        >
+          <div className={`${DROPDOWN_ICON_BOX_CLASSES} bg-primary/10 border border-primary/20 text-primary`}>
+            <Settings size={14} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Compiler</p>
+            <p className="text-[11px] font-bold text-foreground truncate">{selectedCompiler.label}</p>
+          </div>
+          <ChevronDown size={14} className={`text-muted-foreground/40 transition-transform duration-300 ${settingsCompilerOpen ? "rotate-180" : ""}`} />
+        </button>
+        
+        {settingsCompilerOpen && (
+          <div className="px-2 pb-3 space-y-1 animate-in slide-in-from-top-2 duration-200">
+            {availableCompilers.map((c) => (
+              <button
+                key={c.compiler}
+                onClick={() => { setSelectedCompiler(c); }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left rounded-xl transition-all border ${
+                  selectedCompiler.compiler === c.compiler 
+                    ? "bg-primary/10 border-primary/20 text-primary" 
+                    : "hover:bg-muted/50 border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${selectedCompiler.compiler === c.compiler ? "bg-primary shadow-[0_0_8px_hsl(var(--primary))]" : "bg-muted-foreground/20"}`} />
+                <span className="text-[11px] font-bold">{c.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mx-5 h-px bg-border/10" />
 
       {/* Editor Theme Section — Collapsible */}
-      <button
-        onClick={() => setSettingsThemeOpen(!settingsThemeOpen)}
-        className="w-full flex items-center gap-2 px-3 pt-2 pb-2 text-left"
-      >
-        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
-          🎨 Editor Theme
-        </span>
-        <span className="text-[9px] font-mono ml-1 px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
-          {currentTheme.label}
-        </span>
-        {settingsThemeOpen ? <ChevronDown size={11} className="ml-auto" style={{ color: "hsl(var(--muted-foreground))" }} /> : <ChevronRight size={11} className="ml-auto" style={{ color: "hsl(var(--muted-foreground))" }} />}
-      </button>
-      {settingsThemeOpen && (
-        <div className="pb-1">
-          {THEMES.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => { setCurrentTheme(t); }}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-[11px] transition-colors hover:bg-muted"
-              style={{
-                color: currentTheme.id === t.id ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                fontWeight: currentTheme.id === t.id ? 600 : 400,
-                paddingLeft: "24px",
-              }}
-            >
-              {t.icon} {t.label}
-              {currentTheme.id === t.id && <Check size={11} className="ml-auto" />}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="mx-3 my-0.5 border-t" style={{ borderColor: "hsl(var(--border))" }} />
-
-      {/* Actions — flat */}
-      <div className="px-3 pt-2 pb-1">
-        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Actions
-        </span>
+      <div className="relative z-10">
+        <button
+          onClick={() => setSettingsThemeOpen(!settingsThemeOpen)}
+          className={DROPDOWN_ITEM_CLASSES}
+        >
+          <div className={`${DROPDOWN_ICON_BOX_CLASSES} bg-accent/10 border border-accent/20 text-accent`}>
+            <Palette size={14} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Theme</p>
+            <p className="text-[11px] font-bold text-foreground truncate">{currentTheme.label}</p>
+          </div>
+          <ChevronDown size={14} className={`text-muted-foreground/40 transition-transform duration-300 ${settingsThemeOpen ? "rotate-180" : ""}`} />
+        </button>
+        
+        {settingsThemeOpen && (
+          <div className="px-2 pb-3 space-y-1 animate-in slide-in-from-top-2 duration-200">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => { setCurrentTheme(t); }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left rounded-xl transition-all border ${
+                  currentTheme.id === t.id 
+                    ? "bg-accent/10 border-accent/20 text-accent" 
+                    : "hover:bg-muted/50 border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${currentTheme.id === t.id ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/20"}`} />
+                <span className="text-[11px] font-bold flex items-center gap-2">
+                  {t.icon} {t.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <button
-        onClick={() => { copyCode(); }}
-        className="w-full flex items-center gap-2 px-3 py-2 text-left text-[11px] transition-colors hover:bg-muted"
-        style={{ color: "hsl(var(--foreground))" }}
-      >
-        {copied ? <Check size={13} /> : <Copy size={13} />}
-        {copied ? "Copied!" : "Copy Code"}
-      </button>
-      <button
-        onClick={() => { downloadCode(); setShowSettingsMenu(false); }}
-        className="w-full flex items-center gap-2 px-3 py-2 text-left text-[11px] transition-colors hover:bg-muted"
-        style={{ color: "hsl(var(--foreground))" }}
-      >
-        <Download size={13} />
-        Download .java
-      </button>
+
+      <div className="mx-5 h-px bg-border/10" />
+
+      {/* Actions */}
+      <div className="relative z-10 p-2 grid grid-cols-2 gap-1">
+        <button
+          onClick={() => { copyCode(); }}
+          className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all hover:bg-muted/50 border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground group"
+        >
+          <div className={`${DROPDOWN_ICON_BOX_CLASSES} bg-muted/50 group-hover:bg-card transition-colors`}>
+            {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest">{copied ? "Copied!" : "Copy"}</span>
+        </button>
+        
+        <button
+          onClick={() => { downloadCode(); setShowSettingsMenu(false); }}
+          className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all hover:bg-muted/50 border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground group"
+        >
+          <div className={`${DROPDOWN_ICON_BOX_CLASSES} bg-muted/50 group-hover:bg-card transition-colors`}>
+            <Download size={14} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest">Source</span>
+        </button>
+      </div>
+
       <button
         onClick={() => { resetCode(); setShowSettingsMenu(false); }}
-        className="w-full flex items-center gap-2 px-3 py-2.5 text-left text-[11px] transition-colors hover:bg-muted"
-        style={{ color: "hsl(var(--foreground))" }}
+        className="relative z-10 w-full flex items-center justify-center gap-2 px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10 transition-all border-t border-border/10"
       >
-        <RotateCcw size={13} />
-        Reset to Default
+        <RotateCcw size={12} />
+        Reset Playground
       </button>
     </div>
   );
 
   return (
-    <div className={`${isFullscreen ? 'fixed inset-0 z-50 h-screen' : 'h-[calc(100vh-3.5rem)]'} flex flex-col`} style={{ background: "hsl(var(--background))" }}>
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50 h-screen' : 'h-[calc(100vh-3.5rem)]'} flex flex-col bg-background`}>
       {/* Breakpoint & debug CSS */}
       <style>{`
         .breakpoint-decoration {
-          background: hsl(0 72% 51%) !important;
+          background: hsl(var(--destructive)) !important;
           width: 8px !important;
           height: 8px !important;
           border-radius: 50% !important;
@@ -1190,7 +1203,7 @@ export default function Playground() {
           cursor: pointer !important;
         }
         .breakpoint-line-highlight {
-          background: hsla(0, 72%, 51%, 0.08) !important;
+          background: hsla(var(--destructive) / 0.08) !important;
         }
         .monaco-editor .margin {
           cursor: pointer !important;
@@ -1200,210 +1213,212 @@ export default function Playground() {
       {/* Header */}
       {!isFullscreen && (
       <div
-        className="flex items-center justify-between px-4 py-2.5 border-b flex-shrink-0 gap-2 flex-wrap"
-        style={{ borderColor: "hsl(var(--border))" }}
+        className="h-16 flex items-center justify-between px-6 border-b flex-shrink-0 gap-4 bg-card/50 backdrop-blur-md sticky top-0 z-40"
+        style={PANEL_BORDER_STYLE}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-4">
           <div
-            className="flex items-center justify-center w-8 h-8 rounded-lg"
-            style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))" }}
+            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5"
           >
-            <Code2 size={16} />
+            <Code2 size={20} className="text-primary" />
           </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-tight" style={{ color: "hsl(var(--foreground))" }}>
+          <div className="space-y-0.5">
+            <h1 className="text-sm font-black uppercase tracking-tight text-foreground">
               {practiceData ? `Practice: ${practiceData.title}` : "Java Playground"}
             </h1>
-            <p className="text-[10px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {practiceData ? practiceData.difficulty || "Practice Mode" : "Write · Compile · Run"}
-            </p>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
+                {practiceData ? practiceData.difficulty || "Practice Mode" : "Virtual Execution Engine"}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-3">
           {/* Templates */}
           <div className="relative">
             <button
               onClick={() => setShowTemplateMenu(!showTemplateMenu)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:bg-muted"
-              style={{ color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                showTemplateMenu 
+                  ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                  : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
             >
-              <FileCode size={13} />
-              Templates
-              <ChevronDown size={11} />
+              <FileCode size={14} />
+              <span className="hidden sm:inline">Templates</span>
+              <ChevronDown size={12} className={`transition-transform duration-300 ${showTemplateMenu ? "rotate-180" : ""}`} />
             </button>
+            
             {showTemplateMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowTemplateMenu(false)} />
                 <div
-                  className="absolute left-0 top-full mt-1 w-80 rounded-xl overflow-hidden z-50 shadow-xl max-h-[70vh] overflow-y-auto"
-                  style={{ backgroundColor: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: "1px solid hsl(var(--border))" }}
+                  className="absolute left-0 sm:left-auto sm:right-0 top-full mt-3 w-80 rounded-[28px] overflow-hidden z-50 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
                 >
-                  <div className="px-3 pt-3 pb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      CP Templates by Aritra Dutta
-                    </span>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
+                  
+                  <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 border-b border-border/10 bg-muted/10">
+                    Standard Blueprints
                   </div>
-                  {CP_TEMPLATES.map((tmpl) => {
-                    const override = builtinOverrides[tmpl.prefix];
-                    const isOverridden = !!override;
-                    return (
-                      <div key={tmpl.prefix} className="group flex items-center hover:bg-muted transition-colors">
-                        <button
-                          onClick={() => {
-                            setCode(override?.code ?? tmpl.code);
-                            setOutput("");
-                            setShowTemplateMenu(false);
-                          }}
-                          className="flex-1 flex flex-col gap-0.5 px-3 py-2 text-left"
-                        >
-                          <span className="text-[11px] font-semibold flex items-center gap-1" style={{ color: "hsl(var(--foreground))" }}>
-                            {tmpl.name}
-                            {isOverridden && (
-                              <span className="text-[8px] px-1 py-0.5 rounded font-medium" style={{ background: "hsl(var(--primary)/0.15)", color: "hsl(var(--primary))" }}>
-                                edited
-                              </span>
-                            )}
-                          </span>
-                          <span className="text-[9px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-                            {override?.description ?? tmpl.description}
-                          </span>
-                        </button>
-                        <div className="flex items-center gap-0.5 pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); openEditBuiltinTemplate(tmpl); }}
-                            className="p-1 rounded hover:bg-accent/50 transition-colors"
-                            style={{ color: "hsl(var(--muted-foreground))" }}
-                            title="Edit template (saves current editor code)"
-                          >
-                            <Pencil size={11} />
-                          </button>
-                          {isOverridden && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleResetBuiltinTemplate(tmpl.prefix); }}
-                              className="p-1 rounded hover:bg-accent/50 transition-colors"
-                              style={{ color: "hsl(var(--muted-foreground))" }}
-                              title="Reset to original"
-                            >
-                              <RotateCcw size={11} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {userTemplates.length > 0 && (
-                    <>
-                      <div className="mx-3 my-1 border-t" style={{ borderColor: "hsl(var(--border))" }} />
-                      <div className="px-3 pt-2 pb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
-                          My Templates
-                        </span>
-                      </div>
-                      {userTemplates.map((tmpl) => (
-                        <div key={tmpl.id} className="group flex items-center hover:bg-muted transition-colors">
+                  
+                  <div className="relative z-10 p-2 space-y-1">
+                    {CP_TEMPLATES.map((tmpl) => {
+                      const override = builtinOverrides[tmpl.prefix];
+                      const isOverridden = !!override;
+                      return (
+                        <div key={tmpl.prefix} className="group flex items-center rounded-2xl hover:bg-muted/50 transition-all duration-300 border border-transparent hover:border-border/10">
                           <button
                             onClick={() => {
-                              setCode(tmpl.code);
+                              setCode(override?.code ?? tmpl.code);
                               setOutput("");
                               setShowTemplateMenu(false);
                             }}
-                            className="flex-1 flex flex-col gap-0.5 px-3 py-2 text-left"
+                            className="flex-1 flex flex-col gap-1 px-4 py-3 text-left"
                           >
-                            <span className="text-[11px] font-semibold" style={{ color: "hsl(var(--foreground))" }}>
-                              {tmpl.name}
-                            </span>
-                            {tmpl.description && (
-                              <span className="text-[9px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-                                {tmpl.description}
+                            <div className="flex items-center gap-2">
+                              <span className="text-[12px] font-bold tracking-tight text-foreground">
+                                {tmpl.name}
                               </span>
-                            )}
+                              {isOverridden && (
+                                <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+                                  edited
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
+                              {override?.description ?? tmpl.description}
+                            </span>
                           </button>
-                          <div className="flex items-center gap-0.5 pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          
+                          <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                             <button
-                              onClick={(e) => { e.stopPropagation(); openEditTemplate(tmpl); }}
-                              className="p-1 rounded hover:bg-accent/50 transition-colors"
-                              style={{ color: "hsl(var(--muted-foreground))" }}
-                              title="Edit template"
+                              onClick={(e) => { e.stopPropagation(); openEditBuiltinTemplate(tmpl); }}
+                              className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+                              title="Edit blueprint"
                             >
-                              <Pencil size={11} />
+                              <Pencil size={12} />
                             </button>
-                            {deleteConfirmId === tmpl.id ? (
+                            {isOverridden && (
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteTemplate(tmpl.id); }}
-                                className="p-1 rounded text-[9px] font-bold"
-                                style={{ color: "hsl(var(--destructive))" }}
-                                title="Confirm delete"
+                                onClick={(e) => { e.stopPropagation(); handleResetBuiltinTemplate(tmpl.prefix); }}
+                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-warning hover:border-warning/30 transition-all shadow-sm"
+                                title="Reset to original"
                               >
-                                <Check size={11} />
-                              </button>
-                            ) : (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(tmpl.id); }}
-                                className="p-1 rounded hover:bg-accent/50 transition-colors"
-                                style={{ color: "hsl(var(--muted-foreground))" }}
-                                title="Delete template"
-                              >
-                                <Trash2 size={11} />
+                                <RotateCcw size={12} />
                               </button>
                             )}
                           </div>
                         </div>
-                      ))}
+                      );
+                    })}
+                  </div>
+
+                  {userTemplates.length > 0 && (
+                    <>
+                      <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 border-y border-border/10 bg-muted/10 mt-2">
+                        My Personal Vault
+                      </div>
+                      <div className="relative z-10 p-2 space-y-1">
+                        {userTemplates.map((tmpl) => (
+                          <div key={tmpl.id} className="group flex items-center rounded-2xl hover:bg-muted/50 transition-all duration-300 border border-transparent hover:border-border/10">
+                            <button
+                              onClick={() => {
+                                setCode(tmpl.code);
+                                setOutput("");
+                                setShowTemplateMenu(false);
+                              }}
+                              className="flex-1 flex flex-col gap-1 px-4 py-3 text-left"
+                            >
+                              <span className="text-[12px] font-bold tracking-tight text-foreground">
+                                {tmpl.name}
+                              </span>
+                              {tmpl.description && (
+                                <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
+                                  {tmpl.description}
+                                </span>
+                              )}
+                            </button>
+                            <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); openEditTemplate(tmpl); }}
+                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+                                title="Edit template"
+                              >
+                                <Pencil size={12} />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(tmpl.id === deleteConfirmId ? null : tmpl.id); }}
+                                className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all shadow-sm ${
+                                  deleteConfirmId === tmpl.id 
+                                    ? "bg-destructive text-white border-destructive" 
+                                    : "bg-card border-border/30 text-muted-foreground hover:text-destructive hover:border-destructive/30"
+                                }`}
+                                title="Delete template"
+                              >
+                                {deleteConfirmId === tmpl.id ? <Check size={12} /> : <Trash2 size={12} />}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </>
                   )}
 
-                  <div className="mx-3 my-1 border-t" style={{ borderColor: "hsl(var(--border))" }} />
                   <button
                     onClick={openCreateTemplate}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-left text-[11px] font-medium transition-colors hover:bg-muted"
-                    style={{ color: "hsl(var(--primary))" }}
+                    className="relative z-10 w-full flex items-center justify-center gap-3 px-6 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all border-t border-border/10 group"
                   >
-                    <Plus size={13} />
-                    Save Current Code as Template
+                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Plus size={14} />
+                    </div>
+                    Snapshot Editor to Template
                   </button>
                 </div>
               </>
             )}
           </div>
 
+          <div className="h-6 w-px bg-border/20 mx-1" />
+
           {/* Format */}
           <button
             onClick={formatCode}
             title="Format Code"
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:bg-muted"
-            style={{ color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+            className={ICON_BUTTON_CLASSES}
           >
-            <AlignLeft size={13} />
-            Format
+            <AlignLeft size={16} />
           </button>
 
           {/* Debug */}
           <DebugButton />
 
-          {/* Run — LeetCode style */}
+          {/* Run */}
           <RunButton />
+
+          <div className="h-6 w-px bg-border/20 mx-1" />
 
           {/* Fullscreen */}
           <button
             onClick={() => setIsFullscreen(true)}
             title="Fullscreen Mode"
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:bg-muted"
-            style={{ color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+            className={ICON_BUTTON_CLASSES}
           >
-            <Maximize size={13} />
+            <Maximize size={16} />
           </button>
 
           {/* Settings */}
           <div className="relative">
             <button
               onClick={() => { setShowSettingsMenu(!showSettingsMenu); setSettingsCompilerOpen(false); setSettingsThemeOpen(false); }}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:bg-muted"
-              style={{ color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+              className={`flex items-center justify-center w-10 h-10 rounded-2xl border transition-all duration-300 shadow-sm ${
+                showSettingsMenu 
+                  ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
+                  : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
             >
-              <Settings size={13} />
-              <ChevronDown size={11} />
+              <Settings size={16} className={showSettingsMenu ? "animate-spin-slow" : ""} />
             </button>
             {showSettingsMenu && (
               <>
@@ -1426,8 +1441,8 @@ export default function Playground() {
             <button
               onClick={formatCode}
               title="Format Code"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all hover:bg-muted"
-              style={{ color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all hover:bg-muted border border-border"
+              style={{ color: "hsl(var(--muted-foreground))" }}
             >
               <AlignLeft size={13} />
               Format
@@ -1436,8 +1451,8 @@ export default function Playground() {
             <RunButton compact />
             <button
               onClick={() => setIsFullscreen(false)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all hover:bg-muted"
-              style={{ color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all hover:bg-muted border border-border"
+              style={{ color: "hsl(var(--muted-foreground))" }}
             >
               <Minimize size={13} />
               Exit
@@ -1453,137 +1468,162 @@ export default function Playground() {
           <ResizablePanel defaultSize={55} minSize={30}>
             <div className="flex flex-col h-full">
               {/* Tab bar */}
-              <div className="flex items-center gap-0 px-2 py-1 border-b" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--muted)/0.3)" }}>
+              <div className={PANEL_HEADER_CLASSES} style={PANEL_BORDER_STYLE}>
                 {practiceData && (
                   <button
                     onClick={() => setPracticeTab("problem")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all mr-1"
-                    style={{
-                      background: practiceTab === "problem" ? "hsl(var(--card))" : "transparent",
-                      color: practiceTab === "problem" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                      boxShadow: practiceTab === "problem" ? "var(--shadow-card)" : "none",
-                    }}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                      practiceTab === "problem" 
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                   >
-                    <BookOpen size={12} />
+                    <BookOpen size={14} />
                     Problem
                   </button>
                 )}
                 <button
                   onClick={() => setPracticeTab("editor")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
-                  style={{
-                    background: (!practiceData || practiceTab === "editor") ? "hsl(var(--card))" : "transparent",
-                    color: (!practiceData || practiceTab === "editor") ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                    boxShadow: (!practiceData || practiceTab === "editor") ? "var(--shadow-card)" : "none",
-                  }}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                    (!practiceData || practiceTab === "editor") 
+                      ? "bg-card border border-border/30 text-foreground shadow-lg shadow-black/5" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
-                  <Code2 size={12} />
+                  <Code2 size={14} />
                   Editor
                 </button>
-                <span className="text-[9px] font-mono ml-auto px-2 py-0.5 rounded" style={{ background: "hsl(var(--success)/0.1)", color: "hsl(var(--success))" }}>
-                  {selectedCompiler.label}
-                </span>
-                {breakpoints.size > 0 && (
-                  <span className="text-[9px] font-mono ml-1 px-2 py-0.5 rounded" style={{ background: "hsla(0, 72%, 51%, 0.1)", color: "hsl(0 72% 51%)" }}>
-                    {breakpoints.size} BP
-                  </span>
-                )}
+
+                <div className="flex-1" />
+
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success text-[9px] font-black uppercase tracking-widest">
+                    <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
+                    {selectedCompiler.label}
+                  </div>
+                  {breakpoints.size > 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/10 border border-warning/20 text-warning text-[9px] font-black uppercase tracking-widest">
+                      <Bug size={10} />
+                      {breakpoints.size} BP
+                    </div>
+                  )}
+                </div>
+
                 {practiceData && (
                   <button
                     onClick={() => navigate("/playground")}
                     title="Exit practice mode"
-                    className="ml-1.5 p-1 rounded hover:bg-muted transition-colors"
-                    style={{ color: "hsl(var(--muted-foreground))" }}
+                    className="ml-2 w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 border border-transparent hover:border-border/30 hover:bg-muted text-muted-foreground hover:text-foreground"
                   >
-                    <X size={12} />
+                    <X size={14} />
                   </button>
                 )}
               </div>
 
               {/* Problem panel */}
               {practiceData && practiceTab === "problem" ? (
-                <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6" style={{ background: "hsl(var(--card))" }}>
-                  <div className="max-w-2xl">
+                <div className="flex-1 min-h-0 overflow-y-auto p-10 bg-background relative">
+                  {/* Background Glow */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+
+                  <div className="max-w-3xl mx-auto space-y-10 relative z-10">
                     {/* Problem header */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <h2 className="text-xl font-extrabold tracking-tight" style={{ color: "hsl(var(--foreground))" }}>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        {practiceData.difficulty && (
+                          <span
+                            className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
+                              practiceData.difficulty === "Easy" ? "bg-success/10 border-success/20 text-success" : 
+                              practiceData.difficulty === "Medium" ? "bg-warning/10 border-warning/20 text-warning" : 
+                              "bg-accent/10 border-accent/20 text-accent"
+                            }`}
+                          >
+                            {practiceData.difficulty}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Challenge Node</span>
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-foreground">
                         {practiceData.title}
                       </h2>
-                      {practiceData.difficulty && (
-                        <span
-                          className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-                          style={{
-                            background: practiceData.difficulty === "Easy" ? "hsl(var(--success)/0.1)" : practiceData.difficulty === "Medium" ? "hsl(var(--warning)/0.1)" : "hsl(var(--accent)/0.1)",
-                            color: practiceData.difficulty === "Easy" ? "hsl(var(--success))" : practiceData.difficulty === "Medium" ? "hsl(var(--warning))" : "hsl(var(--accent))",
-                          }}
-                        >
-                          {practiceData.difficulty}
-                        </span>
-                      )}
                     </div>
 
                     {/* Complexity */}
                     {(practiceData.timeComplexity || practiceData.spaceComplexity) && (
-                      <div className="flex gap-2.5 mb-6">
+                      <div className="flex flex-wrap gap-3">
                         {practiceData.timeComplexity && (
-                          <span className="text-xs font-mono px-3 py-1.5 rounded-lg" style={{ background: "hsl(var(--primary)/0.06)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.12)" }}>
-                            Time: {practiceData.timeComplexity}
-                          </span>
+                          <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-muted/20 border border-border/30">
+                            <Clock size={14} className="text-primary" />
+                            <div className="flex flex-col">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Time</span>
+                              <span className="text-xs font-black font-mono text-foreground">{practiceData.timeComplexity}</span>
+                            </div>
+                          </div>
                         )}
                         {practiceData.spaceComplexity && (
-                          <span className="text-xs font-mono px-3 py-1.5 rounded-lg" style={{ background: "hsl(var(--accent)/0.06)", color: "hsl(var(--accent))", border: "1px solid hsl(var(--accent)/0.12)" }}>
-                            Space: {practiceData.spaceComplexity}
-                          </span>
+                          <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-muted/20 border border-border/30">
+                            <Layers size={14} className="text-accent" />
+                            <div className="flex flex-col">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Space</span>
+                              <span className="text-xs font-black font-mono text-foreground">{practiceData.spaceComplexity}</span>
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
 
                     {/* Theory */}
-                    <div className="rounded-xl p-5 mb-6" style={{ background: "hsl(var(--muted)/0.3)", border: "1px solid hsl(var(--border))" }}>
-                      <ul className="space-y-3">
-                        {practiceData.theory?.map((para: string, i: number) => (
-                          <li key={i} className="flex items-start gap-3">
-                            <span className="mt-[8px] w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary)/0.6)" }} />
-                            <span className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground)/0.8)" }}>
-                              {para.replace(/\*\*/g, "")}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Key Points */}
-                    {practiceData.keyPoints && practiceData.keyPoints.length > 0 && (
-                      <div className="rounded-xl p-5 mb-6" style={{ background: "hsl(var(--primary)/0.04)", border: "1px solid hsl(var(--primary)/0.1)" }}>
-                        <div className="text-[10px] font-bold uppercase tracking-wider mb-3 font-mono" style={{ color: "hsl(var(--primary))" }}>
-                          ★ Key Points
-                        </div>
-                        <ul className="space-y-2">
-                          {practiceData.keyPoints.map((point: string, i: number) => (
-                            <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "hsl(var(--foreground)/0.85)" }}>
-                              <span className="mt-[7px] w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
-                              {point}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-primary">
+                        <Sparkles size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em]">Problem Architecture</span>
+                      </div>
+                      <div className="rounded-[32px] p-8 bg-card border border-border/30 shadow-2xl shadow-black/5">
+                        <ul className="space-y-4">
+                          {practiceData.theory?.map((para: string, i: number) => (
+                            <li key={i} className="flex items-start gap-4">
+                              <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0" />
+                              <span className="text-[15px] font-medium leading-relaxed text-foreground/70">
+                                {para.replace(/\*\*/g, "")}
+                              </span>
                             </li>
                           ))}
                         </ul>
                       </div>
+                    </div>
+
+                    {/* Key Points */}
+                    {practiceData.keyPoints && practiceData.keyPoints.length > 0 && (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-warning">
+                          <Target size={14} />
+                          <span className="text-[10px] font-black uppercase tracking-[0.25em]">Execution Strategy</span>
+                        </div>
+                        <div className="rounded-[32px] p-8 bg-warning/5 border border-warning/20">
+                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {practiceData.keyPoints.map((point: string, i: number) => (
+                              <li key={i} className="flex items-center gap-3 text-sm font-bold text-foreground/80">
+                                <div className="w-8 h-8 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning flex-shrink-0">
+                                  {i + 1}
+                                </div>
+                                {point}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
                     )}
 
                     {/* Start coding CTA */}
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <button
                       onClick={() => setPracticeTab("editor")}
-                      className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all"
-                      style={{
-                        background: "var(--gradient-primary)",
-                        color: "hsl(var(--primary-foreground))",
-                        boxShadow: "0 4px 20px hsl(var(--primary)/0.3)",
-                      }}
+                      className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-[0.15em] text-[11px] shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
                     >
-                      <Code2 size={15} />
-                      Start Coding →
-                    </motion.button>
+                      <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                      <Code2 size={16} />
+                      Initialize Environment
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -1635,17 +1675,18 @@ export default function Playground() {
             <ResizablePanelGroup direction="vertical" className="h-full">
               {/* Input Panel - always visible */}
               <ResizablePanel defaultSize={30} minSize={15}>
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center gap-2 px-3 py-1.5 border-b" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--muted)/0.3)" }}>
-                    <Keyboard size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
-                    <span className="text-xs font-mono font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>Standard Input (stdin)</span>
+                <div className="flex flex-col h-full bg-background">
+                  <div className={PANEL_HEADER_CLASSES} style={PANEL_BORDER_STYLE}>
+                    <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                      <Keyboard size={14} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Standard Input (stdin)</span>
                   </div>
                   <textarea
                     value={stdin}
                     onChange={(e) => setStdin(e.target.value)}
                     placeholder="Enter input for your program..."
-                    className="flex-1 w-full px-4 py-2.5 font-mono text-base resize-none outline-none"
-                    style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", caretColor: "hsl(var(--primary))" }}
+                    className="flex-1 w-full px-6 py-4 font-mono text-sm resize-none outline-none bg-transparent placeholder:text-muted-foreground/20 text-foreground selection:bg-primary/20"
                   />
                 </div>
               </ResizablePanel>
@@ -1654,55 +1695,54 @@ export default function Playground() {
 
               {/* Output Panel */}
               <ResizablePanel defaultSize={70} minSize={20}>
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full bg-background">
                   <div
-                    className="flex items-center gap-2 px-4 py-1.5 border-b"
-                    style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--muted)/0.3)" }}
+                    className={PANEL_HEADER_CLASSES}
+                    style={PANEL_BORDER_STYLE}
                   >
-                    <Terminal size={12} style={{ color: "hsl(var(--success))" }} />
-                    <span className="text-[10px] font-mono font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      Output
+                    <div className="w-7 h-7 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-sm">
+                      <Terminal size={14} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                      Virtual Console
                     </span>
                     {isRunning && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-[9px] font-mono px-2 py-0.5 rounded-full"
-                        style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))" }}
-                      >
-                        compiling...
-                      </motion.span>
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest animate-pulse">
+                        <Loader2 size={10} className="animate-spin" />
+                        Executing
+                      </div>
                     )}
                     {output && !isRunning && (
                       <button
                         onClick={() => setOutput("")}
-                        className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded hover:bg-muted"
-                        style={{ color: "hsl(var(--muted-foreground))" }}
+                        className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-300"
                       >
-                        Clear
+                        <RotateCcw size={10} />
+                        Flush
                       </button>
                     )}
                   </div>
-                  <div className="flex-1 min-h-0 overflow-auto">
+                  <div className="flex-1 min-h-0 overflow-auto bg-zinc-950">
                     <pre
-                      className="p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap h-full"
+                      className="p-6 font-mono text-[13px] leading-relaxed whitespace-pre-wrap h-full selection:bg-primary/20"
                       style={{
-                        background: "hsl(var(--card))",
                         color: output.includes("Error") || output.includes("⚠")
-                          ? "hsl(var(--accent))"
+                          ? "hsl(var(--destructive))"
                           : output.includes("[DEBUG")
-                          ? "hsl(25 95% 53%)"
+                          ? "hsl(var(--warning))"
                           : "hsl(var(--success))",
                       }}
                     >
                       {output || (
-                        <span style={{ color: "hsl(var(--muted-foreground))" }}>
-                          Click <strong>Run</strong> or press <kbd className="px-1.5 py-0.5 rounded text-[11px]" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>Ctrl+Enter</kbd> to compile & run...
-                          {"\n\n"}
-                          <span style={{ color: "hsl(var(--muted-foreground)/0.6)" }}>
-                            💡 Click line numbers to set breakpoints, then use <strong>Debug</strong> to trace variable values.
-                          </span>
-                        </span>
+                        <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-30 select-none pt-12">
+                          <div className="w-16 h-16 rounded-[24px] border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
+                            <Play size={24} className="text-muted-foreground/40 translate-x-0.5" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[11px] font-black uppercase tracking-widest">Awaiting Command</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Press Ctrl+Enter to initialize</p>
+                          </div>
+                        </div>
                       )}
                     </pre>
                   </div>
