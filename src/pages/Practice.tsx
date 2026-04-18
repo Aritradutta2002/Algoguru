@@ -311,7 +311,7 @@ export default function Practice() {
               <span className="text-muted-foreground">Master Data Structures & Algorithms</span>
             </div>
             
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-tight flex flex-wrap gap-x-3 items-center justify-center md:justify-start">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-black uppercase tracking-tight leading-none flex items-center justify-center md:justify-start whitespace-nowrap gap-x-2 sm:gap-x-4">
               <span className="text-foreground">Master</span>
               <span className="text-primary">Code.</span>
               <span className="text-foreground">Ace</span>
