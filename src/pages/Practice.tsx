@@ -293,36 +293,52 @@ export default function Practice() {
   };
 
   return (
-    <div className="flex-1 h-full flex flex-col items-center p-6 md:p-10 w-full max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
       
       {/* Header Section */}
-      <div className="text-center space-y-4 max-w-2xl">
-        <div className="inline-flex items-center gap-2 neo-badge bg-primary text-black px-3 py-1 text-xs font-black uppercase tracking-widest mb-2 border-2 border-black">
-          <TrendingUp size={14} /> Master DSA
+      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="relative z-10 text-center md:text-left space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-6">
+              <TrendingUp size={12} className="text-primary" />
+              <span className="text-muted-foreground">Master Data Structures & Algorithms</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
+              Pattern Wise <span className="text-primary">Sheet</span>
+            </h1>
+            
+            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
+              Master data structures and algorithms topic by topic. Track your progress and ace technical interviews with curated patterns.
+            </p>
+
+            {loadingState && (
+              <div className="mt-6 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/80">
+                <Loader2 size={14} className="animate-spin" />
+                Syncing your progress...
+              </div>
+            )}
+          </motion.div>
         </div>
-        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">Pattern Wise Sheet</h1>
-        <p className="text-muted-foreground font-semibold leading-relaxed">
-          Master data structures and algorithms topic by topic. Track your progress and ace technical interviews.
-        </p>
-        {loadingState && (
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            <Loader2 size={14} className="animate-spin" />
-            Syncing your notes and revision list
-          </div>
-        )}
-      </div>
+      </section>
 
       {/* Main Content */}
-      <div className="w-full space-y-12">
+      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full space-y-16">
         {practiceData.map((topic) => {
-          
           return (
-            <div key={topic.id} className="space-y-6">
-              <div className="space-y-2 border-b-2 border-primary/20 pb-4">
-                <h2 className="text-3xl font-black uppercase tracking-tight flex items-center gap-3">
+            <div key={topic.id} className="space-y-8">
+              <div className="space-y-2 border-b border-border/50 pb-6">
+                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-foreground">
                   {topic.title}
                 </h2>
-                <p className="text-sm font-semibold text-muted-foreground">{topic.description}</p>
+                <p className="text-sm font-medium text-muted-foreground">{topic.description}</p>
               </div>
 
               <div className="grid gap-6">
@@ -333,7 +349,7 @@ export default function Practice() {
                   const isDone = completedSub === total && total > 0;
 
                   return (
-                    <Card key={sub.id} className="border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))] hover:shadow-[0px_0px_0_0_hsl(var(--border))] transition-all">
+                    <div key={sub.id} className="group bg-card border rounded-[24px] overflow-hidden transition-all hover:shadow-xl hover:shadow-primary/5">
                       <Accordion
                         type="single"
                         collapsible
@@ -342,27 +358,25 @@ export default function Practice() {
                         className="w-full"
                       >
                         <AccordionItem value={sub.id} className="border-none">
-                          <CardHeader className="pb-3 pt-5 px-5">
-                            <AccordionTrigger className="hover:no-underline py-0 group">
-                              <div className="flex flex-col items-start text-left gap-1 space-y-1">
-                                <div className="flex items-center justify-between w-full">
-                                  <CardTitle className="text-lg font-black uppercase group-hover:text-primary transition-colors">
-                                    {sub.title}
-                                  </CardTitle>
-                                  <div className={`px-2 py-1 text-xs font-bold rounded-md border-2 border-border flex items-center gap-1.5 ${isDone ? 'bg-primary text-black' : 'bg-card'}`}>
-                                    {isDone && <CheckCircle2 size={12} />}
-                                    {completedSub}/{total}
-                                  </div>
+                          <AccordionTrigger className="hover:no-underline p-6 group">
+                            <div className="flex flex-col items-start text-left gap-2 w-full pr-4">
+                              <div className="flex items-center justify-between w-full">
+                                <h3 className="text-lg font-black uppercase tracking-tight group-hover:text-primary transition-colors">
+                                  {sub.title}
+                                </h3>
+                                <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full border flex items-center gap-1.5 transition-colors ${isDone ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground'}`}>
+                                  {isDone && <CheckCircle2 size={12} />}
+                                  {completedSub}/{total}
                                 </div>
-                                <CardDescription className="text-xs font-semibold leading-relaxed mr-6 max-w-[85%]">
-                                  {sub.description}
-                                </CardDescription>
                               </div>
-                            </AccordionTrigger>
-                          </CardHeader>
-                          <AccordionContent className="px-5 pb-5">
+                              <p className="text-xs font-medium text-muted-foreground leading-relaxed max-w-[90%]">
+                                {sub.description}
+                              </p>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-6 pb-6 pt-0">
                             {/* Progress bar */}
-                            <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden mb-5">
+                            <div className="w-full h-1 bg-muted rounded-full overflow-hidden mb-8">
                               <motion.div 
                                 className="h-full bg-primary" 
                                 initial={{ width: 0 }}
@@ -371,7 +385,7 @@ export default function Practice() {
                               />
                             </div>
                             
-                            <div className="space-y-3 mt-4">
+                            <div className="space-y-4">
                               {sub.problems.map((prob) => {
                                 const checked = completed.has(prob.id);
                                 const isRevisionSaved = savedForRevision.has(prob.id);
@@ -381,115 +395,109 @@ export default function Practice() {
                                 return (
                                   <div
                                     key={prob.id}
-                                    className={`p-3 border-2 rounded-md transition-colors ${
+                                    className={`p-4 border rounded-2xl transition-all ${
                                       checked
-                                      ? "border-primary/50 bg-primary/5 shadow-sm"
-                                      : "border-border/50 hover:bg-secondary/30"
+                                      ? "border-primary/20 bg-primary/[0.02]"
+                                      : "border-border/50 hover:bg-muted/30"
                                     }`}
                                   >
-                                    <div className="flex items-start justify-between gap-3">
-                                      <div className="flex items-center gap-3">
-                                      <Checkbox 
-                                        id={prob.id} 
-                                        checked={checked} 
-                                        onCheckedChange={() => void toggleProblem(prob.id)} 
-                                        className="h-5 w-5 border-2 data-[state=checked]:bg-primary data-[state=checked]:text-black"
-                                      />
-                                      <label 
-                                        htmlFor={prob.id} 
-                                        className={`text-sm font-semibold cursor-pointer select-none transition-all ${
-                                          checked ? 'line-through opacity-60' : ''
-                                        }`}
-                                      >
-                                        {prob.title}
-                                      </label>
+                                    <div className="flex items-start justify-between gap-4">
+                                      <div className="flex items-center gap-4">
+                                        <Checkbox 
+                                          id={prob.id} 
+                                          checked={checked} 
+                                          onCheckedChange={() => void toggleProblem(prob.id)} 
+                                          className="h-5 w-5 rounded-md border-2 transition-all data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                        />
+                                        <label 
+                                          htmlFor={prob.id} 
+                                          className={`text-sm font-bold cursor-pointer select-none transition-all ${
+                                            checked ? 'text-muted-foreground/60 line-through' : 'text-foreground'
+                                          }`}
+                                        >
+                                          {prob.title}
+                                        </label>
+                                      </div>
+
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getDifficultyColor(prob.difficulty)}`}>
+                                          {prob.difficulty}
+                                        </span>
+                                        {rowBusy && <Loader2 size={14} className="animate-spin text-primary" />}
+                                      </div>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                                      <div className="flex flex-wrap gap-1.5 mr-auto">
+                                        {prob.companies.map((company) => (
+                                          <span
+                                            key={`${prob.id}-${company}`}
+                                            className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-muted/50 border border-border/50 text-muted-foreground"
+                                          >
+                                            {company}
+                                          </span>
+                                        ))}
                                       </div>
 
                                       <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className={`text-[10px] font-black uppercase rounded-sm border ${getDifficultyColor(prob.difficulty)}`}>
-                                          {prob.difficulty}
-                                        </Badge>
-                                        {rowBusy && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
+                                        <a
+                                          href={prob.leetcodeLink}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          title="Practice in LeetCode"
+                                          className="flex h-8 w-8 items-center justify-center rounded-xl border bg-card text-muted-foreground transition-all hover:bg-primary hover:border-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
+                                        >
+                                          <svg width="14" height="14" fill="currentColor" viewBox="0 0 32 32">
+                                            <path d="M21.469 23.907l-3.595 3.473c-0.624 0.625-1.484 0.885-2.432 0.885s-1.807-0.26-2.432-0.885l-5.776-5.812c-0.62-0.625-0.937-1.537-0.937-2.485 0-0.952 0.317-1.812 0.937-2.432l5.76-5.844c0.62-0.619 1.5-0.859 2.448-0.859s1.808 0.26 2.432 0.885l3.595 3.473c0.687 0.688 1.823 0.663 2.536-0.052 0.708-0.713 0.735-1.848 0.047-2.536l-3.473-3.511c-0.901-0.891-2.032-1.505-3.261-1.787l3.287-3.333c0.688-0.687 0.667-1.823-0.047-2.536s-1.849-0.735-2.536-0.052l-13.469 13.469c-1.307 1.312-1.989 3.113-1.989 5.113 0 1.996 0.683 3.86 1.989 5.168l5.797 5.812c1.307 1.307 3.115 1.937 5.115 1.937 1.995 0 3.801-0.683 5.109-1.989l3.479-3.521c0.688-0.683 0.661-1.817-0.052-2.531s-1.849-0.74-2.531-0.052zM27.749 17.349h-13.531c-0.932 0-1.692 0.801-1.692 1.791 0 0.991 0.76 1.797 1.692 1.797h13.531c0.933 0 1.693-0.807 1.693-1.797 0-0.989-0.76-1.791-1.693-1.791z" />
+                                          </svg>
+                                        </a>
+
+                                        <a
+                                          href={prob.gfgLink}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          title="Practice in GeeksforGeeks"
+                                          className="flex h-8 w-8 items-center justify-center rounded-xl border bg-card text-muted-foreground transition-all hover:bg-primary hover:border-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
+                                        >
+                                          <img
+                                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/GeeksForGeeks_logo.png/1280px-GeeksForGeeks_logo.png"
+                                            alt="GFG"
+                                            className="h-3.5 w-3.5 object-contain transition-all group-hover:invert-0"
+                                            loading="lazy"
+                                          />
+                                        </a>
+
+                                        <Link
+                                          to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`}
+                                          className="px-3 py-1.5 rounded-xl border bg-card text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-primary"
+                                        >
+                                          Solution
+                                        </Link>
                                       </div>
                                     </div>
 
-                                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                                      {prob.companies.map((company) => (
-                                        <Badge
-                                          key={`${prob.id}-${company}`}
-                                          variant="outline"
-                                          className="text-[10px] font-bold border-border/70 bg-card"
-                                        >
-                                          {company}
-                                        </Badge>
-                                      ))}
-
-                                      <a
-                                        href={prob.leetcodeLink}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title="Practice in LeetCode"
-                                        aria-label="Practice in LeetCode"
-                                        className="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-card text-primary transition-colors hover:bg-primary hover:text-black"
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="16"
-                                          height="16"
-                                          fill="currentColor"
-                                          viewBox="0 0 32 32"
-                                        >
-                                          <path d="M21.469 23.907l-3.595 3.473c-0.624 0.625-1.484 0.885-2.432 0.885s-1.807-0.26-2.432-0.885l-5.776-5.812c-0.62-0.625-0.937-1.537-0.937-2.485 0-0.952 0.317-1.812 0.937-2.432l5.76-5.844c0.62-0.619 1.5-0.859 2.448-0.859s1.808 0.26 2.432 0.885l3.595 3.473c0.687 0.688 1.823 0.663 2.536-0.052 0.708-0.713 0.735-1.848 0.047-2.536l-3.473-3.511c-0.901-0.891-2.032-1.505-3.261-1.787l3.287-3.333c0.688-0.687 0.667-1.823-0.047-2.536s-1.849-0.735-2.536-0.052l-13.469 13.469c-1.307 1.312-1.989 3.113-1.989 5.113 0 1.996 0.683 3.86 1.989 5.168l5.797 5.812c1.307 1.307 3.115 1.937 5.115 1.937 1.995 0 3.801-0.683 5.109-1.989l3.479-3.521c0.688-0.683 0.661-1.817-0.052-2.531s-1.849-0.74-2.531-0.052zM27.749 17.349h-13.531c-0.932 0-1.692 0.801-1.692 1.791 0 0.991 0.76 1.797 1.692 1.797h13.531c0.933 0 1.693-0.807 1.693-1.797 0-0.989-0.76-1.791-1.693-1.791z" />
-                                        </svg>
-                                      </a>
-
-                                      <a
-                                        href={prob.gfgLink}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title="Practice in GeeksforGeeks"
-                                        aria-label="Practice in GeeksforGeeks"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-card text-primary transition-colors hover:bg-primary hover:text-black"
-                                      >
-                                        <img
-                                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/GeeksForGeeks_logo.png/1280px-GeeksForGeeks_logo.png"
-                                          alt="GeeksforGeeks"
-                                          className="h-4 w-4 object-contain"
-                                          loading="lazy"
-                                        />
-                                      </a>
-
-                                      <Link
-                                        to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`}
-                                        className="text-xs font-black uppercase tracking-wide text-primary hover:underline"
-                                      >
-                                        Solution
-                                      </Link>
-
-                                    </div>
-
-                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                    <div className="mt-4 flex flex-wrap items-center gap-2 pt-4 border-t border-border/30">
                                       <button
                                         type="button"
                                         onClick={() => openNotesPopup(prob.id, prob.title)}
                                         disabled={isSavingNotes}
-                                        className={`inline-flex items-center gap-1 rounded-md border-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide disabled:opacity-60 ${
+                                        className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-60 ${
                                           hasNotes
-                                            ? "border-primary bg-primary/15 text-primary"
-                                            : "border-border bg-card hover:bg-secondary"
+                                            ? "border-primary/30 bg-primary/10 text-primary"
+                                            : "border-border/50 bg-muted/30 hover:bg-muted text-muted-foreground"
                                         }`}
                                       >
                                         {isSavingNotes ? <Loader2 size={12} className="animate-spin" /> : <Notebook size={12} />}
-                                        Note
+                                        {hasNotes ? "View Note" : "Add Note"}
                                       </button>
 
                                       <button
                                         type="button"
                                         onClick={() => void toggleSaveForRevision(prob.id)}
-                                        className={`inline-flex items-center rounded-md border-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${
+                                        className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all ${
                                           isRevisionSaved
-                                            ? "border-primary bg-primary text-black"
-                                            : "border-border bg-card hover:bg-secondary"
+                                            ? "border-primary bg-primary text-primary-foreground"
+                                            : "border-border/50 bg-muted/30 hover:bg-muted text-muted-foreground"
                                         }`}
                                       >
                                         {isRevisionSaved ? "Saved for Revision" : "Save for Revision"}
@@ -502,14 +510,14 @@ export default function Practice() {
                           </AccordionContent>
                         </AccordionItem>
                       </Accordion>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
             </div>
           );
         })}
-      </div>
+      </section>
 
       <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
         {celebrationBursts.map((burst) => (

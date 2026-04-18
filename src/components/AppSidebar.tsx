@@ -229,212 +229,205 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r" style={{ borderColor: "hsl(var(--sidebar-border))", background: "hsl(var(--sidebar-background))" }}>
+    <Sidebar className="border-r shadow-2xl" style={{ borderColor: "hsl(var(--sidebar-border) / 0.5)", background: "hsl(var(--sidebar-background))" }}>
       {/* Logo */}
       <Link to="/" className="block">
-        <div className="group flex items-center gap-3.5 px-5 py-4 border-b-4 hover:bg-[hsl(var(--muted)/0.5)] backdrop-blur-sm transition-all duration-500 ease-out" style={{ borderColor: "hsl(var(--border))" }}>
+        <div className="group flex items-center gap-4 px-6 py-6 border-b transition-all duration-300 hover:bg-muted/30" style={{ borderColor: "hsl(var(--border) / 0.5)" }}>
           <div className="relative flex-shrink-0">
-            <div className="absolute inset-0 bg-primary/20 blur-[10px] rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <AlgoGuruLogo
-              size={44}
+              size={42}
               showText={false}
-              className="relative z-10 group-hover:-translate-y-0.5 group-hover:scale-105 transition-all duration-300 block"
+              className="relative z-10 transition-transform duration-300 group-hover:scale-110"
             />
           </div>
-          <div>
-            <div className="text-sm font-black uppercase tracking-widest" style={{ color: "hsl(var(--foreground))" }}>
+          <div className="flex flex-col">
+            <span className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
               AlgoGuru
-            </div>
-            <div className="text-[10px] font-bold uppercase tracking-wider group-hover:text-foreground/70 transition-colors duration-300" style={{ color: "hsl(var(--muted-foreground))" }}>
+            </span>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-0.5 group-hover:text-primary/60 transition-colors">
               {currentMode.description}
-            </div>
+            </span>
           </div>
         </div>
       </Link>
-      <SidebarContent className="px-3 py-4">
 
-        {/* Home */}
-        <div className="mb-2">
-          <button
-            onClick={() => navigate("/")}
-            className={cn(
-              "flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-black uppercase tracking-wide transition-all duration-150",
-              currentPath === "/" ? "neo-btn" : "hover:bg-muted/50 border-2 border-transparent"
-            )}
-            style={{
-              color: currentPath === "/" ? "hsl(var(--primary-foreground))" : "hsl(var(--sidebar-foreground))",
-              background: currentPath === "/" ? "hsl(var(--primary))" : undefined,
-              borderColor: currentPath === "/" ? "hsl(var(--border))" : undefined,
-            }}
-          >
-            <Home size={15} />
-            <span>Home</span>
-          </button>
-          <button
-            onClick={() => navigate("/playground")}
-            className={cn(
-              "flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-black uppercase tracking-wide transition-all duration-150",
-              currentPath === "/playground" ? "neo-btn" : "hover:bg-muted/50 border-2 border-transparent"
-            )}
-            style={{
-              color: currentPath === "/playground" ? "hsl(var(--primary-foreground))" : "hsl(var(--sidebar-foreground))",
-              background: currentPath === "/playground" ? "hsl(var(--primary))" : undefined,
-              borderColor: currentPath === "/playground" ? "hsl(var(--border))" : undefined,
-            }}
-          >
-            <Code2 size={15} />
-            <span>Playground</span>
-          </button>
+      <SidebarContent className="px-4 py-6 space-y-8">
+        {/* Navigation */}
+        <div className="space-y-1.5">
+          {[
+            { label: "Home", icon: <Home size={16} />, path: "/", active: currentPath === "/" },
+            { label: "Playground", icon: <Code2 size={16} />, path: "/playground", active: currentPath === "/playground" },
+          ].map((item) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={cn(
+                "flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 group border",
+                item.active 
+                  ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                  : "bg-transparent border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <div className={cn("transition-transform duration-200 group-hover:scale-110", item.active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary")}>
+                {item.icon}
+              </div>
+              <span>{item.label}</span>
+            </button>
+          ))}
         </div>
 
-        <div className="px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.15em] font-mono" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {currentMode.id === "ds" ? "Topics" : currentMode.id === "lang" ? "Java Modules" : "Practice Sets"}
-        </div>
+        <div className="space-y-4">
+          <div className="px-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">
+            {currentMode.id === "ds" ? "Learning Topics" : currentMode.id === "lang" ? "Java Modules" : "Practice Sets"}
+          </div>
 
-        <SidebarMenu>
-          {activeTopics.map((topic) => {
-            const isOpen = openTopics[topic.id];
-            const isActive = isTopicActive(topic.id);
-            const color = topicColorVars[topic.id] || "hsl(var(--primary))";
+          <SidebarMenu className="space-y-1">
+            {activeTopics.map((topic) => {
+              const isOpen = openTopics[topic.id];
+              const isActive = isTopicActive(topic.id);
+              const color = topicColorVars[topic.id] || "hsl(var(--primary))";
 
-            return (
-              <SidebarMenuItem key={topic.id}>
-                <SidebarMenuButton asChild className="h-auto p-0">
-                  <button
-                    onClick={() => {
-                      toggleTopic(topic.id);
-                      navigate(`/${topic.id}`);
-                    }}
-                    className="flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group"
-                    style={{
-                      background: isActive ? "hsl(var(--sidebar-accent))" : undefined,
-                    }}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className="flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold font-mono"
-                        style={{ background: `${color}12`, color }}
-                      >
-                        {topic.icon}
-                      </span>
-                      <span
-                        className="transition-colors group-hover:text-sidebar-accent-foreground"
-                        style={isActive ? { color } : undefined}
-                      >
-                        {topic.title}
-                      </span>
-                    </div>
-                    <ChevronDown
-                      size={13}
-                      className={cn(
-                        "transition-transform duration-300 group-hover:text-sidebar-accent-foreground",
-                        !isActive && "text-muted-foreground"
-                      )}
-                      style={{
-                        transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+              return (
+                <SidebarMenuItem key={topic.id}>
+                  <SidebarMenuButton asChild className="h-auto p-0">
+                    <button
+                      onClick={() => {
+                        toggleTopic(topic.id);
+                        navigate(`/${topic.id}`);
                       }}
-                    />
-                  </button>
-                </SidebarMenuButton>
-
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                      className="overflow-hidden"
+                      className={cn(
+                        "flex items-center justify-between w-full px-4 py-3 rounded-[20px] text-[13px] font-bold tracking-tight transition-all duration-200 group border",
+                        isActive 
+                          ? "bg-muted/50 border-border/50 text-foreground" 
+                          : "bg-transparent border-transparent text-muted-foreground/80 hover:bg-muted/30 hover:text-foreground"
+                      )}
                     >
-                      <SidebarMenuSub className="ml-4 mt-1 border-l pl-3" style={{ borderColor: `${color}20` }}>
-                        {topic.subtopics.map((sub) => {
-                          const active = isSubActive(topic.id, sub.id);
-                          return (
-                            <SidebarMenuSubItem key={sub.id}>
-                              <SidebarMenuSubButton asChild className="h-auto p-0">
-                                <button
-                                  onClick={() => navigate(`/${topic.id}#${sub.id}`)}
-                                  className={cn(
-                                    "flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 text-left",
-                                    !active && "text-sidebar-foreground/90 hover:text-sidebar-accent-foreground"
-                                  )}
-                                  style={{
-                                    color: active ? color : undefined,
-                                    background: active ? `${color}10` : undefined,
-                                    fontWeight: active ? 600 : 500,
-                                  }}
-                                >
-                                  <span
-                                    className="w-2 h-2 rounded-full flex-shrink-0 transition-colors"
-                                    style={{ background: active ? color : "hsl(var(--muted-foreground)/0.5)" }}
-                                  />
-                                  {sub.title}
-                                </button>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          );
-                        })}
-                      </SidebarMenuSub>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="flex items-center justify-center w-7 h-7 rounded-xl text-[10px] font-bold transition-all shadow-sm"
+                          style={{ 
+                            background: isActive ? `${color}20` : `${color}10`, 
+                            color,
+                            borderColor: `${color}30`,
+                            borderWidth: isActive ? '1px' : '0px'
+                          }}
+                        >
+                          {topic.icon}
+                        </div>
+                        <span className={cn("transition-colors", isActive && "font-black")}>
+                          {topic.title}
+                        </span>
+                      </div>
+                      <ChevronDown
+                        size={14}
+                        className={cn(
+                          "transition-transform duration-300 text-muted-foreground/40 group-hover:text-foreground/60",
+                          isOpen && "rotate-180"
+                        )}
+                      />
+                    </button>
+                  </SidebarMenuButton>
+
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <SidebarMenuSub className="ml-7 mt-2 border-l-2 pl-4 space-y-1" style={{ borderColor: `${color}15` }}>
+                          {topic.subtopics.map((sub) => {
+                            const active = isSubActive(topic.id, sub.id);
+                            return (
+                              <SidebarMenuSubItem key={sub.id}>
+                                <SidebarMenuSubButton asChild className="h-auto p-0">
+                                  <button
+                                    onClick={() => navigate(`/${topic.id}#${sub.id}`)}
+                                    className={cn(
+                                      "flex items-center gap-3 w-full px-3 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 text-left",
+                                      active 
+                                        ? "text-foreground bg-muted/30" 
+                                        : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/10"
+                                    )}
+                                  >
+                                    <div
+                                      className={cn("w-1.5 h-1.5 rounded-full transition-all duration-300", active ? "scale-125" : "opacity-30")}
+                                      style={{ background: active ? color : "currentColor" }}
+                                    />
+                                    <span className="truncate">{sub.title}</span>
+                                  </button>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </div>
 
         {/* Search Topics */}
-        <div className="mt-8 mx-1">
+        <div className="pt-4 border-t border-border/30">
           <div
-            className="rounded-2xl overflow-hidden"
-            style={{ background: "hsl(var(--muted)/0.4)", border: "1px solid hsl(var(--border))" }}
+            className="rounded-[20px] overflow-hidden border transition-all duration-300 focus-within:border-primary/40 focus-within:shadow-xl focus-within:shadow-primary/5 bg-muted/20"
+            style={{ borderColor: "hsl(var(--border) / 0.5)" }}
           >
-            <div className="flex items-center gap-2 px-3 py-2.5">
-              <Search size={13} style={{ color: "hsl(var(--muted-foreground))", flexShrink: 0 }} />
+            <div className="flex items-center gap-3 px-4 py-3">
+              <Search size={14} className="text-muted-foreground/40" />
               <input
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search topics, problems, algorithms..."
-                className="flex-1 bg-transparent text-xs outline-none"
-                style={{ color: "hsl(var(--foreground))" }}
+                placeholder="Search anything..."
+                className="flex-1 bg-transparent text-[12px] font-semibold outline-none placeholder:text-muted-foreground/30 text-foreground"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="p-0.5 rounded hover:bg-muted" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  <X size={12} />
+                <button onClick={() => setSearchQuery("")} className="p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground/40 hover:text-foreground">
+                  <X size={14} />
                 </button>
               )}
             </div>
             {searchQuery.trim() && (
-              <div className="max-h-64 overflow-y-auto border-t" style={{ borderColor: "hsl(var(--border))" }}>
+              <div className="max-h-72 overflow-y-auto border-t bg-card/50 backdrop-blur-md" style={{ borderColor: "hsl(var(--border) / 0.5)" }}>
                 {searchResults.length === 0 ? (
-                  <div className="px-3 py-3 text-[11px] text-center" style={{ color: "hsl(var(--muted-foreground))" }}>No results found</div>
+                  <div className="px-4 py-8 text-center">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">No results found</div>
+                  </div>
                 ) : (
                   searchResults.slice(0, 20).map((item) => (
                     <button
                       key={item.path}
                       onClick={() => { navigate(item.path); setSearchQuery(""); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-[11px] transition-colors hover:bg-muted/60"
-                      style={{ color: "hsl(var(--foreground))", borderBottom: "1px solid hsl(var(--border)/0.3)" }}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-muted/50 border-b border-border/10 last:border-0"
                     >
-                      <span className="text-sm">{item.icon}</span>
+                      <div className="w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center text-sm flex-shrink-0 border border-border/20">
+                        {item.icon}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-medium truncate">{item.title}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[12px] font-bold truncate text-foreground">{item.title}</span>
                           {item.difficulty && (
                             <span
-                              className="text-[8px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
-                              style={{
-                                background: item.difficulty === "Easy" ? "hsl(var(--success)/0.15)" : item.difficulty === "Medium" ? "hsl(var(--warning)/0.15)" : "hsl(var(--destructive)/0.15)",
-                                color: item.difficulty === "Easy" ? "hsl(var(--success))" : item.difficulty === "Medium" ? "hsl(var(--warning))" : "hsl(var(--destructive))",
-                              }}
+                              className={cn(
+                                "text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border",
+                                item.difficulty === "Easy" ? "bg-success/10 border-success/20 text-success" : 
+                                item.difficulty === "Medium" ? "bg-warning/10 border-warning/20 text-warning" : 
+                                "bg-destructive/10 border-destructive/20 text-destructive"
+                              )}
                             >
                               {item.difficulty}
                             </span>
                           )}
                         </div>
                         {item.parent && (
-                          <div className="text-[9px]" style={{ color: "hsl(var(--muted-foreground))" }}>{item.parent}</div>
+                          <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 mt-0.5">{item.parent}</div>
                         )}
                       </div>
                     </button>
@@ -446,29 +439,30 @@ export function AppSidebar() {
         </div>
 
         {/* User Footer */}
-        <div className="mt-auto pt-4 mx-1 border-t" style={{ borderColor: "hsl(var(--sidebar-border))" }}>
-          <div className="flex items-center gap-2.5 px-3 py-2.5">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" referrerPolicy="no-referrer" />
-            ) : (
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{ background: "hsl(var(--primary)/0.15)", color: "hsl(var(--primary))" }}
-              >
-                {userName[0]?.toUpperCase()}
-              </div>
-            )}
+        <div className="mt-auto pt-6 border-t border-border/30">
+          <div className="flex items-center gap-4 px-2 py-2">
+            <div className="relative group/avatar">
+              <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300" />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="relative w-10 h-10 rounded-2xl object-cover border border-border/50 shadow-md" referrerPolicy="no-referrer" />
+              ) : (
+                <div
+                  className="relative w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black border border-primary/20 bg-primary/10 text-primary shadow-sm"
+                >
+                  {userName[0]?.toUpperCase()}
+                </div>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold truncate" style={{ color: "hsl(var(--sidebar-foreground))" }}>{userName}</div>
-              <div className="text-[10px] truncate" style={{ color: "hsl(var(--muted-foreground))" }}>{user?.email}</div>
+              <div className="text-[13px] font-black tracking-tight truncate text-foreground">{userName}</div>
+              <div className="text-[10px] font-bold text-muted-foreground/50 truncate uppercase tracking-widest">{user?.email?.split('@')[0]}</div>
             </div>
             <button
               onClick={signOut}
               title="Sign out"
-              className="p-1.5 rounded-lg transition-colors hover:bg-muted flex-shrink-0"
-              style={{ color: "hsl(var(--muted-foreground))" }}
+              className="p-2.5 rounded-xl transition-all hover:bg-destructive/10 text-muted-foreground/40 hover:text-destructive group"
             >
-              <LogOut size={14} />
+              <LogOut size={16} className="transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>
         </div>

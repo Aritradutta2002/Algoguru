@@ -152,52 +152,62 @@ export default function TopicPage() {
   const color = topicColorVars[topic.id] || "hsl(var(--primary))";
 
   return (
-    <div className="flex min-h-screen relative" ref={mainRef}>
+    <div className="flex min-h-screen relative bg-background selection:bg-primary selection:text-black animate-in fade-in duration-700" ref={mainRef}>
       <div className="flex-1 min-w-0">
         <motion.div
-          className="border-b relative overflow-hidden"
-          style={{ borderColor: "hsl(var(--border))" }}
+          className="relative overflow-hidden border-b border-border/50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="hero-glow w-80 h-80 -top-20 -right-20 opacity-[0.08]" style={{ background: color }} />
-          <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
+          {/* Subtle background glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] blur-[120px] rounded-full pointer-events-none opacity-[0.05]" style={{ background: color }} />
 
-          <div className="relative z-10 px-6 md:px-12 lg:px-16 py-12">
-            <div className="flex items-center gap-2 mb-4 text-xs font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>
-              <span className="cursor-pointer hover:underline transition-colors" onClick={() => navigate("/")} style={{ color: "hsl(var(--primary))" }}>
+          <div className="relative z-10 px-6 md:px-12 lg:px-16 py-16 md:py-20">
+            <div className="flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/")}>
                 Home
               </span>
-              <ChevronRight size={12} />
+              <ChevronRight size={10} className="opacity-40" />
               <span style={{ color }}>{topic.title}</span>
             </div>
-            <div className="flex items-center gap-4 mb-4">
+
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div
-                className="flex items-center justify-center w-14 h-14 rounded-2xl text-2xl font-bold"
-                style={{ background: `${color}10`, border: `1px solid ${color}20` }}
+                className="flex items-center justify-center w-16 h-16 rounded-[24px] text-2xl font-bold border shrink-0 transition-all shadow-lg shadow-primary/5"
+                style={{ background: `${color}10`, borderColor: `${color}20`, color: color }}
               >
                 {topic.icon}
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: "hsl(var(--foreground))" }}>
+                <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-foreground">
                   {topic.title}
                 </h1>
-                <p className="text-sm mt-1.5 font-light" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  {topic.description} · {content.length} sections · Java
-                </p>
+                <div className="flex flex-wrap items-center gap-3 mt-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted border text-muted-foreground">
+                    {detectedMode === "lang" ? "Java" : detectedMode === "practice" ? "Practice" : "Data Structure"}
+                  </span>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {content.length} sections · Comprehensive guide
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 mt-5">
+
+            <div className="flex items-center gap-2 mt-8">
               {content.map((s, i) => (
                 <div
                   key={i}
                   className="h-1 rounded-full transition-all duration-300 cursor-pointer"
                   style={{
-                    background: activeSection === s.id ? color : "hsl(var(--border))",
-                    width: activeSection === s.id ? "24px" : "8px",
+                    background: activeSection === s.id ? color : "hsl(var(--muted)/50%)",
+                    width: activeSection === s.id ? "32px" : "8px",
                   }}
-                  onClick={() => navigate(`/${topicId}#${s.id}`)}
+                  onClick={() => {
+                    const el = document.getElementById(s.id);
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    setActiveSection(s.id);
+                  }}
                   title={s.title}
                 />
               ))}
@@ -205,49 +215,43 @@ export default function TopicPage() {
           </div>
         </motion.div>
 
-        <div className="px-6 md:px-12 lg:px-16 py-14">
-          {content.map((section) => (
-            <ContentRenderer key={section.id} section={section} isPractice={detectedMode === "practice"} />
-          ))}
+        <div className="px-6 md:px-12 lg:px-16 py-16 max-w-5xl mx-auto">
+          <div className="space-y-20">
+            {content.map((section) => (
+              <ContentRenderer key={section.id} section={section} isPractice={detectedMode === "practice"} />
+            ))}
+          </div>
 
-          <div className="flex items-center justify-between mt-10 pt-8" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-20 pt-12 border-t border-border/50">
             {prevTopic ? (
               <motion.button
-                whileHover={{ x: -3 }}
+                whileHover={{ x: -5 }}
                 onClick={() => navigate(`/${prevTopic.id}`)}
-                className="flex items-center gap-3 px-5 py-4 rounded-2xl text-sm font-medium transition-shadow"
-                style={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  color: "hsl(var(--foreground))",
-                  boxShadow: "var(--shadow-card)",
-                }}
+                className="flex items-center gap-4 p-6 rounded-[28px] border bg-card text-left transition-all hover:shadow-xl hover:shadow-primary/5"
               >
-                <ChevronLeft size={16} />
-                <div className="text-left">
-                  <div className="text-[10px] uppercase tracking-wider font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>Previous</div>
-                  <div className="font-semibold">{prevTopic.title}</div>
+                <div className="p-3 rounded-2xl bg-muted border border-border/50 text-muted-foreground">
+                  <ChevronLeft size={18} />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Previous</div>
+                  <div className="text-sm font-black uppercase tracking-tight text-foreground">{prevTopic.title}</div>
                 </div>
               </motion.button>
             ) : <div />}
 
             {nextTopic && (
               <motion.button
-                whileHover={{ x: 3 }}
+                whileHover={{ x: 5 }}
                 onClick={() => navigate(`/${nextTopic.id}`)}
-                className="flex items-center gap-3 px-5 py-4 rounded-2xl text-sm font-medium transition-shadow"
-                style={{
-                  background: "hsl(var(--primary)/0.06)",
-                  border: "1px solid hsl(var(--primary)/0.15)",
-                  color: "hsl(var(--primary))",
-                  boxShadow: "var(--shadow-glow)",
-                }}
+                className="flex items-center gap-4 p-6 rounded-[28px] border bg-card text-right transition-all hover:shadow-xl hover:shadow-primary/5 group"
               >
-                <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-wider font-medium" style={{ color: "hsl(var(--primary)/0.6)" }}>Next</div>
-                  <div className="font-semibold">{nextTopic.title}</div>
+                <div className="flex-1">
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-primary/60 mb-1">Next</div>
+                  <div className="text-sm font-black uppercase tracking-tight text-foreground">{nextTopic.title}</div>
                 </div>
-                <ChevronRight size={16} />
+                <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                  <ChevronRight size={18} />
+                </div>
               </motion.button>
             )}
           </div>

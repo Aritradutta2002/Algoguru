@@ -23,6 +23,7 @@ import {
 import jsPDF from "jspdf";
 import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NoteEntry {
   questionId: string;
@@ -372,471 +373,336 @@ export default function NotesDashboard() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
-      {/* Back button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest mb-6 hover:underline"
-        style={{ color: "hsl(var(--muted-foreground))" }}
-      >
-        <ArrowLeft size={14} />
-        Back
-      </button>
+    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
+      
+      {/* Header Section */}
+      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* Notes Header */}
-      <div className="border-2 border-black dark:border-white bg-card p-4"
-        style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <BookOpen size={20} style={{ color: "hsl(var(--primary))" }} />
-            <div>
-              <h1 className="text-base md:text-lg font-black uppercase tracking-tight">My Notes</h1>
-              <p className="text-[11px] font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-                {notesCount} note{notesCount !== 1 ? "s" : ""} saved — persists across devices & cache clears
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={downloadAllNotesPDF}
-              disabled={filteredNotes.length === 0}
-              className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card transition-colors hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-            >
-              <Download size={11} />
-              Merge All PDF
-            </button>
-            <button
-              onClick={downloadSelectedNotesPDF}
-              disabled={selectedFilteredNotes.length === 0}
-              className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card transition-colors hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-            >
-              <Download size={11} />
-              Selected PDF
-            </button>
-            <button
-              onClick={() => navigate("/interview/java/core-java-qa")}
-              className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-black dark:border-white"
-              style={{
-                background: "hsl(var(--primary))",
-                color: "hsl(var(--primary-foreground))",
-                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-              }}
-            >
-              <StickyNote size={11} />
-              Add Notes
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4">
-        <div className="relative flex-1">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-          <input
-            type="text"
-            placeholder="Search notes or questions..."
-            value={searchNotes}
-            onChange={(e) => setSearchNotes(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-xs border-2 border-border bg-card focus:outline-none focus:border-primary"
-            style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-          />
-        </div>
-        <select
-          value={filterTopic}
-          onChange={(e) => setFilterTopic(e.target.value)}
-          className="px-3 py-2 text-xs font-semibold border-2 border-border bg-card focus:outline-none focus:border-primary"
-          style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-        >
-          <option value="all">All Topics</option>
-          {coreJavaInterviewTopics.map((t) => (
-            <option key={t.id} value={t.id}>{t.icon} {t.title}</option>
-          ))}
-        </select>
-        <button
-          onClick={toggleSelectAllFiltered}
-          disabled={filteredNotes.length === 0}
-          className="px-3 py-2 text-[10px] font-black uppercase tracking-widest border-2 border-border bg-card disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-        >
-          {allFilteredSelected ? "Clear Selection" : "Select All"}
-        </button>
-      </div>
-
-      {filteredNotes.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-          <span>{filteredNotes.length} visible</span>
-          <span>•</span>
-          <span>{selectedFilteredNotes.length} selected</span>
-        </div>
-      )}
-
-      {/* Notes Table / Cards */}
-      {notesLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="animate-spin" size={24} style={{ color: "hsl(var(--muted-foreground))" }} />
-        </div>
-      ) : filteredNotes.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-border mt-4">
-          <FileText size={40} className="mx-auto mb-3" style={{ color: "hsl(var(--muted-foreground))" }} />
-          <p className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {notesCount === 0 ? "No notes saved yet" : "No notes match your filters"}
-          </p>
-          <p className="text-xs mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {notesCount === 0
-              ? "Go to Core Java Q&A and click \"Add Note\" on any question"
-              : "Try adjusting your search or topic filter"}
-          </p>
-          {notesCount === 0 && (
-            <button
-              onClick={() => navigate("/interview/java/core-java-qa")}
-              className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-4 py-2 border-2 border-black dark:border-white"
-              style={{
-                background: "hsl(var(--primary))",
-                color: "hsl(var(--primary-foreground))",
-                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-              }}
-            >
-              <BookOpen size={12} />
-              Go to Core Java Q&A
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-2 mt-4">
-          {/* Table Header */}
-          <div className="hidden md:grid grid-cols-[56px_2fr_3fr_1fr_220px] gap-3 px-4 py-2 text-[10px] font-black uppercase tracking-widest border-2 border-border bg-muted/30"
-            style={{ color: "hsl(var(--muted-foreground))" }}>
-            <span className="text-center">Pick</span>
-            <span>Topic / Question</span>
-            <span>Note</span>
-            <span>Last Updated</span>
-            <span className="text-center">Actions</span>
-          </div>
-
-          {filteredNotes.map((entry) => {
-            const question = coreJavaInterviewTopics.flatMap((t) => t.questions).find((q) => q.id === entry.questionId);
-            const topic = coreJavaInterviewTopics.find((t) => t.questions.some((q) => q.id === entry.questionId));
-            const isExpanded = expandedNote === entry.questionId;
-
-            return (
-              <div
-                key={entry.questionId}
-                className="border-2 border-border bg-card transition-colors hover:border-primary/40"
-                style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-              >
-                {/* Desktop Row */}
-                <div className="hidden md:grid grid-cols-[56px_2fr_3fr_1fr_220px] gap-3 items-start px-4 py-3">
-                  <div className="flex justify-center pt-1">
-                    <input
-                      type="checkbox"
-                      checked={!!selectedNotes[entry.questionId]}
-                      onChange={() => toggleNoteSelection(entry.questionId)}
-                      className="h-4 w-4 cursor-pointer accent-[hsl(var(--primary))]"
-                      aria-label={`Select note ${entry.questionId}`}
-                    />
-                  </div>
-
-                  {/* Topic + Question */}
-                  <div className="min-w-0">
-                    {topic && (
-                      <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 mr-1"
-                        style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
-                        {topic.icon} {topic.title}
-                      </span>
-                    )}
-                    <p className="text-xs font-bold mt-1 leading-snug truncate" title={question?.question}>
-                      {question?.question ?? entry.questionId}
-                    </p>
-                  </div>
-
-                  {/* Note content */}
-                  <div className="min-w-0">
-                    <div
-                      className={`text-xs leading-relaxed note-rendered ${isExpanded ? "" : "line-clamp-2"}`}
-                      style={{ color: "hsl(var(--foreground))" }}
-                      dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(entry.notes) }}
-                    />
-                    {entry.notes.length > 120 && (
-                      <button
-                        onClick={() => setExpandedNote(isExpanded ? null : entry.questionId)}
-                        className="text-[10px] font-bold mt-1 hover:underline"
-                        style={{ color: "hsl(var(--primary))" }}
-                      >
-                        {isExpanded ? "Show less" : "Read more"}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Last updated */}
-                  <span className="text-[10px] font-mono" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {new Date(entry.updatedAt).toLocaleDateString()}
-                  </span>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-center gap-1 flex-wrap">
-                    <button
-                      onClick={() => openNoteModal(entry, false)}
-                      className="p-1.5 hover:bg-muted rounded"
-                      title="View note"
-                    >
-                      <Eye size={13} style={{ color: "hsl(var(--primary))" }} />
-                    </button>
-                    <button
-                      onClick={() => openNoteModal(entry, true)}
-                      className="p-1.5 hover:bg-muted rounded"
-                      title="Edit note"
-                    >
-                      <PencilLine size={13} style={{ color: "hsl(var(--warning))" }} />
-                    </button>
-                    <button
-                      onClick={() => navigate("/interview/java/core-java-qa")}
-                      className="p-1.5 hover:bg-muted rounded"
-                      title="Go to question"
-                    >
-                      <StickyNote size={13} style={{ color: "hsl(var(--warning))" }} />
-                    </button>
-                    <button
-                      onClick={() => downloadSingleNotePDF(entry)}
-                      className="p-1.5 hover:bg-muted rounded"
-                      title="Download only this note"
-                    >
-                      <Download size={13} style={{ color: "hsl(var(--success))" }} />
-                    </button>
-                    <button
-                      onClick={() => deleteNote(entry.questionId)}
-                      disabled={deletingId === entry.questionId}
-                      className="p-1.5 hover:bg-destructive/10 rounded"
-                      title="Delete note"
-                    >
-                      {deletingId === entry.questionId ? (
-                        <Loader2 size={13} className="animate-spin" style={{ color: "hsl(var(--destructive))" }} />
-                      ) : (
-                        <Trash2 size={13} style={{ color: "hsl(var(--destructive))" }} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mobile Card */}
-                <div className="md:hidden px-4 py-3 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <label className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest mb-2 cursor-pointer"
-                        style={{ color: "hsl(var(--muted-foreground))" }}>
-                        <input
-                          type="checkbox"
-                          checked={!!selectedNotes[entry.questionId]}
-                          onChange={() => toggleNoteSelection(entry.questionId)}
-                          className="h-4 w-4 cursor-pointer accent-[hsl(var(--primary))]"
-                        />
-                        Select
-                      </label>
-                      {topic && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 mr-1"
-                          style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
-                          {topic.icon} {topic.title}
-                        </span>
-                      )}
-                      <p className="text-xs font-bold mt-1 leading-snug">{question?.question ?? entry.questionId}</p>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0 flex-wrap justify-end">
-                      <button
-                        onClick={() => openNoteModal(entry, false)}
-                        className="p-1 hover:bg-muted rounded"
-                        title="View note"
-                      >
-                        <Eye size={13} style={{ color: "hsl(var(--primary))" }} />
-                      </button>
-                      <button
-                        onClick={() => openNoteModal(entry, true)}
-                        className="p-1 hover:bg-muted rounded"
-                        title="Edit note"
-                      >
-                        <PencilLine size={13} style={{ color: "hsl(var(--warning))" }} />
-                      </button>
-                      <button
-                        onClick={() => navigate("/interview/java/core-java-qa")}
-                        className="p-1 hover:bg-muted rounded"
-                        title="Go to question"
-                      >
-                        <StickyNote size={13} style={{ color: "hsl(var(--warning))" }} />
-                      </button>
-                      <button
-                        onClick={() => downloadSingleNotePDF(entry)}
-                        className="p-1 hover:bg-muted rounded"
-                        title="Download only this note"
-                      >
-                        <Download size={13} style={{ color: "hsl(var(--success))" }} />
-                      </button>
-                      <button
-                        onClick={() => deleteNote(entry.questionId)}
-                        disabled={deletingId === entry.questionId}
-                        className="p-1 hover:bg-destructive/10 rounded"
-                        title="Delete note"
-                      >
-                        {deletingId === entry.questionId ? (
-                          <Loader2 size={13} className="animate-spin" style={{ color: "hsl(var(--destructive))" }} />
-                        ) : (
-                          <Trash2 size={13} style={{ color: "hsl(var(--destructive))" }} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    className={`text-xs leading-relaxed pl-2 border-l-2 border-warning/30 note-rendered ${isExpanded ? "" : "line-clamp-3"}`}
-                    style={{ color: "hsl(var(--foreground))" }}
-                    dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(entry.notes) }}
-                  />
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      {new Date(entry.updatedAt).toLocaleDateString()}
-                    </span>
-                    {entry.notes.length > 80 && (
-                      <button
-                        onClick={() => setExpandedNote(isExpanded ? null : entry.questionId)}
-                        className="inline-flex items-center gap-0.5 text-[10px] font-bold"
-                        style={{ color: "hsl(var(--primary))" }}
-                      >
-                        {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-                        {isExpanded ? "Less" : "More"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Footer status */}
-      {notesCount > 0 && (
-        <div className="text-center py-2 mt-2">
-          <p className="text-[10px] font-semibold" style={{ color: "hsl(var(--success))" }}>
-            ✓ All notes are saved to your account — they persist even after clearing browser cache
-          </p>
-        </div>
-      )}
-
-      {activeNoteEntry && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          onClick={closeNoteModal}
-        >
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div
-            className="relative w-full max-w-3xl max-h-[85vh] overflow-hidden border-4 border-black dark:border-white bg-card"
-            style={{ boxShadow: "8px 8px 0px 0px hsl(var(--border))" }}
-            onClick={(e) => e.stopPropagation()}
+        <div className="relative z-10 text-center md:text-left space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="flex items-center justify-between gap-3 px-5 py-3 border-b-2 border-border">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  {activeTopic && (
-                    <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5"
-                      style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
-                      {activeTopic.icon} {activeTopic.title}
-                    </span>
-                  )}
-                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {isEditingNote ? "Edit Note" : "View Note"}
-                  </span>
-                </div>
-                <p className="text-sm font-bold leading-snug">{activeQuestion?.question ?? activeNoteEntry.questionId}</p>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-6">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+              >
+                <ArrowLeft size={12} />
+                Back
+              </button>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-primary/10 border-primary/20 text-[10px] font-bold uppercase tracking-widest text-primary">
+                <BookOpen size={12} />
+                <span>Knowledge Base</span>
               </div>
-              <button onClick={closeNoteModal} className="p-1 hover:bg-muted rounded" title="Close">
-                <X size={16} />
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
+              My <span className="text-primary">Notes</span>
+            </h1>
+            
+            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
+              Manage your personal study material. {notesCount} note{notesCount !== 1 ? "s" : ""} saved across your journey. Persists across all your devices.
+            </p>
+
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-8">
+              <button
+                onClick={downloadAllNotesPDF}
+                disabled={filteredNotes.length === 0}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted disabled:opacity-40"
+              >
+                <Download size={14} />
+                Merge All PDF
+              </button>
+              <button
+                onClick={downloadSelectedNotesPDF}
+                disabled={selectedFilteredNotes.length === 0}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted disabled:opacity-40"
+              >
+                <Download size={14} />
+                Selected PDF
+              </button>
+              <button
+                onClick={() => navigate("/interview/java/core-java-qa")}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
+              >
+                <StickyNote size={14} />
+                Add More Notes
               </button>
             </div>
+          </motion.div>
+        </div>
+      </section>
 
-            <div className="p-5 overflow-y-auto max-h-[calc(85vh-140px)]">
-              {isEditingNote ? (
-                <RichTextNoteEditor
-                  value={noteDraft}
-                  onChange={setNoteDraft}
-                  placeholder="Edit your note here..."
-                  rows={10}
-                  autoFocus
-                />
-              ) : (
-                <div
-                  className="note-rendered text-sm leading-relaxed whitespace-pre-line"
-                  style={{ color: "hsl(var(--foreground))" }}
-                  dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(activeNoteEntry.notes) }}
-                />
-              )}
-            </div>
-
-            <div className="flex items-center justify-between gap-3 px-5 py-3 border-t-2 border-border bg-muted/20">
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => navigate("/interview/java/core-java-qa")}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card"
-                  style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-                >
-                  <StickyNote size={11} />
-                  Go Question
-                </button>
-                <button
-                  onClick={() => downloadSingleNotePDF(activeNoteEntry)}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card"
-                  style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-                >
-                  <Download size={11} />
-                  Only This PDF
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {isEditingNote ? (
-                  <>
-                    <button
-                      onClick={() => {
-                        setNoteDraft(activeNoteEntry.notes);
-                        setIsEditingNote(false);
-                      }}
-                      className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card"
-                      style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-                    >
-                      <X size={11} />
-                      Cancel
-                    </button>
-                    <button
-                      onClick={saveNote}
-                      disabled={savingNoteId === activeNoteEntry.questionId}
-                      className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-black dark:border-white"
-                      style={{
-                        background: "hsl(var(--primary))",
-                        color: "hsl(var(--primary-foreground))",
-                        boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                      }}
-                    >
-                      {savingNoteId === activeNoteEntry.questionId ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
-                      Save
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setIsEditingNote(true)}
-                    className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-black dark:border-white"
-                    style={{
-                      background: "hsl(var(--primary))",
-                      color: "hsl(var(--primary-foreground))",
-                      boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                    }}
-                  >
-                    <PencilLine size={11} />
-                    Edit Note
-                  </button>
-                )}
-              </div>
-            </div>
+      {/* Main Content */}
+      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full space-y-8">
+        {/* Filters Bar */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 p-4 rounded-[28px] border bg-card/50 backdrop-blur-sm">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+            <input
+              type="text"
+              placeholder="Search through your notes..."
+              value={searchNotes}
+              onChange={(e) => setSearchNotes(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={filterTopic}
+              onChange={(e) => setFilterTopic(e.target.value)}
+              className="px-5 py-3 rounded-[20px] bg-muted/20 border border-border/50 text-xs font-bold uppercase tracking-widest text-muted-foreground outline-none focus:border-primary/50 transition-all cursor-pointer"
+            >
+              <option value="all">All Topics</option>
+              {coreJavaInterviewTopics.map((t) => (
+                <option key={t.id} value={t.id}>{t.title}</option>
+              ))}
+            </select>
+            <button
+              onClick={toggleSelectAllFiltered}
+              disabled={filteredNotes.length === 0}
+              className="px-5 py-3 rounded-[20px] bg-muted/20 border border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all disabled:opacity-40"
+            >
+              {allFilteredSelected ? "Clear Selection" : "Select All"}
+            </button>
           </div>
         </div>
-      )}
+
+        {filteredNotes.length > 0 && (
+          <div className="flex items-center gap-2 px-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+              {filteredNotes.length} visible · {selectedFilteredNotes.length} selected
+            </span>
+          </div>
+        )}
+
+        {/* Notes Grid */}
+        {filteredNotes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-card/30 border border-dashed rounded-[40px]">
+            <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center text-muted-foreground/20">
+              <FileText size={40} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-black uppercase tracking-tight text-foreground">
+                {notesCount === 0 ? "No notes yet" : "No matches found"}
+              </h3>
+              <p className="text-sm font-medium text-muted-foreground max-w-[300px] leading-relaxed">
+                {notesCount === 0 
+                  ? "Start building your knowledge base by adding notes to interview questions." 
+                  : "Try adjusting your filters or search terms to find what you're looking for."}
+              </p>
+            </div>
+            {notesCount === 0 && (
+              <button
+                onClick={() => navigate("/interview/java/core-java-qa")}
+                className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-primary/90"
+              >
+                Go to Q&A
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {filteredNotes.map((entry) => {
+              const question = coreJavaInterviewTopics.flatMap((t) => t.questions).find((q) => q.id === entry.questionId);
+              const topic = coreJavaInterviewTopics.find((t) => t.questions.some((q) => q.id === entry.questionId));
+              const isExpanded = expandedNote === entry.questionId;
+
+              return (
+                <motion.div
+                  key={entry.questionId}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="group bg-card border rounded-[32px] overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
+                >
+                  <div className="p-8 md:p-10 space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                      <div className="flex-1 space-y-3 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={!!selectedNotes[entry.questionId]}
+                            onChange={() => toggleNoteSelection(entry.questionId)}
+                            className="w-5 h-5 rounded-lg border-2 border-border/50 text-primary focus:ring-primary/20 cursor-pointer transition-all"
+                          />
+                          {topic && (
+                            <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                              {topic.icon} {topic.title}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                            {new Date(entry.updatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-foreground leading-tight group-hover:text-primary transition-colors">
+                          {question?.question ?? entry.questionId}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => openNoteModal(entry, false)} className="p-3 rounded-2xl bg-muted/30 text-primary hover:bg-primary/10 transition-all" title="View">
+                          <Eye size={18} />
+                        </button>
+                        <button onClick={() => openNoteModal(entry, true)} className="p-3 rounded-2xl bg-muted/30 text-warning hover:bg-warning/10 transition-all" title="Edit">
+                          <PencilLine size={18} />
+                        </button>
+                        <button onClick={() => downloadSingleNotePDF(entry)} className="p-3 rounded-2xl bg-muted/30 text-success hover:bg-success/10 transition-all" title="Download">
+                          <Download size={18} />
+                        </button>
+                        <button 
+                          onClick={() => deleteNote(entry.questionId)} 
+                          disabled={deletingId === entry.questionId}
+                          className="p-3 rounded-2xl bg-muted/30 text-destructive hover:bg-destructive/10 transition-all" 
+                          title="Delete"
+                        >
+                          {deletingId === entry.questionId ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <div
+                        className={`text-sm md:text-base leading-relaxed font-medium text-muted-foreground prose-sm prose-p:my-2 max-w-full ${isExpanded ? "" : "line-clamp-4"}`}
+                        dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(entry.notes) }}
+                      />
+                      {entry.notes.length > 300 && (
+                        <button
+                          onClick={() => setExpandedNote(isExpanded ? null : entry.questionId)}
+                          className="mt-4 text-[11px] font-black uppercase tracking-widest text-primary hover:underline flex items-center gap-1.5"
+                        >
+                          {isExpanded ? "Show Less" : "Read Full Note"}
+                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
+        {notesCount > 0 && (
+          <div className="flex items-center justify-center gap-2 pt-12 border-t border-border/30">
+            <div className="w-1.5 h-1.5 rounded-full bg-success" />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+              Cloud Synced • Persists across devices
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Note Modal Overlay */}
+      <AnimatePresence>
+        {activeNoteEntry && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+            onClick={closeNoteModal}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-[40px] border border-border/50 shadow-2xl bg-card"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between gap-6 px-8 py-8 border-b border-border/50">
+                <div className="min-w-0 space-y-2">
+                  <div className="flex items-center gap-3">
+                    {activeTopic && (
+                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                        {activeTopic.icon} {activeTopic.title}
+                      </span>
+                    )}
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                      {isEditingNote ? "Editing Note" : "Viewing Note"}
+                    </span>
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-tight text-foreground">
+                    {activeQuestion?.question ?? activeNoteEntry.questionId}
+                  </h2>
+                </div>
+                <button onClick={closeNoteModal} className="p-3 rounded-2xl bg-muted/30 hover:bg-muted text-muted-foreground transition-all">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 md:p-10">
+                {isEditingNote ? (
+                  <RichTextNoteEditor
+                    value={noteDraft}
+                    onChange={setNoteDraft}
+                    placeholder="Refine your thoughts here..."
+                    rows={12}
+                    autoFocus
+                  />
+                ) : (
+                  <div
+                    className="text-base md:text-lg leading-relaxed font-medium text-muted-foreground prose-lg prose-p:my-4 prose-pre:bg-muted/50 prose-pre:rounded-2xl prose-pre:p-6"
+                    dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(activeNoteEntry.notes) }}
+                  />
+                )}
+              </div>
+
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-8 py-8 border-t border-border/50 bg-muted/10">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate("/interview/java/core-java-qa")}
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                  >
+                    <StickyNote size={16} />
+                    View Context
+                  </button>
+                  <button
+                    onClick={() => downloadSingleNotePDF(activeNoteEntry)}
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                  >
+                    <Download size={16} />
+                    Export PDF
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {isEditingNote ? (
+                    <>
+                      <button
+                        onClick={() => { setNoteDraft(activeNoteEntry.notes); setIsEditingNote(false); }}
+                        className="flex-1 md:flex-none px-6 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={saveNote}
+                        disabled={savingNoteId === activeNoteEntry.questionId}
+                        className="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
+                      >
+                        {savingNoteId === activeNoteEntry.questionId ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        Save Note
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditingNote(true)}
+                      className="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
+                    >
+                      <PencilLine size={16} />
+                      Edit Note
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

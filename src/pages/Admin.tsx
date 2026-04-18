@@ -119,42 +119,74 @@ export default function Admin() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Shield size={24} style={{ color: "hsl(var(--primary))" }} />
-        <h1 className="text-2xl font-bold" style={{ color: "hsl(var(--foreground))" }}>
-          Admin Dashboard
-        </h1>
-      </div>
+    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
+      
+      {/* Header Section */}
+      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit" style={{ background: "hsl(var(--muted)/0.5)" }}>
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
-            style={{
-              background: tab === t.id ? "hsl(var(--card))" : "transparent",
-              color: tab === t.id ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-              boxShadow: tab === t.id ? "0 1px 3px hsl(var(--foreground)/0.1)" : "none",
-            }}
+        <div className="relative z-10 text-center md:text-left space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <t.icon size={14} />
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="animate-spin" size={20} style={{ color: "hsl(var(--muted-foreground))" }} />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-primary/10 border-primary/20 text-[10px] font-bold uppercase tracking-widest text-primary mb-6">
+              <Shield size={12} />
+              <span>Admin Privileges</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
+              Platform <span className="text-primary">Control</span>
+            </h1>
+            
+            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
+              Manage user accounts, monitor platform growth, and oversee roles. This dashboard is for authorized administrators only.
+            </p>
+          </motion.div>
         </div>
-      ) : tab === "users" ? (
-        <UsersTab users={users} onDelete={handleDelete} onSetRole={handleSetRole} onBan={handleBan} onUnban={handleUnban} />
-      ) : (
-        <AnalyticsTab stats={stats} />
-      )}
+      </section>
+
+      {/* Main Content */}
+      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full space-y-8">
+        {/* Tabs Bar */}
+        <div className="flex p-1.5 rounded-[24px] bg-muted/30 border border-border/30 w-full max-w-md">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                tab === t.id 
+                  ? "bg-card border border-border/50 text-foreground shadow-xl shadow-black/10" 
+                  : "text-muted-foreground/50 hover:text-muted-foreground"
+              }`}
+            >
+              <t.icon size={14} />
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <Loader2 className="animate-spin text-primary" size={32} />
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Fetching records...</p>
+          </div>
+        ) : (
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {tab === "users" ? (
+              <UsersTab users={users} onDelete={handleDelete} onSetRole={handleSetRole} onBan={handleBan} onUnban={handleUnban} />
+            ) : (
+              <AnalyticsTab stats={stats} />
+            )}
+          </motion.div>
+        )}
+      </section>
     </div>
   );
 }
@@ -173,112 +205,113 @@ function UsersTab({
   onUnban: (id: string) => void;
 }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+    <div className="rounded-[32px] overflow-hidden border border-border/50 bg-card shadow-2xl shadow-primary/5">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ background: "hsl(var(--muted)/0.3)" }}>
-              <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>User</th>
-              <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Status</th>
-              <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Role</th>
-              <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Joined</th>
-              <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Last Login</th>
-              <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Actions</th>
+            <tr className="bg-muted/30 border-b border-border/30">
+              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">User Identity</th>
+              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Access Status</th>
+              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Platform Role</th>
+              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Activity</th>
+              <th className="text-right px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Operations</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-border/10">
             {users.map((user) => {
               const banned = isBanned(user);
               const isAdminUser = user.roles.includes("admin");
               return (
                 <tr
                   key={user.id}
-                  className="transition-colors hover:bg-muted/30"
-                  style={{ borderTop: "1px solid hsl(var(--border)/0.5)", opacity: banned ? 0.6 : 1 }}
+                  className="transition-all hover:bg-muted/20 group"
+                  style={{ opacity: banned ? 0.6 : 1 }}
                 >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={{ background: banned ? "hsl(var(--destructive)/0.15)" : "hsl(var(--primary)/0.15)", color: banned ? "hsl(var(--destructive))" : "hsl(var(--primary))" }}
-                      >
-                        {(user.profile?.display_name?.[0] || user.email[0]).toUpperCase()}
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className={`absolute inset-0 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${banned ? "bg-destructive/20" : "bg-primary/20"}`} />
+                        {user.profile?.avatar_url ? (
+                          <img src={user.profile.avatar_url} alt="" className="relative w-10 h-10 rounded-xl object-cover border border-border/50 shadow-sm" />
+                        ) : (
+                          <div
+                            className={`relative w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black border transition-all ${banned ? "bg-destructive/10 border-destructive/20 text-destructive" : "bg-primary/10 border-primary/20 text-primary"}`}
+                          >
+                            {(user.profile?.display_name?.[0] || user.email[0]).toUpperCase()}
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <div className="font-medium" style={{ color: "hsl(var(--foreground))" }}>
-                          {user.profile?.display_name || "—"}
+                      <div className="min-w-0">
+                        <div className="font-bold text-foreground tracking-tight truncate">
+                          {user.profile?.display_name || "Guest Learner"}
                         </div>
-                        <div className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                        <div className="text-[10px] font-medium text-muted-foreground/50 truncate">
                           {user.email}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-8 py-5">
                     {banned ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--destructive)/0.15)", color: "hsl(var(--destructive))" }}>
+                      <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-destructive/10 border border-destructive/20 text-destructive shadow-sm shadow-destructive/5">
                         <Ban size={10} /> Banned
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--success)/0.15)", color: "hsl(var(--success))" }}>
+                      <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-success/10 border border-success/20 text-success shadow-sm shadow-success/5">
                         <ShieldCheck size={10} /> Active
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-8 py-5">
                     <select
                       value={user.roles[0] || "user"}
                       onChange={(e) => onSetRole(user.id, e.target.value)}
                       disabled={isAdminUser}
-                      className="text-xs px-2 py-1 rounded-lg outline-none"
-                      style={{
-                        background: "hsl(var(--muted)/0.5)",
-                        color: isAdminUser ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                        border: "1px solid hsl(var(--border))",
-                      }}
+                      className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl outline-none transition-all cursor-pointer bg-muted/30 border border-border/30 hover:border-primary/30 focus:border-primary/50 disabled:opacity-40"
                     >
                       <option value="user">User</option>
                       <option value="moderator">Moderator</option>
                       <option value="admin">Admin</option>
                     </select>
                   </td>
-                  <td className="px-4 py-3 text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {new Date(user.created_at).toLocaleDateString()}
+                  <td className="px-8 py-5">
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-bold text-muted-foreground/60 flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                        Joined {new Date(user.created_at).toLocaleDateString()}
+                      </div>
+                      <div className="text-[10px] font-bold text-muted-foreground/40 flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground/10" />
+                        Last {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : "Never"}
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {user.last_sign_in_at
-                      ? new Date(user.last_sign_in_at).toLocaleDateString()
-                      : "Never"}
-                  </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-8 py-5 text-right">
                     {!isAdminUser && (
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-2">
                         {banned ? (
                           <button
                             onClick={() => onUnban(user.id)}
-                            className="p-1.5 rounded-lg transition-colors hover:bg-success/10"
-                            style={{ color: "hsl(var(--success))" }}
+                            className="p-2.5 rounded-xl transition-all bg-success/5 text-success hover:bg-success/20 border border-success/10"
                             title="Unban user"
                           >
-                            <ShieldCheck size={14} />
+                            <ShieldCheck size={16} />
                           </button>
                         ) : (
                           <button
                             onClick={() => onBan(user.id, user.email)}
-                            className="p-1.5 rounded-lg transition-colors hover:bg-warning/10"
-                            style={{ color: "hsl(var(--accent))" }}
+                            className="p-2.5 rounded-xl transition-all bg-warning/5 text-warning hover:bg-warning/20 border border-warning/10"
                             title="Ban user"
                           >
-                            <Ban size={14} />
+                            <Ban size={16} />
                           </button>
                         )}
                         <button
                           onClick={() => onDelete(user.id, user.email)}
-                          className="p-1.5 rounded-lg transition-colors hover:bg-destructive/10"
-                          style={{ color: "hsl(var(--destructive))" }}
+                          className="p-2.5 rounded-xl transition-all bg-destructive/5 text-destructive hover:bg-destructive/20 border border-destructive/10"
                           title="Delete user"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     )}
@@ -290,8 +323,11 @@ function UsersTab({
         </table>
       </div>
       {users.length === 0 && (
-        <div className="text-center py-12 text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-          No users found
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <div className="w-16 h-16 rounded-[24px] bg-muted/20 flex items-center justify-center text-muted-foreground/20">
+            <Users size={32} />
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">No records discovered</p>
         </div>
       )}
     </div>
@@ -302,32 +338,41 @@ function AnalyticsTab({ stats }: { stats: Stats | null }) {
   if (!stats) return null;
 
   const cards = [
-    { label: "Total Users", value: stats.totalUsers, icon: Users, color: "hsl(var(--primary))" },
-    { label: "Signups (7d)", value: stats.recentSignups, icon: UserCog, color: "hsl(var(--success))" },
-    { label: "Active (7d)", value: stats.recentLogins, icon: BarChart3, color: "hsl(var(--accent))" },
+    { label: "Total Platform Users", value: stats.totalUsers, icon: Users, color: "hsl(var(--primary))", desc: "Lifetime account creations" },
+    { label: "Weekly Growth", value: stats.recentSignups, icon: UserCog, color: "hsl(var(--success))", desc: "New learners in last 7 days" },
+    { label: "Platform Activity", value: stats.recentLogins, icon: BarChart3, color: "hsl(var(--accent))", desc: "Unique logins in last 7 days" },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
       {cards.map((card) => (
         <div
           key={card.label}
-          className="p-5 rounded-xl"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+          className="group relative p-8 rounded-[32px] bg-card border border-border/50 overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
         >
-          <div className="flex items-center gap-3 mb-3">
+          <div 
+            className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity"
+            style={{ background: card.color }}
+          />
+
+          <div className="relative z-10 space-y-4">
             <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ background: `${card.color}15`, color: card.color }}
+              className="w-12 h-12 rounded-2xl flex items-center justify-center border transition-all"
+              style={{ background: `${card.color}10`, borderColor: `${card.color}20`, color: card.color }}
             >
-              <card.icon size={18} />
+              <card.icon size={24} />
             </div>
-            <span className="text-xs font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {card.label}
-            </span>
-          </div>
-          <div className="text-3xl font-bold" style={{ color: "hsl(var(--foreground))" }}>
-            {card.value}
+            <div>
+              <div className="text-3xl font-black tracking-tighter text-foreground mb-1">
+                {card.value}
+              </div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                {card.label}
+              </div>
+              <p className="text-[9px] font-bold text-muted-foreground/40 mt-3 border-t border-border/10 pt-3">
+                {card.desc}
+              </p>
+            </div>
           </div>
         </div>
       ))}

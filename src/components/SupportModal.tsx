@@ -26,27 +26,28 @@ function UpiQRCode({ upiId, amount }: { upiId: string; amount: number }) {
   const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=AlgoGuru%20Support&am=${amount}&cu=INR&tn=Support%20AlgoGuru`;
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiUrl)}&size=200x200&bgcolor=ffffff&color=000000&margin=8`;
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-4">
       <div
-        className="border-4 border-black p-1 bg-white"
-        style={{ boxShadow: "4px 4px 0 0 #000" }}
+        className="rounded-3xl border border-border/50 p-3 bg-white shadow-2xl"
       >
         <img
           src={qrApiUrl}
           alt="UPI QR Code"
-          width={160}
-          height={160}
-          className="block"
+          width={180}
+          height={180}
+          className="block rounded-xl"
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = "none";
           }}
         />
       </div>
-      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
-        Scan with any UPI app
-      </p>
-      <div className="flex gap-2 text-xs font-black text-muted-foreground opacity-70">
-        <span>GPay</span><span>·</span><span>PhonePe</span><span>·</span><span>Paytm</span><span>·</span><span>BHIM</span>
+      <div className="text-center space-y-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+          Scan with any UPI app
+        </p>
+        <div className="flex gap-2 text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">
+          <span>GPay</span><span>·</span><span>PhonePe</span><span>·</span><span>Paytm</span>
+        </div>
       </div>
     </div>
   );
@@ -64,14 +65,11 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       title="Copy"
-      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all duration-150"
-      style={{
-        border: "2px solid hsl(var(--border))",
-        background: copied ? "hsl(var(--primary))" : "hsl(var(--card))",
-        color: copied ? "black" : "hsl(var(--foreground))",
-        boxShadow: copied ? "0 0 0 0 hsl(var(--border))" : "2px 2px 0 0 hsl(var(--border))",
-        transform: copied ? "translate(2px,2px)" : "none",
-      }}
+      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+        copied 
+          ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
+          : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+      }`}
     >
       {copied ? <Check size={12} /> : <Copy size={12} />}
       {copied ? "Copied!" : "Copy"}
@@ -104,121 +102,108 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 flex items-center justify-center"
-        style={{ zIndex: 9998, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
+        className="fixed inset-0 flex items-center justify-center p-4"
+        style={{ zIndex: 9998, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)" }}
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ type: "spring", stiffness: 220, damping: 22 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          transition={{ type: "spring", stiffness: 260, damping: 26 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-md mx-4 flex flex-col overflow-hidden"
-          style={{
-            background: "hsl(var(--card))",
-            border: "4px solid hsl(var(--foreground))",
-            boxShadow: "8px 8px 0 0 hsl(var(--foreground))",
-            maxHeight: "90vh",
-          }}
+          className="relative w-full max-w-lg flex flex-col overflow-hidden rounded-[40px] border border-border/50 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card"
+          style={{ maxHeight: "90vh" }}
         >
+          {/* Subtle background glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-primary/10 blur-[80px] rounded-full pointer-events-none" />
+
           {/* ── Header ─────────────────────────────────────────── */}
-          <div
-            className="flex items-center gap-3 px-5 py-4 flex-shrink-0"
-            style={{ background: "hsl(var(--primary))", borderBottom: "3px solid hsl(var(--foreground))" }}
-          >
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Heart size={18} fill="black" color="black" />
-              <span className="text-sm font-black uppercase tracking-widest text-black">Support AlgoGuru</span>
-              <Sparkles size={14} color="black" className="opacity-70" />
+          <div className="relative z-10 flex items-center justify-between px-8 py-8">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                  <Heart size={18} className="text-primary" fill="currentColor" />
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">Support the Build</h2>
+              </div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                Help keep AlgoGuru polished & free
+              </p>
             </div>
             <button
               onClick={onClose}
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center transition-all duration-100"
-              style={{
-                border: "2px solid black",
-                background: "transparent",
-                color: "black",
-                boxShadow: "2px 2px 0 0 black",
-              }}
-              onMouseDown={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 0 black";
-                (e.currentTarget as HTMLElement).style.transform = "translate(2px,2px)";
-              }}
-              onMouseUp={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = "2px 2px 0 0 black";
-                (e.currentTarget as HTMLElement).style.transform = "none";
-              }}
+              className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
-              <X size={14} />
+              <X size={18} />
             </button>
           </div>
 
-          {/* ── Tagline ────────────────────────────────────────── */}
-          <div className="px-5 pt-4 pb-3 flex-shrink-0" style={{ borderBottom: "2px solid hsl(var(--border))" }}>
-            <p className="text-xs font-bold text-muted-foreground leading-relaxed">
-              AlgoGuru is free for everyone. If it helped you crack an interview or learn something new,
-              consider buying me a coffee ☕ — it keeps this project alive!
-            </p>
-          </div>
-
           {/* ── Tabs ───────────────────────────────────────────── */}
-          <div className="flex flex-shrink-0" style={{ borderBottom: "2px solid hsl(var(--border))" }}>
-            {visibleTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="flex-1 flex flex-col items-center gap-0.5 px-2 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-150"
-                style={{
-                  background: activeTab === tab.id ? "hsl(var(--primary))" : "transparent",
-                  color: activeTab === tab.id ? "black" : "hsl(var(--muted-foreground))",
-                  borderRight: tab.id !== visibleTabs[visibleTabs.length - 1].id ? "2px solid hsl(var(--border))" : "none",
-                  borderBottom: activeTab === tab.id ? "2px solid hsl(var(--primary))" : "none",
-                }}
-              >
-                <span className="text-base leading-none">{tab.flag}</span>
-                <span>{tab.label}</span>
-                <span className="opacity-60 text-[9px] normal-case font-semibold">{tab.subLabel}</span>
-              </button>
-            ))}
+          <div className="px-8 pb-4">
+            <div className="flex p-1.5 rounded-[24px] bg-muted/30 border border-border/30">
+              {visibleTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                    activeTab === tab.id 
+                      ? "bg-card border border-border/50 text-foreground shadow-xl shadow-black/10" 
+                      : "text-muted-foreground/50 hover:text-muted-foreground"
+                  }`}
+                >
+                  <span className="text-sm leading-none">{tab.flag}</span>
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── Body ───────────────────────────────────────────── */}
-          <div className="flex-1 overflow-y-auto px-5 py-5">
+          <div className="flex-1 overflow-y-auto px-8 py-6">
             <AnimatePresence mode="wait">
               {activeTab === "upi" && (
                 <motion.div
                   key="upi"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex flex-col gap-5"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-8"
                 >
                   {isPaid ? (
-                    <motion.div 
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="flex flex-col items-center justify-center py-10 gap-3 text-center"
-                    >
-                      <div className="text-6xl mb-2 animate-bounce">🎉</div>
-                      <h3 className="text-2xl font-black uppercase text-foreground">Thank You!</h3>
-                      <p className="text-sm font-bold text-muted-foreground w-4/5 leading-relaxed">
-                        Your support directly helps keep AlgoGuru free and fuels new features! ☕
-                      </p>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-[#FF3366] mt-4 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#FF3366] animate-ping" />
+                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-150 animate-pulse" />
+                        <div className="relative w-20 h-20 rounded-[32px] bg-primary/10 border border-primary/20 flex items-center justify-center text-4xl shadow-2xl shadow-primary/10">
+                          🎉
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-black uppercase tracking-tight text-foreground">Huge Thanks!</h3>
+                        <p className="text-sm font-medium text-muted-foreground leading-relaxed max-w-[260px] mx-auto">
+                          Your support fuels new features and high-quality interview content.
+                        </p>
+                      </div>
+                      <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border bg-muted/30 text-[9px] font-black uppercase tracking-widest text-primary/60">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
                         Closing automatically...
-                      </p>
-                    </motion.div>
+                      </div>
+                    </div>
                   ) : (
                     <>
                       {/* Amount selector */}
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: "hsl(var(--muted-foreground))" }}>
-                          Choose Amount (₹)
-                        </p>
-                        <div className="grid grid-cols-4 gap-2 mb-3">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between px-1">
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                            Select Amount (₹)
+                          </p>
+                          {isCustom && (
+                            <button onClick={() => { setIsCustom(false); setCustomAmount(""); setSelectedAmount(99); }} className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline">
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-4 gap-3">
                           {AMOUNTS.map((amt) => (
                             <button
                               key={amt}
@@ -227,14 +212,11 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                                 setIsCustom(false);
                                 setCustomAmount("");
                               }}
-                              className="py-2 text-sm font-black uppercase tracking-wide transition-all duration-100"
-                              style={{
-                                border: "2px solid hsl(var(--border))",
-                                background: selectedAmount === amt && !isCustom ? "hsl(var(--primary))" : "hsl(var(--card))",
-                                color: selectedAmount === amt && !isCustom ? "black" : "hsl(var(--foreground))",
-                                boxShadow: selectedAmount === amt && !isCustom ? "0 0 0 0 hsl(var(--border))" : "2px 2px 0 0 hsl(var(--border))",
-                                transform: selectedAmount === amt && !isCustom ? "translate(2px,2px)" : "none",
-                              }}
+                              className={`py-3 rounded-[18px] text-xs font-black uppercase tracking-widest transition-all duration-300 border ${
+                                selectedAmount === amt && !isCustom 
+                                  ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                                  : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                              }`}
                             >
                               ₹{amt}
                             </button>
@@ -242,36 +224,23 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                         </div>
 
                         {/* Custom Input */}
-                        <div 
-                          className="flex items-center transition-all duration-100 overflow-hidden" 
-                          style={{ 
-                            border: "2px solid hsl(var(--foreground))", 
-                            boxShadow: isCustom ? "0 0 0 0 hsl(var(--foreground))" : "2px 2px 0 0 hsl(var(--foreground))", 
-                            background: "hsl(var(--card))", 
-                            transform: isCustom ? "translate(2px, 2px)" : "none"
-                          }}
-                        >
-                           <div 
-                             className="px-4 py-2 font-black border-r-2" 
-                             style={{ borderColor: "hsl(var(--foreground))", background: isCustom ? "hsl(var(--primary))" : "hsl(var(--muted)/0.5)", color: isCustom ? "black" : "hsl(var(--foreground))" }}
-                           >
+                        <div className={`flex items-center rounded-[22px] border transition-all duration-300 ${isCustom ? "border-primary/50 bg-muted/50 ring-4 ring-primary/5 shadow-xl shadow-primary/5" : "border-border/30 bg-muted/20"}`}>
+                           <div className={`px-5 py-3 font-black text-sm border-r transition-colors ${isCustom ? "border-primary/20 text-primary" : "border-border/10 text-muted-foreground/30"}`}>
                              ₹
                            </div>
                            <input 
                              type="number"
                              min="10"
-                             placeholder="Custom amount..."
+                             placeholder="Enter custom amount..."
                              value={customAmount}
                              onChange={(e) => {
                                 setIsCustom(true);
                                 setCustomAmount(e.target.value);
                                 const val = parseInt(e.target.value);
-                                // Default to some minimum if they type something invalid while scanning
                                 setSelectedAmount(isNaN(val) || val <= 0 ? 10 : val);
                              }}
                              onFocus={() => setIsCustom(true)}
-                             className="flex-1 bg-transparent px-3 py-2 outline-none font-bold text-sm w-full"
-                             style={{ color: "hsl(var(--foreground))" }}
+                             className="flex-1 bg-transparent px-4 py-3 outline-none font-bold text-sm text-foreground placeholder:text-muted-foreground/20"
                            />
                         </div>
                       </div>
@@ -280,13 +249,10 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                       <UpiQRCode upiId={UPI_ID} amount={selectedAmount} />
 
                       {/* UPI ID copy */}
-                      <div
-                        className="flex items-center justify-between gap-2 px-3 py-2"
-                        style={{ border: "2px solid hsl(var(--border))", background: "hsl(var(--muted)/0.4)" }}
-                      >
-                        <div className="min-w-0">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">UPI ID</p>
-                          <p className="text-sm font-black truncate" style={{ color: "hsl(var(--foreground))" }}>{UPI_ID}</p>
+                      <div className="flex items-center justify-between gap-4 p-4 rounded-[24px] border border-border/30 bg-muted/20">
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">UPI ID</p>
+                          <p className="text-sm font-black tracking-tight text-foreground truncate">{UPI_ID}</p>
                         </div>
                         <CopyButton text={UPI_ID} />
                       </div>
@@ -294,13 +260,9 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                       {/* Final Mark as Paid Button */}
                       <button
                         onClick={() => setIsPaid(true)}
-                        className="w-full py-3 mt-1 flex items-center justify-center gap-2 text-sm font-black uppercase tracking-widest bg-black text-white hover:bg-black/80 transition-all active:translate-y-1 active:shadow-none"
-                        style={{
-                           border: "3px solid black",
-                           boxShadow: "4px 4px 0 0 hsl(var(--primary))",
-                        }}
+                        className="w-full py-4 rounded-[22px] flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest bg-foreground text-background transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-black/20"
                       >
-                        <Check size={16} className="text-[#A3E635]" strokeWidth={3} />
+                        <Check size={18} strokeWidth={3} className="text-primary" />
                         I have paid via UPI
                       </button>
                     </>
@@ -311,72 +273,53 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
               {activeTab === "web" && (
                 <motion.div
                   key="web"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex flex-col gap-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
                 >
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Online Payment Options
-                  </p>
-
-                  {/* Razorpay */}
-                  <a
-                    href={RAZORPAY_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-4 px-4 py-4 transition-all duration-150 group"
-                    style={{
-                      border: "3px solid #338dfce5",
-                      background: "#338dfce5",
-                      boxShadow: "4px 4px 0 0 #000",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.boxShadow = "2px 2px 0 0 #000";
-                      (e.currentTarget as HTMLElement).style.transform = "translate(2px,2px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.boxShadow = "4px 4px 0 0 #000";
-                      (e.currentTarget as HTMLElement).style.transform = "none";
-                    }}
-                  >
-                    <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white" style={{ border: "2px solid #000", boxShadow: "2px 2px 0 0 #000" }}>
-                       <span className="font-extrabold text-[#338dfce5]" style={{ fontSize: "16px" }}>₹</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black uppercase text-white">Razorpay Checkout</p>
-                      <p className="text-[11px] font-bold text-white/80">UPI / Cards / Netbanking</p>
-                    </div>
-                    <ExternalLink size={14} color="#fff" className="flex-shrink-0 opacity-60" />
-                  </a>
+                  <div className="px-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                      International Support
+                    </p>
+                  </div>
 
                   {/* Buy Me a Coffee */}
                   <a
                     href={BUYMEACOFFEE_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-4 px-4 py-4 transition-all duration-150 group"
-                    style={{
-                      border: "3px solid #FFDD00",
-                      background: "#FFDD00",
-                      boxShadow: "4px 4px 0 0 #000",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.boxShadow = "2px 2px 0 0 #000";
-                      (e.currentTarget as HTMLElement).style.transform = "translate(2px,2px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.boxShadow = "4px 4px 0 0 #000";
-                      (e.currentTarget as HTMLElement).style.transform = "none";
-                    }}
+                    className="flex items-center gap-4 p-5 rounded-[28px] border border-[#FFDD00]/20 bg-[#FFDD00]/5 transition-all duration-300 hover:bg-[#FFDD00]/10 group"
                   >
-                    <Coffee size={28} color="#000" className="flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black uppercase text-black">Buy Me a Coffee</p>
-                      <p className="text-[11px] font-bold text-black/70">One-time or monthly support</p>
+                    <div className="w-12 h-12 rounded-2xl bg-[#FFDD00] flex items-center justify-center shadow-xl shadow-[#FFDD00]/20 group-hover:scale-110 transition-transform">
+                      <Coffee size={24} className="text-black" />
                     </div>
-                    <ExternalLink size={14} color="#000" className="flex-shrink-0 opacity-60" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black uppercase tracking-tight text-foreground">Buy Me a Coffee</p>
+                      <p className="text-[11px] font-bold text-muted-foreground/60">One-time or monthly support</p>
+                    </div>
+                    <div className="p-2 rounded-xl bg-muted group-hover:bg-[#FFDD00] group-hover:text-black transition-all">
+                      <ExternalLink size={14} className="opacity-60 group-hover:opacity-100" />
+                    </div>
+                  </a>
+
+                  {/* Razorpay */}
+                  <a
+                    href={RAZORPAY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 p-5 rounded-[28px] border-[#338dfc]/20 bg-[#338dfc]/5 border transition-all duration-300 hover:bg-[#338dfc]/10 group"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-[#338dfc] flex items-center justify-center shadow-xl shadow-[#338dfc]/20 group-hover:scale-110 transition-transform">
+                       <CreditCard size={24} className="text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black uppercase tracking-tight text-foreground">Razorpay Checkout</p>
+                      <p className="text-[11px] font-bold text-muted-foreground/60">UPI / Cards / Netbanking</p>
+                    </div>
+                    <div className="p-2 rounded-xl bg-muted group-hover:bg-[#338dfc] group-hover:text-white transition-all">
+                      <ExternalLink size={14} className="opacity-60 group-hover:opacity-100" />
+                    </div>
                   </a>
 
                   {/* PayPal */}
@@ -384,65 +327,52 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                     href={PAYPAL_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-4 px-4 py-4 transition-all duration-150"
-                    style={{
-                      border: "3px solid #003087",
-                      background: "#003087",
-                      color: "white",
-                      boxShadow: "4px 4px 0 0 #000",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.boxShadow = "2px 2px 0 0 #000";
-                      (e.currentTarget as HTMLElement).style.transform = "translate(2px,2px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.boxShadow = "4px 4px 0 0 #000";
-                      (e.currentTarget as HTMLElement).style.transform = "none";
-                    }}
+                    className="flex items-center gap-4 p-5 rounded-[28px] border-[#003087]/20 bg-[#003087]/5 border transition-all duration-300 hover:bg-[#003087]/10 group"
                   >
-                    {/* PayPal "P" wordmark stand-in */}
-                    <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full bg-[#009cde]">
-                      <span className="text-xs font-black text-white">P</span>
+                    <div className="w-12 h-12 rounded-2xl bg-[#003087] flex items-center justify-center shadow-xl shadow-[#003087]/20 group-hover:scale-110 transition-transform">
+                      <div className="text-white text-lg font-black italic">P</div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black uppercase">PayPal</p>
-                      <p className="text-[11px] font-bold opacity-70">Pay securely in USD / any currency</p>
+                      <p className="text-sm font-black uppercase tracking-tight text-foreground">PayPal Global</p>
+                      <p className="text-[11px] font-bold text-muted-foreground/60">Secure payments in any currency</p>
                     </div>
-                    <ExternalLink size={14} className="flex-shrink-0 opacity-60" />
+                    <div className="p-2 rounded-xl bg-muted group-hover:bg-[#003087] group-hover:text-white transition-all">
+                      <ExternalLink size={14} className="opacity-60 group-hover:opacity-100" />
+                    </div>
                   </a>
 
-                  <p className="text-[10px] font-bold text-center text-muted-foreground mt-1">
-                    Your support directly funds new content &amp; features. Thank you! 🚀
-                  </p>
+                  <div className="pt-6 text-center space-y-4">
+                    <p className="text-[11px] font-medium text-muted-foreground/60 leading-relaxed px-4">
+                      Your contribution directly funds development, maintenance, and high-quality free content.
+                    </p>
+                  </div>
                 </motion.div>
               )}
 
               {activeTab === "crypto" && CRYPTO_ADDRESS && (
                 <motion.div
                   key="crypto"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex flex-col gap-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-6"
                 >
-                  <div className="flex items-center gap-2">
-                    <Zap size={14} style={{ color: "hsl(var(--primary))" }} />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      BTC / ETH Address
+                  <div className="flex items-center gap-2 px-1">
+                    <Zap size={14} className="text-primary" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                      Crypto Address
                     </p>
                   </div>
-                  <div
-                    className="flex items-center justify-between gap-2 px-3 py-3"
-                    style={{ border: "2px solid hsl(var(--border))", background: "hsl(var(--muted)/0.4)" }}
-                  >
-                    <p className="text-[11px] font-mono break-all flex-1" style={{ color: "hsl(var(--foreground))" }}>
+                  <div className="flex flex-col gap-4 p-6 rounded-[32px] border border-border/30 bg-muted/20">
+                    <p className="text-xs font-mono break-all leading-relaxed text-foreground/80">
                       {CRYPTO_ADDRESS}
                     </p>
-                    <CopyButton text={CRYPTO_ADDRESS} />
+                    <div className="flex justify-end pt-2">
+                      <CopyButton text={CRYPTO_ADDRESS} />
+                    </div>
                   </div>
-                  <p className="text-[10px] font-bold text-center text-muted-foreground">
-                    Accepts BTC, ETH, SOL and most EVM-compatible tokens.
+                  <p className="text-[11px] font-medium text-center text-muted-foreground/60 leading-relaxed px-4">
+                    Accepts BTC, ETH, SOL and most EVM-compatible tokens. Thank you for supporting the open-web!
                   </p>
                 </motion.div>
               )}
@@ -450,12 +380,11 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* ── Footer ─────────────────────────────────────────── */}
-          <div
-            className="flex items-center justify-center gap-1.5 px-5 py-2.5 flex-shrink-0 text-[10px] font-bold text-muted-foreground"
-            style={{ borderTop: "2px solid hsl(var(--border))", background: "hsl(var(--muted)/0.2)" }}
-          >
-            <Heart size={10} fill="currentColor" className="text-[#FF3366]" />
-            <span>100% of proceeds go to development &amp; hosting.</span>
+          <div className="px-8 py-6 border-t border-border/30 bg-muted/20">
+            <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
+              <Heart size={12} fill="currentColor" className="text-primary" />
+              <span>100% used for platform maintenance</span>
+            </div>
           </div>
         </motion.div>
       </motion.div>
