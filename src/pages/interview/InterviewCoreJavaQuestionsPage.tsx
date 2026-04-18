@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   ChevronRight,
-  Eye,
-  EyeOff,
   CheckCircle2,
   Circle,
   StickyNote,
@@ -17,6 +16,7 @@ import {
   Check,
   Loader2,
   FileText,
+  Code2,
   Download,
   Trash2,
 } from "lucide-react";
@@ -28,10 +28,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 const STORAGE_KEY_DONE = "corejava-done";
 const STORAGE_KEY_NOTES = "corejava-notes";
+type SolutionView = "theory" | "code" | null;
 
 function loadDone(): Record<string, boolean> {
   try {
@@ -59,7 +59,7 @@ export default function InterviewCoreJavaQuestionsPage() {
   const backRoute = language ? `/interview/${language}` : "/interview";
 
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [expandedQuestions, setExpandedQuestions] = useState<Record<string, boolean>>({});
+  const [solutionViewMap, setSolutionViewMap] = useState<Record<string, SolutionView>>({});
   const [doneMap, setDoneMap] = useState<Record<string, boolean>>(loadDone);
   const [notesMap, setNotesMap] = useState<Record<string, string>>(loadNotes);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
@@ -67,23 +67,19 @@ export default function InterviewCoreJavaQuestionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnlyUndone, setShowOnlyUndone] = useState(false);
   const [topicSidebarOpen, setTopicSidebarOpen] = useState(true);
-  const [loadingState, setLoadingState] = useState(true);
   const [upsertingId, setUpsertingId] = useState<string | null>(null);
   const [showNotesPanel, setShowNotesPanel] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
-  const mountedRef = useRef(true);
 
   // Load state from Supabase when user is logged in
   useEffect(() => {
     if (!user) {
       // No user — use localStorage, mark loaded
-      setLoadingState(false);
       return;
     }
 
     let mounted = true;
     const loadUserState = async () => {
-      setLoadingState(true);
       const { data, error } = await supabase
         .from("core_java_user_state")
         .select("question_id, notes, is_completed")
@@ -94,7 +90,6 @@ export default function InterviewCoreJavaQuestionsPage() {
       if (error) {
         // Table might not exist yet — fall back to localStorage silently
         console.warn("Could not load core_java_user_state:", error.message);
-        setLoadingState(false);
         return;
       }
 
@@ -106,7 +101,6 @@ export default function InterviewCoreJavaQuestionsPage() {
       }
       setDoneMap(done);
       setNotesMap(notes);
-      setLoadingState(false);
     };
 
     loadUserState();
@@ -166,8 +160,11 @@ export default function InterviewCoreJavaQuestionsPage() {
       .filter((t) => t.questions.length > 0);
   }, [searchQuery, showOnlyUndone, doneMap]);
 
-  const toggleExpand = useCallback((id: string) => {
-    setExpandedQuestions((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleSolutionView = useCallback((id: string, view: Exclude<SolutionView, null>) => {
+    setSolutionViewMap((prev) => ({
+      ...prev,
+      [id]: prev[id] === view ? null : view,
+    }));
   }, []);
 
   const toggleDone = useCallback((id: string) => {
@@ -531,7 +528,9 @@ export default function InterviewCoreJavaQuestionsPage() {
 
                   {/* Questions */}
                   {topic.questions.map((question, qIdx) => {
-                    const isExpanded = expandedQuestions[question.id] || false;
+                    const activeSolutionView = solutionViewMap[question.id] ?? null;
+                    const isTheoryVisible = activeSolutionView === "theory";
+                    const isCodeVisible = activeSolutionView === "code";
                     const isDone = doneMap[question.id] || false;
                     const hasNote = !!notesMap[question.id];
 
@@ -600,16 +599,31 @@ export default function InterviewCoreJavaQuestionsPage() {
                           {/* Action buttons */}
                           <div className="flex items-center gap-2 mt-3 ml-8">
                             <button
-                              onClick={() => toggleExpand(question.id)}
-                              className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 border-border transition-all hover:border-primary"
+                              onClick={() => toggleSolutionView(question.id, "theory")}
+                              className="core-java-solution-toggle inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 transition-all"
                               style={{
-                                background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--card))",
-                                color: isExpanded ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
+                                borderColor: isTheoryVisible ? "hsl(var(--primary))" : "hsl(var(--border))",
+                                background: isTheoryVisible ? "hsl(var(--primary))" : "hsl(var(--card))",
+                                color: isTheoryVisible ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
                                 boxShadow: "2px 2px 0px 0px hsl(var(--border))",
                               }}
                             >
-                              {isExpanded ? <EyeOff size={12} /> : <Eye size={12} />}
-                              {isExpanded ? "Hide Solution" : "View Solution"}
+                              <BookOpen size={12} />
+                              {isTheoryVisible ? "Hide Theory" : "View Theory"}
+                            </button>
+                            <button
+                              onClick={() => toggleSolutionView(question.id, "code")}
+                              disabled={!question.code}
+                              className="core-java-solution-toggle inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              style={{
+                                borderColor: isCodeVisible ? "hsl(var(--accent))" : "hsl(var(--border))",
+                                background: isCodeVisible ? "hsl(var(--accent))" : "hsl(var(--card))",
+                                color: isCodeVisible ? "hsl(var(--accent-foreground))" : "hsl(var(--foreground))",
+                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
+                              }}
+                            >
+                              <Code2 size={12} />
+                              {isCodeVisible ? "Hide Code" : "View Code"}
                             </button>
                             <button
                               onClick={() => toggleDone(question.id)}
@@ -640,7 +654,7 @@ export default function InterviewCoreJavaQuestionsPage() {
 
                         {/* Expanded Solution */}
                         <AnimatePresence>
-                          {isExpanded && (
+                          {activeSolutionView && (
                             <motion.div
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: "auto", opacity: 1 }}
@@ -649,77 +663,27 @@ export default function InterviewCoreJavaQuestionsPage() {
                               className="overflow-hidden"
                             >
                               <div className="border-t-2 border-border px-4 py-4 space-y-4" style={{ background: "hsl(var(--muted)/0.2)" }}>
-                                {/* Code Block */}
-                                {question.code && (
+                                {isTheoryVisible && (
+                                  <div className="core-java-theory-card">
+                                    <div className="flex items-center gap-2 mb-4">
+                                      <BookOpen size={14} style={{ color: "hsl(var(--primary))" }} />
+                                      <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+                                        Theory
+                                      </span>
+                                    </div>
+                                    <div className="core-java-theory-copy">
+                                      {renderTheoryContent(question.answer)}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {isCodeVisible && question.code && (
                                   <CodeBlock
                                     title={`Q${qIdx + 1} — ${question.codeLanguage || "java"}`}
                                     language={question.codeLanguage || "java"}
                                     code={question.code}
                                   />
                                 )}
-
-                                {/* Detailed Answer — Collapsible */}
-                                <div>
-                                  <button
-                                    onClick={() => setExpandedQuestions((prev) => ({ ...prev, [`expl-${question.id}`]: !prev[`expl-${question.id}`] }))}
-                                    className="w-full flex items-center justify-between py-2 px-3 border-2 border-border bg-card rounded-sm text-left transition-colors hover:border-primary"
-                                    style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <BookOpen size={12} style={{ color: "hsl(var(--primary))" }} />
-                                      <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
-                                        Detailed Answer
-                                      </span>
-                                    </div>
-                                    <ChevronRight
-                                      size={14}
-                                      style={{ color: "hsl(var(--muted-foreground))", transition: "transform 0.2s", transform: expandedQuestions[`expl-${question.id}`] ? "rotate(90deg)" : "rotate(0deg)" }}
-                                    />
-                                  </button>
-                                  <AnimatePresence>
-                                    {expandedQuestions[`expl-${question.id}`] && (
-                                      <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="overflow-hidden"
-                                      >
-                                        <div className="pt-3 space-y-3">
-                                          {question.answer.split("\n\n").map((paragraph, pIdx) => {
-                                            const trimmed = paragraph.trim();
-                                            if (!trimmed) return null;
-                                            // Check if it's a numbered point like "1. Platform Independent: ..."
-                                            const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/s);
-                                            if (numberedMatch) {
-                                              const colonSplit = numberedMatch[2].split(":");
-                                              const label = colonSplit[0];
-                                              const rest = colonSplit.length > 1 ? colonSplit.slice(1).join(":") : "";
-                                              return (
-                                                <div key={pIdx} className="flex gap-2 text-sm leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
-                                                  <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black"
-                                                    style={{ background: "hsl(var(--primary)/0.15)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
-                                                    {numberedMatch[1]}
-                                                  </span>
-                                                  <div>
-                                                    <span className="font-bold">{label}{rest ? ":" : ""}</span>
-                                                    {rest && <span className="leading-relaxed">{rest}</span>}
-                                                  </div>
-                                                </div>
-                                              );
-                                            }
-                                            // Regular paragraph
-                                            return (
-                                              <p key={pIdx} className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
-                                                {trimmed}
-                                              </p>
-                                            );
-                                          })}
-                                        </div>
-                                      </motion.div>
-                                    )}
-                                  </AnimatePresence>
-                                </div>
 
                                 {/* Existing note display */}
                                 {hasNote && notesMap[question.id] && (
@@ -988,5 +952,76 @@ function ChevronLeft({ size, className }: { size: number; className?: string }) 
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="m15 18-6-6 6-6" />
     </svg>
+  );
+}
+
+function renderTheoryContent(answer: string): ReactNode {
+  const sections = answer
+    .split(/\n\s*\n/)
+    .map((section) => section.trim())
+    .filter(Boolean);
+
+  return sections.map((section, sectionIndex) => {
+    const lines = section
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const hasTitleLine = lines.length > 1 && /^[A-Z][^:]{1,80}:$/.test(lines[0]);
+    const title = hasTitleLine ? lines[0].slice(0, -1) : null;
+    const contentLines = hasTitleLine ? lines.slice(1) : lines;
+    const isList = contentLines.length > 1 && contentLines.every((line) => /^(\d+\.\s+|- )/.test(line));
+
+    return (
+      <section key={`${sectionIndex}-${title ?? "paragraph"}`} className="core-java-theory-section">
+        {title && <h4 className="core-java-theory-title">{title}</h4>}
+        {isList ? (
+          <div className="core-java-theory-list">
+            {contentLines.map((line, lineIndex) => renderTheoryListItem(line, `${sectionIndex}-${lineIndex}`))}
+          </div>
+        ) : (
+          contentLines.map((line, lineIndex) => (
+            <p key={`${sectionIndex}-${lineIndex}`} className="core-java-theory-paragraph">
+              {renderTheoryInlineContent(line)}
+            </p>
+          ))
+        )}
+      </section>
+    );
+  });
+}
+
+function renderTheoryListItem(line: string, key: string): ReactNode {
+  const numberedMatch = line.match(/^(\d+)\.\s+(.*)$/);
+  if (numberedMatch) {
+    return (
+      <div key={key} className="core-java-theory-item">
+        <span className="core-java-theory-badge">{numberedMatch[1]}</span>
+        <p className="core-java-theory-paragraph mb-0">{renderTheoryInlineContent(numberedMatch[2])}</p>
+      </div>
+    );
+  }
+
+  const bulletMatch = line.match(/^-\s+(.*)$/);
+  return (
+    <div key={key} className="core-java-theory-item">
+      <span className="core-java-theory-dot" />
+      <p className="core-java-theory-paragraph mb-0">{renderTheoryInlineContent(bulletMatch ? bulletMatch[1] : line)}</p>
+    </div>
+  );
+}
+
+function renderTheoryInlineContent(text: string): ReactNode {
+  const leadMatch = text.match(/^([A-Z][A-Za-z0-9 ()/&,'+-]{1,50}):\s+(.*)$/s);
+
+  if (!leadMatch) {
+    return text;
+  }
+
+  return (
+    <>
+      <span className="core-java-theory-lead">{leadMatch[1]}:</span>{" "}
+      <span>{leadMatch[2]}</span>
+    </>
   );
 }
