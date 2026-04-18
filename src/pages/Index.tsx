@@ -77,7 +77,7 @@ export default function Index() {
 
       {/* ── MARQUEE TICKER TAPE ─────────────────────────── */}
       <div
-        className="w-full overflow-hidden border-b border-border py-2 bg-muted/30"
+        className="w-full overflow-hidden border-b border-border/40 py-3 bg-muted/20 backdrop-blur-sm"
         aria-hidden="true"
       >
         <motion.div
@@ -86,8 +86,8 @@ export default function Index() {
           transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
         >
           {[...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
-            <span key={i} className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] mr-12 flex items-center gap-3">
-              <Star size={8} className="inline opacity-50" fill="currentColor" />
+            <span key={i} className="text-muted-foreground/50 text-[10px] font-black uppercase tracking-[0.3em] mr-16 flex items-center gap-4">
+              <Star size={10} className="inline text-primary/30" fill="currentColor" />
               {item}
             </span>
           ))}

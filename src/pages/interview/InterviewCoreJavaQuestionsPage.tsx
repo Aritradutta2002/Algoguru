@@ -357,76 +357,93 @@ export default function InterviewCoreJavaQuestionsPage() {
   const progressPct = totalQuestions > 0 ? Math.round((doneCount / totalQuestions) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
       {/* Header */}
-      <div className="border-b-2 border-border bg-card/50 px-4 md:px-8 py-4">
+      <div className="border-b border-border/30 bg-card/50 backdrop-blur-md px-4 md:px-8 py-6 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate(backRoute)}
-                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card hover:bg-muted/60"
-                style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                className="group flex items-center justify-center w-10 h-10 rounded-2xl border border-border/30 bg-muted/30 transition-all hover:bg-muted hover:border-primary/30"
               >
-                <ArrowLeft size={14} />
-                Back
+                <ArrowLeft size={18} className="text-muted-foreground group-hover:text-primary transition-transform group-hover:-translate-x-0.5" />
               </button>
-              <div className="flex items-center gap-2">
-                <Coffee size={20} style={{ color: "hsl(var(--primary))" }} />
-                <h1 className="text-lg md:text-xl font-black uppercase tracking-tight">
-                  Core Java Q&A
-                </h1>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                    <Coffee size={20} className="text-primary" />
+                  </div>
+                  <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">
+                    Core Java <span className="text-primary">Q&A</span>
+                  </h1>
+                </div>
+                <div className="flex items-center gap-2 px-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
+                    Interview Preparation Guide
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+
+            <div className="flex items-center gap-3 flex-wrap">
               {/* Progress */}
-              <div className="flex items-center gap-2 px-3 py-1.5 border-2 border-border bg-card text-xs font-bold"
-                style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}>
-                <CheckCircle2 size={14} style={{ color: "hsl(var(--success))" }} />
-                <span>{doneCount}/{totalQuestions}</span>
-                <div className="w-20 h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%`, background: "hsl(var(--success))" }} />
+              <div className="flex items-center gap-4 px-5 py-2.5 rounded-[22px] border border-border/30 bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-success" />
+                  <span className="text-xs font-black tracking-tight">{doneCount}/{totalQuestions}</span>
                 </div>
-                <span>{progressPct}%</span>
+                <div className="w-24 h-2 rounded-full bg-muted/50 overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPct}%` }}
+                    className="h-full rounded-full bg-success shadow-[0_0_12px_rgba(34,197,94,0.3)]" 
+                  />
+                </div>
+                <span className="text-[11px] font-black text-success">{progressPct}%</span>
               </div>
+
               {/* Search */}
-              <div className="relative">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
+              <div className="relative group">
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
                 <input
                   type="text"
                   placeholder="Search questions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs border-2 border-border bg-card w-44 focus:outline-none focus:border-primary"
-                  style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                  className="pl-10 pr-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border border-border/30 bg-muted/20 rounded-[22px] w-48 lg:w-64 outline-none focus:border-primary/30 focus:bg-muted/40 transition-all placeholder:text-muted-foreground/20"
                 />
               </div>
+
               {/* Filter undone */}
               <button
                 onClick={() => setShowOnlyUndone((v) => !v)}
-                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border transition-colors"
-                style={{
-                  background: showOnlyUndone ? "hsl(var(--primary))" : "hsl(var(--card))",
-                  color: showOnlyUndone ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
-                  boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-[22px] text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                  showOnlyUndone 
+                    ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                    : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               >
-                <BookOpen size={12} />
-                {showOnlyUndone ? "Show All" : "Undone Only"}
+                <BookOpen size={14} />
+                {showOnlyUndone ? "All Topics" : "Undone"}
               </button>
+
               {/* My Notes */}
               <button
                 onClick={() => setShowNotesPanel(true)}
-                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card transition-colors hover:border-primary"
-                style={{
-                  color: Object.values(notesMap).some((n) => n && n.trim()) ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))",
-                  boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-[22px] text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                  Object.values(notesMap).some((n) => n && n.trim())
+                    ? "bg-warning/10 border-warning/20 text-warning hover:bg-warning/20"
+                    : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               >
-                <FileText size={12} />
-                My Notes
+                <FileText size={14} />
+                <span>Notes</span>
                 {Object.values(notesMap).filter((n) => n && n.trim()).length > 0 && (
-                  <span className="ml-0.5 text-[9px] font-mono">({Object.values(notesMap).filter((n) => n && n.trim()).length})</span>
+                  <span className="ml-1 px-1.5 py-0.5 rounded-lg bg-warning/20 text-[9px] font-black">
+                    {Object.values(notesMap).filter((n) => n && n.trim()).length}
+                  </span>
                 )}
               </button>
             </div>
@@ -434,41 +451,66 @@ export default function InterviewCoreJavaQuestionsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto flex">
+      <div className="max-w-7xl mx-auto flex min-h-[calc(100vh-100px)]">
         {/* Topic Sidebar */}
         <AnimatePresence>
           {topicSidebarOpen && (
             <motion.aside
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 260, opacity: 1 }}
+              animate={{ width: 280, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex-shrink-0 border-r-2 border-border overflow-y-auto hidden md:block"
-              style={{ maxHeight: "calc(100vh - 120px)" }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="flex-shrink-0 border-r border-border/30 bg-card/30 backdrop-blur-sm overflow-y-auto hidden lg:block sticky top-[100px]"
+              style={{ height: "calc(100vh - 100px)" }}
             >
-              <div className="p-3 space-y-1">
-                <div className="text-[10px] font-black uppercase tracking-widest px-2 py-1.5 mb-2" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  Topics ({coreJavaInterviewTopics.length})
+              <div className="p-6 space-y-6">
+                <div className="px-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/30 mb-1">
+                    Knowledge Base
+                  </p>
+                  <h3 className="text-sm font-black uppercase tracking-tight text-foreground/80">
+                    Topics ({coreJavaInterviewTopics.length})
+                  </h3>
                 </div>
-                {coreJavaInterviewTopics.map((topic) => {
-                  const topicDone = topic.questions.filter((q) => doneMap[q.id]).length;
-                  const isActive = selectedTopic === topic.id;
-                  return (
-                    <button
-                      key={topic.id}
-                      onClick={() => setSelectedTopic(isActive ? null : topic.id)}
-                      className={`w-full text-left px-3 py-2.5 text-xs font-semibold transition-all flex items-center gap-2 border-2 ${
-                        isActive ? "border-primary bg-primary/10" : "border-transparent hover:bg-muted/50"
-                      }`}
-                    >
-                      <span className="text-base flex-shrink-0">{topic.icon}</span>
-                      <span className="flex-1 truncate">{topic.title}</span>
-                      <span className="text-[10px] font-mono" style={{ color: topicDone === topic.questions.length ? "hsl(var(--success))" : "hsl(var(--muted-foreground))" }}>
-                        {topicDone}/{topic.questions.length}
-                      </span>
-                    </button>
-                  );
-                })}
+
+                <div className="space-y-1.5">
+                  {coreJavaInterviewTopics.map((topic) => {
+                    const topicDone = topic.questions.filter((q) => doneMap[q.id]).length;
+                    const isActive = selectedTopic === topic.id;
+                    const allDone = topicDone === topic.questions.length;
+
+                    return (
+                      <button
+                        key={topic.id}
+                        onClick={() => setSelectedTopic(isActive ? null : topic.id)}
+                        className={`w-full group text-left px-4 py-3.5 rounded-2xl transition-all duration-300 border ${
+                          isActive 
+                            ? "bg-primary/10 border-primary/20 text-foreground shadow-xl shadow-primary/5" 
+                            : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all ${isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-muted group-hover:bg-card border border-border/10"}`}>
+                            {topic.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-[13px] font-bold tracking-tight truncate ${isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
+                              {topic.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                                <div className={`h-full transition-all duration-500 ${allDone ? "bg-success" : "bg-primary"}`} style={{ width: `${(topicDone / topic.questions.length) * 100}%` }} />
+                              </div>
+                              <span className={`text-[9px] font-black ${allDone ? "text-success" : "text-muted-foreground/40"}`}>
+                                {topicDone}/{topic.questions.length}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </motion.aside>
           )}
@@ -477,279 +519,310 @@ export default function InterviewCoreJavaQuestionsPage() {
         {/* Toggle sidebar */}
         <button
           onClick={() => setTopicSidebarOpen((v) => !v)}
-          className="hidden md:flex items-center justify-center w-6 flex-shrink-0 border-r-2 border-border hover:bg-muted/50 transition-colors"
-          style={{ maxHeight: "calc(100vh - 120px)" }}
+          className="hidden lg:flex items-center justify-center w-8 flex-shrink-0 border-r border-border/30 hover:bg-muted/30 transition-all group sticky top-[100px]"
+          style={{ height: "calc(100vh - 100px)" }}
           title={topicSidebarOpen ? "Hide sidebar" : "Show sidebar"}
         >
-          {topicSidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+          <div className="p-1 rounded-lg bg-muted/50 border border-border/30 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+            {topicSidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+          </div>
         </button>
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 px-4 md:px-8 py-6 space-y-6">
-          {!user && !authLoading && (
-            <div className="border-2 border-warning/40 bg-warning/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-              style={{ boxShadow: "3px 3px 0px 0px hsl(var(--border))" }}>
-              <div>
-                <p className="text-sm font-black uppercase tracking-wider" style={{ color: "hsl(var(--warning))" }}>
-                  Login Required For Saving
-                </p>
-                <p className="text-xs mt-1 leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
-                  Core Java progress and notes are stored only in the database, per user account. Sign in to keep data after browser close or cache clear.
-                </p>
-              </div>
-              <button
-                onClick={() => navigate("/auth")}
-                className="inline-flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest px-4 py-2 border-2 border-black dark:border-white"
-                style={{
-                  background: "hsl(var(--primary))",
-                  color: "hsl(var(--primary-foreground))",
-                  boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                }}
+        <main className="flex-1 min-w-0 px-6 md:px-10 lg:px-16 py-12 relative">
+          {/* Background Glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+
+          <div className="max-w-4xl mx-auto space-y-12 relative z-10">
+            {!user && !authLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-8 rounded-[32px] border border-warning/30 bg-warning/5 backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-6"
               >
-                Sign In
-              </button>
-            </div>
-          )}
-
-          {/* Mobile topic selector */}
-          <div className="md:hidden">
-            <select
-              value={selectedTopic || ""}
-              onChange={(e) => setSelectedTopic(e.target.value || null)}
-              className="w-full px-3 py-2 text-sm font-semibold border-2 border-border bg-card"
-              style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
-            >
-              <option value="">All Topics</option>
-              {coreJavaInterviewTopics.map((t) => (
-                <option key={t.id} value={t.id}>{t.icon} {t.title} ({t.questions.length})</option>
-              ))}
-            </select>
-          </div>
-
-          {filteredTopics.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-4xl mb-3">🔍</div>
-              <p className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-                No questions match your search.
-              </p>
-            </div>
-          ) : (
-            filteredTopics.map((topic) => {
-              if (selectedTopic && topic.id !== selectedTopic) return null;
-              const topicDone = topic.questions.filter((q) => doneMap[q.id]).length;
-              return (
-                <div key={topic.id} className="space-y-4">
-                  {/* Topic Header */}
-                  <div className="border-2 border-black dark:border-white bg-card p-4"
-                    style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{topic.icon}</span>
-                        <div>
-                          <h2 className="text-base md:text-lg font-black uppercase tracking-tight">{topic.title}</h2>
-                          <p className="text-[11px] font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-                            {topic.questions.length} questions
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                          <div className="h-full rounded-full transition-all duration-500" style={{
-                            width: `${topic.questions.length > 0 ? (topicDone / topic.questions.length) * 100 : 0}%`,
-                            background: topicDone === topic.questions.length ? "hsl(var(--success))" : "hsl(var(--primary))",
-                          }} />
-                        </div>
-                        <span className="text-[10px] font-mono font-bold" style={{ color: "hsl(var(--muted-foreground))" }}>
-                          {topicDone}/{topic.questions.length}
-                        </span>
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-warning">
+                    <Shield size={18} />
+                    <h3 className="text-sm font-black uppercase tracking-widest">
+                      Cloud Sync Disabled
+                    </h3>
                   </div>
+                  <p className="text-xs font-medium text-muted-foreground leading-relaxed max-w-lg">
+                    Your progress and notes are stored locally. Sign in to sync your interview preparation across all devices and prevent data loss.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="px-8 py-3.5 rounded-2xl bg-warning text-warning-foreground font-black uppercase tracking-widest text-[11px] shadow-xl shadow-warning/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Sign In Now
+                </button>
+              </motion.div>
+            )}
 
-                  {/* Questions */}
-                  {topic.questions.map((question, qIdx) => {
-                    const activeSolutionView = solutionViewMap[question.id] ?? null;
-                    const isTheoryVisible = activeSolutionView === "theory";
-                    const isCodeVisible = activeSolutionView === "code";
-                    const isDone = doneMap[question.id] || false;
-                    const hasNote = !!notesMap[question.id];
+            {/* Mobile topic selector */}
+            <div className="lg:hidden">
+              <div className="relative group">
+                <select
+                  value={selectedTopic || ""}
+                  onChange={(e) => setSelectedTopic(e.target.value || null)}
+                  className="w-full appearance-none px-6 py-4 text-sm font-black uppercase tracking-widest border border-border/30 bg-card rounded-[24px] outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all"
+                >
+                  <option value="">All Knowledge Areas</option>
+                  {coreJavaInterviewTopics.map((t) => (
+                    <option key={t.id} value={t.id}>{t.icon} {t.title} ({t.questions.length})</option>
+                  ))}
+                </select>
+                <ChevronDown size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground/40 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+              </div>
+            </div>
 
-                    return (
-                      <motion.div
-                        key={question.id}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: qIdx * 0.03, duration: 0.2 }}
-                        className={`border-2 bg-card transition-colors ${
-                          isDone ? "border-success/40" : "border-border"
-                        }`}
-                        style={{
-                          boxShadow: isDone ? "3px 3px 0px 0px hsl(var(--success)/0.3)" : "3px 3px 0px 0px hsl(var(--border))",
-                        }}
-                      >
-                        {/* Question Header */}
-                        <div className="p-4">
-                          <div className="flex items-start gap-3">
-                            {/* Number + Done toggle */}
-                            <button
-                              onClick={() => toggleDone(question.id)}
-                              className="flex-shrink-0 mt-0.5 transition-colors"
-                              title={isDone ? "Mark as undone" : "Mark as done"}
-                            >
-                              {isDone ? (
-                                <CheckCircle2 size={20} style={{ color: "hsl(var(--success))" }} />
-                              ) : (
-                                <Circle size={20} style={{ color: "hsl(var(--muted-foreground))" }} />
-                              )}
-                            </button>
+            {filteredTopics.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center gap-6">
+                <div className="w-20 h-20 rounded-[32px] bg-muted/30 border border-border/20 flex items-center justify-center text-4xl shadow-xl">
+                  🔍
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-black uppercase tracking-widest text-foreground">
+                    No results found
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Try refining your search terms or filters
+                  </p>
+                </div>
+              </div>
+            ) : (
+              filteredTopics.map((topic) => {
+                if (selectedTopic && topic.id !== selectedTopic) return null;
+                const topicDone = topic.questions.filter((q) => doneMap[q.id]).length;
+                const allDone = topicDone === topic.questions.length;
 
-                            {/* Question text */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5"
-                                  style={{
-                                    background: isDone ? "hsl(var(--success)/0.15)" : "hsl(var(--primary)/0.1)",
-                                    color: isDone ? "hsl(var(--success))" : "hsl(var(--primary))",
-                                    border: `1px solid ${isDone ? "hsl(var(--success)/0.3)" : "hsl(var(--primary)/0.2)"}`,
-                                  }}>
-                                  Q{qIdx + 1}
-                                </span>
-                                {isDone && (
-                                  <span className="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5"
-                                    style={{ background: "hsl(var(--success)/0.1)", color: "hsl(var(--success))", border: "1px solid hsl(var(--success)/0.2)" }}>
-                                    Done
-                                  </span>
-                                )}
-                                {hasNote && (
-                                  <span className="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5"
-                                    style={{ background: "hsl(var(--warning)/0.1)", color: "hsl(var(--warning))", border: "1px solid hsl(var(--warning)/0.2)" }}>
-                                    <StickyNote size={9} className="inline mr-0.5" /> Note
-                                  </span>
-                                )}
-                              </div>
-                              <h3 className={`text-sm md:text-base font-bold leading-snug ${isDone ? "line-through opacity-60" : ""}`}>
-                                {question.question}
-                              </h3>
-                              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-                                {question.explanation}
-                              </p>
+                return (
+                  <div key={topic.id} className="space-y-8">
+                    {/* Topic Header Card */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="group relative p-8 rounded-[32px] bg-card border border-border/30 overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
+                    >
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] rounded-full -mr-32 -mt-32 pointer-events-none group-hover:bg-primary/10 transition-colors" />
+                      
+                      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex items-center gap-6">
+                          <div className="w-16 h-16 rounded-[24px] bg-primary/10 border border-primary/20 flex items-center justify-center text-4xl shadow-xl shadow-primary/10">
+                            {topic.icon}
+                          </div>
+                          <div className="space-y-1">
+                            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight">{topic.title}</h2>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                                {topic.questions.length} Essential Questions
+                              </span>
                             </div>
                           </div>
-
-                          {/* Action buttons */}
-                          <div className="flex items-center gap-2 mt-3 ml-8">
-                            <button
-                              onClick={() => toggleSolutionView(question.id, "theory")}
-                              className="core-java-solution-toggle inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 transition-all"
-                              style={{
-                                borderColor: isTheoryVisible ? "hsl(var(--primary))" : "hsl(var(--border))",
-                                background: isTheoryVisible ? "hsl(var(--primary))" : "hsl(var(--card))",
-                                color: isTheoryVisible ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
-                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                              }}
-                            >
-                              <BookOpen size={12} />
-                              {isTheoryVisible ? "Hide Theory" : "View Theory"}
-                            </button>
-                            <button
-                              onClick={() => toggleSolutionView(question.id, "code")}
-                              disabled={!question.code}
-                              className="core-java-solution-toggle inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                              style={{
-                                borderColor: isCodeVisible ? "hsl(var(--accent))" : "hsl(var(--border))",
-                                background: isCodeVisible ? "hsl(var(--accent))" : "hsl(var(--card))",
-                                color: isCodeVisible ? "hsl(var(--accent-foreground))" : "hsl(var(--foreground))",
-                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                              }}
-                            >
-                              <Code2 size={12} />
-                              {isCodeVisible ? "Hide Code" : "View Code"}
-                            </button>
-                            <button
-                              onClick={() => toggleDone(question.id)}
-                              className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 transition-all"
-                              style={{
-                                borderColor: isDone ? "hsl(var(--success))" : "hsl(var(--border))",
-                                background: isDone ? "hsl(var(--success)/0.1)" : "hsl(var(--card))",
-                                color: isDone ? "hsl(var(--success))" : "hsl(var(--muted-foreground))",
-                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                              }}
-                            >
-                              <Check size={12} />
-                              {isDone ? "Done" : "Mark as Done"}
-                            </button>
-                            <button
-                              onClick={() => openNote(question.id)}
-                              className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-3 py-1.5 border-2 border-border bg-card transition-all hover:border-primary"
-                              style={{
-                                color: hasNote ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))",
-                                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                              }}
-                            >
-                              <StickyNote size={12} />
-                              {hasNote ? "Edit Note" : "Add Note"}
-                            </button>
-                          </div>
                         </div>
 
-                        {/* Expanded Solution */}
-                        <AnimatePresence>
-                          {activeSolutionView && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.25 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="border-t-2 border-border px-4 py-4 space-y-4" style={{ background: "hsl(var(--muted)/0.2)" }}>
-                                {isTheoryVisible && (
-                                  <div className="core-java-theory-card">
-                                    <div className="flex items-center gap-2 mb-4">
-                                      <BookOpen size={14} style={{ color: "hsl(var(--primary))" }} />
-                                      <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
-                                        Theory
-                                      </span>
-                                    </div>
-                                    <div className="core-java-theory-copy">
-                                      {renderTheoryContent(question.answer)}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {isCodeVisible && question.code && (
-                                  <CodeBlock
-                                    title={`Q${qIdx + 1} — ${question.codeLanguage || "java"}`}
-                                    language={question.codeLanguage || "java"}
-                                    code={question.code}
-                                  />
-                                )}
-
-                                {/* Existing note display */}
-                                {hasNote && notesMap[question.id] && (
-                                  <div className="p-3 border-2 border-border bg-card" style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}>
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest mb-2"
-                                      style={{ color: "hsl(var(--warning))" }}>
-                                      <StickyNote size={10} />
-                                      Your Note
-                                    </div>
-                                    <div
-                                      className="text-xs leading-relaxed whitespace-pre-line note-rendered"
-                                      dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(notesMap[question.id]) }}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            </motion.div>
+                        <div className="flex flex-col items-end gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-32 h-2 rounded-full bg-muted overflow-hidden">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                whileInView={{ width: `${(topicDone / topic.questions.length) * 100}%` }}
+                                className={`h-full rounded-full shadow-[0_0_12px_rgba(var(--primary),0.3)] ${allDone ? "bg-success" : "bg-primary"}`} 
+                              />
+                            </div>
+                            <span className={`text-[11px] font-black tracking-widest ${allDone ? "text-success" : "text-muted-foreground/60"}`}>
+                              {topicDone}/{topic.questions.length}
+                            </span>
+                          </div>
+                          {allDone && (
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success text-[9px] font-black uppercase tracking-widest">
+                              <CheckCircle2 size={10} />
+                              Mastered
+                            </div>
                           )}
-                        </AnimatePresence>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              );
-            })
-          )}
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Questions Grid */}
+                    <div className="space-y-4">
+                      {topic.questions.map((question, qIdx) => {
+                        const activeSolutionView = solutionViewMap[question.id] ?? null;
+                        const isTheoryVisible = activeSolutionView === "theory";
+                        const isCodeVisible = activeSolutionView === "code";
+                        const isDone = doneMap[question.id] || false;
+                        const hasNote = !!notesMap[question.id];
+
+                        return (
+                          <motion.div
+                            key={question.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: qIdx * 0.05 }}
+                            className={`group relative rounded-[32px] border transition-all duration-300 ${
+                              isDone 
+                                ? "bg-success/5 border-success/30 hover:shadow-2xl hover:shadow-success/5" 
+                                : "bg-card border-border/40 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5"
+                            }`}
+                          >
+                            <div className="p-6 md:p-8">
+                              <div className="flex items-start gap-6">
+                                {/* Done toggle circle */}
+                                <button
+                                  onClick={() => toggleDone(question.id)}
+                                  className={`flex-shrink-0 mt-1 w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${
+                                    isDone 
+                                      ? "bg-success border-success text-success-foreground shadow-lg shadow-success/20 scale-110" 
+                                      : "bg-muted/50 border-border/30 text-transparent hover:border-primary/50 hover:bg-muted"
+                                  }`}
+                                >
+                                  <Check size={18} strokeWidth={4} className={isDone ? "scale-100" : "scale-0"} />
+                                </button>
+
+                                <div className="flex-1 min-w-0 space-y-4">
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
+                                      isDone ? "bg-success/10 border-success/20 text-success" : "bg-primary/5 border-primary/20 text-primary"
+                                    }`}>
+                                      Question {qIdx + 1}
+                                    </span>
+                                    {hasNote && (
+                                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/10 border border-warning/20 text-warning text-[9px] font-black uppercase tracking-[0.2em]">
+                                        <StickyNote size={10} />
+                                        Annotated
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <h3 className={`text-lg md:text-xl font-black tracking-tight leading-tight transition-all ${isDone ? "text-foreground/40 line-through" : "text-foreground"}`}>
+                                      {question.question}
+                                    </h3>
+                                    <p className="text-[13px] font-medium text-muted-foreground/70 leading-relaxed max-w-3xl">
+                                      {question.explanation}
+                                    </p>
+                                  </div>
+
+                                  {/* Action Buttons */}
+                                  <div className="flex flex-wrap items-center gap-3 pt-4">
+                                    <button
+                                      onClick={() => toggleSolutionView(question.id, "theory")}
+                                      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                                        isTheoryVisible 
+                                          ? "bg-primary border-primary text-primary-foreground shadow-xl shadow-primary/20" 
+                                          : "bg-muted/50 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                      }`}
+                                    >
+                                      <BookOpen size={14} />
+                                      {isTheoryVisible ? "Hide Theory" : "Theory"}
+                                    </button>
+
+                                    {question.code && (
+                                      <button
+                                        onClick={() => toggleSolutionView(question.id, "code")}
+                                        className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                                          isCodeVisible 
+                                            ? "bg-accent border-accent text-accent-foreground shadow-xl shadow-accent/20" 
+                                            : "bg-muted/50 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        }`}
+                                      >
+                                        <Code2 size={14} />
+                                        {isCodeVisible ? "Hide Code" : "Example"}
+                                      </button>
+                                    )}
+
+                                    <button
+                                      onClick={() => openNote(question.id)}
+                                      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                                        hasNote 
+                                          ? "bg-warning/10 border-warning/20 text-warning" 
+                                          : "bg-muted/50 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                      }`}
+                                    >
+                                      <StickyNote size={14} />
+                                      {hasNote ? "Edit Note" : "Add Note"}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Expanded Content Area */}
+                            <AnimatePresence>
+                              {activeSolutionView && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="px-6 md:px-8 pb-8 pt-2 space-y-6">
+                                    <div className="h-px bg-border/20 w-full" />
+                                    
+                                    {isTheoryVisible && (
+                                      <div className="space-y-4">
+                                        <div className="flex items-center gap-2 text-primary">
+                                          <Sparkles size={14} />
+                                          <span className="text-[10px] font-black uppercase tracking-[0.25em]">
+                                            Theoretical Breakdown
+                                          </span>
+                                        </div>
+                                        <div className="prose prose-sm prose-invert max-w-none text-[13px] font-medium leading-relaxed text-foreground/80 bg-muted/20 p-6 rounded-[24px] border border-border/10">
+                                          {renderTheoryContent(question.answer)}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {isCodeVisible && question.code && (
+                                      <div className="space-y-4">
+                                        <div className="flex items-center gap-2 text-accent">
+                                          <Code2 size={14} />
+                                          <span className="text-[10px] font-black uppercase tracking-[0.25em]">
+                                            Implementation Detail
+                                          </span>
+                                        </div>
+                                        <div className="rounded-[24px] overflow-hidden border border-border/10">
+                                          <CodeBlock
+                                            title={`Q${qIdx + 1} Implementation`}
+                                            language={question.codeLanguage || "java"}
+                                            code={question.code}
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Inline Note */}
+                                    {hasNote && notesMap[question.id] && (
+                                      <div className="p-6 rounded-[24px] border border-warning/20 bg-warning/5 space-y-3">
+                                        <div className="flex items-center gap-2 text-warning">
+                                          <StickyNote size={14} />
+                                          <span className="text-[10px] font-black uppercase tracking-[0.25em]">
+                                            Personal Study Note
+                                          </span>
+                                        </div>
+                                        <div
+                                          className="text-[13px] font-medium leading-relaxed text-foreground/80 note-rendered"
+                                          dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(notesMap[question.id]) }}
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </main>
       </div>
 
@@ -760,49 +833,58 @@ export default function InterviewCoreJavaQuestionsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 flex items-center justify-center z-50"
+            className="fixed inset-0 flex items-center justify-center z-[100] p-4"
             onClick={() => setActiveNoteId(null)}
           >
-            <div className="fixed inset-0" style={{ background: "hsl(var(--background)/0.75)", backdropFilter: "blur(8px)" }} />
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-xl" />
             <motion.div
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg mx-4 border-4 border-black dark:border-white bg-card"
-              style={{ boxShadow: "8px 8px 0px 0px hsl(var(--border))" }}
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-2xl bg-card border border-border/50 rounded-[40px] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col"
+              style={{ maxHeight: "85vh" }}
             >
+              {/* Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-warning/10 blur-[80px] rounded-full pointer-events-none" />
+
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b-2 border-border">
-                <div className="flex items-center gap-2">
-                  <StickyNote size={16} style={{ color: "hsl(var(--warning))" }} />
-                  <span className="text-sm font-black uppercase tracking-wider">Your Note</span>
+              <div className="relative z-10 flex items-center justify-between px-10 py-8">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-warning/10 border border-warning/20">
+                      <StickyNote size={20} className="text-warning" />
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight">Personal Note</h2>
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">
+                    Context: {coreJavaInterviewTopics.flatMap(t => t.questions).find(q => q.id === activeNoteId)?.question}
+                  </p>
                 </div>
-                <button onClick={() => setActiveNoteId(null)} className="p-1 hover:bg-muted rounded">
-                  <X size={16} />
+                <button
+                  onClick={() => setActiveNoteId(null)}
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <X size={20} />
                 </button>
               </div>
 
-              {/* Find the question for context */}
-              <div className="px-5 py-2 border-b border-border" style={{ background: "hsl(var(--muted)/0.3)" }}>
-                <p className="text-xs font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  {coreJavaInterviewTopics.flatMap(t => t.questions).find(q => q.id === activeNoteId)?.question}
-                </p>
-              </div>
-
-              {/* Rich Text Editor */}
-              <div className="p-5">
-                <RichTextNoteEditor
-                  value={noteDraft}
-                  onChange={setNoteDraft}
-                  placeholder="Write your notes, key takeaways, or mnemonics here... Use **bold**, *italic*, __underline__"
-                  rows={8}
-                  autoFocus
-                />
+              {/* Editor Body */}
+              <div className="relative z-10 px-10 pb-6 flex-1 overflow-y-auto min-h-[300px]">
+                <div className="bg-muted/20 border border-border/30 rounded-[32px] p-6 h-full focus-within:border-primary/30 transition-all focus-within:ring-4 focus-within:ring-primary/5">
+                  <RichTextNoteEditor
+                    value={noteDraft}
+                    onChange={setNoteDraft}
+                    placeholder="Capture key concepts, tricky bits, or mnemonics..."
+                    rows={12}
+                    autoFocus
+                  />
+                </div>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-between px-5 py-3 border-t-2 border-border">
+              <div className="relative z-10 flex items-center justify-between px-10 py-8 border-t border-border/30 bg-muted/20">
                 <button
                   onClick={async () => {
                     if (!activeNoteId) return;
@@ -817,28 +899,22 @@ export default function InterviewCoreJavaQuestionsPage() {
                     setActiveNoteId(null);
                     setNoteDraft("");
                   }}
-                  className="text-[11px] font-bold uppercase tracking-widest px-3 py-1.5 border-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+                  className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-destructive hover:bg-destructive/10 transition-all"
                 >
-                  Delete Note
+                  Discard Note
                 </button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => setActiveNoteId(null)}
-                    className="text-[11px] font-bold uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card"
-                    style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                    className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={saveNote}
-                    className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 border-2 border-black dark:border-white"
-                    style={{
-                      background: "hsl(var(--primary))",
-                      color: "hsl(var(--primary-foreground))",
-                      boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-                    }}
+                    className="flex items-center gap-2.5 px-8 py-3.5 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <Save size={12} />
+                    <Save size={16} />
                     Save Note
                   </button>
                 </div>
@@ -855,64 +931,70 @@ export default function InterviewCoreJavaQuestionsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 flex items-center justify-center z-50"
+            className="fixed inset-0 flex items-center justify-center z-[100] p-4"
             onClick={() => setShowNotesPanel(false)}
           >
-            <div className="fixed inset-0" style={{ background: "hsl(var(--background)/0.75)", backdropFilter: "blur(8px)" }} />
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-xl" />
             <motion.div
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl mx-4 border-4 border-black dark:border-white bg-card max-h-[85vh] flex flex-col"
-              style={{ boxShadow: "8px 8px 0px 0px hsl(var(--border))" }}
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-3xl bg-card border border-border/50 rounded-[40px] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col"
+              style={{ maxHeight: "85vh" }}
             >
+              {/* Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-primary/10 blur-[80px] rounded-full pointer-events-none" />
+
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b-2 border-border flex-shrink-0">
-                <div className="flex items-center gap-2">
-                  <FileText size={18} style={{ color: "hsl(var(--warning))" }} />
-                  <span className="text-sm font-black uppercase tracking-wider">My Notes</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 border border-border" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {Object.values(notesMap).filter((n) => n && n.trim()).length} saved
-                  </span>
-                  {!user && (
-                    <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 border border-warning/30" style={{ color: "hsl(var(--warning))" }}>
-                      DB Login Required
+              <div className="relative z-10 flex items-center justify-between px-10 py-8 border-b border-border/30">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-warning/10 border border-warning/20">
+                      <FileText size={20} className="text-warning" />
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight">My Interview Notes</h2>
+                  </div>
+                  <div className="flex items-center gap-3 ml-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                      {Object.values(notesMap).filter((n) => n && n.trim()).length} Compiled Records
                     </span>
-                  )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={downloadNotesPDF}
                     disabled={Object.values(notesMap).filter((n) => n && n.trim()).length === 0}
-                    className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card transition-colors hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                    className="flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
                   >
-                    <Download size={11} />
-                    PDF
+                    <Download size={14} />
+                    Export PDF
                   </button>
-                  <button onClick={() => setShowNotesPanel(false)} className="p-1 hover:bg-muted rounded">
-                    <X size={16} />
+                  <button
+                    onClick={() => setShowNotesPanel(false)}
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <X size={20} />
                   </button>
                 </div>
               </div>
 
               {/* Notes List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="relative z-10 flex-1 overflow-y-auto p-8 space-y-4 min-h-[400px]">
                 {Object.entries(notesMap).filter(([, v]) => v && v.trim()).length === 0 ? (
-                  <div className="text-center py-12">
-                    <StickyNote size={32} className="mx-auto mb-3" style={{ color: "hsl(var(--muted-foreground))" }} />
-                    <p className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      No notes saved yet.
-                    </p>
-                    <p className="text-xs mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      Click "Add Note" on any question to start taking notes.
-                    </p>
-                    {!user && (
-                      <p className="text-xs mt-3 px-4" style={{ color: "hsl(var(--warning))" }}>
-                        Login first. Notes are stored only in the database and loaded per account.
+                  <div className="flex flex-col items-center justify-center py-24 text-center gap-6">
+                    <div className="w-20 h-20 rounded-[32px] bg-muted/30 border border-border/20 flex items-center justify-center text-4xl shadow-xl">
+                      📝
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-black uppercase tracking-widest text-foreground">
+                        Your notebook is empty
                       </p>
-                    )}
+                      <p className="text-xs font-medium text-muted-foreground max-w-xs mx-auto">
+                        Notes you take during your study sessions will appear here for quick review.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   Object.entries(notesMap)
@@ -923,49 +1005,46 @@ export default function InterviewCoreJavaQuestionsPage() {
                       return (
                         <div
                           key={qId}
-                          className="border-2 border-border p-3 bg-background"
-                          style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                          className="group p-6 rounded-[28px] border border-border/30 bg-muted/10 transition-all hover:bg-muted/20"
                         >
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="space-y-2 flex-1">
                               {topic && (
-                                <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 mr-1"
-                                  style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
                                   {topic.icon} {topic.title}
                                 </span>
                               )}
-                              <p className="text-xs font-bold mt-1 leading-snug">
+                              <p className="text-sm font-black tracking-tight text-foreground/90 leading-tight">
                                 {question ? question.question : qId}
                               </p>
                             </div>
-                            <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => {
                                   setShowNotesPanel(false);
                                   setTimeout(() => openNote(qId), 200);
                                 }}
-                                className="p-1 hover:bg-muted rounded text-[10px] font-bold uppercase"
+                                className="w-9 h-9 rounded-xl bg-card border border-border/30 flex items-center justify-center text-warning hover:bg-warning/10 transition-all"
                                 title="Edit note"
                               >
-                                <StickyNote size={12} style={{ color: "hsl(var(--warning))" }} />
+                                <StickyNote size={16} />
                               </button>
                               <button
                                 onClick={() => deleteNoteFromPanel(qId)}
                                 disabled={deletingNoteId === qId}
-                                className="p-1 hover:bg-destructive/10 rounded"
+                                className="w-9 h-9 rounded-xl bg-card border border-border/30 flex items-center justify-center text-destructive hover:bg-destructive/10 transition-all"
                                 title="Delete note"
                               >
                                 {deletingNoteId === qId ? (
-                                  <Loader2 size={12} className="animate-spin" style={{ color: "hsl(var(--destructive))" }} />
+                                  <Loader2 size={16} className="animate-spin" />
                                 ) : (
-                                  <Trash2 size={12} style={{ color: "hsl(var(--destructive))" }} />
+                                  <Trash2 size={16} />
                                 )}
                               </button>
                             </div>
                           </div>
                           <div
-                            className="text-xs leading-relaxed whitespace-pre-line pl-2 border-l-2 border-warning/30 note-rendered"
-                            style={{ color: "hsl(var(--foreground))" }}
+                            className="text-[13px] font-medium leading-relaxed text-foreground/70 pl-4 border-l-2 border-warning/20 note-rendered"
                             dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(note) }}
                           />
                         </div>
@@ -975,13 +1054,14 @@ export default function InterviewCoreJavaQuestionsPage() {
               </div>
 
               {/* Footer */}
-              {user && Object.values(notesMap).filter((n) => n && n.trim()).length > 0 && (
-                <div className="flex-shrink-0 px-5 py-2 border-t-2 border-border" style={{ background: "hsl(var(--muted)/0.2)" }}>
-                  <p className="text-[10px] font-semibold text-center" style={{ color: "hsl(var(--success))" }}>
-                    ✓ Notes are saved only to your account in the database and load again after browser close or cache clear
+              <div className="relative z-10 px-10 py-6 border-t border-border/30 bg-muted/20">
+                <div className="flex items-center justify-center gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                    Auto-synced to your cloud profile
                   </p>
                 </div>
-              )}
+              </div>
             </motion.div>
           </motion.div>
         )}

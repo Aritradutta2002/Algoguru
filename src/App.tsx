@@ -168,47 +168,50 @@ function SearchButton() {
       <button
         onClick={() => setOpen(true)}
         title="Search topics (Ctrl+K)"
-        className="flex items-center gap-1.5 px-3 py-1.5 border-2 border-border bg-card text-foreground rounded-lg transition-all duration-200 hover:bg-muted/80 w-auto sm:w-64"
-        style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+        className="flex items-center gap-2.5 px-4 py-2 border border-border/40 bg-muted/30 text-foreground rounded-[20px] transition-all duration-300 hover:bg-muted/50 hover:border-primary/30 w-auto sm:w-64 group"
       >
-        <Search size={14} strokeWidth={2} className="text-muted-foreground" />
-        <span className="hidden sm:inline-block flex-1 text-left text-xs font-medium text-muted-foreground mr-2">Search AlgoGuru...</span>
+        <Search size={14} strokeWidth={2.5} className="text-muted-foreground group-hover:text-primary transition-colors" />
+        <span className="hidden sm:inline-block flex-1 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">Search AlgoGuru...</span>
         <kbd
-          className="hidden sm:flex items-center gap-1 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded ml-auto border border-border/50 bg-background"
-          style={{ color: "hsl(var(--muted-foreground))" }}
+          className="hidden sm:flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border border-border/30 bg-background/50 text-muted-foreground/40"
         >
-          <span className="text-[9px]">⌘</span>K
+          ⌘K
         </kbd>
       </button>
 
       {open && createPortal(
         <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999 }} onClick={() => setOpen(false)}>
-          <div className="fixed inset-0" style={{ background: "hsl(var(--background)/0.75)", backdropFilter: "blur(8px)" }} />
+          <div className="fixed inset-0" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)" }} />
           <div
-            className="relative w-full max-w-md mx-4 overflow-hidden flex flex-col border-4 border-black dark:border-white"
-            style={{ background: "hsl(var(--card))", boxShadow: "8px 8px 0px 0px hsl(var(--border))", maxHeight: "65vh" }}
+            className="relative w-full max-w-lg mx-4 overflow-hidden flex flex-col rounded-[32px] border border-border/50 bg-card shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)]"
+            style={{ maxHeight: "70vh" }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Subtle background glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-primary/5 blur-[80px] rounded-full pointer-events-none" />
+
             {/* Search header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: "hsl(var(--border))" }}>
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl" style={{ background: "hsl(var(--primary)/0.1)" }}>
-                <Search size={20} strokeWidth={2.5} style={{ color: "hsl(var(--primary))" }} />
+            <div className="relative z-10 flex items-center gap-4 px-6 py-5 border-b border-border/30">
+              <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20">
+                <Search size={20} strokeWidth={2.5} className="text-primary" />
               </div>
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search topics, algorithms, problems..."
-                className="flex-1 bg-transparent text-base font-medium outline-none"
-                style={{ color: "hsl(var(--foreground))" }}
+                className="flex-1 bg-transparent text-lg font-bold tracking-tight outline-none placeholder:text-muted-foreground/30 text-foreground"
               />
               {query && (
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-lg" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground/60">
                   {totalResults}
                 </span>
               )}
-              <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-muted transition-colors" style={{ color: "hsl(var(--muted-foreground))" }}>
-                <X size={16} />
+              <button 
+                onClick={() => setOpen(false)} 
+                className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <X size={18} />
               </button>
             </div>
 
@@ -260,11 +263,17 @@ function SearchButton() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between px-5 py-2.5 border-t text-[10px]" style={{ borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
-              <span className="font-mono">{allSearchItems.length} items indexed</span>
-              <div className="flex items-center gap-3">
-                <span><kbd className="px-1.5 py-0.5 rounded font-mono text-[9px]" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>↑↓</kbd> navigate</span>
-                <span><kbd className="px-1.5 py-0.5 rounded font-mono text-[9px]" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>esc</kbd> close</span>
+            <div className="relative z-10 flex items-center justify-between px-6 py-4 border-t border-border/30 bg-muted/20">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{allSearchItems.length} items indexed</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">↑↓</kbd>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">navigate</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">esc</kbd>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">close</span>
+                </div>
               </div>
             </div>
           </div>
@@ -279,25 +288,30 @@ function SearchResultItem({ item, onSelect }: { item: typeof allSearchItems[numb
   return (
     <button
       onClick={onSelect}
-      className="w-full flex items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-[hsl(var(--muted)/0.5)] group"
-      style={{ color: "hsl(var(--foreground))", borderBottom: "1px solid hsl(var(--border)/0.3)" }}
+      className="w-full flex items-center gap-4 px-6 py-4 text-left transition-all hover:bg-muted/50 group border-b border-border/10 last:border-0"
     >
-      <span className="text-lg flex-shrink-0">{item.icon}</span>
+      <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center text-xl flex-shrink-0 border border-border/20 transition-transform group-hover:scale-110 group-hover:bg-primary/5 group-hover:border-primary/20">
+        {item.icon}
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-sm truncate">{item.title}</div>
-        <div className="text-[11px] font-light" style={{ color: "hsl(var(--muted-foreground))" }}>
+        <div className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">{item.title}</div>
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mt-0.5">
           {item.type === "topic" ? `${item.subtopicCount} sections` : item.parent}
         </div>
       </div>
       {item.difficulty && (
         <span
-          className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-          style={{ color: difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))", background: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}15` }}
+          className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border"
+          style={{ 
+            color: difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))", 
+            background: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}10`,
+            borderColor: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}20`
+          }}
         >
           {item.difficulty}
         </span>
       )}
-      <ChevronRight size={13} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "hsl(var(--muted-foreground))" }} />
+      <ChevronRight size={14} className="flex-shrink-0 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
     </button>
   );
 }
@@ -313,46 +327,57 @@ function HeaderControls() {
   const isMax = fontSize === "xl";
 
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-1">
       {/* Zoom controls */}
-      <button
-        onClick={decreaseFontSize}
-        disabled={isMin}
-        title="Zoom out"
-        className="flex items-center justify-center w-6 h-6 rounded transition-all duration-150 disabled:opacity-25 hover:bg-muted"
-        style={{ color: "hsl(var(--muted-foreground))" }}
-      >
-        <ZoomOut size={12} />
-      </button>
-      <span className="text-[10px] font-mono font-bold min-w-[28px] text-center" style={{ color: "hsl(var(--foreground))" }}>
-        {ZOOM_MAP[fontSize] || "100%"}
-      </span>
-      <button
-        onClick={increaseFontSize}
-        disabled={isMax}
-        title="Zoom in"
-        className="flex items-center justify-center w-6 h-6 rounded transition-all duration-150 disabled:opacity-25 hover:bg-muted"
-        style={{ color: "hsl(var(--muted-foreground))" }}
-      >
-        <ZoomIn size={12} />
-      </button>
+      <div className="flex items-center gap-0.5 p-1 rounded-xl bg-muted/20 border border-border/30">
+        <button
+          onClick={decreaseFontSize}
+          disabled={isMin}
+          title="Zoom out"
+          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
+          <ZoomOut size={14} />
+        </button>
+        <span className="text-[10px] font-black min-w-[32px] text-center text-foreground/60">
+          {ZOOM_MAP[fontSize] || "100%"}
+        </span>
+        <button
+          onClick={increaseFontSize}
+          disabled={isMax}
+          title="Zoom in"
+          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
+          <ZoomIn size={14} />
+        </button>
+      </div>
 
-      <div className="w-px h-4 mx-1.5" style={{ background: "hsl(var(--border))" }} />
+      <div className="w-px h-4 mx-1.5 bg-border/30" />
 
       {/* Day/Night Toggle */}
       <button
         onClick={toggleTheme}
         title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-black uppercase tracking-wider transition-all duration-150 hover:opacity-90 rounded"
-        style={{
-          background: isDark ? "hsl(43 95% 55%)" : "hsl(25 40% 18%)",
-          color: isDark ? "#1a0a00" : "#FAF6EE",
-          border: "2px solid hsl(var(--border))",
-          boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-        }}
+        className={`relative flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+          isDark 
+            ? "bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]" 
+            : "bg-[#1a1a1a] border-white/10 text-white shadow-xl shadow-black/20"
+        }`}
       >
-        {isDark ? <Sun size={11} /> : <Moon size={11} />}
-        <span className="hidden sm:inline">{isDark ? "Day" : "Night"}</span>
+        {isDark ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] flex items-center justify-center">
+              <span className="text-[8px]">☀️</span>
+            </div>
+            <span>Day</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
+              <span className="text-[8px]">🌙</span>
+            </div>
+            <span>Night</span>
+          </div>
+        )}
       </button>
     </div>
   );
@@ -516,54 +541,54 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top bar */}
           <header
-            className="h-11 flex items-center gap-2 px-4 border-b-2 flex-shrink-0 sticky top-0 z-40"
+            className="h-16 flex items-center gap-4 px-6 border-b flex-shrink-0 sticky top-0 z-40 backdrop-blur-md"
             style={{
-              borderColor: "hsl(var(--border))",
-              background: "hsl(var(--background))",
+              borderColor: "hsl(var(--border) / 0.3)",
+              background: "hsl(var(--background) / 0.8)",
             }}
           >
             <SidebarTrigger
-              className="flex items-center justify-center w-8 h-8 hover:bg-muted/80 rounded-lg transition-all duration-200"
+              className="flex items-center justify-center w-10 h-10 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30"
               style={{ color: "hsl(var(--foreground))" }}
             >
-              <Menu size={16} />
+              <Menu size={18} />
             </SidebarTrigger>
-            <div className="h-5 w-px mx-1" style={{ background: "hsl(var(--border))" }} />
-            <div
-              className="flex items-center gap-1.5 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
+            
+            <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
               onClick={() => window.location.href="/"}
               title="Go to Home"
             >
               <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <AlgoGuruLogo size={28} showText={false} className="relative z-10 block" />
+                <AlgoGuruLogo size={32} showText={false} className="relative z-10 block" />
               </div>
-              <span className="text-xs font-black uppercase tracking-widest transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
+              <span className="text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
                 AlgoGuru
               </span>
             </div>
+            
             <div className="flex-1" />
 
-            <SearchButton />
-            <div className="h-4 w-px mx-0.5" style={{ background: "hsl(var(--border))" }} />
-            <HeaderControls />
-            <div className="h-4 w-px mx-0.5" style={{ background: "hsl(var(--border))" }} />
-            <UserMenu />
-            <div className="h-4 w-px mx-0.5" style={{ background: "hsl(var(--border))" }} />
-            <button
-              onClick={() => setGuruOpen((o) => !o)}
-              title={guruOpen ? "Close Guru" : "Open Guru"}
-              className="flex items-center gap-1 px-2 py-1 text-[10px] font-black uppercase tracking-wider rounded transition-all duration-150"
-              style={{
-                background: guruOpen ? "hsl(var(--primary))" : "hsl(var(--card))",
-                color: guruOpen ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
-                border: "2px solid hsl(var(--border))",
-                boxShadow: "2px 2px 0px 0px hsl(var(--border))",
-              }}
-            >
-              <Sparkles size={12} />
-              <span className="hidden sm:inline">Guru</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <SearchButton />
+              <div className="h-6 w-px bg-border/20 mx-1" />
+              <HeaderControls />
+              <div className="h-6 w-px bg-border/20 mx-1" />
+              <UserMenu />
+              <div className="h-6 w-px bg-border/20 mx-1" />
+              <button
+                onClick={() => setGuruOpen((o) => !o)}
+                title={guruOpen ? "Close Guru" : "Open Guru"}
+                className={`flex items-center gap-2 px-4 py-2 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg ${
+                  guruOpen 
+                    ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
+                    : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
+                }`}
+              >
+                <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
+                <span className="hidden lg:inline">Guru</span>
+              </button>
+            </div>
           </header>
 
           {guruOpen ? (
