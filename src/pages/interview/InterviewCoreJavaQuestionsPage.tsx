@@ -29,39 +29,18 @@ import { toast } from "@/hooks/use-toast";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
 
-const STORAGE_KEY_DONE = "corejava-done";
-const STORAGE_KEY_NOTES = "corejava-notes";
 type SolutionView = "theory" | "code" | null;
-
-function loadDone(): Record<string, boolean> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_DONE);
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-}
-function saveDoneLocal(d: Record<string, boolean>) {
-  localStorage.setItem(STORAGE_KEY_DONE, JSON.stringify(d));
-}
-function loadNotes(): Record<string, string> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_NOTES);
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-}
-function saveNotesLocal(d: Record<string, string>) {
-  localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(d));
-}
 
 export default function InterviewCoreJavaQuestionsPage() {
   const { language } = useParams<{ language?: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const backRoute = language ? `/interview/${language}` : "/interview";
 
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [solutionViewMap, setSolutionViewMap] = useState<Record<string, SolutionView>>({});
-  const [doneMap, setDoneMap] = useState<Record<string, boolean>>(loadDone);
-  const [notesMap, setNotesMap] = useState<Record<string, string>>(loadNotes);
+  const [doneMap, setDoneMap] = useState<Record<string, boolean>>({});
+  const [notesMap, setNotesMap] = useState<Record<string, string>>({});
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,10 +50,25 @@ export default function InterviewCoreJavaQuestionsPage() {
   const [showNotesPanel, setShowNotesPanel] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
-  // Load state from Supabase when user is logged in
+  const requireLogin = useCallback((action: string) => {
+    toast({
+      title: "Please sign in",
+      description: `Login is required to ${action}. Your saved progress and notes are stored per account in the database.`,
+      variant: "destructive",
+    });
+    navigate("/auth");
+  }, [navigate]);
+
+  // Load state only from Supabase when user is logged in
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
-      // No user — use localStorage, mark loaded
+      setDoneMap({});
+      setNotesMap({});
+      setActiveNoteId(null);
+      setNoteDraft("");
+      setShowNotesPanel(false);
       return;
     }
 
@@ -88,8 +82,8 @@ export default function InterviewCoreJavaQuestionsPage() {
       if (!mounted) return;
 
       if (error) {
-        // Table might not exist yet — fall back to localStorage silently
         console.warn("Could not load core_java_user_state:", error.message);
+        toast({ title: "Load failed", description: error.message, variant: "destructive" });
         return;
       }
 
@@ -105,18 +99,17 @@ export default function InterviewCoreJavaQuestionsPage() {
 
     loadUserState();
     return () => { mounted = false; };
-  }, [user]);
+  }, [authLoading, user]);
 
-  // Persist to localStorage as backup
-  useEffect(() => { saveDoneLocal(doneMap); }, [doneMap]);
-  useEffect(() => { saveNotesLocal(notesMap); }, [notesMap]);
-
-  // Upsert to Supabase
+  // Persist only to Supabase
   const upsertUserState = useCallback(async (
     questionId: string,
     patch: Partial<{ notes: string; is_completed: boolean }>,
   ) => {
-    if (!user) return; // localStorage only for anonymous
+    if (!user) {
+      requireLogin("save progress");
+      return false;
+    }
 
     setUpsertingId(questionId);
     const { error } = await supabase
@@ -133,8 +126,11 @@ export default function InterviewCoreJavaQuestionsPage() {
     setUpsertingId(null);
     if (error) {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      return false;
     }
-  }, [user]);
+
+    return true;
+  }, [requireLogin, user]);
 
   const totalQuestions = useMemo(
     () => coreJavaInterviewTopics.reduce((s, t) => s + t.questions.length, 0),
@@ -167,55 +163,74 @@ export default function InterviewCoreJavaQuestionsPage() {
     }));
   }, []);
 
-  const toggleDone = useCallback((id: string) => {
-    setDoneMap((prev) => {
-      const nextDone = !prev[id];
-      const next = { ...prev, [id]: nextDone };
-      upsertUserState(id, { is_completed: nextDone });
-      return next;
-    });
-  }, [upsertUserState]);
+  const toggleDone = useCallback(async (id: string) => {
+    if (!user) {
+      requireLogin("save progress");
+      return;
+    }
+
+    const currentDone = !!doneMap[id];
+    const nextDone = !currentDone;
+
+    setDoneMap((prev) => ({ ...prev, [id]: nextDone }));
+    const ok = await upsertUserState(id, { is_completed: nextDone });
+    if (!ok) {
+      setDoneMap((prev) => ({ ...prev, [id]: currentDone }));
+    }
+  }, [doneMap, requireLogin, upsertUserState, user]);
 
   const openNote = useCallback((id: string) => {
+    if (!user) {
+      requireLogin("save notes");
+      return;
+    }
+
     setActiveNoteId(id);
     setNoteDraft(notesMap[id] || "");
-  }, [notesMap]);
+  }, [notesMap, requireLogin, user]);
 
-  const saveNote = useCallback(() => {
-    if (activeNoteId) {
-      const trimmed = noteDraft.trim();
-      if (!trimmed) {
-        // If note is empty, delete it from DB
-        setNotesMap((prev) => {
-          const next = { ...prev };
-          delete next[activeNoteId];
-          upsertUserState(activeNoteId, { notes: "" });
-          return next;
-        });
-      } else {
-        setNotesMap((prev) => {
-          const next = { ...prev, [activeNoteId]: trimmed };
-          upsertUserState(activeNoteId, { notes: trimmed });
-          return next;
-        });
-      }
-      setActiveNoteId(null);
-      setNoteDraft("");
+  const saveNote = useCallback(async () => {
+    if (!activeNoteId) return;
+
+    if (!user) {
+      requireLogin("save notes");
+      return;
     }
-  }, [activeNoteId, noteDraft, upsertUserState]);
+
+    const trimmed = noteDraft.trim();
+    const previousNote = notesMap[activeNoteId];
+    const ok = await upsertUserState(activeNoteId, { notes: trimmed });
+    if (!ok) return;
+
+    setNotesMap((prev) => {
+      const next = { ...prev };
+      if (trimmed) next[activeNoteId] = trimmed;
+      else if (previousNote) delete next[activeNoteId];
+      return next;
+    });
+    setActiveNoteId(null);
+    setNoteDraft("");
+  }, [activeNoteId, noteDraft, notesMap, requireLogin, upsertUserState, user]);
 
   const deleteNoteFromPanel = useCallback(async (questionId: string) => {
+    if (!user) {
+      requireLogin("delete notes");
+      return;
+    }
+
     setDeletingNoteId(questionId);
+    const previousNote = notesMap[questionId];
     setNotesMap((prev) => {
       const next = { ...prev };
       delete next[questionId];
       return next;
     });
-    if (user) {
-      await upsertUserState(questionId, { notes: "" });
+    const ok = await upsertUserState(questionId, { notes: "" });
+    if (!ok && previousNote) {
+      setNotesMap((prev) => ({ ...prev, [questionId]: previousNote }));
     }
     setDeletingNoteId(null);
-  }, [user, upsertUserState]);
+  }, [notesMap, requireLogin, upsertUserState, user]);
 
   const downloadNotesPDF = useCallback(() => {
     const doc = new jsPDF();
@@ -471,6 +486,31 @@ export default function InterviewCoreJavaQuestionsPage() {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0 px-4 md:px-8 py-6 space-y-6">
+          {!user && !authLoading && (
+            <div className="border-2 border-warning/40 bg-warning/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              style={{ boxShadow: "3px 3px 0px 0px hsl(var(--border))" }}>
+              <div>
+                <p className="text-sm font-black uppercase tracking-wider" style={{ color: "hsl(var(--warning))" }}>
+                  Login Required For Saving
+                </p>
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
+                  Core Java progress and notes are stored only in the database, per user account. Sign in to keep data after browser close or cache clear.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate("/auth")}
+                className="inline-flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest px-4 py-2 border-2 border-black dark:border-white"
+                style={{
+                  background: "hsl(var(--primary))",
+                  color: "hsl(var(--primary-foreground))",
+                  boxShadow: "2px 2px 0px 0px hsl(var(--border))",
+                }}
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+
           {/* Mobile topic selector */}
           <div className="md:hidden">
             <select
@@ -764,11 +804,14 @@ export default function InterviewCoreJavaQuestionsPage() {
               {/* Actions */}
               <div className="flex items-center justify-between px-5 py-3 border-t-2 border-border">
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    if (!activeNoteId) return;
+                    const ok = await upsertUserState(activeNoteId, { notes: "" });
+                    if (!ok) return;
+
                     setNotesMap((prev) => {
                       const next = { ...prev };
                       delete next[activeNoteId];
-                      upsertUserState(activeNoteId, { notes: "" });
                       return next;
                     });
                     setActiveNoteId(null);
@@ -834,7 +877,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                   </span>
                   {!user && (
                     <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 border border-warning/30" style={{ color: "hsl(var(--warning))" }}>
-                      Login to persist
+                      DB Login Required
                     </span>
                   )}
                 </div>
@@ -867,7 +910,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                     </p>
                     {!user && (
                       <p className="text-xs mt-3 px-4" style={{ color: "hsl(var(--warning))" }}>
-                        Login to save notes permanently — they persist even after clearing cache.
+                        Login first. Notes are stored only in the database and loaded per account.
                       </p>
                     )}
                   </div>
@@ -935,7 +978,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               {user && Object.values(notesMap).filter((n) => n && n.trim()).length > 0 && (
                 <div className="flex-shrink-0 px-5 py-2 border-t-2 border-border" style={{ background: "hsl(var(--muted)/0.2)" }}>
                   <p className="text-[10px] font-semibold text-center" style={{ color: "hsl(var(--success))" }}>
-                    ✓ Notes are saved to your account — they persist even after clearing browser cache
+                    ✓ Notes are saved only to your account in the database and load again after browser close or cache clear
                   </p>
                 </div>
               )}
