@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Clock3 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface InterviewComingSoonLayoutProps {
   title: string;
