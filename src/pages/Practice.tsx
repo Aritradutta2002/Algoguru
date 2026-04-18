@@ -311,13 +311,12 @@ export default function Practice() {
               <span className="text-muted-foreground">Master Data Structures & Algorithms</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
-              Pattern Wise <span className="text-primary">Sheet</span>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-tight flex flex-wrap gap-x-3 items-center justify-center md:justify-start">
+              <span className="text-foreground">Master</span>
+              <span className="text-primary">Code.</span>
+              <span className="text-foreground">Ace</span>
+              <span className="text-warning">Interviews.</span>
             </h1>
-            
-            <p className="text-sm md:text-base font-black uppercase tracking-[0.25em] text-primary max-w-2xl leading-relaxed mx-auto md:mx-0">
-              Master Code. Ace Interviews.
-            </p>
 
             {loadingState && (
               <div className="mt-6 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary/80">

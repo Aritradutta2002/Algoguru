@@ -1062,7 +1062,7 @@ export default function Playground() {
       } ${
         breakpoints.size > 0 
           ? "bg-warning text-warning-foreground shadow-warning/20 hover:bg-warning/90" 
-          : "bg-warning/5 border border-warning/20 text-warning/70 hover:bg-warning/10"
+          : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
       }`}
       title={breakpoints.size > 0 ? `Debug with ${breakpoints.size} breakpoint(s)` : "Click line numbers to set breakpoints"}
     >
