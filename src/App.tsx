@@ -357,6 +357,15 @@ function HeaderControls() {
   );
 }
 
+function ScrollToTopOnRouteChange() {
+  const { pathname, search } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname, search]);
+
+  return null;
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -441,6 +450,7 @@ function DragHandle({ onMouseDown, isDragging }: { onMouseDown: (e: React.MouseE
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [guruOpen, setGuruOpen] = useState(false);
+  const contentScrollRef = useRef<HTMLElement | null>(null);
   const [splitPct, setSplitPct] = useState(() => {
     try {
       const saved = localStorage.getItem("guru-split-pct");
@@ -457,6 +467,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem("guru-split-pct", splitPct.toString());
   }, [splitPct]);
+  useEffect(() => {
+    contentScrollRef.current?.scrollTo(0, 0);
+  }, [location.pathname, location.search]);
 
   // Derived: how wide is the Guru panel?
   const guruPct = 100 - splitPct;
@@ -560,6 +573,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             >
               {/* Main content panel */}
               <main
+                ref={contentScrollRef}
                 className="overflow-y-auto flex-shrink-0"
                 style={{
                   width: `${splitPct}%`,
@@ -630,7 +644,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           ) : (
-            <main className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
+            <main ref={contentScrollRef} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
               <div className={`min-h-full ${contentBottomPaddingClass}`}>
                 {children}
                 <Footer onSupportClick={() => setSupportOpen(true)} />
@@ -652,6 +666,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTopOnRouteChange />
             <AuthProvider>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
