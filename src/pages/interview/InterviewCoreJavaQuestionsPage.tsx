@@ -658,25 +658,40 @@ export default function InterviewCoreJavaQuestionsPage() {
                                   />
                                 )}
 
-                                {/* Explanation — Collapsible Accordion */}
-                                <Accordion type="single" collapsible>
-                                  <AccordionItem value={`expl-${question.id}`} className="border-0 border-b-0">
-                                    <AccordionTrigger className="hover:no-underline py-2 px-3 border-2 border-border bg-card rounded-sm text-left"
-                                      style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}>
-                                      <div className="flex items-center gap-2">
-                                        <BookOpen size={12} style={{ color: "hsl(var(--primary))" }} />
-                                        <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
-                                          Detailed Explanation
-                                        </span>
-                                      </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-3 pb-0">
-                                      <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "hsl(var(--foreground))" }}>
-                                        {question.explanation}
-                                      </div>
-                                    </AccordionContent>
-                                  </AccordionItem>
-                                </Accordion>
+                                {/* Explanation — Collapsible */}
+                                <div>
+                                  <button
+                                    onClick={() => setExpandedQuestions((prev) => ({ ...prev, [`expl-${question.id}`]: !prev[`expl-${question.id}`] }))}
+                                    className="w-full flex items-center justify-between py-2 px-3 border-2 border-border bg-card rounded-sm text-left transition-colors hover:border-primary"
+                                    style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <BookOpen size={12} style={{ color: "hsl(var(--primary))" }} />
+                                      <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+                                        Detailed Explanation
+                                      </span>
+                                    </div>
+                                    <ChevronRight
+                                      size={14}
+                                      style={{ color: "hsl(var(--muted-foreground))", transition: "transform 0.2s", transform: expandedQuestions[`expl-${question.id}`] ? "rotate(90deg)" : "rotate(0deg)" }}
+                                    />
+                                  </button>
+                                  <AnimatePresence>
+                                    {expandedQuestions[`expl-${question.id}`] && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="overflow-hidden"
+                                      >
+                                        <div className="pt-3 text-sm leading-relaxed whitespace-pre-line" style={{ color: "hsl(var(--foreground))" }}>
+                                          {question.explanation}
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
 
                                 {/* Existing note display */}
                                 {hasNote && notesMap[question.id] && (
