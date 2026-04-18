@@ -112,12 +112,12 @@ export default function Index() {
             </div>
 
             {/* Hero Title */}
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase leading-[0.95] tracking-tighter mb-8">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase leading-[1.1] tracking-tighter mb-8">
               Master <span className="text-primary">Code</span>.<br />
               Ace <span className="text-accent">Interviews</span>.
             </h1>
 
-            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mb-10 mx-auto md:mx-0">
+            <p className="text-sm md:text-base font-medium text-muted-foreground max-w-xl leading-relaxed mb-10 mx-auto md:mx-0">
               The straight-to-the-point platform built for developers who want
               to crack DSA, ace interviews, and understand Java deeply. No fluff. Just high-quality content.
             </p>
@@ -126,7 +126,9 @@ export default function Index() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate("/recursion")}
+                onClick={() => {
+                  document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" });
+                }}
                 className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
               >
                 Start Learning
@@ -161,7 +163,7 @@ export default function Index() {
       </div>
 
       {/* ── MODULES GRID ─────────────────────────────────── */}
-      <section className="px-6 md:px-12 lg:px-20 py-24 max-w-7xl mx-auto w-full">
+      <section id="modules" className="px-6 md:px-12 lg:px-20 py-24 max-w-7xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
