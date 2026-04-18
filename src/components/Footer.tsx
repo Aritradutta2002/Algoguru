@@ -6,6 +6,8 @@ interface FooterProps {
 
 const PORTFOLIO_URL = "https://portfolio-aritra-pearl.vercel.app/";
 const GITHUB_URL = "https://github.com/Aritradutta2002";
+const LINKEDIN_URL = "https://www.linkedin.com/in/aritra-dutta-rick20/";
+const TWITTER_URL = "https://x.com/Aritra1Sept";
 
 export function Footer({ onSupportClick }: FooterProps) {
   const currentYear = new Date().getFullYear();
@@ -44,7 +46,7 @@ export function Footer({ onSupportClick }: FooterProps) {
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Connect</h3>
             <div className="flex flex-col gap-2.5">
               <a
-                href="https://linkedin.com"
+                href={LINKEDIN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
@@ -53,13 +55,13 @@ export function Footer({ onSupportClick }: FooterProps) {
                 LinkedIn
               </a>
               <a
-                href="https://twitter.com"
+                href={TWITTER_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
               >
                 <ExternalLink size={14} />
-                Twitter
+                Twitter (X)
               </a>
             </div>
           </div>
