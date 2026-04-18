@@ -22,6 +22,8 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GuruBot } from "@/components/GuruBot";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
+import { SupportModal } from "@/components/SupportModal";
+import { Footer } from "@/components/Footer";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import { topics } from "@/data/topics";
@@ -444,6 +446,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   });
   
   const [isDragging, setIsDragging] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -561,6 +564,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               >
                 <div className={`min-h-full ${contentBottomPaddingClass}`}>
                   {children}
+                  <Footer onSupportClick={() => setSupportOpen(true)} />
                 </div>
               </main>
 
@@ -624,11 +628,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <main className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
               <div className={`min-h-full ${contentBottomPaddingClass}`}>
                 {children}
+                <Footer onSupportClick={() => setSupportOpen(true)} />
               </div>
             </main>
           )}
         </div>
       </div>
+      {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
     </SidebarProvider>
   );
 }
