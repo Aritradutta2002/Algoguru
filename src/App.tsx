@@ -353,10 +353,35 @@ function HeaderControls() {
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
   if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ background: "hsl(var(--background))" }}>
-      <div className="text-4xl font-black uppercase tracking-tighter" style={{ color: "hsl(var(--primary))" }}>AG</div>
-      <div className="w-12 h-1 bg-primary animate-pulse" />
-      <p className="text-sm font-bold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))" }}>Initializing...</p>
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: "hsl(var(--background))" }}>
+      {/* Soft animated gradient background for elegance */}
+      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 50% 50%, hsl(var(--foreground)) 2px, transparent 2px)", backgroundSize: "32px 32px" }}></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] sm:w-[40rem] sm:h-[40rem] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
+
+      <div className="z-10 flex flex-col items-center animate-in zoom-in-95 fade-in duration-1000 ease-out">
+        <img src="/algoguru-logo.png" alt="AlgoGuru Logo" className="w-48 h-48 sm:w-56 sm:h-56 object-contain pointer-events-none drop-shadow-2xl" />
+        <div className="flex flex-col items-start leading-none -mt-6 sm:-mt-8">
+          <span className="text-[4rem] sm:text-[6rem] md:text-[7rem] font-black tracking-tighter drop-shadow-sm" style={{ color: "hsl(var(--foreground))" }}>
+            Algo
+          </span>
+          <span 
+            className="text-[4rem] sm:text-[6rem] md:text-[7rem] font-normal tracking-wide" 
+            style={{ 
+              color: "transparent",
+              WebkitTextStroke: "max(2px, 0.04em) hsl(var(--primary))",
+              marginLeft: "0.5em",
+              marginTop: "-0.15em",
+              filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.05))"
+            }}
+          >
+            Guru
+          </span>
+        </div>
+      </div>
+      <div className="w-32 h-1 mt-12 sm:mt-16 bg-muted relative overflow-hidden rounded-full z-10 shadow-inner">
+        <div className="absolute inset-y-0 left-0 bg-primary animate-pulse w-full rounded-full" />
+      </div>
+      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] mt-6 z-10" style={{ color: "hsl(var(--muted-foreground))" }}>Initializing...</p>
     </div>
   );
   if (!session) return <Navigate to="/auth" replace />;
@@ -474,15 +499,21 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             }}
           >
             <SidebarTrigger
-              className="flex items-center justify-center w-7 h-7 hover:bg-muted rounded transition-all duration-150"
+              className="flex items-center justify-center w-8 h-8 hover:bg-muted/80 rounded-lg transition-all duration-200"
               style={{ color: "hsl(var(--foreground))" }}
             >
-              <Menu size={15} />
+              <Menu size={16} />
             </SidebarTrigger>
-            <div className="h-4 w-px" style={{ background: "hsl(var(--border))" }} />
-            <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
-              AlgoGuru
-            </span>
+            <div className="h-5 w-px mx-1" style={{ background: "hsl(var(--border))" }} />
+            <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95" onClick={() => window.location.href="/"}>
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <img src="/algoguru-logo.png" alt="AlgoGuru" className="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-sm relative z-10" />
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
+                AlgoGuru
+              </span>
+            </div>
             <div className="flex-1" />
 
             <SearchButton />

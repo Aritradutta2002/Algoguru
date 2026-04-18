@@ -231,24 +231,22 @@ export function AppSidebar() {
     <Sidebar className="border-r" style={{ borderColor: "hsl(var(--sidebar-border))", background: "hsl(var(--sidebar-background))" }}>
       {/* Logo */}
       <Link to="/" className="block">
-        <div className="flex items-center gap-3 px-5 py-5 border-b-4 hover:bg-muted/50 transition-colors" style={{ 
+        <div className="group flex items-center gap-3.5 px-5 py-5 border-b-4 hover:bg-[hsl(var(--muted)/0.5)] backdrop-blur-sm transition-all duration-500 ease-out" style={{ 
           borderColor: "hsl(var(--border))" 
         }}>
-          <div
-            className="flex items-center justify-center w-10 h-10 font-black text-sm font-mono border-4 shadow-[3px_3px_0_0_hsl(var(--border))]"
-            style={{
-              background: "hsl(var(--primary))",
-              color: "#000",
-              borderColor: "hsl(var(--border))",
-            }}
-          >
-            AG
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-[12px] rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <img 
+              src="/algoguru-logo.png" 
+              alt="AlgoGuru Logo" 
+              className="relative w-11 h-11 object-contain drop-shadow-[2px_2px_0_0_hsl(var(--border))] group-hover:-translate-y-0.5 group-hover:scale-105 transition-all duration-300 z-10"
+            />
           </div>
           <div>
             <div className="text-sm font-black uppercase tracking-widest" style={{ color: "hsl(var(--foreground))" }}>
               AlgoGuru
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
+            <div className="text-[10px] font-bold uppercase tracking-wider group-hover:text-foreground/70 transition-colors duration-300" style={{ color: "hsl(var(--muted-foreground))" }}>
               {currentMode.description}
             </div>
           </div>
