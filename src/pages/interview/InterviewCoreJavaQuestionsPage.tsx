@@ -592,7 +592,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                                 {question.question}
                               </h3>
                               <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-                                {question.answer}
+                                {question.explanation}
                               </p>
                             </div>
                           </div>
@@ -658,7 +658,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                                   />
                                 )}
 
-                                {/* Explanation — Collapsible */}
+                                {/* Detailed Answer — Collapsible */}
                                 <div>
                                   <button
                                     onClick={() => setExpandedQuestions((prev) => ({ ...prev, [`expl-${question.id}`]: !prev[`expl-${question.id}`] }))}
@@ -668,7 +668,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                                     <div className="flex items-center gap-2">
                                       <BookOpen size={12} style={{ color: "hsl(var(--primary))" }} />
                                       <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
-                                        Detailed Explanation
+                                        Detailed Answer
                                       </span>
                                     </div>
                                     <ChevronRight
@@ -686,7 +686,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                                         className="overflow-hidden"
                                       >
                                         <div className="pt-3 text-sm leading-relaxed whitespace-pre-line" style={{ color: "hsl(var(--foreground))" }}>
-                                          {question.explanation}
+                                          {question.answer}
                                         </div>
                                       </motion.div>
                                     )}
