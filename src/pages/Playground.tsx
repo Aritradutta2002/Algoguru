@@ -1061,7 +1061,7 @@ export default function Playground() {
         compact ? "px-4 py-2 text-[10px]" : "px-6 py-2.5 text-[11px]"
       } ${
         breakpoints.size > 0 
-          ? "bg-warning text-warning-foreground shadow-warning/20 hover:bg-warning/90" 
+          ? "bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90" 
           : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
       }`}
       title={breakpoints.size > 0 ? `Debug with ${breakpoints.size} breakpoint(s)` : "Click line numbers to set breakpoints"}
