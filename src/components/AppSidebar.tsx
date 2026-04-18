@@ -19,6 +19,7 @@ import { ChevronDown, Home, BookOpen, Layers, Coffee, Search, X, Code2, LogOut, 
 import { useSettings } from "@/contexts/SettingsContext";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 
 // Content imports for deep search indexing
 import { recursionContent } from "@/data/recursionContent";
@@ -231,15 +232,13 @@ export function AppSidebar() {
     <Sidebar className="border-r" style={{ borderColor: "hsl(var(--sidebar-border))", background: "hsl(var(--sidebar-background))" }}>
       {/* Logo */}
       <Link to="/" className="block">
-        <div className="group flex items-center gap-3.5 px-5 py-5 border-b-4 hover:bg-[hsl(var(--muted)/0.5)] backdrop-blur-sm transition-all duration-500 ease-out" style={{ 
-          borderColor: "hsl(var(--border))" 
-        }}>
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-[12px] rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            <img 
-              src="/algoguru-logo.png" 
-              alt="AlgoGuru Logo" 
-              className="relative w-11 h-11 object-contain drop-shadow-[2px_2px_0_0_hsl(var(--border))] group-hover:-translate-y-0.5 group-hover:scale-105 transition-all duration-300 z-10"
+        <div className="group flex items-center gap-3.5 px-5 py-4 border-b-4 hover:bg-[hsl(var(--muted)/0.5)] backdrop-blur-sm transition-all duration-500 ease-out" style={{ borderColor: "hsl(var(--border))" }}>
+          <div className="relative flex-shrink-0">
+            <div className="absolute inset-0 bg-primary/20 blur-[10px] rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <AlgoGuruLogo
+              size={44}
+              showText={false}
+              className="relative z-10 group-hover:-translate-y-0.5 group-hover:scale-105 transition-all duration-300 block"
             />
           </div>
           <div>

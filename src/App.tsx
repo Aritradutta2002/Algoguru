@@ -21,6 +21,7 @@ import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GuruBot } from "@/components/GuruBot";
+import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import { topics } from "@/data/topics";
@@ -353,35 +354,36 @@ function HeaderControls() {
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
   if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{ background: "hsl(var(--background))" }}>
-      {/* Soft animated gradient background for elegance */}
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 50% 50%, hsl(var(--foreground)) 2px, transparent 2px)", backgroundSize: "32px 32px" }}></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] sm:w-[40rem] sm:h-[40rem] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
+    <div
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+      style={{ background: "hsl(var(--background))" }}
+    >
+      {/* Subtle dot grid background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(circle, hsl(var(--foreground) / 0.06) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+      {/* Glowing orb */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] sm:w-[38rem] sm:h-[38rem] bg-primary/10 blur-[90px] rounded-full pointer-events-none" />
 
-      <div className="z-10 flex flex-col items-center animate-in zoom-in-95 fade-in duration-1000 ease-out">
-        <img src="/algoguru-logo.png" alt="AlgoGuru Logo" className="w-48 h-48 sm:w-56 sm:h-56 object-contain pointer-events-none drop-shadow-2xl" />
-        <div className="flex flex-col items-start leading-none -mt-6 sm:-mt-8">
-          <span className="text-[4rem] sm:text-[6rem] md:text-[7rem] font-black tracking-tighter drop-shadow-sm" style={{ color: "hsl(var(--foreground))" }}>
-            Algo
-          </span>
-          <span 
-            className="text-[4rem] sm:text-[6rem] md:text-[7rem] font-normal tracking-wide" 
-            style={{ 
-              color: "transparent",
-              WebkitTextStroke: "max(2px, 0.04em) hsl(var(--primary))",
-              marginLeft: "0.5em",
-              marginTop: "-0.15em",
-              filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.05))"
-            }}
-          >
-            Guru
-          </span>
-        </div>
+      {/* Logo — SVG includes the Algo / Guru text already */}
+      <div className="z-10 drop-shadow-2xl animate-in zoom-in-95 fade-in duration-700 ease-out">
+        <AlgoGuruLogo size={320} showText={true} className="text-foreground" />
       </div>
-      <div className="w-32 h-1 mt-12 sm:mt-16 bg-muted relative overflow-hidden rounded-full z-10 shadow-inner">
-        <div className="absolute inset-y-0 left-0 bg-primary animate-pulse w-full rounded-full" />
+
+      {/* Animated progress bar */}
+      <div className="w-36 h-[3px] mt-6 rounded-full overflow-hidden z-10" style={{ background: "hsl(var(--muted))" }}>
+        <div
+          className="h-full rounded-full animate-pulse"
+          style={{ background: "hsl(var(--primary))" }}
+        />
       </div>
-      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] mt-6 z-10" style={{ color: "hsl(var(--muted-foreground))" }}>Initializing...</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.25em] mt-5 z-10" style={{ color: "hsl(var(--muted-foreground))" }}>
+        Initializing…
+      </p>
     </div>
   );
   if (!session) return <Navigate to="/auth" replace />;
@@ -505,10 +507,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <Menu size={16} />
             </SidebarTrigger>
             <div className="h-5 w-px mx-1" style={{ background: "hsl(var(--border))" }} />
-            <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95" onClick={() => window.location.href="/"}>
-              <div className="relative">
+            <div
+              className="flex items-center gap-1.5 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
+              onClick={() => window.location.href="/"}
+              title="Go to Home"
+            >
+              <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <img src="/algoguru-logo.png" alt="AlgoGuru" className="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-sm relative z-10" />
+                <AlgoGuruLogo size={28} showText={false} className="relative z-10 block" />
               </div>
               <span className="text-xs font-black uppercase tracking-widest transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
                 AlgoGuru
