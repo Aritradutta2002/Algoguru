@@ -1,13 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import "./Auth.css";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
@@ -34,7 +32,7 @@ function MascotSVG() {
   return (
     <svg viewBox="0 0 320 420" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xs mx-auto drop-shadow-2xl">
       {/* Shadow */}
-      <ellipse cx="160" cy="400" rx="85" ry="14" fill="#00000022" />
+      <ellipse cx="160" cy="400" rx="85" ry="14" fill="currentColor" className="text-muted-foreground/20" />
 
       {/* LEFT ARM */}
       <rect x="48" y="160" width="28" height="80" rx="14" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2"/>
@@ -53,7 +51,7 @@ function MascotSVG() {
       <circle cx="264" cy="260" r="9" fill="#fff" stroke="#1a1a1a" strokeWidth="2.5"/>
 
       {/* LAPTOP BODY */}
-      <rect x="60" y="80" width="200" height="200" rx="18" fill="#4DA6FF" stroke="#1a1a1a" strokeWidth="4"/>
+      <rect x="60" y="80" width="200" height="200" rx="18" fill="var(--color-primary, #4DA6FF)" stroke="#1a1a1a" strokeWidth="4" className="text-primary" style={{ fill: "currentColor" }} />
 
       {/* Screen bezel */}
       <rect x="75" y="95" width="170" height="150" rx="10" fill="#1a2a4a" stroke="#1a1a1a" strokeWidth="2.5"/>
@@ -137,7 +135,9 @@ function Field({
 }) {
   return (
     <div className="w-full">
-      <label className="auth-field-label">{label}</label>
+      <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+        {label}
+      </label>
       <div className="relative">
         <input
           type={type}
@@ -145,13 +145,19 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete="new-password"
-          className={cn("auth-input", rightSlot && "pr-12", error && "auth-input-error")}
+          className={cn(
+            "w-full px-4 py-3.5 rounded-xl border bg-card text-sm font-medium outline-none transition-all duration-200 placeholder:text-muted-foreground/40",
+            error
+              ? "border-destructive/60 focus:border-destructive focus:ring-4 focus:ring-destructive/10"
+              : "border-border hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/10",
+            rightSlot && "pr-12"
+          )}
         />
         {rightSlot && (
           <span className="absolute right-4 top-1/2 -translate-y-1/2">{rightSlot}</span>
         )}
       </div>
-      {error && <p className="auth-field-error">{error}</p>}
+      {error && <p className="text-xs font-bold text-destructive mt-1.5">{error}</p>}
     </div>
   );
 }
@@ -252,30 +258,40 @@ export default function Auth() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
+      {/* Subtle background glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" aria-hidden="true" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/5 blur-[120px] rounded-full pointer-events-none" aria-hidden="true" />
+
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="auth-shell w-full max-w-5xl overflow-hidden flex flex-col md:flex-row"
+        className="w-full max-w-5xl flex flex-col md:flex-row bg-card border rounded-[32px] overflow-hidden shadow-2xl shadow-primary/5 relative z-10"
       >
         {/* ── LEFT PANEL (Form) ── */}
-        <div
-          className="auth-form-panel flex-1 flex flex-col justify-center px-8 py-10 md:px-12"
-        >
+        <div className="flex-1 flex flex-col justify-center px-8 py-12 md:px-14 bg-card relative z-10 order-2 md:order-1">
           {/* Title */}
           <div className="mb-8">
-            <h1 className="auth-title text-2xl md:text-3xl mb-2 leading-tight">
-              {isLogin ? "Welcome to AlgoGuru" : "Create Your Account"}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-6">
+              <ShieldCheck size={12} className="text-primary" />
+              <span className="text-muted-foreground">{isLogin ? "Secure Login" : "Join Platform"}</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">
+              {isLogin ? (
+                <>Welcome <span className="text-primary">Back</span></>
+              ) : (
+                <>Create <span className="text-accent">Account</span></>
+              )}
             </h1>
-            <p className="auth-subtitle text-sm">
+            <p className="text-sm font-medium text-muted-foreground">
               {isLogin
                 ? "Sign in to continue your coding journey."
                 : "Let's get you set up with a new account in just a few steps."}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
               <Field
                 label="Username"
@@ -305,7 +321,7 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="auth-visibility-btn"
+                  className="text-muted-foreground/60 hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -325,7 +341,7 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="auth-visibility-btn"
+                    className="text-muted-foreground/60 hover:text-foreground transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -334,12 +350,12 @@ export default function Auth() {
             )}
 
             {error && (
-              <div className="auth-alert auth-alert-error">
+              <div className="text-xs font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
                 {error}
               </div>
             )}
             {message && (
-              <div className="auth-alert auth-alert-success">
+              <div className="text-xs font-bold text-success bg-success/10 border border-success/20 rounded-xl px-4 py-3">
                 {message}
               </div>
             )}
@@ -348,9 +364,9 @@ export default function Auth() {
               <motion.button
                 type="submit"
                 disabled={isDisabled}
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.97, y: 1 }}
-                className="auth-submit-btn w-full py-3.5 rounded-xl font-black text-base uppercase tracking-widest transition-all duration-150 disabled:opacity-60"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-60"
               >
                 {loading ? "Please wait..." : cooldown ? "Try again shortly..." : isLogin ? "Sign In" : "Sign Up"}
               </motion.button>
@@ -358,10 +374,10 @@ export default function Auth() {
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="auth-divider-line flex-1 h-px" />
-            <span className="auth-divider-text text-xs">Or</span>
-            <div className="auth-divider-line flex-1 h-px" />
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-border/60" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Or</span>
+            <div className="flex-1 h-px bg-border/60" />
           </div>
 
           {/* Social Buttons */}
@@ -370,12 +386,12 @@ export default function Auth() {
             <motion.button
               onClick={handleGoogleSignIn}
               disabled={isDisabled}
-              whileHover={{ y: -2 }}
-              whileTap={{ y: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               title="Sign in with Google"
-              className="auth-social-btn w-12 h-12 rounded-xl flex items-center justify-center border-2 disabled:opacity-60 transition-all"
+              className="w-14 h-14 rounded-xl flex items-center justify-center border bg-muted/20 hover:bg-muted/50 disabled:opacity-60 transition-all group"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24">
+              <svg width="22" height="22" viewBox="0 0 24 24" className="grayscale group-hover:grayscale-0 transition-all duration-300">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -385,59 +401,46 @@ export default function Auth() {
           </div>
 
           {/* Toggle */}
-          <p className="auth-toggle-copy text-center mt-6 text-sm font-medium">
+          <p className="text-center mt-8 text-sm font-medium text-muted-foreground">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={handleToggle}
-              className="auth-toggle-btn font-black underline underline-offset-2 transition-colors"
+              className="font-bold text-foreground hover:text-primary transition-colors hover:underline underline-offset-4"
             >
               {isLogin ? "Sign Up" : "Sign In"}
             </button>
           </p>
         </div>
 
-        {/* ── RIGHT PANEL (Mascot) ── */}
-        <div
-          className="auth-art-panel hidden md:flex flex-1 flex-col items-center justify-center px-8 py-10 relative overflow-hidden"
-        >
-          {/* Decorative sparkles in background */}
-          <div className="absolute inset-0 pointer-events-none select-none" aria-hidden>
-            {[
-              { top: "10%", left: "12%", size: 18 },
-              { top: "8%", right: "15%", size: 14 },
-              { top: "45%", left: "5%", size: 12 },
-              { bottom: "20%", right: "8%", size: 16 },
-              { bottom: "10%", left: "18%", size: 20 },
-            ].map((pos, i) => (
-              <svg key={i} width={pos.size} height={pos.size} viewBox="0 0 20 20" style={{ position: "absolute", ...pos as any }}>
-                <path d="M10 0 L11.5 8.5 L20 10 L11.5 11.5 L10 20 L8.5 11.5 L0 10 L8.5 8.5Z" fill="#1a1a1a"/>
-              </svg>
-            ))}
-            {[
-              { top: "25%", right: "6%" },
-              { bottom: "35%", left: "8%" },
-              { top: "65%", right: "14%" },
-            ].map((pos, i) => (
-              <svg key={i} width="10" height="10" viewBox="0 0 10 10" style={{ position: "absolute", ...pos as any }}>
-                <circle cx="5" cy="5" r="4" fill="none" stroke="#1a1a1a" strokeWidth="1.8"/>
-              </svg>
-            ))}
-            <div className="auth-spark-dot" style={{ top: "30%", left: "8%", width: 8, height: 8 }} />
-            <div className="auth-spark-dot" style={{ bottom: "28%", right: "12%", width: 6, height: 6 }} />
-          </div>
+        {/* ── RIGHT PANEL (Mascot / Art) ── */}
+        <div className="hidden md:flex w-[45%] flex-col items-center justify-center p-8 relative overflow-hidden bg-muted/20 border-l order-1 md:order-2">
+          {/* Subtle grid pattern background */}
+          <div 
+            className="absolute inset-0 opacity-[0.05] pointer-events-none" 
+            style={{ 
+              backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)", 
+              backgroundSize: "24px 24px" 
+            }} 
+            aria-hidden="true" 
+          />
 
           <motion.div
             animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full max-w-[280px]"
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="w-full max-w-[280px] drop-shadow-2xl relative z-10"
           >
             <MascotSVG />
           </motion.div>
 
           {/* Caption */}
-          <p className="auth-caption text-center text-sm font-black uppercase tracking-widest mt-4">
-            Code. Learn. Repeat.
-          </p>
+          <div className="mt-12 text-center relative z-10">
+            <h3 className="text-xl font-black uppercase tracking-tight mb-2">
+              Learn. <span className="text-primary">Adapt</span>. Grow.
+            </h3>
+            <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-widest">
+              Master the Craft With Us
+            </p>
+          </div>
         </div>
       </motion.div>
     </div>
