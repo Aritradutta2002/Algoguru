@@ -103,8 +103,8 @@ export function Footer({ onSupportClick }: FooterProps) {
             Copyright © {currentYear} AlgoGuru. All rights reserved.
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Coffee size={12} />
-            <span>Designed for deep learning.</span>
+            <Zap size={12} className="text-primary" />
+            <span className="font-bold uppercase tracking-widest text-[10px]">Master Code. Ace Interviews.</span>
           </div>
         </div>
       </div>

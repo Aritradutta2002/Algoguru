@@ -315,7 +315,7 @@ export default function Practice() {
               Pattern Wise <span className="text-primary">Sheet</span>
             </h1>
             
-            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
+            <p className="text-sm md:text-base font-black uppercase tracking-[0.25em] text-primary max-w-2xl leading-relaxed mx-auto md:mx-0">
               Master Code. Ace Interviews.
             </p>
 
