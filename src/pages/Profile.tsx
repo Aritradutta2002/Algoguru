@@ -13,7 +13,6 @@ import {
   Download,
   Trash2,
   StickyNote,
-  Settings,
   BookOpen,
   Search,
   ChevronDown,
@@ -22,8 +21,6 @@ import {
 import jsPDF from "jspdf";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
-
-type Tab = "settings" | "notes";
 
 interface NoteEntry {
   questionId: string;
@@ -43,7 +40,6 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Notes dashboard state
-  const [activeTab, setActiveTab] = useState<Tab>("settings");
   const [notesData, setNotesData] = useState<NoteEntry[]>([]);
   const [notesLoading, setNotesLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -92,10 +88,10 @@ export default function Profile() {
   }, [user]);
 
   useEffect(() => {
-    if (activeTab === "notes" && user) {
+    if (user) {
       loadNotes();
     }
-  }, [activeTab, user, loadNotes]);
+  }, [user, loadNotes]);
 
   // Real-time subscription: updates dashboard instantly when notes change from Q&A page
   useEffect(() => {
@@ -336,40 +332,11 @@ export default function Profile() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
-      {/* Tabs */}
-      <div className="flex items-center gap-1 mb-8 border-b-2 border-border">
-        <button
-          onClick={() => setActiveTab("settings")}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 -mb-[2px]"
-          style={{
-            borderColor: activeTab === "settings" ? "hsl(var(--primary))" : "transparent",
-            color: activeTab === "settings" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-          }}
-        >
-          <Settings size={14} />
-          Profile
-        </button>
-        <button
-          onClick={() => setActiveTab("notes")}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 -mb-[2px]"
-          style={{
-            borderColor: activeTab === "notes" ? "hsl(var(--primary))" : "transparent",
-            color: activeTab === "notes" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-          }}
-        >
-          <FileText size={14} />
-          My Notes
-          {notesCount > 0 && (
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--primary)/0.15)", color: "hsl(var(--primary))" }}>
-              {notesCount}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Profile Settings Tab */}
-      {activeTab === "settings" && (
-        <div className="max-w-lg mx-auto">
+      {/* Profile Settings */}
+      <h1 className="text-2xl font-bold mb-6" style={{ color: "hsl(var(--foreground))" }}>
+        Profile Settings
+      </h1>
+      <div className="max-w-lg mx-auto">
           <div className="flex flex-col items-center gap-4 mb-8">
             <div className="relative group">
               {avatarUrl ? (
@@ -457,11 +424,9 @@ export default function Profile() {
             </button>
           </div>
         </div>
-      )}
 
-      {/* Notes Dashboard Tab */}
-      {activeTab === "notes" && (
-        <div className="space-y-4">
+      {/* Notes Dashboard */}
+      <div className="mt-12 space-y-4">
           {/* Notes Header */}
           <div className="border-2 border-black dark:border-white bg-card p-4"
             style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}>
@@ -712,7 +677,6 @@ export default function Profile() {
             </div>
           )}
         </div>
-      )}
     </div>
   );
 }
