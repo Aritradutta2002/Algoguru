@@ -112,8 +112,8 @@ export default function Index() {
             </div>
 
             {/* Hero Title */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase leading-[1.1] tracking-tighter mb-8">
-              Master <span className="text-primary">Code</span>.<br />
+            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-[4rem] font-black uppercase leading-[1.1] tracking-tighter mb-8">
+              Master <span className="text-primary">Code</span>.{" "}
               Ace <span className="text-accent">Interviews</span>.
             </h1>
 

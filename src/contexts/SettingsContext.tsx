@@ -26,7 +26,7 @@ const FONT_SIZE_CSS: Record<FontSize, string> = {
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem("cp-theme") as Theme) || "light";
+    return (localStorage.getItem("cp-theme") as Theme) || "dark";
   });
 
   const [fontSize, setFontSize] = useState<FontSize>(() => {

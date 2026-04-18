@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 
@@ -179,6 +180,7 @@ export default function Auth() {
   const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigate = useNavigate();
   const { session } = useAuth();
+  const { theme, toggleTheme } = useSettings();
 
   useEffect(() => {
     if (session) navigate("/", { replace: true });
@@ -219,7 +221,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { data: { full_name: name.trim() }, emailRedirectTo: window.location.origin },
+        options: { data: { full_name: name.trim() }, emailRedirectTo: import.meta.env.VITE_PUBLIC_BASE_URL || "https://algoguru.online" },
       });
       if (error) {
         setError(error.message);
@@ -237,7 +239,7 @@ export default function Auth() {
     setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: import.meta.env.VITE_PUBLIC_BASE_URL || "https://algoguru.online" },
     });
     if (error) setError(error.message);
     setLoading(false);
@@ -259,6 +261,15 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full border bg-card text-foreground hover:bg-muted transition-colors shadow-sm z-50"
+        title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      >
+        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
+
       {/* Subtle background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" aria-hidden="true" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/5 blur-[120px] rounded-full pointer-events-none" aria-hidden="true" />
