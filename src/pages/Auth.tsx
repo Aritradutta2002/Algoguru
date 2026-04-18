@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
+import "./Auth.css";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
@@ -135,7 +137,7 @@ function Field({
 }) {
   return (
     <div className="w-full">
-      <label className="block text-sm font-bold text-[#1a1a1a] mb-1.5">{label}</label>
+      <label className="auth-field-label">{label}</label>
       <div className="relative">
         <input
           type={type}
@@ -143,20 +145,13 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete="new-password"
-          className="w-full px-4 py-3.5 rounded-xl border-2 text-sm font-medium outline-none transition-all duration-150 bg-white placeholder:text-gray-400"
-          style={{
-            borderColor: error ? "#ef4444" : "#d4b8a0",
-            color: "#1a1a1a",
-            boxShadow: error ? "0 0 0 3px rgba(239,68,68,0.15)" : undefined,
-          }}
-          onFocus={e => { if (!error) e.currentTarget.style.borderColor = "#E8734A"; }}
-          onBlur={e => { if (!error) e.currentTarget.style.borderColor = "#d4b8a0"; }}
+          className={cn("auth-input", rightSlot && "pr-12", error && "auth-input-error")}
         />
         {rightSlot && (
           <span className="absolute right-4 top-1/2 -translate-y-1/2">{rightSlot}</span>
         )}
       </div>
-      {error && <p className="text-xs font-bold text-red-500 mt-1.5">{error}</p>}
+      {error && <p className="auth-field-error">{error}</p>}
     </div>
   );
 }
@@ -257,28 +252,23 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8" style={{ background: "#b5895a" }}>
+    <div className="auth-page">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-4xl overflow-hidden flex flex-col md:flex-row"
-        style={{
-          borderRadius: "20px",
-          boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
-        }}
+        className="auth-shell w-full max-w-5xl overflow-hidden flex flex-col md:flex-row"
       >
         {/* ── LEFT PANEL (Form) ── */}
         <div
-          className="flex-1 flex flex-col justify-center px-8 py-10 md:px-12"
-          style={{ background: "#F5C9A0", minWidth: 0 }}
+          className="auth-form-panel flex-1 flex flex-col justify-center px-8 py-10 md:px-12"
         >
           {/* Title */}
           <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-black text-[#1a1a1a] mb-2 leading-tight">
+            <h1 className="auth-title text-2xl md:text-3xl mb-2 leading-tight">
               {isLogin ? "Welcome to AlgoGuru" : "Create Your Account"}
             </h1>
-            <p className="text-sm text-[#5a3e2b] font-medium">
+            <p className="auth-subtitle text-sm">
               {isLogin
                 ? "Sign in to continue your coding journey."
                 : "Let's get you set up with a new account in just a few steps."}
@@ -315,7 +305,7 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-400 hover:text-[#1a1a1a] transition-colors"
+                  className="auth-visibility-btn"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -335,7 +325,7 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="text-gray-400 hover:text-[#1a1a1a] transition-colors"
+                    className="auth-visibility-btn"
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -344,12 +334,12 @@ export default function Auth() {
             )}
 
             {error && (
-              <div className="text-xs font-bold text-red-600 bg-red-100 border-2 border-red-300 rounded-xl px-4 py-3">
+              <div className="auth-alert auth-alert-error">
                 {error}
               </div>
             )}
             {message && (
-              <div className="text-xs font-bold text-green-700 bg-green-100 border-2 border-green-300 rounded-xl px-4 py-3">
+              <div className="auth-alert auth-alert-success">
                 {message}
               </div>
             )}
@@ -360,11 +350,7 @@ export default function Auth() {
                 disabled={isDisabled}
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.97, y: 1 }}
-                className="w-full py-3.5 rounded-xl text-white font-black text-base uppercase tracking-widest transition-all duration-150 disabled:opacity-60"
-                style={{
-                  background: "#E8734A",
-                  boxShadow: "0 6px 0 #b8482a",
-                }}
+                className="auth-submit-btn w-full py-3.5 rounded-xl font-black text-base uppercase tracking-widest transition-all duration-150 disabled:opacity-60"
               >
                 {loading ? "Please wait..." : cooldown ? "Try again shortly..." : isLogin ? "Sign In" : "Sign Up"}
               </motion.button>
@@ -373,9 +359,9 @@ export default function Auth() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-[#d4b8a0]" />
-            <span className="text-xs font-bold text-[#9a7860]">Or</span>
-            <div className="flex-1 h-px bg-[#d4b8a0]" />
+            <div className="auth-divider-line flex-1 h-px" />
+            <span className="auth-divider-text text-xs">Or</span>
+            <div className="auth-divider-line flex-1 h-px" />
           </div>
 
           {/* Social Buttons */}
@@ -387,8 +373,7 @@ export default function Auth() {
               whileHover={{ y: -2 }}
               whileTap={{ y: 1 }}
               title="Sign in with Google"
-              className="w-12 h-12 rounded-xl flex items-center justify-center border-2 bg-white disabled:opacity-60 transition-all"
-              style={{ borderColor: "#1a1a1a", boxShadow: "3px 3px 0 #1a1a1a" }}
+              className="auth-social-btn w-12 h-12 rounded-xl flex items-center justify-center border-2 disabled:opacity-60 transition-all"
             >
               <svg width="20" height="20" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -400,11 +385,11 @@ export default function Auth() {
           </div>
 
           {/* Toggle */}
-          <p className="text-center mt-6 text-sm font-medium text-[#5a3e2b]">
+          <p className="auth-toggle-copy text-center mt-6 text-sm font-medium">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={handleToggle}
-              className="font-black text-[#E8734A] underline underline-offset-2 hover:text-[#b8482a] transition-colors"
+              className="auth-toggle-btn font-black underline underline-offset-2 transition-colors"
             >
               {isLogin ? "Sign Up" : "Sign In"}
             </button>
@@ -413,8 +398,7 @@ export default function Auth() {
 
         {/* ── RIGHT PANEL (Mascot) ── */}
         <div
-          className="hidden md:flex flex-1 flex-col items-center justify-center px-8 py-10 relative overflow-hidden"
-          style={{ background: "#F5ECD0", minWidth: 0 }}
+          className="auth-art-panel hidden md:flex flex-1 flex-col items-center justify-center px-8 py-10 relative overflow-hidden"
         >
           {/* Decorative sparkles in background */}
           <div className="absolute inset-0 pointer-events-none select-none" aria-hidden>
@@ -438,8 +422,8 @@ export default function Auth() {
                 <circle cx="5" cy="5" r="4" fill="none" stroke="#1a1a1a" strokeWidth="1.8"/>
               </svg>
             ))}
-            <div style={{ position: "absolute", top: "30%", left: "8%", width: 8, height: 8, borderRadius: "50%", background: "#1a1a1a" }}/>
-            <div style={{ position: "absolute", bottom: "28%", right: "12%", width: 6, height: 6, borderRadius: "50%", background: "#1a1a1a" }}/>
+            <div className="auth-spark-dot" style={{ top: "30%", left: "8%", width: 8, height: 8 }} />
+            <div className="auth-spark-dot" style={{ bottom: "28%", right: "12%", width: 6, height: 6 }} />
           </div>
 
           <motion.div
@@ -451,7 +435,7 @@ export default function Auth() {
           </motion.div>
 
           {/* Caption */}
-          <p className="text-center text-sm font-black uppercase tracking-widest text-[#1a1a1a] mt-4 opacity-60">
+          <p className="auth-caption text-center text-sm font-black uppercase tracking-widest mt-4">
             Code. Learn. Repeat.
           </p>
         </div>
