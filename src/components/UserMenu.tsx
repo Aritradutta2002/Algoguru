@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getAvatarUrl } from "@/lib/avatarUrl";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { LogOut, Settings, Shield } from "lucide-react";
+import { LogOut, Settings, Shield, FileText } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,6 +70,10 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer gap-2 focus:bg-muted text-foreground focus:text-foreground">
+          <FileText size={14} />
+          My Notes
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer gap-2 focus:bg-muted text-foreground focus:text-foreground">
           <Settings size={14} />
           Profile Settings
