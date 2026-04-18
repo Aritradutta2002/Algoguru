@@ -1057,7 +1057,7 @@ export default function Playground() {
     <button
       onClick={() => runCode(true)}
       disabled={isRunning || !code.trim() || breakpoints.size === 0}
-      className={`${BUTTON_BASE_CLASSES} disabled:opacity-20 ${
+      className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
         compact ? "px-4 py-2 text-[10px]" : "px-6 py-2.5 text-[11px]"
       } ${
         breakpoints.size > 0 
@@ -1088,10 +1088,10 @@ export default function Playground() {
             <Settings size={14} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Compiler</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Compiler</p>
             <p className="text-[11px] font-bold text-foreground truncate">{selectedCompiler.label}</p>
           </div>
-          <ChevronDown size={14} className={`text-muted-foreground/40 transition-transform duration-300 ${settingsCompilerOpen ? "rotate-180" : ""}`} />
+          <ChevronDown size={14} className={`text-muted-foreground/70 transition-transform duration-300 ${settingsThemeOpen ? "rotate-180" : ""}`} />
         </button>
         
         {settingsCompilerOpen && (
@@ -1106,7 +1106,7 @@ export default function Playground() {
                     : "hover:bg-muted/50 border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <div className={`w-1.5 h-1.5 rounded-full ${selectedCompiler.compiler === c.compiler ? "bg-primary shadow-[0_0_8px_hsl(var(--primary))]" : "bg-muted-foreground/20"}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${currentTheme.id === t.id ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/40"}`} />
                 <span className="text-[11px] font-bold">{c.label}</span>
               </button>
             ))}
@@ -1126,7 +1126,7 @@ export default function Playground() {
             <Palette size={14} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Theme</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Theme</p>
             <p className="text-[11px] font-bold text-foreground truncate">{currentTheme.label}</p>
           </div>
           <ChevronDown size={14} className={`text-muted-foreground/40 transition-transform duration-300 ${settingsThemeOpen ? "rotate-180" : ""}`} />
@@ -1228,7 +1228,7 @@ export default function Playground() {
             </h1>
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
                 {practiceData ? practiceData.difficulty || "Practice Mode" : "Virtual Execution Engine"}
               </p>
             </div>
@@ -1259,7 +1259,7 @@ export default function Playground() {
                 >
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
                   
-                  <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 border-b border-border/10 bg-muted/10">
+                  <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-b border-border/10 bg-muted/10">
                     Standard Blueprints
                   </div>
                   
@@ -1317,7 +1317,7 @@ export default function Playground() {
 
                   {userTemplates.length > 0 && (
                     <>
-                      <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 border-y border-border/10 bg-muted/10 mt-2">
+                      <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-y border-border/10 bg-muted/10 mt-2">
                         My Personal Vault
                       </div>
                       <div className="relative z-10 p-2 space-y-1">
@@ -1541,7 +1541,7 @@ export default function Playground() {
                             {practiceData.difficulty}
                           </span>
                         )}
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Challenge Node</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Challenge Node</span>
                       </div>
                       <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-foreground">
                         {practiceData.title}
@@ -1555,7 +1555,7 @@ export default function Playground() {
                           <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-muted/20 border border-border/30">
                             <Clock size={14} className="text-primary" />
                             <div className="flex flex-col">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Time</span>
+                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Time</span>
                               <span className="text-xs font-black font-mono text-foreground">{practiceData.timeComplexity}</span>
                             </div>
                           </div>
@@ -1564,7 +1564,7 @@ export default function Playground() {
                           <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-muted/20 border border-border/30">
                             <Layers size={14} className="text-accent" />
                             <div className="flex flex-col">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Space</span>
+                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">Space</span>
                               <span className="text-xs font-black font-mono text-foreground">{practiceData.spaceComplexity}</span>
                             </div>
                           </div>
@@ -1680,13 +1680,13 @@ export default function Playground() {
                     <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
                       <Keyboard size={14} />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Standard Input (stdin)</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Standard Input (stdin)</span>
                   </div>
                   <textarea
                     value={stdin}
                     onChange={(e) => setStdin(e.target.value)}
                     placeholder="Enter input for your program..."
-                    className="flex-1 w-full px-6 py-4 font-mono text-sm resize-none outline-none bg-transparent placeholder:text-muted-foreground/20 text-foreground selection:bg-primary/20"
+                    className="flex-1 w-full px-6 py-4 font-mono text-sm resize-none outline-none bg-transparent placeholder:text-muted-foreground/50 text-foreground selection:bg-primary/20"
                   />
                 </div>
               </ResizablePanel>
@@ -1703,7 +1703,7 @@ export default function Playground() {
                     <div className="w-7 h-7 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-sm">
                       <Terminal size={14} />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
                       Virtual Console
                     </span>
                     {isRunning && (
@@ -1734,13 +1734,13 @@ export default function Playground() {
                       }}
                     >
                       {output || (
-                        <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-30 select-none pt-12">
+                        <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-70 select-none pt-12">
                           <div className="w-16 h-16 rounded-[24px] border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
                             <Play size={24} className="text-muted-foreground/40 translate-x-0.5" />
                           </div>
                           <div className="space-y-1">
                             <p className="text-[11px] font-black uppercase tracking-widest">Awaiting Command</p>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Press Ctrl+Enter to initialize</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Press Ctrl+Enter to initialize</p>
                           </div>
                         </div>
                       )}

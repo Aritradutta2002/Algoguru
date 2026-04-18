@@ -316,7 +316,7 @@ export default function Practice() {
             </h1>
             
             <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
-              Master data structures and algorithms topic by topic. Track your progress and ace technical interviews with curated patterns.
+              Master Code. Ace Interviews.
             </p>
 
             {loadingState && (
@@ -338,7 +338,7 @@ export default function Practice() {
                 <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-foreground">
                   {topic.title}
                 </h2>
-                <p className="text-sm font-medium text-muted-foreground">{topic.description}</p>
+                <p className="text-sm font-medium text-muted-foreground/90">{topic.description}</p>
               </div>
 
               <div className="grid gap-6">
@@ -364,12 +364,12 @@ export default function Practice() {
                                 <h3 className="text-lg font-black uppercase tracking-tight group-hover:text-primary transition-colors">
                                   {sub.title}
                                 </h3>
-                                <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full border flex items-center gap-1.5 transition-colors ${isDone ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground'}`}>
+                                <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full border flex items-center gap-1.5 transition-colors ${isDone ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted/80 text-muted-foreground'}`}>
                                   {isDone && <CheckCircle2 size={12} />}
                                   {completedSub}/{total}
                                 </div>
                               </div>
-                              <p className="text-xs font-medium text-muted-foreground leading-relaxed max-w-[90%]">
+                              <p className="text-xs font-medium text-muted-foreground/90 leading-relaxed max-w-[90%]">
                                 {sub.description}
                               </p>
                             </div>
@@ -412,7 +412,7 @@ export default function Practice() {
                                         <label 
                                           htmlFor={prob.id} 
                                           className={`text-sm font-bold cursor-pointer select-none transition-all ${
-                                            checked ? 'text-muted-foreground/60 line-through' : 'text-foreground'
+                                            checked ? 'text-muted-foreground/80 line-through' : 'text-foreground'
                                           }`}
                                         >
                                           {prob.title}
@@ -432,7 +432,7 @@ export default function Practice() {
                                         {prob.companies.map((company) => (
                                           <span
                                             key={`${prob.id}-${company}`}
-                                            className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-muted/50 border border-border/50 text-muted-foreground"
+                                            className="text-[9px] font-black uppercase tracking-tight px-2 py-0.5 rounded-md bg-muted/80 border border-border/50 text-muted-foreground"
                                           >
                                             {company}
                                           </span>
