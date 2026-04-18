@@ -1106,7 +1106,7 @@ export default function Playground() {
                     : "hover:bg-muted/50 border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <div className={`w-1.5 h-1.5 rounded-full ${currentTheme.id === t.id ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/40"}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${selectedCompiler.compiler === c.compiler ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/40"}`} />
                 <span className="text-[11px] font-bold">{c.label}</span>
               </button>
             ))}
