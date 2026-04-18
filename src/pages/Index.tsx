@@ -1,9 +1,8 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Coffee, Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, Zap, Terminal, ChevronRight, Star, Heart
+  ArrowRight, Zap, Terminal, ChevronRight, Star
 } from "lucide-react";
 
 const SECTIONS = [
@@ -64,18 +63,18 @@ const SECTIONS = [
     stats: "300+ Problems",
   },
   {
-    id: "math",
-    title: "Problem Solving Math",
-    subtitle: "The foundation",
-    desc: "Number Theory, Combinatorics, Modular Arithmetic, and Geometry — the mathematical backbone of CP.",
+    id: "interview-prep",
+    title: "INTERVIEW",
+    subtitle: "Guided preparation",
+    desc: "Choose your language and follow a structured interview roadmap across DSA, core concepts, system design, and SQL.",
     icon: <BrainCircuit size={36} />,
     bg: "bg-[#7C3AED]",
     textColor: "text-white",
     shadowColor: "shadow-[6px_6px_0_0_#000]",
     hoverShadow: "hover:shadow-[0px_0px_0_0_#000]",
-    tag: "📐 Mathematics",
-    route: "/number-theory",
-    stats: "80+ Theorems",
+    tag: "🎯 Interview Prep",
+    route: "/interview",
+    stats: "4 Learning Paths",
   },
 ];
 
@@ -265,41 +264,6 @@ export default function Index() {
               </div>
             </motion.div>
           ))}
-
-          {/* Playground Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4, type: "spring", stiffness: 80 }}
-            whileHover={{ x: -2, y: -2, boxShadow: "5px 5px 0px 0px hsl(var(--border))" }}
-            whileTap={{ x: 2, y: 2, boxShadow: "0px 0px 0px 0px hsl(var(--border))" }}
-            onClick={() => navigate("/playground")}
-            className="border-2 border-black dark:border-white p-5 cursor-pointer flex flex-col bg-card text-foreground"
-            style={{ boxShadow: "3px 3px 0px 0px hsl(var(--border))", transition: "all 0.15s ease" }}
-          >
-            <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.2em] mb-4 px-1.5 py-0.5 bg-primary/20 text-primary w-fit border-[1.5px] border-primary/30">
-              💻 Browser-native
-            </div>
-            
-            <div className="mb-4 p-2.5 bg-primary/10 w-fit border-[1.5px] border-primary/30">
-              <div style={{ transform: 'scale(0.75)', transformOrigin: 'center' }}>
-                <Terminal size={36} className="text-primary" />
-              </div>
-            </div>
-            
-            <div className="flex-1">
-              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Write & Run Instantly</div>
-              <h3 className="text-xl lg:text-2xl font-black uppercase tracking-tight mb-2 leading-none">Terminal Playground</h3>
-              <p className="text-xs font-bold text-muted-foreground leading-relaxed mb-auto">Run Java natively in the browser with pre-loaded Codeforces, CodeChef, and LeetCode templates.</p>
-            </div>
-            <div className="flex items-center justify-between mt-6 pt-3 border-t-[1.5px] border-border">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No Setup Needed</span>
-              <div className="flex items-center gap-1 font-black text-xs uppercase text-primary">
-                Launch <ArrowRight size={14} />
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 

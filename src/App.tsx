@@ -12,6 +12,7 @@ import TopicPage from "./pages/TopicPage";
 import Playground from "./pages/Playground";
 import Practice from "./pages/Practice";
 import PracticeSolution from "./pages/PracticeSolution";
+import Interview from "./pages/Interview";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,10 @@ import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import InterviewDataStructurePage from "./pages/interview/InterviewDataStructurePage";
+import InterviewCoreJavaQuestionsPage from "./pages/interview/InterviewCoreJavaQuestionsPage";
+import InterviewSystemDesignPage from "./pages/interview/InterviewSystemDesignPage";
+import InterviewSqlStructurePage from "./pages/interview/InterviewSqlStructurePage";
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
@@ -658,6 +663,12 @@ const App = () => (
                         <Route path="/" element={<Index />} />
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/practice" element={<Practice />} />
+                        <Route path="/interview" element={<Interview />} />
+                        <Route path="/interview/:language" element={<Interview />} />
+                        <Route path="/interview/:language/data-structure" element={<InterviewDataStructurePage />} />
+                        <Route path="/interview/:language/core-java-qa" element={<InterviewCoreJavaQuestionsPage />} />
+                        <Route path="/interview/:language/system-design" element={<InterviewSystemDesignPage />} />
+                        <Route path="/interview/:language/sql-structure" element={<InterviewSqlStructurePage />} />
                         <Route path="/practice/solution/:problemId" element={<PracticeSolution />} />
                         <Route path="/practice/solution/:problemId/:problemSlug" element={<PracticeSolution />} />
                         <Route path="/profile" element={<Profile />} />
