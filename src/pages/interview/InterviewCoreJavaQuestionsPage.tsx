@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,9 +15,19 @@ import {
   Coffee,
   BookOpen,
   Check,
+  Loader2,
+  FileText,
+  Download,
+  Trash2,
 } from "lucide-react";
+import jsPDF from "jspdf";
 import { coreJavaInterviewTopics } from "@/data/coreJavaInterviewData";
 import { CodeBlock } from "@/components/CodeBlock";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import RichTextNoteEditor from "@/components/RichTextNoteEditor";
+import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
 
 const STORAGE_KEY_DONE = "corejava-done";
 const STORAGE_KEY_NOTES = "corejava-notes";
@@ -28,7 +38,7 @@ function loadDone(): Record<string, boolean> {
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 }
-function saveDone(d: Record<string, boolean>) {
+function saveDoneLocal(d: Record<string, boolean>) {
   localStorage.setItem(STORAGE_KEY_DONE, JSON.stringify(d));
 }
 function loadNotes(): Record<string, string> {
@@ -37,13 +47,14 @@ function loadNotes(): Record<string, string> {
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 }
-function saveNotes(d: Record<string, string>) {
+function saveNotesLocal(d: Record<string, string>) {
   localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(d));
 }
 
 export default function InterviewCoreJavaQuestionsPage() {
   const { language } = useParams<{ language?: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const backRoute = language ? `/interview/${language}` : "/interview";
 
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -55,9 +66,80 @@ export default function InterviewCoreJavaQuestionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnlyUndone, setShowOnlyUndone] = useState(false);
   const [topicSidebarOpen, setTopicSidebarOpen] = useState(true);
+  const [loadingState, setLoadingState] = useState(true);
+  const [upsertingId, setUpsertingId] = useState<string | null>(null);
+  const [showNotesPanel, setShowNotesPanel] = useState(false);
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
-  useEffect(() => { saveDone(doneMap); }, [doneMap]);
-  useEffect(() => { saveNotes(notesMap); }, [notesMap]);
+  // Load state from Supabase when user is logged in
+  useEffect(() => {
+    if (!user) {
+      // No user — use localStorage, mark loaded
+      setLoadingState(false);
+      return;
+    }
+
+    let mounted = true;
+    const loadUserState = async () => {
+      setLoadingState(true);
+      const { data, error } = await supabase
+        .from("core_java_user_state")
+        .select("question_id, notes, is_completed")
+        .eq("user_id", user.id);
+
+      if (!mounted) return;
+
+      if (error) {
+        // Table might not exist yet — fall back to localStorage silently
+        console.warn("Could not load core_java_user_state:", error.message);
+        setLoadingState(false);
+        return;
+      }
+
+      const done: Record<string, boolean> = {};
+      const notes: Record<string, string> = {};
+      for (const row of data ?? []) {
+        if (row.is_completed) done[row.question_id] = true;
+        if (row.notes) notes[row.question_id] = row.notes;
+      }
+      setDoneMap(done);
+      setNotesMap(notes);
+      setLoadingState(false);
+    };
+
+    loadUserState();
+    return () => { mounted = false; };
+  }, [user]);
+
+  // Persist to localStorage as backup
+  useEffect(() => { saveDoneLocal(doneMap); }, [doneMap]);
+  useEffect(() => { saveNotesLocal(notesMap); }, [notesMap]);
+
+  // Upsert to Supabase
+  const upsertUserState = useCallback(async (
+    questionId: string,
+    patch: Partial<{ notes: string; is_completed: boolean }>,
+  ) => {
+    if (!user) return; // localStorage only for anonymous
+
+    setUpsertingId(questionId);
+    const { error } = await supabase
+      .from("core_java_user_state")
+      .upsert(
+        {
+          user_id: user.id,
+          question_id: questionId,
+          ...patch,
+        },
+        { onConflict: "user_id,question_id" },
+      );
+
+    setUpsertingId(null);
+    if (error) {
+      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    }
+  }, [user]);
 
   const totalQuestions = useMemo(
     () => coreJavaInterviewTopics.reduce((s, t) => s + t.questions.length, 0),
@@ -88,8 +170,13 @@ export default function InterviewCoreJavaQuestionsPage() {
   }, []);
 
   const toggleDone = useCallback((id: string) => {
-    setDoneMap((prev) => ({ ...prev, [id]: !prev[id] }));
-  }, []);
+    setDoneMap((prev) => {
+      const nextDone = !prev[id];
+      const next = { ...prev, [id]: nextDone };
+      upsertUserState(id, { is_completed: nextDone });
+      return next;
+    });
+  }, [upsertUserState]);
 
   const openNote = useCallback((id: string) => {
     setActiveNoteId(id);
@@ -98,11 +185,161 @@ export default function InterviewCoreJavaQuestionsPage() {
 
   const saveNote = useCallback(() => {
     if (activeNoteId) {
-      setNotesMap((prev) => ({ ...prev, [activeNoteId]: noteDraft }));
+      const trimmed = noteDraft.trim();
+      if (!trimmed) {
+        // If note is empty, delete it from DB
+        setNotesMap((prev) => {
+          const next = { ...prev };
+          delete next[activeNoteId];
+          upsertUserState(activeNoteId, { notes: "" });
+          return next;
+        });
+      } else {
+        setNotesMap((prev) => {
+          const next = { ...prev, [activeNoteId]: trimmed };
+          upsertUserState(activeNoteId, { notes: trimmed });
+          return next;
+        });
+      }
       setActiveNoteId(null);
       setNoteDraft("");
     }
-  }, [activeNoteId, noteDraft]);
+  }, [activeNoteId, noteDraft, upsertUserState]);
+
+  const deleteNoteFromPanel = useCallback(async (questionId: string) => {
+    setDeletingNoteId(questionId);
+    setNotesMap((prev) => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
+    });
+    if (user) {
+      await upsertUserState(questionId, { notes: "" });
+    }
+    setDeletingNoteId(null);
+  }, [user, upsertUserState]);
+
+  const downloadNotesPDF = useCallback(() => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 14;
+    const usableWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Core Java Q&A — My Notes", margin, y);
+    y += 10;
+
+    // Date
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+    y += 8;
+    doc.setTextColor(0, 0, 0);
+
+    // Divider
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    const allQuestions = coreJavaInterviewTopics.flatMap((t) => t.questions);
+    const notesEntries = Object.entries(notesMap).filter(([, v]) => v && v.trim());
+
+    if (notesEntries.length === 0) {
+      doc.setFontSize(12);
+      doc.text("No notes saved yet.", margin, y);
+    } else {
+      for (const [qId, note] of notesEntries) {
+        const question = allQuestions.find((q) => q.id === qId);
+        const topic = coreJavaInterviewTopics.find((t) => t.questions.some((q) => q.id === qId));
+
+        // Check if we need a new page
+        if (y > 260) {
+          doc.addPage();
+          y = 20;
+        }
+
+        // Topic label
+        if (topic) {
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(100, 100, 200);
+          doc.text(`${topic.icon} ${topic.title}`, margin, y);
+          y += 5;
+        }
+
+        // Question
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        const qText = question ? question.question : qId;
+        const qLines = doc.splitTextToSize(`Q: ${qText}`, usableWidth);
+        doc.text(qLines, margin, y);
+        y += qLines.length * 5 + 2;
+
+        // Note content with formatting
+        const segments = parseNoteSegments(note);
+        let lineX = margin + 4;
+        doc.setTextColor(60, 60, 60);
+
+        for (const seg of segments) {
+          if (seg.text === "\n") {
+            y += 4.5;
+            lineX = margin + 4;
+            if (y > 275) { doc.addPage(); y = 20; }
+            continue;
+          }
+
+          const fontSize = seg.heading ? 11 : 9;
+          doc.setFontSize(fontSize);
+          const fontStyle = seg.bold ? "bold" : seg.italic ? "italic" : "normal";
+          doc.setFont("helvetica", fontStyle);
+
+          // Split long lines
+          const availableWidth = pageWidth - margin - lineX;
+          const textWidth = doc.getTextWidth(seg.text);
+
+          if (textWidth > availableWidth) {
+            // Wrap text
+            const words = seg.text.split(" ");
+            let currentLine = "";
+            for (const word of words) {
+              const testLine = currentLine ? `${currentLine} ${word}` : word;
+              const testWidth = doc.getTextWidth(testLine);
+              if (testWidth > availableWidth && currentLine) {
+                doc.text(currentLine, lineX, y);
+                y += fontSize * 0.5;
+                lineX = margin + 4;
+                currentLine = word;
+                if (y > 275) { doc.addPage(); y = 20; }
+              } else {
+                currentLine = testLine;
+              }
+            }
+            if (currentLine) {
+              doc.text(currentLine, lineX, y);
+              lineX += doc.getTextWidth(currentLine) + 1;
+            }
+          } else {
+            doc.text(seg.text, lineX, y);
+            lineX += textWidth + 1;
+          }
+        }
+
+        y += 8;
+
+        // Divider
+        doc.setDrawColor(230, 230, 230);
+        doc.line(margin, y - 3, pageWidth - margin, y - 3);
+        y += 2;
+      }
+    }
+
+    doc.save("core-java-notes.pdf");
+  }, [notesMap]);
 
   const progressPct = totalQuestions > 0 ? Math.round((doneCount / totalQuestions) * 100) : 0;
 
@@ -163,6 +400,21 @@ export default function InterviewCoreJavaQuestionsPage() {
               >
                 <BookOpen size={12} />
                 {showOnlyUndone ? "Show All" : "Undone Only"}
+              </button>
+              {/* My Notes */}
+              <button
+                onClick={() => setShowNotesPanel(true)}
+                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card transition-colors hover:border-primary"
+                style={{
+                  color: Object.values(notesMap).some((n) => n && n.trim()) ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))",
+                  boxShadow: "2px 2px 0px 0px hsl(var(--border))",
+                }}
+              >
+                <FileText size={12} />
+                My Notes
+                {Object.values(notesMap).filter((n) => n && n.trim()).length > 0 && (
+                  <span className="ml-0.5 text-[9px] font-mono">({Object.values(notesMap).filter((n) => n && n.trim()).length})</span>
+                )}
               </button>
             </div>
           </div>
@@ -425,7 +677,10 @@ export default function InterviewCoreJavaQuestionsPage() {
                                       <StickyNote size={10} />
                                       Your Note
                                     </div>
-                                    <p className="text-xs leading-relaxed whitespace-pre-line">{notesMap[question.id]}</p>
+                                    <div
+                                      className="text-xs leading-relaxed whitespace-pre-line note-rendered"
+                                      dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(notesMap[question.id]) }}
+                                    />
                                   </div>
                                 )}
                               </div>
@@ -479,15 +734,13 @@ export default function InterviewCoreJavaQuestionsPage() {
                 </p>
               </div>
 
-              {/* Textarea */}
+              {/* Rich Text Editor */}
               <div className="p-5">
-                <textarea
+                <RichTextNoteEditor
                   value={noteDraft}
-                  onChange={(e) => setNoteDraft(e.target.value)}
-                  placeholder="Write your notes, key takeaways, or mnemonics here..."
+                  onChange={setNoteDraft}
+                  placeholder="Write your notes, key takeaways, or mnemonics here... Use **bold**, *italic*, __underline__"
                   rows={8}
-                  className="w-full px-3 py-2 text-sm border-2 border-border bg-background resize-y focus:outline-none focus:border-primary"
-                  style={{ boxShadow: "inset 2px 2px 0px 0px hsl(var(--border))" }}
                   autoFocus
                 />
               </div>
@@ -499,6 +752,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                     setNotesMap((prev) => {
                       const next = { ...prev };
                       delete next[activeNoteId];
+                      upsertUserState(activeNoteId, { notes: "" });
                       return next;
                     });
                     setActiveNoteId(null);
@@ -530,6 +784,145 @@ export default function InterviewCoreJavaQuestionsPage() {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* My Notes Panel Modal */}
+      <AnimatePresence>
+        {showNotesPanel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 flex items-center justify-center z-50"
+            onClick={() => setShowNotesPanel(false)}
+          >
+            <div className="fixed inset-0" style={{ background: "hsl(var(--background)/0.75)", backdropFilter: "blur(8px)" }} />
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl mx-4 border-4 border-black dark:border-white bg-card max-h-[85vh] flex flex-col"
+              style={{ boxShadow: "8px 8px 0px 0px hsl(var(--border))" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b-2 border-border flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <FileText size={18} style={{ color: "hsl(var(--warning))" }} />
+                  <span className="text-sm font-black uppercase tracking-wider">My Notes</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 border border-border" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    {Object.values(notesMap).filter((n) => n && n.trim()).length} saved
+                  </span>
+                  {!user && (
+                    <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 border border-warning/30" style={{ color: "hsl(var(--warning))" }}>
+                      Login to persist
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={downloadNotesPDF}
+                    disabled={Object.values(notesMap).filter((n) => n && n.trim()).length === 0}
+                    className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border-2 border-border bg-card transition-colors hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                  >
+                    <Download size={11} />
+                    PDF
+                  </button>
+                  <button onClick={() => setShowNotesPanel(false)} className="p-1 hover:bg-muted rounded">
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Notes List */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {Object.entries(notesMap).filter(([, v]) => v && v.trim()).length === 0 ? (
+                  <div className="text-center py-12">
+                    <StickyNote size={32} className="mx-auto mb-3" style={{ color: "hsl(var(--muted-foreground))" }} />
+                    <p className="text-sm font-semibold" style={{ color: "hsl(var(--muted-foreground))" }}>
+                      No notes saved yet.
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
+                      Click "Add Note" on any question to start taking notes.
+                    </p>
+                    {!user && (
+                      <p className="text-xs mt-3 px-4" style={{ color: "hsl(var(--warning))" }}>
+                        Login to save notes permanently — they persist even after clearing cache.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  Object.entries(notesMap)
+                    .filter(([, v]) => v && v.trim())
+                    .map(([qId, note]) => {
+                      const question = coreJavaInterviewTopics.flatMap((t) => t.questions).find((q) => q.id === qId);
+                      const topic = coreJavaInterviewTopics.find((t) => t.questions.some((q) => q.id === qId));
+                      return (
+                        <div
+                          key={qId}
+                          className="border-2 border-border p-3 bg-background"
+                          style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              {topic && (
+                                <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 mr-1"
+                                  style={{ background: "hsl(var(--primary)/0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.2)" }}>
+                                  {topic.icon} {topic.title}
+                                </span>
+                              )}
+                              <p className="text-xs font-bold mt-1 leading-snug">
+                                {question ? question.question : qId}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button
+                                onClick={() => {
+                                  setShowNotesPanel(false);
+                                  setTimeout(() => openNote(qId), 200);
+                                }}
+                                className="p-1 hover:bg-muted rounded text-[10px] font-bold uppercase"
+                                title="Edit note"
+                              >
+                                <StickyNote size={12} style={{ color: "hsl(var(--warning))" }} />
+                              </button>
+                              <button
+                                onClick={() => deleteNoteFromPanel(qId)}
+                                disabled={deletingNoteId === qId}
+                                className="p-1 hover:bg-destructive/10 rounded"
+                                title="Delete note"
+                              >
+                                {deletingNoteId === qId ? (
+                                  <Loader2 size={12} className="animate-spin" style={{ color: "hsl(var(--destructive))" }} />
+                                ) : (
+                                  <Trash2 size={12} style={{ color: "hsl(var(--destructive))" }} />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                          <div
+                            className="text-xs leading-relaxed whitespace-pre-line pl-2 border-l-2 border-warning/30 note-rendered"
+                            style={{ color: "hsl(var(--foreground))" }}
+                            dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(note) }}
+                          />
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+
+              {/* Footer */}
+              {user && Object.values(notesMap).filter((n) => n && n.trim()).length > 0 && (
+                <div className="flex-shrink-0 px-5 py-2 border-t-2 border-border" style={{ background: "hsl(var(--muted)/0.2)" }}>
+                  <p className="text-[10px] font-semibold text-center" style={{ color: "hsl(var(--success))" }}>
+                    ✓ Notes are saved to your account — they persist even after clearing browser cache
+                  </p>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}

@@ -727,3 +727,40 @@
     animation: float 6s ease-in-out infinite;
   }
 }
+
+/* Note markdown rendering styles */
+.note-rendered strong {
+  font-weight: 700;
+}
+
+.note-rendered em {
+  font-style: italic;
+}
+
+.note-rendered u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.note-rendered .note-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: hsl(var(--muted) / 0.5);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+.note-rendered .note-heading {
+  font-weight: 700;
+  font-size: 1.1em;
+  display: block;
+  margin-top: 4px;
+  margin-bottom: 2px;
+}
+
+.note-rendered .note-list-item {
+  display: block;
+  padding-left: 8px;
+  margin: 1px 0;
+}
