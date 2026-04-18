@@ -70,7 +70,7 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer gap-2 focus:bg-muted text-foreground focus:text-foreground">
+        <DropdownMenuItem onClick={() => navigate("/notes")} className="cursor-pointer gap-2 focus:bg-muted text-foreground focus:text-foreground">
           <FileText size={14} />
           My Notes
         </DropdownMenuItem>

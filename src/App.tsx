@@ -26,6 +26,7 @@ import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
 import Profile from "./pages/Profile";
+import NotesDashboard from "./pages/NotesDashboard";
 import Admin from "./pages/Admin";
 import InterviewDataStructurePage from "./pages/interview/InterviewDataStructurePage";
 import InterviewCoreJavaQuestionsPage from "./pages/interview/InterviewCoreJavaQuestionsPage";
@@ -687,6 +688,7 @@ const App = () => (
                         <Route path="/practice/solution/:problemId" element={<PracticeSolution />} />
                         <Route path="/practice/solution/:problemId/:problemSlug" element={<PracticeSolution />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/notes" element={<NotesDashboard />} />
                         <Route path="/admin" element={<Admin />} />
                         <Route path="/:topicId" element={<TopicPage />} />
                         <Route path="*" element={<NotFound />} />
