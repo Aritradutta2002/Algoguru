@@ -53,10 +53,19 @@ const loadBuiltinOverrides = (): Record<string, { code: string; description: str
 const saveBuiltinOverrides = (overrides: Record<string, { code: string; description: string }>) => {
   localStorage.setItem(BUILTIN_OVERRIDES_KEY, JSON.stringify(overrides));
 };
-const FALLBACK_JAVA_COMPILERS = [
-  { label: "Java 17", compiler: "openjdk-jdk-17.0.1+12" },
-  { label: "Java 15", compiler: "openjdk-jdk-15+36" },
+const WANDBOX_API = "https://wandbox.org/api/compile.json";
+
+const SUPPORTED_LANGUAGES = [
+  { label: "Java", language: "java", version: "openjdk-jdk-21+35", extension: "java" },
+  { label: "Python", language: "python", version: "cpython-3.14.0", extension: "py" },
+  { label: "C++", language: "c++", version: "gcc-head", extension: "cpp" },
 ];
+
+const DEFAULT_CODE: Record<string, string> = {
+  java: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}`,
+  python: `print("Hello, World!")`,
+  "c++": `#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}`
+};
 
 const THEMES = [
   { id: "dracula", label: "Dracula", icon: <Palette size={13} /> },
@@ -65,14 +74,6 @@ const THEMES = [
   { id: "solarized-dark", label: "Solarized Dark", icon: <Palette size={13} /> },
   { id: "hc-black", label: "High Contrast", icon: <Palette size={13} /> },
 ];
-
-const DEFAULT_CODE = `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}`;
-
-const WANDBOX_API = "https://wandbox.org/api/compile.json";
 
 // Shared CSS Patterns
 const BUTTON_BASE_CLASSES = "flex items-center gap-2 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-lg active:scale-95";
@@ -360,13 +361,13 @@ export default function Playground() {
 
   const [code, setCode] = useState(() => {
     if (practiceData?.code?.[0]?.content) return practiceData.code[0].content;
-    return DEFAULT_CODE;
+    return DEFAULT_CODE["java"];
   });
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
-  const [availableCompilers, setAvailableCompilers] = useState(FALLBACK_JAVA_COMPILERS);
-  const [selectedCompiler, setSelectedCompiler] = useState(FALLBACK_JAVA_COMPILERS[0]);
+  const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
+  const [selectedLanguage, setSelectedLanguage] = useState(SUPPORTED_LANGUAGES[0]);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [stdin, setStdin] = useState("");
@@ -395,34 +396,6 @@ export default function Playground() {
   const decorationsRef = useRef<any[]>([]);
   const dbTemplatesRef = useRef(dbTemplates);
   dbTemplatesRef.current = dbTemplates;
-
-  useEffect(() => {
-    // Fetch actual available Java compilers from Wandbox
-    fetch("https://wandbox.org/api/list.json")
-      .then((res) => res.json())
-      .then((list: any[]) => {
-        const javaCompilers = list
-          .filter((c: any) => c.language === "Java")
-          .map((c: any) => {
-            const name = c.name as string;
-            const versionMatch = name.match(/(\d+)[\+\.\-]/);
-            const major = versionMatch ? versionMatch[1] : "";
-            const label = major ? `JDK ${major}` : name;
-            return { label, compiler: name };
-          });
-        if (javaCompilers.length > 0) {
-          setAvailableCompilers(javaCompilers);
-          setSelectedCompiler(javaCompilers[0]);
-        } else {
-          setAvailableCompilers(FALLBACK_JAVA_COMPILERS);
-          setSelectedCompiler(FALLBACK_JAVA_COMPILERS[0]);
-        }
-      })
-      .catch(() => {
-        setAvailableCompilers(FALLBACK_JAVA_COMPILERS);
-        setSelectedCompiler(FALLBACK_JAVA_COMPILERS[0]);
-      });
-  }, []);
 
   // Update breakpoint decorations whenever breakpoints change
   const updateBreakpointDecorations = useCallback(() => {
@@ -835,68 +808,121 @@ export default function Playground() {
     const raw = code;
     if (!raw.trim()) return;
 
-    try {
-      const formatted = await prettier.format(raw, {
-        parser: "java",
-        plugins: [prettierPluginJava],
-        tabWidth: 4,
-        printWidth: 100,
-      });
-      setCode(formatted);
-    } catch (error) {
-      console.error("Formatting error:", error);
-      // Fallback to naive formatting if there's a syntax error preventing Prettier from running
+    if (selectedLanguage.language === "java") {
+      try {
+        const formatted = await prettier.format(raw, {
+          parser: "java",
+          plugins: [prettierPluginJava],
+          tabWidth: 4,
+          printWidth: 100,
+        });
+        setCode(formatted);
+      } catch (error) {
+        console.error("Java formatting error:", error);
+      }
+      return;
+    }
+
+    if (selectedLanguage.language === "python" || selectedLanguage.language === "py") {
       const lines = raw.split('\n');
-      const formattedFallback: string[] = [];
+      const formattedPython = [];
+      let previousBlank = false;
+
+      for (let line of lines) {
+        let trimmed = line.trim();
+        
+        let spacesMatches = line.match(/^\s*/);
+        let spaces = spacesMatches ? spacesMatches[0].replace(/\t/g, '    ') : '';
+
+        if (!trimmed) {
+          if (!previousBlank) formattedPython.push('');
+          previousBlank = true;
+          continue;
+        }
+        previousBlank = false;
+        
+        formattedPython.push(spaces + trimmed);
+      }
+      setCode(formattedPython.join('\n'));
+      return;
+    }
+
+    if (selectedLanguage.language === "c++" || selectedLanguage.language === "cpp") {
+      const lines = raw.split('\n');
+      const formattedCpp = [];
       let indent = 0;
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) { formattedFallback.push(''); continue; }
+      for (let line of lines) {
+        let trimmed = line.trim();
+        if (!trimmed) { 
+          formattedCpp.push(''); 
+          continue; 
+        }
 
-        const closers = (trimmed.match(/^[}\])]/g) || []).length;
-        if (closers > 0 && indent > 0) indent--;
+        if (trimmed.startsWith('#')) {
+          formattedCpp.push(trimmed);
+          continue;
+        }
 
-        formattedFallback.push('    '.repeat(Math.max(indent, 0)) + trimmed);
+        let currentIndent = indent;
+        
+        // Count how many closing brackets are at the START of the current line
+        const startClosers = (trimmed.match(/^[}\]\)]+/g) || [''])[0].length;
+        currentIndent = Math.max(0, currentIndent - startClosers);
 
-        const opens = (trimmed.match(/[{(\[]/g) || []).length;
-        const closes = (trimmed.match(/[}\])]/g) || []).length;
+        if (trimmed.match(/^(public|private|protected)\s*:/)) {
+          currentIndent = Math.max(0, currentIndent - 1);
+        }
+
+        formattedCpp.push('    '.repeat(currentIndent) + trimmed);
+
+        // Calculate next line indent based on the whole line (excluding simple comments)
+        const codePart = trimmed.split('//')[0];
+        const opens = (codePart.match(/[{(\[]/g) || []).length;
+        const closes = (codePart.match(/[}\]\)]/g) || []).length;
         indent += opens - closes;
-        if (closers > 0) indent += closers;
         indent = Math.max(indent, 0);
       }
-      setCode(formattedFallback.join('\n'));
+      setCode(formattedCpp.join('\n'));
+      return;
     }
-  }, [code]);
+
+    setCode(raw);
+  }, [code, selectedLanguage]);
 
   const resetCode = useCallback(() => {
-    setCode(DEFAULT_CODE);
+    setCode(DEFAULT_CODE[selectedLanguage.language] || "");
     setOutput("");
     setStdin("");
     setBreakpoints(new Set());
     setIsDebugMode(false);
-  }, []);
+  }, [selectedLanguage.language]);
 
   const runCode = useCallback(async (debugRun = false) => {
     setIsRunning(true);
     setOutput("");
     try {
       let sourceCode = code;
+      const isJava = selectedLanguage.language === "java";
       
       // If debug mode, instrument the code with print statements at breakpoints
-      if (debugRun && breakpoints.size > 0) {
+      if (debugRun && breakpoints.size > 0 && isJava) {
         sourceCode = instrumentCodeForDebug(sourceCode, breakpoints);
         setOutput("🔍 Debug mode: Instrumented " + breakpoints.size + " breakpoint(s)...\n\n");
       }
 
-      const processedCode = addAutoImports(sourceCode).replace(/public\s+class\s+/g, "class ");
+      let processedCode = sourceCode;
+      if (isJava) {
+        processedCode = addAutoImports(sourceCode).replace(/public\s+class\s+/g, "class ");
+      }
+
       const res = await fetch(WANDBOX_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          compiler: selectedLanguage.version,
           code: processedCode,
-          compiler: selectedCompiler.compiler,
-          stdin,
+          stdin: stdin || "",
           "compiler-option-raw": "",
           "runtime-option-raw": "",
           save: false,
@@ -910,19 +936,17 @@ export default function Playground() {
       }
 
       const data = await res.json();
-      const parts: string[] = [];
+      const parts = [];
 
-      if (data.compiler_error) {
-        parts.push(`⚠ Compilation Error:\n${data.compiler_error}`);
-      }
-      if (data.compiler_message && !data.compiler_error) {
-        parts.push(`Compiler: ${data.compiler_message}`);
+      if (data.compiler_error || data.compiler_message) {
+        const msg = data.compiler_error || data.compiler_message;
+        if (msg.trim()) parts.push(`[Compiler]\n${msg}`);
       }
       if (data.program_output) {
         parts.push(data.program_output);
       }
       if (data.program_error) {
-        parts.push(`\n⚠ Runtime Error:\n${data.program_error}`);
+        parts.push(`[Runtime Error]\n${data.program_error}`);
       }
 
       const result = parts.join("\n") || "✓ Program executed successfully (no output)";
@@ -936,7 +960,7 @@ export default function Playground() {
     } finally {
       setIsRunning(false);
     }
-  }, [code, stdin, selectedCompiler, breakpoints]);
+  }, [code, stdin, selectedLanguage, breakpoints]);
 
   const downloadCode = useCallback(() => {
     const classMatch = code.match(/public\s+class\s+(\w+)/);
@@ -1078,7 +1102,7 @@ export default function Playground() {
     >
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
-      {/* Compiler Section — Collapsible */}
+      {/* Language Section — Collapsible */}
       <div className="relative z-10">
         <button
           onClick={() => setSettingsCompilerOpen(!settingsCompilerOpen)}
@@ -1088,25 +1112,24 @@ export default function Playground() {
             <Settings size={14} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Compiler</p>
-            <p className="text-[11px] font-bold text-foreground truncate">{selectedCompiler.label}</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Language</p>
+            <p className="text-[11px] font-bold text-foreground truncate">{selectedLanguage.label}</p>
           </div>
-          <ChevronDown size={14} className={`text-muted-foreground/70 transition-transform duration-300 ${settingsThemeOpen ? "rotate-180" : ""}`} />
+          <ChevronDown size={14} className={`text-muted-foreground/70 transition-transform duration-300 ${settingsCompilerOpen ? "rotate-180" : ""}`} />
         </button>
-        
         {settingsCompilerOpen && (
-          <div className="px-2 pb-3 space-y-1 animate-in slide-in-from-top-2 duration-200">
-            {availableCompilers.map((c) => (
+          <div className="px-2 pb-2">
+            {availableLanguages.map((c) => (
               <button
-                key={c.compiler}
-                onClick={() => { setSelectedCompiler(c); }}
+                key={c.language}
+                onClick={() => { setSelectedLanguage(c); setCode(DEFAULT_CODE[c.language] || ""); }}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-left rounded-xl transition-all border ${
-                  selectedCompiler.compiler === c.compiler 
+                  selectedLanguage.language === c.language 
                     ? "bg-primary/10 border-primary/20 text-primary" 
                     : "hover:bg-muted/50 border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <div className={`w-1.5 h-1.5 rounded-full ${selectedCompiler.compiler === c.compiler ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/40"}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${selectedLanguage.language === c.language ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/40"}`} />
                 <span className="text-[11px] font-bold">{c.label}</span>
               </button>
             ))}
@@ -1499,7 +1522,7 @@ export default function Playground() {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success text-[9px] font-black uppercase tracking-widest">
                     <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
-                    {selectedCompiler.label}
+                    {selectedLanguage.label}
                   </div>
                   {breakpoints.size > 0 && (
                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/10 border border-warning/20 text-warning text-[9px] font-black uppercase tracking-widest">
@@ -1631,7 +1654,7 @@ export default function Playground() {
                 <div className="flex-1 min-h-0">
                   <Editor
                     height="100%"
-                    language="java"
+                    language={selectedLanguage.language === "c++" ? "cpp" : selectedLanguage.language}
                     theme={currentTheme.id}
                     value={code}
                     onChange={(val) => setCode(val || "")}
