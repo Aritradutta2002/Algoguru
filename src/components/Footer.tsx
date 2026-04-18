@@ -19,16 +19,6 @@ const TESTIMONIALS = [
 
 export function Footer({ onSupportClick }: FooterProps) {
   const currentYear = new Date().getFullYear();
-  const buyMeCoffeeUrl = import.meta.env.VITE_BUYMEACOFFEE_URL || "";
-
-  const handleSupportClick = () => {
-    if (buyMeCoffeeUrl) {
-      window.open(buyMeCoffeeUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    onSupportClick();
-  };
 
   const scrollingTestimonials = [...TESTIMONIALS, ...TESTIMONIALS];
 
@@ -185,7 +175,7 @@ export function Footer({ onSupportClick }: FooterProps) {
                 </div>
 
                 <motion.button
-                  onClick={handleSupportClick}
+                  onClick={onSupportClick}
                   whileHover={{ y: -2, scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className="group mt-6 w-full relative overflow-hidden rounded-2xl px-5 py-4 text-left"
