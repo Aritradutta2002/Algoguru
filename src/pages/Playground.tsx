@@ -1388,7 +1388,15 @@ export default function Playground() {
             
             {showTemplateMenu && (
               <>
-                <div className="fixed inset-0 z-[9998]" onClick={() => setShowTemplateMenu(false)} />
+                <div 
+                  className="fixed inset-0 z-[9998]" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('Template backdrop clicked');
+                    setShowTemplateMenu(false);
+                  }}
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                />
                 <div
                   className="fixed left-1/2 -translate-x-1/2 top-24 w-[90vw] max-w-md rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
                   style={{ 
@@ -1570,7 +1578,15 @@ export default function Playground() {
             </button>
             {showSettingsMenu && (
               <>
-                <div className="fixed inset-0 z-[9998]" onClick={() => setShowSettingsMenu(false)} />
+                <div 
+                  className="fixed inset-0 z-[9998]" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('Settings backdrop clicked');
+                    setShowSettingsMenu(false);
+                  }}
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                />
                 <SettingsDropdownContent />
               </>
             )}
