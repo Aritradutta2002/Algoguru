@@ -1188,7 +1188,7 @@ export default function Playground() {
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => (
     <div
-      className="absolute right-0 sm:right-0 left-0 sm:left-auto top-full mt-3 w-full sm:w-64 mx-4 sm:mx-0 rounded-[28px] overflow-hidden z-50 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 animate-in fade-in zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
+      className="fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-64 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 animate-in fade-in zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
     >
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
@@ -1366,9 +1366,9 @@ export default function Playground() {
             
             {showTemplateMenu && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowTemplateMenu(false)} />
+                <div className="fixed inset-0 z-[9998]" onClick={() => setShowTemplateMenu(false)} />
                 <div
-                  className="absolute left-0 sm:left-auto sm:right-0 top-full mt-3 w-full sm:w-80 mx-4 sm:mx-0 rounded-[28px] overflow-hidden z-50 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
+                  className="fixed sm:absolute left-4 sm:left-auto right-4 sm:right-0 top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-80 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
                 >
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
                   
@@ -1539,7 +1539,7 @@ export default function Playground() {
             </button>
             {showSettingsMenu && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowSettingsMenu(false)} />
+                <div className="fixed inset-0 z-[9998]" onClick={() => setShowSettingsMenu(false)} />
                 <SettingsDropdownContent />
               </>
             )}
