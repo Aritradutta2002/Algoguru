@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ChevronRight, ExternalLink, NotebookPen, Sparkles, Timer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,40 +40,63 @@ export default function PracticeSolution() {
   if (!detail) return <Navigate to="/practice" replace />;
 
   return (
-    <div ref={pageRootRef} className="flex-1 h-full w-full max-w-6xl mx-auto p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <Link
-          to="/practice"
-          className="inline-flex items-center gap-2 rounded-md border-2 border-border bg-card px-3 py-1.5 text-xs font-black uppercase tracking-wide hover:bg-secondary"
-        >
-          <ArrowLeft size={14} />
-          Back to Practice
-        </Link>
+    <div ref={pageRootRef} className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
+      <section className="px-4 md:px-10 lg:px-16 py-10 md:py-14 max-w-7xl mx-auto relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[580px] h-[360px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <a
-            href={detail.problem.leetcodeLink}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-md border-2 border-border bg-card px-3 py-1.5 text-xs font-black uppercase tracking-wide hover:bg-secondary"
-          >
-            Practice in LeetCode
-            <ExternalLink size={12} />
-          </a>
-          <a
-            href={detail.problem.gfgLink}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-md border-2 border-border bg-card px-3 py-1.5 text-xs font-black uppercase tracking-wide hover:bg-secondary"
-          >
-            Practice in GeeksforGeeks
-            <ExternalLink size={12} />
-          </a>
-        </div>
-      </div>
+        <div className="relative z-10 space-y-6">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex-wrap">
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight size={10} className="opacity-50" />
+            <Link to="/practice" className="hover:text-primary transition-colors">Practice</Link>
+            <ChevronRight size={10} className="opacity-50" />
+            <span className="text-primary">Solution</span>
+          </div>
 
-      <Card className="border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))]">
-        <CardHeader className="space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/40 text-[10px] font-bold uppercase tracking-widest">
+            <NotebookPen size={12} className="text-primary" />
+            <span className="text-muted-foreground">Problem Breakdown</span>
+          </div>
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="space-y-3 max-w-4xl">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter leading-tight">
+                {detail.problem.title}
+              </h1>
+              <p className="text-sm md:text-base font-medium text-muted-foreground leading-relaxed">
+                {detail.description}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap md:justify-end">
+              <Link
+                to="/practice"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+              >
+                <ArrowLeft size={14} />
+                Back
+              </Link>
+              <a
+                href={detail.problem.leetcodeLink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+              >
+                LeetCode
+                <ExternalLink size={12} />
+              </a>
+              <a
+                href={detail.problem.gfgLink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+              >
+                GeeksforGeeks
+                <ExternalLink size={12} />
+              </a>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline" className={`text-[10px] font-black uppercase border ${difficultyClasses(detail.problem.difficulty)}`}>
               {detail.problem.difficulty}
@@ -90,90 +113,95 @@ export default function PracticeSolution() {
               </Badge>
             )}
           </div>
-          <CardTitle className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-            {detail.problem.title}
-          </CardTitle>
-          <CardDescription className="text-sm font-semibold leading-relaxed max-w-4xl">
-            {detail.description}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+        </div>
+      </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-2 border-border">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[10px] font-black uppercase tracking-wide">Worst Case</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm font-bold">{detail.complexity.worst}</CardContent>
-        </Card>
+      <section className="px-4 md:px-10 lg:px-16 pb-14 md:pb-20 max-w-7xl mx-auto space-y-7">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="rounded-2xl border bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-1">
+              <CardDescription className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                <Timer size={12} /> Worst Case
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm md:text-base font-extrabold">{detail.complexity.worst}</CardContent>
+          </Card>
 
-        <Card className="border-2 border-border">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[10px] font-black uppercase tracking-wide">Average Case</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm font-bold">{detail.complexity.average}</CardContent>
-        </Card>
+          <Card className="rounded-2xl border bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-1">
+              <CardDescription className="text-[10px] font-black uppercase tracking-widest">Average Case</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm md:text-base font-extrabold">{detail.complexity.average}</CardContent>
+          </Card>
 
-        <Card className="border-2 border-border">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[10px] font-black uppercase tracking-wide">Optimal Case</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm font-bold">{detail.complexity.optimal}</CardContent>
-        </Card>
+          <Card className="rounded-2xl border bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-1">
+              <CardDescription className="text-[10px] font-black uppercase tracking-widest">Optimal Case</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm md:text-base font-extrabold">{detail.complexity.optimal}</CardContent>
+          </Card>
 
-        <Card className="border-2 border-border">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[10px] font-black uppercase tracking-wide">Space</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm font-bold">{detail.complexity.space}</CardContent>
-        </Card>
-      </div>
+          <Card className="rounded-2xl border bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-1">
+              <CardDescription className="text-[10px] font-black uppercase tracking-widest">Space</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm md:text-base font-extrabold">{detail.complexity.space}</CardContent>
+          </Card>
+        </div>
 
-      <Card className="border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))]">
-        <CardHeader>
-          <CardTitle className="text-lg font-black uppercase tracking-wide">Approach</CardTitle>
-          <CardDescription className="text-xs font-semibold">Step-by-step idea to solve the problem efficiently.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 list-disc pl-5 text-sm font-medium leading-relaxed">
-            {detail.approach.map((step, index) => (
-              <li key={`${detail.problem.id}-approach-${index}`}>{step}</li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+        <div className="grid gap-6 lg:grid-cols-5">
+          <Card className="rounded-[28px] border lg:col-span-2">
+            <CardHeader className="space-y-2">
+              <CardTitle className="text-lg font-black uppercase tracking-wide flex items-center gap-2">
+                <Sparkles size={16} className="text-primary" />
+                Approach
+              </CardTitle>
+              <CardDescription className="text-xs font-semibold">Step-by-step strategy used in the final solution.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2.5 list-disc pl-5 text-sm font-medium leading-relaxed text-muted-foreground">
+                {detail.approach.map((step, index) => (
+                  <li key={`${detail.problem.id}-approach-${index}`} className="text-foreground/90">
+                    {step}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
 
-      <Card className="border-2 border-border shadow-[4px_4px_0_0_hsl(var(--border))]">
-        <CardHeader>
-          <CardTitle className="text-lg font-black uppercase tracking-wide">Solutions by Language</CardTitle>
-          <CardDescription className="text-xs font-semibold">Java, C++, and Python versions with time complexity context.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="java" className="w-full">
-            <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="java">Java</TabsTrigger>
-              <TabsTrigger value="cpp">C++</TabsTrigger>
-              <TabsTrigger value="python">Python</TabsTrigger>
-            </TabsList>
+          <Card className="rounded-[28px] border lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="text-lg font-black uppercase tracking-wide">Solutions by Language</CardTitle>
+              <CardDescription className="text-xs font-semibold">Java, C++, and Python implementations using the same core logic.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="java" className="w-full">
+                <TabsList className="w-full sm:w-auto rounded-xl">
+                  <TabsTrigger value="java">Java</TabsTrigger>
+                  <TabsTrigger value="cpp">C++</TabsTrigger>
+                  <TabsTrigger value="python">Python</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="java">
-              <CodeBlock title={`${detail.problem.title} - Java`} language="java" code={detail.javaCode} />
-            </TabsContent>
+                <TabsContent value="java">
+                  <CodeBlock title={`${detail.problem.title} - Java`} language="java" code={detail.javaCode} />
+                </TabsContent>
 
-            <TabsContent value="cpp">
-              <CodeBlock title={`${detail.problem.title} - C++`} language="cpp" code={detail.cppCode} />
-            </TabsContent>
+                <TabsContent value="cpp">
+                  <CodeBlock title={`${detail.problem.title} - C++`} language="cpp" code={detail.cppCode} />
+                </TabsContent>
 
-            <TabsContent value="python">
-              <CodeBlock title={`${detail.problem.title} - Python`} language="python" code={detail.pythonCode} />
-            </TabsContent>
-          </Tabs>
+                <TabsContent value="python">
+                  <CodeBlock title={`${detail.problem.title} - Python`} language="python" code={detail.pythonCode} />
+                </TabsContent>
+              </Tabs>
 
-          <div className="mt-4 text-xs font-semibold text-muted-foreground">
-            Time Complexity reference: Worst {detail.complexity.worst}, Average {detail.complexity.average}, Optimal {detail.complexity.optimal}.
-          </div>
-        </CardContent>
-      </Card>
+              <div className="mt-4 text-xs font-semibold text-muted-foreground">
+                Complexity reference: Worst {detail.complexity.worst}, Average {detail.complexity.average}, Optimal {detail.complexity.optimal}, Space {detail.complexity.space}.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
     </div>
   );
 }
