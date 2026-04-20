@@ -814,51 +814,29 @@ export default function Playground() {
 
     if (selectedLanguage.language === "java") {
       try {
-        const formatted = await prettier.format(raw, {
-          parser: "java",
-          plugins: [prettierPluginJava],
-          tabWidth: 4,
-          printWidth: 100,
-          useTabs: false,
-          semi: true,
-          singleQuote: false,
-          trailingComma: "none",
-          bracketSpacing: true,
-          arrowParens: "always",
+        // Use Google Java Format API
+        const response = await fetch('https://java-format-api.vercel.app/api/format', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: raw }),
         });
         
-        // Post-process: Remove excessive blank lines (max 1 blank line between code blocks)
-        const lines = formatted.split('\n');
-        const compactLines = [];
-        let consecutiveBlankLines = 0;
-        
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          const trimmed = line.trim();
-          
-          if (!trimmed) {
-            consecutiveBlankLines++;
-            // Allow max 1 blank line, but not at the start or after opening brace
-            if (consecutiveBlankLines <= 1) {
-              const prevLine = compactLines[compactLines.length - 1];
-              const nextLine = lines[i + 1]?.trim();
-              // Don't add blank line after opening brace or before closing brace
-              if (prevLine && !prevLine.trim().endsWith('{') && nextLine && nextLine !== '}') {
-                compactLines.push(line);
-              }
-            }
-          } else {
-            consecutiveBlankLines = 0;
-            compactLines.push(line);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.formatted) {
+            setCode(data.formatted);
+            setOutput("✓ Code formatted with Google Java Format");
+            setTimeout(() => setOutput(""), 2000);
+            return;
           }
         }
         
-        setCode(compactLines.join('\n'));
-        setOutput("✓ Code formatted successfully");
-        setTimeout(() => setOutput(""), 2000);
+        // If API fails, use fallback formatter
+        throw new Error('API formatting failed');
       } catch (error) {
-        console.error("Java formatting error:", error);
-        // Fallback: Basic Java formatting
+        console.error("Google Java Format API error:", error);
+        
+        // Fallback: Enhanced Java formatting with proper indentation
         try {
           const lines = raw.split('\n');
           const formattedJava = [];
@@ -866,16 +844,16 @@ export default function Playground() {
           let inMultilineComment = false;
           let consecutiveBlankLines = 0;
 
-          for (let line of lines) {
+          for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
             let trimmed = line.trim();
             
-            // Handle empty lines - allow max 1 consecutive blank line
+            // Handle empty lines - max 1 consecutive
             if (!trimmed) {
               consecutiveBlankLines++;
               if (consecutiveBlankLines <= 1 && formattedJava.length > 0) {
                 const prevLine = formattedJava[formattedJava.length - 1];
-                // Don't add blank line right after opening brace
-                if (!prevLine.trim().endsWith('{')) {
+                if (!prevLine.trim().endsWith('{') && !prevLine.trim().endsWith('*/')) {
                   formattedJava.push('');
                 }
               }
@@ -910,11 +888,11 @@ export default function Playground() {
               continue;
             }
 
-            // Count closing braces at the start of the line
+            // Count closing braces at start
             const startClosers = (trimmed.match(/^[}]+/g) || [''])[0].length;
             let currentIndent = Math.max(0, indent - startClosers);
 
-            // Handle case and default labels
+            // Handle case/default labels
             if (trimmed.match(/^(case\s+.*:|default\s*:)/)) {
               currentIndent = Math.max(0, indent - 1);
             }
@@ -923,13 +901,13 @@ export default function Playground() {
             formattedJava.push('    '.repeat(currentIndent) + trimmed);
 
             // Calculate next line indent
-            const codePart = trimmed.split('//')[0]; // Ignore inline comments
+            const codePart = trimmed.split('//')[0];
             const opens = (codePart.match(/\{/g) || []).length;
             const closes = (codePart.match(/\}/g) || []).length;
             indent += opens - closes;
             indent = Math.max(indent, 0);
 
-            // Special handling for case statements
+            // Special case handling
             if (trimmed.match(/^(case\s+.*:|default\s*:)/) && !trimmed.includes('{')) {
               indent++;
             }
@@ -939,11 +917,11 @@ export default function Playground() {
           }
           
           setCode(formattedJava.join('\n'));
-          setOutput("✓ Code formatted (basic formatting applied)");
+          setOutput("✓ Code formatted (fallback formatter)");
           setTimeout(() => setOutput(""), 2000);
         } catch (fallbackError) {
           console.error("Fallback formatting error:", fallbackError);
-          setOutput("✗ Formatting failed. Please check your code syntax.");
+          setOutput("✗ Formatting failed. Check your code syntax.");
           setTimeout(() => setOutput(""), 3000);
         }
       }
