@@ -404,7 +404,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-border/10">
                                 <div className="p-8 space-y-6">
                                   {activeView === "theory" && (
-                                    <div className="bg-muted/20 p-6 md:p-8 rounded-[24px] prose prose-invert prose-base md:prose-lg leading-relaxed text-foreground/90 max-w-none">
+                                    <div className="bg-card/50 border border-border/20 p-6 md:p-10 rounded-[32px] text-[16px] md:text-[18px] leading-[1.8] text-foreground/90 max-w-none shadow-sm font-medium tracking-wide">
                                       {renderTheoryContent(question.answer)}
                                     </div>
                                   )}
@@ -485,15 +485,48 @@ function renderTheoryContent(answer: string): ReactNode {
   const sections = answer.split("\n\n").filter(Boolean);
   return sections.map((section, idx) => {
     const lines = section.split("\n").filter(Boolean);
-    const isList = lines.every(l => l.startsWith("- "));
+    const isBulletList = lines.every(l => l.trim().startsWith("- "));
+    const isNumberedList = lines.every(l => /^\d+\./.test(l.trim()));
+    
+    // Check if it's a heading-like section (single line, ends with colon or is short)
+    const isHeading = lines.length === 1 && (lines[0].endsWith(":") || (lines[0].length < 50 && !lines[0].endsWith(".")));
+
     return (
-      <div key={idx} className="mb-6 text-base tracking-wide">
-        {isList ? (
-          <ul className="list-disc pl-6 space-y-2.5">
-            {lines.map((l, i) => <li key={i}>{l.replace("- ", "")}</li>)}
+      <div key={idx} className={`mb-8 ${idx === sections.length - 1 ? 'mb-0' : ''}`}>
+        {isHeading ? (
+          <h4 className="text-xl md:text-2xl font-black text-foreground mb-4 uppercase tracking-tight">{lines[0]}</h4>
+        ) : isBulletList ? (
+          <ul className="list-disc pl-6 space-y-4 text-muted-foreground/90">
+            {lines.map((l, i) => (
+              <li key={i} className="pl-2 leading-relaxed">
+                <span className="text-foreground">{l.replace(/^- /, "")}</span>
+              </li>
+            ))}
           </ul>
+        ) : isNumberedList ? (
+          <ol className="list-decimal pl-6 space-y-4 text-muted-foreground/90 font-mono">
+            {lines.map((l, i) => {
+              const content = l.replace(/^\d+\.\s*/, "");
+              // Highlight the term before the colon if exists
+              const parts = content.split(":");
+              return (
+                <li key={i} className="pl-2 font-sans">
+                  {parts.length > 1 ? (
+                    <>
+                      <strong className="text-primary font-bold">{parts[0]}:</strong>
+                      <span className="text-foreground">{parts.slice(1).join(":")}</span>
+                    </>
+                  ) : (
+                    <span className="text-foreground">{content}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
         ) : (
-          lines.map((l, i) => <p key={i} className="mb-3 last:mb-0 leading-relaxed">{l}</p>)
+          <div className="space-y-4">
+            {lines.map((l, i) => <p key={i} className="text-muted-foreground/90 leading-relaxed max-w-[85ch]">{l}</p>)}
+          </div>
         )}
       </div>
     );
