@@ -214,6 +214,15 @@
     border-radius: 1rem;
     overflow: hidden;
     box-shadow: var(--shadow-card);
+    /* Allow horizontal scroll on mobile for code content */
+    max-width: 100%;
+  }
+
+  @media (max-width: 767px) {
+    .code-block-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
   }
 
   .code-block-header {
@@ -372,7 +381,7 @@
   /* ═══ Content Renderer — LeetCode-quality Layout ═══ */
 
   .cr-problem-card {
-    @apply mb-12 scroll-mt-24 p-6 md:p-8;
+    @apply mb-7 md:mb-9 lg:mb-12 scroll-mt-24 p-4 md:p-6 lg:p-8;
     background: hsl(var(--reading-surface));
     color: hsl(var(--reading-foreground));
     border: 2px solid hsl(var(--reading-border));
@@ -382,7 +391,7 @@
   }
 
   .cr-header {
-    @apply mb-6 pb-5;
+    @apply mb-4 md:mb-6 pb-4 md:pb-5;
     border-bottom: 1px solid hsl(var(--reading-border) / 0.65);
   }
 
@@ -391,7 +400,7 @@
   }
 
   .cr-title {
-    @apply text-[22px] md:text-[26px] font-bold tracking-tight;
+    @apply text-base md:text-[22px] lg:text-[26px] font-bold tracking-tight;
     color: hsl(var(--reading-foreground));
     line-height: 1.3;
     letter-spacing: 0;
@@ -437,7 +446,7 @@
 
   /* ── Section blocks ── */
   .cr-block {
-    @apply mb-6;
+    @apply mb-4 md:mb-6;
   }
 
   .cr-block-label {
@@ -456,7 +465,7 @@
   }
 
   .cr-theory-list li {
-    @apply text-[15px] leading-[1.85] relative pl-4;
+    @apply text-sm md:text-[15px] leading-[1.85] relative pl-4;
     color: hsl(var(--reading-foreground) / 0.92);
     font-family: 'Roboto', sans-serif;
   }
@@ -472,13 +481,13 @@
   }
 
   .cr-subtitle {
-    @apply text-[17px] font-bold mb-3;
+    @apply text-sm md:text-base lg:text-[17px] font-bold mb-3;
     color: hsl(var(--reading-foreground));
     font-family: 'Roboto', sans-serif;
   }
 
   .cr-para {
-    @apply text-[15px] leading-[1.85] mb-4;
+    @apply text-sm md:text-[15px] leading-[1.85] mb-4;
     color: hsl(var(--reading-foreground) / 0.9);
     font-family: 'Roboto', sans-serif;
   }
@@ -498,7 +507,7 @@
 
   /* ── Example Box ── */
   .cr-example-box {
-    @apply mb-6 rounded-xl p-5 overflow-hidden;
+    @apply mb-4 md:mb-6 rounded-xl p-4 md:p-5 overflow-hidden;
     background: hsl(var(--success) / 0.03);
     border: 1px solid hsl(var(--success) / 0.12);
     border-left: 3px solid hsl(var(--success) / 0.5);
@@ -532,7 +541,7 @@
 
   /* ── Approach Box ── */
   .cr-approach-box {
-    @apply mb-6 rounded-xl p-5 overflow-hidden;
+    @apply mb-4 md:mb-6 rounded-xl p-4 md:p-5 overflow-hidden;
     background: hsl(var(--primary) / 0.03);
     border: 1px solid hsl(var(--primary) / 0.28);
     border-left: 3px solid hsl(var(--primary) / 0.4);
@@ -549,7 +558,7 @@
   }
 
   .cr-approach-text {
-    @apply text-[15px] leading-[1.85];
+    @apply text-sm md:text-[15px] leading-[1.85];
     color: hsl(var(--reading-foreground) / 0.92);
     font-family: 'Roboto', sans-serif;
   }

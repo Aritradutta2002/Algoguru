@@ -35,7 +35,9 @@ function UpiQRCode({ upiId, amount }: { upiId: string; amount: number }) {
           alt="UPI QR Code"
           width={180}
           height={180}
-          className="block rounded-xl"
+          className="block rounded-xl max-w-full h-auto"
+          style={{ aspectRatio: '1/1' }}
+          loading="lazy"
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = "none";
           }}

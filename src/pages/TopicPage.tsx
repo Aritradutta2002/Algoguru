@@ -163,7 +163,7 @@ export default function TopicPage() {
           {/* Subtle background glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] blur-[120px] rounded-full pointer-events-none opacity-[0.05]" style={{ background: color }} />
 
-          <div className="relative z-10 px-6 md:px-12 lg:px-16 py-16 md:py-20">
+          <div className="relative z-10 px-4 md:px-12 lg:px-16 py-12 md:py-20">
             <div className="flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/")}>
                 Home
@@ -180,7 +180,7 @@ export default function TopicPage() {
                 {topic.icon}
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-foreground">
+                <h1 className="text-2xl md:text-3xl lg:text-5xl font-black uppercase tracking-tighter text-foreground">
                   {topic.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 mt-3">
@@ -215,8 +215,8 @@ export default function TopicPage() {
           </div>
         </motion.div>
 
-        <div className="px-6 md:px-12 lg:px-16 py-16 max-w-5xl mx-auto">
-          <div className="space-y-20">
+        <div className="px-4 md:px-12 lg:px-16 py-8 md:py-12 lg:py-16 max-w-5xl mx-auto">
+          <div className="space-y-10 md:space-y-15 lg:space-y-20">
             {content.map((section) => (
               <ContentRenderer key={section.id} section={section} isPractice={detectedMode === "practice"} />
             ))}

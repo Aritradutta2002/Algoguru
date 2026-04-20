@@ -376,7 +376,7 @@ export default function NotesDashboard() {
     <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
       
       {/* Header Section */}
-      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="relative z-10 text-center md:text-left space-y-6">
@@ -437,7 +437,7 @@ export default function NotesDashboard() {
       </section>
 
       {/* Main Content */}
-      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full space-y-8">
+      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full space-y-6 lg:space-y-8">
         {/* Filters Bar */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 p-4 rounded-[28px] border bg-card/50 backdrop-blur-sm">
           <div className="relative flex-1">

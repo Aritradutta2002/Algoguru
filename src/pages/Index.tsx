@@ -95,7 +95,7 @@ export default function Index() {
       </div>
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-24 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-24 max-w-7xl mx-auto relative overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
@@ -112,7 +112,7 @@ export default function Index() {
             </div>
 
             {/* Hero Title */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-[4rem] font-black uppercase leading-[1.1] tracking-tighter mb-8">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black uppercase leading-[1.1] tracking-tighter mb-8">
               Master <span className="text-primary">Code</span>.{" "}
               Ace <span className="text-accent">Interviews</span>.
             </h1>
@@ -163,7 +163,7 @@ export default function Index() {
       </div>
 
       {/* ── MODULES GRID ─────────────────────────────────── */}
-      <section id="modules" className="px-6 md:px-12 lg:px-20 py-24 max-w-7xl mx-auto w-full">
+      <section id="modules" className="px-4 md:px-12 lg:px-20 py-18 lg:py-24 max-w-7xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -173,7 +173,7 @@ export default function Index() {
           <div className="inline-block px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-4">
             Curated Learning Paths
           </div>
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">
+          <h2 className="text-3xl md:text-4xl lg:text-6xl font-black uppercase tracking-tighter">
             Select Your <span className="text-primary">Module</span>
           </h2>
         </motion.div>
@@ -212,7 +212,7 @@ export default function Index() {
 
                 {/* Content */}
                 <div className="flex-1">
-                  <h3 className="text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">
                     {sec.title}
                   </h3>
                   <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">

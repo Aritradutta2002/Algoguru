@@ -4,6 +4,7 @@ import { Send, Copy, Check, PanelRightClose, Bot, ChevronDown, RotateCcw, Messag
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = { id: string; title: string; messages: Msg[]; model: string; date: number };
@@ -77,18 +78,18 @@ function CodeBlock({ children, className }: { children: string; className?: stri
   const lang = className?.replace("language-", "") || "text";
 
   return (
-    <div className="my-4 rounded-2xl overflow-hidden border border-border/50 bg-[#0D0D0D] shadow-2xl">
+    <div className="my-4 rounded-2xl overflow-hidden border border-border/50 bg-[#0D0D0D] shadow-2xl" style={{ touchAction: 'pan-x pan-y' }}>
       <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b border-border/30">
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{lang}</span>
         <button
           onClick={async () => { await navigator.clipboard.writeText(children); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg transition-all hover:bg-muted text-muted-foreground hover:text-foreground"
+          className="touch-manipulation flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg transition-all hover:bg-muted text-muted-foreground hover:text-foreground min-h-[32px] active:scale-95"
         >
           {copied ? <Check size={12} className="text-primary" /> : <Copy size={12} />}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <div className="text-[13px] leading-[1.7] font-mono">
+      <div className="text-[13px] leading-[1.7] font-mono" style={{ touchAction: 'pan-x', overflowX: 'auto' }}>
         <SyntaxHighlighter
           language={lang}
           style={dracula}
@@ -102,18 +103,23 @@ function CodeBlock({ children, className }: { children: string; className?: stri
   );
 }
 
-function ModelSelector({ selected, onSelect }: { selected: string; onSelect: (k: string) => void }) {
+function ModelSelector({ selected, onSelect, isMobile }: { selected: string; onSelect: (k: string) => void; isMobile?: boolean }) {
   const [open, setOpen] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     if (open && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      setPos({ top: rect.bottom + 12, left: rect.left - 40 });
+      if (isMobile) {
+        // On mobile: position below trigger, full width of trigger
+        setPos({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+      } else {
+        setPos({ top: rect.bottom + 12, left: rect.left - 40, width: 260 });
+      }
     }
-  }, [open]);
+  }, [open, isMobile]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -132,20 +138,22 @@ function ModelSelector({ selected, onSelect }: { selected: string; onSelect: (k:
       <button
         ref={triggerRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2.5 px-4 py-2 rounded-2xl transition-all duration-300 border border-border/30 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 group"
+        className={`touch-manipulation flex items-center gap-2.5 px-4 py-2 min-h-[44px] rounded-2xl transition-all duration-300 border border-border/30 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 group active:scale-95 ${isMobile ? "w-full justify-between" : ""}`}
       >
-        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
-        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80 group-hover:text-foreground">
-          {activeModel.label}
-        </span>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
+          <span className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80 group-hover:text-foreground truncate">
+            {activeModel.label}
+          </span>
+        </div>
         <ChevronDown size={12} className={`flex-shrink-0 text-muted-foreground/40 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && createPortal(
         <div
           ref={dropRef}
-          className="fixed w-[260px] rounded-[28px] overflow-hidden border border-border/30 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
-          style={{ top: pos.top, left: pos.left, zIndex: 9999 }}
+          className="fixed rounded-[28px] overflow-hidden border border-border/30 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
+          style={{ top: pos.top, left: pos.left, width: pos.width || 260, zIndex: 9999 }}
         >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
           
@@ -157,7 +165,7 @@ function ModelSelector({ selected, onSelect }: { selected: string; onSelect: (k:
               <button
                 key={m.key}
                 onClick={() => { onSelect(m.key); setOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-2xl transition-all duration-300 group ${
+                className={`touch-manipulation w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-left rounded-2xl transition-all duration-300 group active:scale-95 ${
                   m.key === selected ? "bg-primary/10 border-primary/20" : "hover:bg-muted/50 border-transparent"
                 } border`}
               >
@@ -183,6 +191,9 @@ function ModelSelector({ selected, onSelect }: { selected: string; onSelect: (k:
 interface GuruBotProps { open: boolean; onClose: () => void; }
 
 export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot({ open, onClose }, ref) {
+  // Detect mobile viewport (< lg breakpoint = 1024px)
+  const isMobile = useMediaQuery('(max-width: 1023px)');
+  
   const [sessions, setSessions] = useState<Session[]>(() => {
     try { const saved = localStorage.getItem("guru-chat-sessions"); return saved ? JSON.parse(saved) : []; }
     catch { return []; }
@@ -301,30 +312,46 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
 
   if (!open) return null;
 
+  // Mobile: full-screen overlay with fixed positioning
+  // Desktop: flex container (used within split panel in App.tsx)
+  const containerClasses = isMobile 
+    ? "fixed inset-0 z-50 flex flex-col h-full bg-background font-sans"
+    : "flex flex-col h-full bg-background font-sans relative";
+
   return (
-    <div ref={ref} className="flex flex-col h-full bg-background font-sans relative">
+    <div ref={ref} className={containerClasses}>
       {/* ─── Header ─── */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-background/95 backdrop-blur-md z-20" style={{ borderColor: 'hsl(var(--border) / 0.3)' }}>
         <button 
           onClick={() => setShowHistory(o => !o)} 
-          className={`p-2.5 rounded-xl transition-all duration-300 ${showHistory ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30'}`} 
+          className={`touch-manipulation p-2.5 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${showHistory ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30'}`} 
           title="Chat History"
         >
           {showHistory ? <X size={18} /> : <History size={18} />}
         </button>
         
-        <div className="flex-1 px-4 flex items-center justify-center">
-          <ModelSelector selected={model} onSelect={setModel} />
+        <div className={`flex items-center justify-center ${isMobile ? "flex-1 px-2" : "flex-1 px-4"}`}>
+          <ModelSelector selected={model} onSelect={setModel} isMobile={isMobile} />
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button 
             onClick={startNewChat} 
-            className="p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30" 
+            className="touch-manipulation p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95" 
             title="New Chat"
           >
             <MessageSquarePlus size={18} />
           </button>
+          {/* Mobile: show close button */}
+          {isMobile && (
+            <button 
+              onClick={handleClose} 
+              className="touch-manipulation p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95" 
+              title="Close Guru"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -356,7 +383,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
                     <div 
                       key={s.id}
                       onClick={() => { setCurrentId(s.id); setShowHistory(false); setModel(s.model || 'openrouter'); }}
-                      className={`group flex items-center justify-between p-4 rounded-[22px] cursor-pointer transition-all duration-300 border ${
+                      className={`touch-manipulation group flex items-center justify-between p-4 rounded-[22px] cursor-pointer transition-all duration-300 border min-h-[44px] active:scale-95 ${
                         s.id === currentId 
                           ? 'bg-primary/5 border-primary/20 text-primary shadow-xl shadow-primary/[0.02]' 
                           : 'hover:bg-muted/50 border-transparent text-foreground/60 hover:text-foreground'
@@ -372,7 +399,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
                       </div>
                       <button 
                         onClick={(e) => deleteSession(s.id, e)}
-                        className="opacity-0 group-hover:opacity-100 w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-destructive/10 hover:text-destructive"
+                        className="touch-manipulation opacity-0 group-hover:opacity-100 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-destructive/10 hover:text-destructive active:scale-95"
                         title="Delete Chat"
                       >
                         <Trash2 size={13} />
@@ -384,7 +411,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
             </div>
           </div>
         ) : (
-          <div className="h-full overflow-y-auto p-6 md:p-8 space-y-8" style={{ overscrollBehavior: 'contain' }}>
+          <div className="h-full overflow-y-auto p-4 md:p-6 lg:p-8 space-y-8" style={{ overscrollBehavior: 'contain' }}>
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center gap-8 animate-in fade-in zoom-in-95 duration-700">
                 <div className="relative group">
@@ -412,7 +439,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
                     <button
                       key={item.q}
                       onClick={() => { setInput(item.q); setTimeout(() => inputRef.current?.focus(), 50); }}
-                      className="group flex items-center justify-between text-[12px] font-bold px-5 py-4 rounded-[24px] text-left border border-border/30 bg-card/50 hover:bg-muted hover:border-primary/20 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 text-muted-foreground hover:text-foreground"
+                      className="touch-manipulation group flex items-center justify-between text-[12px] font-bold px-5 py-4 min-h-[44px] rounded-[24px] text-left border border-border/30 bg-card/50 hover:bg-muted hover:border-primary/20 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 text-muted-foreground hover:text-foreground active:scale-95"
                     >
                       <span>{item.q}</span>
                       <div className="w-8 h-8 rounded-xl bg-muted/50 group-hover:bg-primary/10 flex items-center justify-center transition-all duration-300">
@@ -480,7 +507,15 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
       </div>
 
       {/* ─── Input ─── */}
-      <div className="px-6 py-6 border-t bg-background/95 backdrop-blur-md z-20" style={{ borderColor: 'hsl(var(--border) / 0.3)' }}>
+      <div
+        className="px-4 md:px-6 py-4 md:py-6 border-t bg-background/95 backdrop-blur-md z-20"
+        style={{
+          borderColor: 'hsl(var(--border) / 0.3)',
+          paddingBottom: isMobile
+            ? 'max(1rem, calc(1rem + env(safe-area-inset-bottom)))'
+            : undefined,
+        }}
+      >
         <div className="flex items-end gap-3 px-4 py-3 rounded-[32px] bg-muted/20 border border-border/30 focus-within:border-primary/40 focus-within:bg-muted/40 focus-within:shadow-2xl focus-within:shadow-primary/[0.03] transition-all duration-300 group">
           <textarea
             ref={inputRef}
@@ -488,7 +523,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
             onChange={(e) => {
                setInput(e.target.value);
                e.target.style.height = 'auto';
-               e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+               e.target.style.height = Math.min(e.target.scrollHeight, isMobile ? 96 : 120) + 'px';
             }}
             onKeyDown={(e) => { 
                 if (e.key === 'Enter' && !e.shiftKey) { 
@@ -498,13 +533,13 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
             }}
             placeholder="Message Guru..."
             disabled={loading && !input}
-            className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/30 disabled:opacity-50 resize-none min-h-[40px] max-h-[120px] py-2 font-bold tracking-tight leading-relaxed text-foreground"
+            className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/30 disabled:opacity-50 resize-none min-h-[40px] max-h-[96px] md:max-h-[120px] py-2 font-bold tracking-tight leading-relaxed text-foreground"
             rows={1}
           />
           <button
             onClick={loading ? stopChat : send}
             disabled={(!input.trim() && !loading) || (loading && !input && messages.length === 0)}
-            className={`flex-shrink-0 w-11 h-11 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-xl active:scale-90 ${
+            className={`touch-manipulation flex-shrink-0 w-11 h-11 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-xl active:scale-90 ${
               loading 
                 ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-destructive/20' 
                 : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/30 disabled:opacity-20 disabled:grayscale'
@@ -514,13 +549,15 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(function GuruBot
             {loading ? <Square fill="currentColor" size={16} className="rounded-[2px]" /> : <Send size={18} className="ml-0.5" />}
           </button>
         </div>
-        <div className="flex items-center justify-center gap-3 mt-4">
-          <div className="h-px flex-1 bg-border/10" />
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/20">
-            Guru Intelligence v2.1
-          </span>
-          <div className="h-px flex-1 bg-border/10" />
-        </div>
+        {!isMobile && (
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <div className="h-px flex-1 bg-border/10" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/20">
+              Guru Intelligence v2.1
+            </span>
+            <div className="h-px flex-1 bg-border/10" />
+          </div>
+        )}
       </div>
     </div>
   );

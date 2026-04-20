@@ -21,7 +21,7 @@ export function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
   };
 
   return (
-    <div className="code-block-wrapper my-7">
+    <div className="code-block-wrapper my-7" style={{ touchAction: 'pan-x pan-y' }}>
       <div className="code-block-header" style={{ background: "#21222c" }}>
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1.5 mr-2">
@@ -42,7 +42,7 @@ export function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-all duration-200"
+          className="touch-manipulation flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 min-h-[36px] rounded-lg transition-all duration-200 active:scale-95"
           style={{
             background: copied ? "hsl(var(--success)/0.1)" : "hsl(var(--muted))",
             color: copied ? "hsl(var(--success))" : "hsl(var(--muted-foreground))",
@@ -53,29 +53,31 @@ export function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <SyntaxHighlighter
-        language={language}
-        style={oneDark}
-        customStyle={{
-          margin: 0,
-          padding: "1.5rem 1.75rem",
-          background: "#282a36",
-          fontSize: "0.85rem",
-          lineHeight: "1.75",
-          borderRadius: 0,
-          fontFamily: "'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace",
-        }}
-        showLineNumbers
-        lineNumberStyle={{
-          color: "hsl(var(--muted-foreground)/0.25)",
-          fontSize: "0.7rem",
-          paddingRight: "1.5rem",
-          minWidth: "2.5rem",
-          userSelect: "none",
-        }}
-      >
-        {code.trim()}
-      </SyntaxHighlighter>
+      <div style={{ touchAction: 'pan-x', overflowX: 'auto' }}>
+        <SyntaxHighlighter
+          language={language}
+          style={oneDark}
+          customStyle={{
+            margin: 0,
+            padding: "1.5rem 1.75rem",
+            background: "#282a36",
+            fontSize: "0.85rem",
+            lineHeight: "1.75",
+            borderRadius: 0,
+            fontFamily: "'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace",
+          }}
+          showLineNumbers
+          lineNumberStyle={{
+            color: "hsl(var(--muted-foreground)/0.25)",
+            fontSize: "0.7rem",
+            paddingRight: "1.5rem",
+            minWidth: "2.5rem",
+            userSelect: "none",
+          }}
+        >
+          {code.trim()}
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 }

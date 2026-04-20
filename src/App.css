@@ -1,3 +1,16 @@
+/* CSS Custom Properties for Safe Areas */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-right: env(safe-area-inset-right);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --safe-area-inset-left: env(safe-area-inset-left);
+}
+
+/* Smooth Scroll Behavior for Anchor Links (Requirement 10.5) */
+html {
+  scroll-behavior: smooth;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -39,4 +52,42 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Touch Manipulation Utility Class */
+/* Prevents accidental double-tap zoom on interactive elements (Requirement 9.6) */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Safe Area Padding for Header and Footer */
+/* Ensures proper rendering on notched devices */
+.header {
+  padding-top: max(1rem, var(--safe-area-inset-top));
+  padding-left: max(1rem, var(--safe-area-inset-left));
+  padding-right: max(1rem, var(--safe-area-inset-right));
+}
+
+.footer {
+  padding-bottom: max(1rem, var(--safe-area-inset-bottom));
+  padding-left: max(1rem, var(--safe-area-inset-left));
+  padding-right: max(1rem, var(--safe-area-inset-right));
+}
+
+/* Reduced Animation Rules for Mobile and Accessibility (Requirement 10.6) */
+/* Reduce animation durations by 30% on mobile for faster interactions */
+@media (max-width: 768px) {
+  * {
+    animation-duration: 0.7s !important;
+    transition-duration: 0.2s !important;
+  }
+}
+
+/* Respect user's motion preferences for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

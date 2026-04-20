@@ -4,6 +4,7 @@ import { VariantProps, cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useResponsivePreferences } from "@/hooks/useResponsivePreferences";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
-const SIDEBAR_WIDTH_MOBILE = "18rem";
+const SIDEBAR_WIDTH_MOBILE = "280px";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_MIN_WIDTH = 200;
 const SIDEBAR_MAX_WIDTH = 480;
@@ -53,9 +54,28 @@ const SidebarProvider = React.forwardRef<
   }
 >(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile();
-  const [openMobile, setOpenMobile] = React.useState(false);
+  const { sidebarOpen, setSidebarOpen } = useResponsivePreferences();
+  
+  // Use responsive preferences for mobile state as well
+  const [openMobile, _setOpenMobile] = React.useState(() => {
+    return sidebarOpen ?? false;
+  });
+  
+  const setOpenMobile = React.useCallback(
+    (value: boolean | ((value: boolean) => boolean)) => {
+      const openState = typeof value === "function" ? value(openMobile) : value;
+      _setOpenMobile(openState);
+      // Persist mobile state to responsive preferences
+      setSidebarOpen(openState);
+    },
+    [openMobile, setSidebarOpen],
+  );
 
-  const [_open, _setOpen] = React.useState(defaultOpen);
+  const [_open, _setOpen] = React.useState(() => {
+    // Use responsive preferences if available, otherwise use defaultOpen
+    return sidebarOpen ?? defaultOpen;
+  });
+  
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
@@ -65,15 +85,16 @@ const SidebarProvider = React.forwardRef<
       } else {
         _setOpen(openState);
       }
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      // Persist to responsive preferences instead of cookies
+      setSidebarOpen(openState);
     },
-    [setOpenProp, open],
+    [setOpenProp, open, setSidebarOpen],
   );
 
-  // Resizable sidebar width
+  // Resizable sidebar width - default to 280px
   const [sidebarWidth, _setSidebarWidth] = React.useState<number>(() => {
     const saved = localStorage.getItem("sidebar-width");
-    return saved ? Number(saved) : 256;
+    return saved ? Number(saved) : 280;
   });
 
   const setSidebarWidth = React.useCallback((w: number) => {
@@ -215,7 +236,7 @@ const Sidebar = React.forwardRef<
   return (
     <div
       ref={ref}
-      className="group peer hidden text-sidebar-foreground md:block"
+      className="group peer hidden text-sidebar-foreground lg:block"
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
@@ -235,7 +256,7 @@ const Sidebar = React.forwardRef<
       />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] ease-linear md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] ease-linear lg:flex",
           !dragging && "transition-[left,right,width] duration-200",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"

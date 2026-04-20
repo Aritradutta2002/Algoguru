@@ -20,6 +20,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
+import { useResponsivePreferences } from "@/hooks/useResponsivePreferences";
 
 // Content imports for deep search indexing
 import { recursionContent } from "@/data/recursionContent";
@@ -229,7 +230,13 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r shadow-2xl" style={{ borderColor: "hsl(var(--sidebar-border) / 0.5)", background: "hsl(var(--sidebar-background))" }}>
+    <Sidebar 
+      className="border-r shadow-2xl" 
+      style={{ 
+        borderColor: "hsl(var(--sidebar-border) / 0.5)", 
+        background: "hsl(var(--sidebar-background))"
+      }}
+    >
       {/* Logo */}
       <Link to="/" className="block">
         <div className="group flex items-center gap-4 px-6 py-6 border-b transition-all duration-300 hover:bg-muted/30" style={{ borderColor: "hsl(var(--border) / 0.5)" }}>
@@ -263,7 +270,7 @@ export function AppSidebar() {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={cn(
-                "flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 group border",
+                "touch-manipulation flex items-center gap-3 w-full px-4 py-3 min-h-[44px] rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 group border active:scale-95",
                 item.active 
                   ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
                   : "bg-transparent border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -297,7 +304,7 @@ export function AppSidebar() {
                         navigate(`/${topic.id}`);
                       }}
                       className={cn(
-                        "flex items-center justify-between w-full px-4 py-3 rounded-[20px] text-[13px] font-bold tracking-tight transition-all duration-200 group border",
+                        "touch-manipulation flex items-center justify-between w-full px-4 py-3 min-h-[44px] rounded-[20px] text-[13px] font-bold tracking-tight transition-all duration-200 group border active:scale-95",
                         isActive 
                           ? "bg-muted/50 border-border/50 text-foreground" 
                           : "bg-transparent border-transparent text-muted-foreground/80 hover:bg-muted/30 hover:text-foreground"
@@ -347,7 +354,7 @@ export function AppSidebar() {
                                   <button
                                     onClick={() => navigate(`/${topic.id}#${sub.id}`)}
                                     className={cn(
-                                      "flex items-center gap-3 w-full px-3 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 text-left",
+                                      "touch-manipulation flex items-center gap-3 w-full px-3 py-2 min-h-[44px] rounded-xl text-[12px] font-semibold transition-all duration-200 text-left active:scale-95",
                                       active 
                                         ? "text-foreground bg-muted/30" 
                                         : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/10"
@@ -389,7 +396,7 @@ export function AppSidebar() {
                 className="flex-1 bg-transparent text-[12px] font-semibold outline-none placeholder:text-muted-foreground/30 text-foreground"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground/40 hover:text-foreground">
+                <button onClick={() => setSearchQuery("")} className="touch-manipulation p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground/40 hover:text-foreground min-w-[32px] min-h-[32px] flex items-center justify-center active:scale-95">
                   <X size={14} />
                 </button>
               )}
@@ -405,7 +412,7 @@ export function AppSidebar() {
                     <button
                       key={item.path}
                       onClick={() => { navigate(item.path); setSearchQuery(""); }}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all hover:bg-muted/50 border-b border-border/10 last:border-0"
+                      className="touch-manipulation w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] text-left transition-all hover:bg-muted/50 active:bg-muted/70 border-b border-border/10 last:border-0 active:scale-95"
                     >
                       <div className="w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center text-sm flex-shrink-0 border border-border/20">
                         {item.icon}
@@ -444,7 +451,7 @@ export function AppSidebar() {
             <div className="relative group/avatar">
               <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300" />
               {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="relative w-10 h-10 rounded-2xl object-cover border border-border/50 shadow-md" referrerPolicy="no-referrer" />
+                <img src={avatarUrl} alt="" className="relative w-10 h-10 rounded-2xl object-cover border border-border/50 shadow-md max-w-full" style={{ aspectRatio: '1/1' }} referrerPolicy="no-referrer" loading="lazy" />
               ) : (
                 <div
                   className="relative w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black border border-primary/20 bg-primary/10 text-primary shadow-sm"
@@ -460,7 +467,7 @@ export function AppSidebar() {
             <button
               onClick={signOut}
               title="Sign out"
-              className="p-2.5 rounded-xl transition-all hover:bg-destructive/10 text-muted-foreground/40 hover:text-destructive group"
+              className="touch-manipulation p-2.5 rounded-xl transition-all hover:bg-destructive/10 text-muted-foreground/40 hover:text-destructive group min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
             >
               <LogOut size={16} className="transition-transform group-hover:translate-x-0.5" />
             </button>

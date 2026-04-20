@@ -98,7 +98,7 @@ export default function Profile() {
     <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
       
       {/* Header Section */}
-      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="relative z-10 text-center md:text-left">
@@ -118,7 +118,7 @@ export default function Profile() {
       </section>
 
       {/* Main Content */}
-      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full">
+      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-12 items-start">
           
           {/* Avatar Card */}
@@ -132,7 +132,9 @@ export default function Profile() {
                   <img
                     src={avatarUrl}
                     alt="Avatar"
-                    className="relative w-32 h-32 rounded-[40px] object-cover border-2 border-border shadow-xl transition-transform duration-500 group-hover:scale-105"
+                    className="relative w-32 h-32 rounded-[40px] object-cover border-2 border-border shadow-xl transition-transform duration-500 group-hover:scale-105 max-w-full"
+                    style={{ aspectRatio: '1/1' }}
+                    loading="lazy"
                   />
                 ) : (
                   <div

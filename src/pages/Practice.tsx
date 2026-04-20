@@ -296,7 +296,7 @@ export default function Practice() {
     <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
       
       {/* Header Section */}
-      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
@@ -329,12 +329,12 @@ export default function Practice() {
       </section>
 
       {/* Main Content */}
-      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full space-y-16">
+      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full space-y-12 lg:space-y-16">
         {practiceData.map((topic) => {
           return (
             <div key={topic.id} className="space-y-8">
               <div className="space-y-2 border-b border-border/50 pb-6">
-                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-foreground">
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-black uppercase tracking-tight text-foreground">
                   {topic.title}
                 </h2>
                 <p className="text-sm font-medium text-muted-foreground/90">{topic.description}</p>
@@ -461,7 +461,8 @@ export default function Practice() {
                                           <img
                                             src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/GeeksForGeeks_logo.png/1280px-GeeksForGeeks_logo.png"
                                             alt="GFG"
-                                            className="h-3.5 w-3.5 object-contain transition-all group-hover:invert-0"
+                                            className="h-3.5 w-3.5 object-contain transition-all group-hover:invert-0 max-w-full"
+                                            style={{ aspectRatio: '1/1' }}
                                             loading="lazy"
                                           />
                                         </a>

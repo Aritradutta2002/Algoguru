@@ -35,6 +35,7 @@ import InterviewSqlStructurePage from "./pages/interview/InterviewSqlStructurePa
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 // Import all content maps for deep search
 import { recursionContent } from "@/data/recursionContent";
@@ -168,12 +169,15 @@ function SearchButton() {
       <button
         onClick={() => setOpen(true)}
         title="Search topics (Ctrl+K)"
-        className="flex items-center gap-2.5 px-4 py-2 border border-border/40 bg-muted/30 text-foreground rounded-[20px] transition-all duration-300 hover:bg-muted/50 hover:border-primary/30 w-auto sm:w-64 group"
+        className="touch-manipulation flex items-center gap-2.5 px-4 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 border border-border/40 bg-muted/30 text-foreground rounded-[20px] transition-all duration-300 hover:bg-muted/50 hover:border-primary/30 active:scale-95 w-auto sm:w-48 md:w-64 group justify-center sm:justify-start"
       >
         <Search size={14} strokeWidth={2.5} className="text-muted-foreground group-hover:text-primary transition-colors" />
-        <span className="hidden sm:inline-block flex-1 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">Search AlgoGuru...</span>
+        <span className="hidden sm:inline-block flex-1 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
+          <span className="sm:inline md:hidden">Search...</span>
+          <span className="hidden md:inline">Search AlgoGuru...</span>
+        </span>
         <kbd
-          className="hidden sm:flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border border-border/30 bg-background/50 text-muted-foreground/40"
+          className="hidden md:flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border border-border/30 bg-background/50 text-muted-foreground/40"
         >
           ⌘K
         </kbd>
@@ -209,7 +213,7 @@ function SearchButton() {
               )}
               <button 
                 onClick={() => setOpen(false)} 
-                className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="touch-manipulation w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <X size={18} />
               </button>
@@ -265,7 +269,7 @@ function SearchButton() {
             {/* Footer */}
             <div className="relative z-10 flex items-center justify-between px-6 py-4 border-t border-border/30 bg-muted/20">
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{allSearchItems.length} items indexed</span>
-              <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">↑↓</kbd>
                   <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">navigate</span>
@@ -274,6 +278,9 @@ function SearchButton() {
                   <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">esc</kbd>
                   <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">close</span>
                 </div>
+              </div>
+              <div className="md:hidden flex items-center gap-2">
+                <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">esc</kbd>
               </div>
             </div>
           </div>
@@ -288,7 +295,7 @@ function SearchResultItem({ item, onSelect }: { item: typeof allSearchItems[numb
   return (
     <button
       onClick={onSelect}
-      className="w-full flex items-center gap-4 px-6 py-4 text-left transition-all hover:bg-muted/50 group border-b border-border/10 last:border-0"
+      className="touch-manipulation w-full flex items-center gap-4 px-6 py-4 md:py-3 min-h-[44px] text-left transition-all hover:bg-muted/50 active:bg-muted/70 group border-b border-border/10 last:border-0"
     >
       <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center text-xl flex-shrink-0 border border-border/20 transition-transform group-hover:scale-110 group-hover:bg-primary/5 group-hover:border-primary/20">
         {item.icon}
@@ -327,25 +334,25 @@ function HeaderControls() {
   const isMax = fontSize === "xl";
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 md:gap-3">
       {/* Zoom controls */}
       <div className="flex items-center gap-0.5 p-1 rounded-xl bg-muted/20 border border-border/30">
         <button
           onClick={decreaseFontSize}
           disabled={isMin}
           title="Zoom out"
-          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground"
+          className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
         >
           <ZoomOut size={14} />
         </button>
-        <span className="text-[10px] font-black min-w-[32px] text-center text-foreground/60">
+        <span className="hidden md:inline-block text-[10px] font-black min-w-[32px] text-center text-foreground/60">
           {ZOOM_MAP[fontSize] || "100%"}
         </span>
         <button
           onClick={increaseFontSize}
           disabled={isMax}
           title="Zoom in"
-          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground"
+          className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
         >
           <ZoomIn size={14} />
         </button>
@@ -357,7 +364,7 @@ function HeaderControls() {
       <button
         onClick={toggleTheme}
         title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        className={`relative flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+        className={`touch-manipulation relative flex items-center gap-2 px-3 py-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border active:scale-95 ${
           isDark 
             ? "bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]" 
             : "bg-[#1a1a1a] border-white/10 text-white shadow-xl shadow-black/20"
@@ -368,14 +375,14 @@ function HeaderControls() {
             <div className="w-4 h-4 rounded-full bg-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] flex items-center justify-center">
               <span className="text-[8px]">☀️</span>
             </div>
-            <span>Day</span>
+            <span className="hidden md:inline">Day</span>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
               <span className="text-[8px]">🌙</span>
             </div>
-            <span>Night</span>
+            <span className="hidden md:inline">Night</span>
           </div>
         )}
       </button>
@@ -490,6 +497,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [supportOpen, setSupportOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Detect mobile viewport (< lg breakpoint = 1024px)
+  const isMobile = useMediaQuery('(max-width: 1023px)');
+
   useEffect(() => {
     localStorage.setItem("guru-split-pct", splitPct.toString());
   }, [splitPct]);
@@ -541,14 +551,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top bar */}
           <header
-            className="h-16 flex items-center gap-4 px-6 border-b flex-shrink-0 sticky top-0 z-40 backdrop-blur-md"
+            className="h-16 flex items-center gap-4 px-6 border-b flex-shrink-0 sticky top-0 z-40 backdrop-blur-md header"
             style={{
               borderColor: "hsl(var(--border) / 0.3)",
               background: "hsl(var(--background) / 0.8)",
             }}
           >
             <SidebarTrigger
-              className="flex items-center justify-center w-10 h-10 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30"
+              className="lg:hidden flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30"
               style={{ color: "hsl(var(--foreground))" }}
             >
               <Menu size={18} />
@@ -558,9 +568,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               onClick={() => window.location.href="/"}
               title="Go to Home"
             >
-              <div className="relative flex-shrink-0">
+              <div className="relative flex-shrink-0 min-w-[32px] max-w-[48px] md:w-auto">
                 <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <AlgoGuruLogo size={32} showText={false} className="relative z-10 block" />
+                <AlgoGuruLogo size={32} showText={false} className="relative z-10 block w-full h-auto" />
               </div>
               <span className="text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
                 AlgoGuru
@@ -579,86 +589,103 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => setGuruOpen((o) => !o)}
                 title={guruOpen ? "Close Guru" : "Open Guru"}
-                className={`flex items-center gap-2 px-4 py-2 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg ${
+                className={`touch-manipulation flex items-center gap-2 px-4 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center md:justify-start active:scale-95 ${
                   guruOpen 
                     ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
                     : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
                 }`}
               >
                 <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
-                <span className="hidden lg:inline">Guru</span>
+                <span className="hidden md:inline">Guru</span>
               </button>
             </div>
           </header>
 
           {guruOpen ? (
-            /* ── Custom flex split with mouse-event drag ── */
-            <div
-              ref={containerRef}
-              className="flex-1 flex flex-row min-h-0 overflow-hidden"
-            >
-              {/* Main content panel */}
-              <main
-                ref={contentScrollRef}
-                className="overflow-y-auto flex-shrink-0"
-                style={{
-                  width: `${splitPct}%`,
-                  overscrollBehavior: "contain",
-                  minWidth: "30%",
-                }}
-              >
-                <div className={`min-h-full ${contentBottomPaddingClass}`}>
-                  {children}
-                  {location.pathname === "/" && (
-                    <Footer onSupportClick={() => setSupportOpen(true)} />
-                  )}
-                </div>
-              </main>
-
-              {/* ── Drag handle ── */}
-              <DragHandle onMouseDown={handleDragStart} isDragging={isDragging} />
-
-              {/* Guru panel */}
-              <div
-                className="flex-1 min-w-0 overflow-hidden flex flex-col"
-                style={{ minWidth: "250px" }}
-              >
-                {/* Guru panel title bar — premium minimal style */}
-                {!isTiny && (
-                  <div
-                    className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b bg-card/50 backdrop-blur-sm"
-                    style={{
-                      borderColor: "hsl(var(--border) / 0.3)",
-                    }}
-                  >
-                    <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                      <Sparkles size={14} className="text-primary" />
-                    </div>
-                    <span
-                      className="text-xs font-black uppercase tracking-[0.15em] text-foreground overflow-hidden text-ellipsis white-space-nowrap"
-                    >
-                      {isNarrow ? "Guru" : "Guru AI Assistant"}
-                    </span>
-                    <div className="flex-1" />
-                    {!isNarrow && (
-                      <span
-                        className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary"
-                      >
-                        AI
-                      </span>
+            isMobile ? (
+              /* ── Mobile: Full-screen overlay ── */
+              <>
+                {/* Main content hidden on mobile when GuruBot is open */}
+                <main ref={contentScrollRef} className="hidden">
+                  <div className={`min-h-full ${contentBottomPaddingClass}`}>
+                    {children}
+                    {location.pathname === "/" && (
+                      <Footer onSupportClick={() => setSupportOpen(true)} />
                     )}
-                    <button
-                      onClick={() => setGuruOpen(false)}
-                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
-                      title="Close Guru"
-                    >
-                      <X size={14} />
-                    </button>
                   </div>
-                )}
+                </main>
+                {/* GuruBot full-screen overlay */}
                 <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+              </>
+            ) : (
+              /* ── Desktop: Custom flex split with mouse-event drag ── */
+              <div
+                ref={containerRef}
+                className="flex-1 flex flex-row min-h-0 overflow-hidden"
+              >
+                {/* Main content panel */}
+                <main
+                  ref={contentScrollRef}
+                  className="overflow-y-auto flex-shrink-0"
+                  style={{
+                    width: `${splitPct}%`,
+                    overscrollBehavior: "contain",
+                    minWidth: "30%",
+                  }}
+                >
+                  <div className={`min-h-full ${contentBottomPaddingClass}`}>
+                    {children}
+                    {location.pathname === "/" && (
+                      <Footer onSupportClick={() => setSupportOpen(true)} />
+                    )}
+                  </div>
+                </main>
+
+                {/* ── Drag handle ── */}
+                <DragHandle onMouseDown={handleDragStart} isDragging={isDragging} />
+
+                {/* Guru panel */}
+                <div
+                  className="flex-1 min-w-0 overflow-hidden flex flex-col"
+                  style={{ minWidth: "250px" }}
+                >
+                  {/* Guru panel title bar — premium minimal style */}
+                  {!isTiny && (
+                    <div
+                      className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b bg-card/50 backdrop-blur-sm"
+                      style={{
+                        borderColor: "hsl(var(--border) / 0.3)",
+                      }}
+                    >
+                      <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                        <Sparkles size={14} className="text-primary" />
+                      </div>
+                      <span
+                        className="text-xs font-black uppercase tracking-[0.15em] text-foreground overflow-hidden text-ellipsis white-space-nowrap"
+                      >
+                        {isNarrow ? "Guru" : "Guru AI Assistant"}
+                      </span>
+                      <div className="flex-1" />
+                      {!isNarrow && (
+                        <span
+                          className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary"
+                        >
+                          AI
+                        </span>
+                      )}
+                      <button
+                        onClick={() => setGuruOpen(false)}
+                        className="touch-manipulation flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                        title="Close Guru"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+                </div>
               </div>
-            </div>
+            )
           ) : (
             <main ref={contentScrollRef} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
               <div className={`min-h-full ${contentBottomPaddingClass}`}>

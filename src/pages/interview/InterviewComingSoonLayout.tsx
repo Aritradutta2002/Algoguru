@@ -20,7 +20,7 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
-      <section className="px-6 md:px-10 lg:px-16 py-12 md:py-24 max-w-7xl mx-auto relative overflow-hidden flex flex-col items-center justify-center min-h-[80vh]">
+      <section className="px-4 md:px-10 lg:px-16 py-9 md:py-24 max-w-7xl mx-auto relative overflow-hidden flex flex-col items-center justify-center min-h-[80vh]">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/5 blur-[160px] rounded-full pointer-events-none" />
 

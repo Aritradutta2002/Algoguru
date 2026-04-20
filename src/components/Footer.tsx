@@ -13,18 +13,18 @@ export function Footer({ onSupportClick }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full mt-20 border-t bg-background" style={{ borderColor: "hsl(var(--border) / 0.5)" }}>
+    <footer className="w-full mt-20 border-t bg-background footer" style={{ borderColor: "hsl(var(--border) / 0.5)" }}>
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6 lg:gap-8 mb-12">
           {/* Column 1: Links */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Links</h3>
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               <a
                 href={PORTFOLIO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                className="touch-manipulation text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-2.5 min-h-[44px] active:scale-95"
               >
                 <Globe size={14} />
                 Portfolio
@@ -33,7 +33,7 @@ export function Footer({ onSupportClick }: FooterProps) {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                className="touch-manipulation text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-2.5 min-h-[44px] active:scale-95"
               >
                 <Github size={14} />
                 GitHub
@@ -44,12 +44,12 @@ export function Footer({ onSupportClick }: FooterProps) {
           {/* Column 2: Social/Connect */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Connect</h3>
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               <a
                 href={LINKEDIN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                className="touch-manipulation text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-2.5 min-h-[44px] active:scale-95"
               >
                 <ExternalLink size={14} />
                 LinkedIn
@@ -58,7 +58,7 @@ export function Footer({ onSupportClick }: FooterProps) {
                 href={TWITTER_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                className="touch-manipulation text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-2.5 min-h-[44px] active:scale-95"
               >
                 <ExternalLink size={14} />
                 Twitter (X)
@@ -71,7 +71,7 @@ export function Footer({ onSupportClick }: FooterProps) {
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Support</h3>
             <button
               onClick={onSupportClick}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+              className="touch-manipulation text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-2.5 min-h-[44px] group active:scale-95"
             >
               <Heart size={14} className="group-hover:fill-primary" />
               Buy Me A Coffee
@@ -81,15 +81,15 @@ export function Footer({ onSupportClick }: FooterProps) {
           {/* Column 4: Project Info */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Project</h3>
-            <div className="flex flex-col gap-2.5 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+              <span className="flex items-center gap-2 py-2.5 min-h-[44px]">
                 <Zap size={14} className="text-success" />
                 Built By Aritra
               </span>
-              <span className="opacity-70">Version 2.1.0</span>
+              <span className="opacity-70 py-2.5 min-h-[44px] flex items-center">Version 2.1.0</span>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="text-left hover:text-primary transition-colors"
+                className="touch-manipulation text-left hover:text-primary transition-colors py-2.5 min-h-[44px] flex items-center active:scale-95"
               >
                 Back To Top
               </button>
@@ -99,10 +99,10 @@ export function Footer({ onSupportClick }: FooterProps) {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4" style={{ borderColor: "hsl(var(--border) / 0.3)" }}>
-          <p className="text-xs text-muted-foreground font-medium">
+          <p className="text-xs text-muted-foreground font-medium text-center md:text-left">
             Copyright © {currentYear} AlgoGuru. All rights reserved.
           </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground text-center md:text-right">
             <Zap size={12} className="text-primary" />
             <span className="font-bold uppercase tracking-widest text-[10px]">Master Code. Ace Interviews.</span>
           </div>

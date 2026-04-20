@@ -11,6 +11,8 @@ interface AlgoGuruLogoProps {
  *
  * - showText=true  → full logo with "Algo" + outlined "Guru" (for splash/loading)
  * - showText=false → icon only (for header / sidebar)
+ * 
+ * Responsive: Scales appropriately on mobile (minimum 32px, maximum 48px)
  */
 export function AlgoGuruLogo({ size = 80, showText = true, className = "" }: AlgoGuruLogoProps) {
   const viewBox = showText ? "0 0 400 370" : "130 15 140 160";
@@ -22,7 +24,8 @@ export function AlgoGuruLogo({ size = 80, showText = true, className = "" }: Alg
       viewBox={viewBox}
       width={size}
       height={height}
-      className={className}
+      className={`max-w-full ${className}`}
+      style={{ aspectRatio: showText ? '400/370' : '140/160' }}
       aria-label="AlgoGuru Logo"
       role="img"
     >

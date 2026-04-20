@@ -106,7 +106,7 @@ export default function Interview() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
       
       {/* Header Section */}
-      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
@@ -121,7 +121,7 @@ export default function Interview() {
               <span className="text-muted-foreground">Comprehensive Interview Preparation</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
+            <h1 className="text-3xl md:text-4xl lg:text-6xl font-black uppercase tracking-tighter mb-6">
               Interview <span className="text-primary">Roadmap</span>
             </h1>
             
@@ -133,7 +133,7 @@ export default function Interview() {
       </section>
 
       {/* Main Content */}
-      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full space-y-12">
+      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full space-y-9 lg:space-y-12">
         <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
           <div
             className={`px-4 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${
@@ -183,7 +183,7 @@ export default function Interview() {
                   </div>
 
                   <div className="flex-1">
-                    <h3 className="text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">
                       {option.label}
                     </h3>
                     <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">

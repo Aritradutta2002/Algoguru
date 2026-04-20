@@ -122,7 +122,7 @@ export default function Admin() {
     <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
       
       {/* Header Section */}
-      <section className="px-6 md:px-10 lg:px-16 py-16 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
+      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="relative z-10 text-center md:text-left space-y-6">
@@ -148,7 +148,7 @@ export default function Admin() {
       </section>
 
       {/* Main Content */}
-      <section className="px-6 md:px-12 lg:px-20 pb-24 max-w-7xl mx-auto w-full space-y-8">
+      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full space-y-6 lg:space-y-8">
         {/* Tabs Bar */}
         <div className="flex p-1.5 rounded-[24px] bg-muted/30 border border-border/30 w-full max-w-md">
           {tabs.map((t) => (
@@ -232,7 +232,7 @@ function UsersTab({
                       <div className="relative">
                         <div className={`absolute inset-0 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${banned ? "bg-destructive/20" : "bg-primary/20"}`} />
                         {user.profile?.avatar_url ? (
-                          <img src={user.profile.avatar_url} alt="" className="relative w-10 h-10 rounded-xl object-cover border border-border/50 shadow-sm" />
+                          <img src={user.profile.avatar_url} alt="" className="relative w-10 h-10 rounded-xl object-cover border border-border/50 shadow-sm max-w-full" style={{ aspectRatio: '1/1' }} loading="lazy" />
                         ) : (
                           <div
                             className={`relative w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black border transition-all ${banned ? "bg-destructive/10 border-destructive/20 text-destructive" : "bg-primary/10 border-primary/20 text-primary"}`}
