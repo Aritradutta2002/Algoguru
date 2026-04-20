@@ -276,6 +276,17 @@ export default function InterviewCoreJavaQuestionsPage() {
               </div>
 
               <button
+                onClick={() => setTopicSidebarOpen(v => !v)}
+                className={`px-4 py-2.5 rounded-[22px] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border transition-all ${
+                  topicSidebarOpen ? "bg-primary text-primary-foreground border-primary" : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted"
+                }`}
+                title="Toggle Sidebar"
+              >
+                <BookOpen size={14} />
+                <span className="hidden sm:inline">Topics</span>
+              </button>
+
+              <button
                 onClick={() => setShowOnlyUndone(v => !v)}
                 className={`px-4 py-2.5 rounded-[22px] text-[10px] font-black uppercase tracking-widest border transition-all ${
                   showOnlyUndone ? "bg-primary text-primary-foreground border-primary" : "bg-muted/20 border-border/30 text-muted-foreground"
@@ -295,10 +306,10 @@ export default function InterviewCoreJavaQuestionsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto flex">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row relative">
         {/* Sidebar */}
         {topicSidebarOpen && (
-          <aside className="w-72 border-r border-border/30 bg-card/30 backdrop-blur-sm hidden lg:block sticky top-[100px] h-[calc(100vh-100px)] overflow-y-auto p-6">
+          <aside className="w-full lg:w-72 shrink-0 border-b lg:border-b-0 lg:border-r border-border/30 bg-card/30 backdrop-blur-sm lg:sticky top-[100px] lg:h-[calc(100vh-100px)] overflow-y-auto p-6 z-10">
             <div className="space-y-2">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mb-4">Knowledge Areas</p>
               {coreJavaInterviewTopics.map(topic => (
@@ -361,10 +372,16 @@ export default function InterviewCoreJavaQuestionsPage() {
                             >
                               {isDone && <Check size={18} strokeWidth={4} />}
                             </button>
-                            <div className="flex-1 space-y-4">
-                              <h3 className={`text-lg md:text-xl font-black tracking-tight ${isDone ? "opacity-40 line-through" : ""}`}>{question.question}</h3>
-                              <p className="text-sm text-muted-foreground/70">{question.explanation}</p>
-                              <div className="flex items-center gap-3">
+                            <div className="flex-1 space-y-4 md:space-y-5">
+                              <h3 className={`text-xl md:text-2xl font-black tracking-tight leading-snug ${isDone ? "opacity-40 line-through" : "text-foreground/90"}`}>
+                                {question.question}
+                              </h3>
+                              {question.explanation && (
+                                <p className={`text-[15px] md:text-base leading-relaxed ${isDone ? "opacity-40" : "text-muted-foreground/90 font-medium tracking-wide"}`}>
+                                  {question.explanation}
+                                </p>
+                              )}
+                              <div className="flex flex-wrap items-center gap-3 pt-2">
                                 <button
                                   onClick={() => toggleSolutionView(question.id, "theory")}
                                   className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${activeView === "theory" ? "bg-primary text-primary-foreground" : "bg-muted/50 border-border/30"}`}
@@ -387,7 +404,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-border/10">
                                 <div className="p-8 space-y-6">
                                   {activeView === "theory" && (
-                                    <div className="bg-muted/20 p-6 rounded-[24px] prose prose-invert prose-sm max-w-none">
+                                    <div className="bg-muted/20 p-6 md:p-8 rounded-[24px] prose prose-invert prose-base md:prose-lg leading-relaxed text-foreground/90 max-w-none">
                                       {renderTheoryContent(question.answer)}
                                     </div>
                                   )}
@@ -470,13 +487,13 @@ function renderTheoryContent(answer: string): ReactNode {
     const lines = section.split("\n").filter(Boolean);
     const isList = lines.every(l => l.startsWith("- "));
     return (
-      <div key={idx} className="mb-4">
+      <div key={idx} className="mb-6 text-base tracking-wide">
         {isList ? (
-          <ul className="list-disc pl-5 space-y-1">
+          <ul className="list-disc pl-6 space-y-2.5">
             {lines.map((l, i) => <li key={i}>{l.replace("- ", "")}</li>)}
           </ul>
         ) : (
-          lines.map((l, i) => <p key={i}>{l}</p>)
+          lines.map((l, i) => <p key={i} className="mb-3 last:mb-0 leading-relaxed">{l}</p>)
         )}
       </div>
     );
