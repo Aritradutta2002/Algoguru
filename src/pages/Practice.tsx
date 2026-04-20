@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { practiceData } from "../data/practiceData";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 
 type CelebrationParticle = {
   x: number;
@@ -40,10 +41,6 @@ function toProblemSlug(title: string): string {
 }
 
 export default function Practice() {
-  const NOTE_POPUP_WIDTH = 520;
-  const NOTE_POPUP_HEIGHT = 420;
-  const NOTE_POPUP_MARGIN = 16;
-
   const { user } = useAuth();
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [savedForRevision, setSavedForRevision] = useState<Set<string>>(new Set());
@@ -53,9 +50,7 @@ export default function Practice() {
   const [savingNotesFor, setSavingNotesFor] = useState<Record<string, boolean>>({});
   const [openSubtopicId, setOpenSubtopicId] = useState<string | null>(null);
   const [activeNotesProblem, setActiveNotesProblem] = useState<{ id: string; title: string } | null>(null);
-  const [notesPopupPosition, setNotesPopupPosition] = useState({ x: 24, y: 120 });
-  const [isDraggingNotesPopup, setIsDraggingNotesPopup] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [noteDraft, setNoteDraft] = useState("");
   const [celebrationBursts, setCelebrationBursts] = useState<CelebrationBurst[]>([]);
   const celebrationIdRef = useRef(0);
 
@@ -193,18 +188,39 @@ export default function Practice() {
     toast({ title: nextSaved ? "Saved for revision" : "Removed from revision" });
   };
 
-  const saveNotes = async (id: string) => {
-    const notes = notesByProblem[id] ?? "";
+  const saveNotes = async (id: string, nextNotes: string) => {
+    const notes = nextNotes;
+    const trimmed = notes.trim();
     setSavingNotesFor((prev) => ({ ...prev, [id]: true }));
-    const ok = await upsertUserState(id, { notes });
+    const ok = await upsertUserState(
+      id,
+      trimmed.length > 0
+        ? { notes, is_saved_for_revision: true }
+        : { notes },
+    );
     setSavingNotesFor((prev) => ({ ...prev, [id]: false }));
 
     if (ok) {
-      toast({ title: "Notes saved" });
+      setNotesByProblem((prev) => {
+        if (!trimmed.length) {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        }
+        return { ...prev, [id]: notes };
+      });
+
+      if (trimmed.length > 0) {
+        setSavedForRevision((prev) => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+      }
+
+      toast({ title: trimmed.length > 0 ? "Notes saved" : "Notes cleared" });
     }
   };
-
-  const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
   const triggerCompletionCelebration = (problemId: string) => {
     const sourceElement = document.getElementById(problemId);
@@ -238,50 +254,9 @@ export default function Practice() {
   };
 
   const openNotesPopup = (id: string, title: string) => {
-    const popupWidth = Math.min(NOTE_POPUP_WIDTH, window.innerWidth - NOTE_POPUP_MARGIN * 2);
-    const centeredX = Math.max(NOTE_POPUP_MARGIN, Math.round((window.innerWidth - popupWidth) / 2));
-    const topY = Math.max(NOTE_POPUP_MARGIN, Math.round(window.innerHeight * 0.12));
-
-    setNotesPopupPosition({ x: centeredX, y: topY });
+    setNoteDraft(notesByProblem[id] ?? "");
     setActiveNotesProblem({ id, title });
   };
-
-  const startDraggingNotesPopup = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-    setIsDraggingNotesPopup(true);
-    setDragOffset({
-      x: event.clientX - notesPopupPosition.x,
-      y: event.clientY - notesPopupPosition.y,
-    });
-  };
-
-  useEffect(() => {
-    if (!isDraggingNotesPopup) return;
-
-    const handlePointerMove = (event: PointerEvent) => {
-      const popupWidth = Math.min(NOTE_POPUP_WIDTH, window.innerWidth - NOTE_POPUP_MARGIN * 2);
-      const popupHeight = Math.min(NOTE_POPUP_HEIGHT, window.innerHeight - NOTE_POPUP_MARGIN * 2);
-      const maxX = window.innerWidth - popupWidth - NOTE_POPUP_MARGIN;
-      const maxY = window.innerHeight - popupHeight - NOTE_POPUP_MARGIN;
-
-      const nextX = clamp(event.clientX - dragOffset.x, NOTE_POPUP_MARGIN, maxX);
-      const nextY = clamp(event.clientY - dragOffset.y, NOTE_POPUP_MARGIN, maxY);
-
-      setNotesPopupPosition({ x: nextX, y: nextY });
-    };
-
-    const handlePointerUp = () => {
-      setIsDraggingNotesPopup(false);
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, [dragOffset.x, dragOffset.y, isDraggingNotesPopup]);
 
   const getDifficultyColor = (diff: string) => {
     switch (diff) {
@@ -551,64 +526,67 @@ export default function Practice() {
         ))}
       </div>
 
-      {activeNotesProblem && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
-          <div
-            className="absolute pointer-events-auto w-[min(520px,calc(100vw-2rem))] max-h-[min(420px,calc(100vh-2rem))] overflow-hidden rounded-xl border-2 border-border bg-card shadow-[8px_8px_0_0_hsl(var(--border))]"
-            style={{ left: `${notesPopupPosition.x}px`, top: `${notesPopupPosition.y}px` }}
-          >
-            <div
-              onPointerDown={startDraggingNotesPopup}
-              className="flex cursor-move items-center justify-between border-b-2 border-border bg-secondary/50 px-3 py-2 select-none"
+      <AnimatePresence>
+        {activeNotesProblem && (
+          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4">
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-xl" onClick={() => setActiveNotesProblem(null)} />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-2xl bg-card border border-border/50 rounded-[40px] overflow-hidden p-8 md:p-10 space-y-6"
             >
-              <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide">
-                <Notebook size={14} />
-                Notes
-              </div>
-              <button
-                type="button"
-                onPointerDown={(event) => event.stopPropagation()}
-                onClick={() => setActiveNotesProblem(null)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md border-2 border-border bg-card hover:bg-secondary"
-                aria-label="Close notes"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className="grid gap-3 p-3">
-              <p className="truncate text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                {activeNotesProblem.title}
-              </p>
-              <textarea
-                value={notesByProblem[activeNotesProblem.id] ?? ""}
-                onChange={(event) =>
-                  setNotesByProblem((prev) => ({
-                    ...prev,
-                    [activeNotesProblem.id]: event.target.value,
-                  }))
-                }
-                placeholder="Add your personal notes for this problem..."
-                rows={10}
-                className="min-h-[220px] w-full rounded-md border-2 border-border bg-background px-3 py-2 text-sm font-medium outline-none focus:border-primary"
-              />
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 space-y-1">
+                  <h2 className="text-2xl font-black uppercase">Study Note</h2>
+                  <p className="truncate text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+                    {activeNotesProblem.title}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => void saveNotes(activeNotesProblem.id)}
-                  disabled={savingNotesFor[activeNotesProblem.id] ?? false}
-                  className="inline-flex items-center gap-1 rounded-md border-2 border-border bg-card px-2.5 py-1 text-[10px] font-black uppercase tracking-wide hover:bg-secondary disabled:opacity-60"
+                  onClick={() => setActiveNotesProblem(null)}
+                  className="p-3 rounded-2xl bg-muted/30 hover:bg-muted text-muted-foreground transition-all"
+                  aria-label="Close notes"
                 >
-                  {(savingNotesFor[activeNotesProblem.id] ?? false)
-                    ? <Loader2 size={12} className="animate-spin" />
-                    : <Save size={12} />}
-                  Save Notes
+                  <X size={18} />
                 </button>
               </div>
-            </div>
+
+              <div className="bg-muted/20 rounded-[24px] p-4">
+                <RichTextNoteEditor
+                  value={noteDraft}
+                  onChange={setNoteDraft}
+                  placeholder="Add your personal notes for this problem..."
+                  rows={10}
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveNotesProblem(null)}
+                  className="px-6 py-3 rounded-xl uppercase font-black text-[10px]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void saveNotes(activeNotesProblem.id, noteDraft)}
+                  disabled={savingNotesFor[activeNotesProblem.id] ?? false}
+                  className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-primary text-primary-foreground uppercase font-black text-[10px] disabled:opacity-60"
+                >
+                  {(savingNotesFor[activeNotesProblem.id] ?? false)
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : <Save size={14} />}
+                  Save Note
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }
