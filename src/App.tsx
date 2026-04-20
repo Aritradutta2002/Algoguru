@@ -560,8 +560,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             }}
           >
             <SidebarTrigger
-              className="lg:hidden flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30 flex-shrink-0"
+              className="flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30 flex-shrink-0"
               style={{ color: "hsl(var(--foreground))" }}
+              title="Toggle Sidebar (Ctrl+B)"
             >
               <Menu size={18} />
             </SidebarTrigger>
