@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 interface UserTemplate {
   id: string;
@@ -346,6 +347,9 @@ export default function Playground() {
   const navigate = useNavigate();
   const practiceId = searchParams.get("practice");
   const { templates: dbTemplates } = useCPTemplates();
+  
+  // Detect mobile viewport
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   const practiceData = useMemo(() => {
     if (!practiceId) return null;
@@ -1236,34 +1240,34 @@ export default function Playground() {
       {/* Header */}
       {!isFullscreen && (
       <div
-        className="h-16 flex items-center justify-between px-6 border-b flex-shrink-0 gap-4 bg-card/50 backdrop-blur-md sticky top-0 z-40"
+        className="h-auto md:h-16 flex flex-col md:flex-row items-stretch md:items-center justify-between px-3 sm:px-4 md:px-6 py-3 md:py-0 border-b flex-shrink-0 gap-3 md:gap-4 bg-card/50 backdrop-blur-md sticky top-0 z-40"
         style={PANEL_BORDER_STYLE}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4">
           <div
-            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5"
+            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5 flex-shrink-0"
           >
             <Code2 size={20} className="text-primary" />
           </div>
-          <div className="space-y-0.5">
-            <h1 className="text-sm font-black uppercase tracking-tight text-foreground">
+          <div className="space-y-0.5 min-w-0 flex-1">
+            <h1 className="text-sm font-black uppercase tracking-tight text-foreground truncate">
               {practiceData ? `Practice: ${practiceData.title}` : "Java Playground"}
             </h1>
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 truncate">
                 {practiceData ? practiceData.difficulty || "Practice Mode" : "Virtual Execution Engine"}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 -mb-2 md:mb-0">
           {/* Templates */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowTemplateMenu(!showTemplateMenu)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border whitespace-nowrap ${
                 showTemplateMenu 
                   ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
                   : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -1403,36 +1407,40 @@ export default function Playground() {
             )}
           </div>
 
-          <div className="h-6 w-px bg-border/20 mx-1" />
+          <div className="hidden md:block h-6 w-px bg-border/20 mx-1 flex-shrink-0" />
 
           {/* Format */}
           <button
             onClick={formatCode}
             title="Format Code"
-            className={ICON_BUTTON_CLASSES}
+            className={`${ICON_BUTTON_CLASSES} flex-shrink-0`}
           >
             <AlignLeft size={16} />
           </button>
 
           {/* Debug */}
-          <DebugButton />
+          <div className="flex-shrink-0">
+            <DebugButton />
+          </div>
 
           {/* Run */}
-          <RunButton />
+          <div className="flex-shrink-0">
+            <RunButton />
+          </div>
 
-          <div className="h-6 w-px bg-border/20 mx-1" />
+          <div className="hidden sm:block h-6 w-px bg-border/20 mx-1 flex-shrink-0" />
 
           {/* Fullscreen */}
           <button
             onClick={() => setIsFullscreen(true)}
             title="Fullscreen Mode"
-            className={ICON_BUTTON_CLASSES}
+            className={`${ICON_BUTTON_CLASSES} hidden sm:flex flex-shrink-0`}
           >
             <Maximize size={16} />
           </button>
 
           {/* Settings */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <button
               onClick={() => { setShowSettingsMenu(!showSettingsMenu); setSettingsCompilerOpen(false); setSettingsThemeOpen(false); }}
               className={`flex items-center justify-center w-10 h-10 rounded-2xl border transition-all duration-300 shadow-sm ${
@@ -1486,9 +1494,9 @@ export default function Playground() {
 
       {/* Editor + Output with resizable panels */}
       <div className="flex-1 min-h-0">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
+        <ResizablePanelGroup direction={isMobile ? "vertical" : "horizontal"} className="h-full">
           {/* Code Editor Panel */}
-          <ResizablePanel defaultSize={55} minSize={30}>
+          <ResizablePanel defaultSize={isMobile ? 60 : 55} minSize={30}>
             <div className="flex flex-col h-full">
               {/* Tab bar */}
               <div className={PANEL_HEADER_CLASSES} style={PANEL_BORDER_STYLE}>
