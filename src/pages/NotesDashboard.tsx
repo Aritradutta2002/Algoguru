@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ import {
   PencilLine,
   Save,
   X,
+  CheckCircle2,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
@@ -68,6 +69,16 @@ export default function NotesDashboard() {
   const [noteDraft, setNoteDraft] = useState("");
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
+  const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
+  const saveFeedbackTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveFeedbackTimerRef.current) {
+        window.clearTimeout(saveFeedbackTimerRef.current);
+      }
+    };
+  }, []);
 
   const coreQuestionsById = useMemo(() => {
     const map = new Map<string, { question: string; topicId: string; topicTitle: string }>();
@@ -269,12 +280,14 @@ export default function NotesDashboard() {
     setActiveNoteId(makeNoteKey(entry.source, entry.questionId));
     setNoteDraft(entry.notes);
     setIsEditingNote(editMode);
+    setSavedNoteId(null);
   }, []);
 
   const closeNoteModal = useCallback(() => {
     setActiveNoteId(null);
     setNoteDraft("");
     setIsEditingNote(false);
+    setSavedNoteId(null);
   }, []);
 
   const saveNote = useCallback(async () => {
@@ -298,6 +311,7 @@ export default function NotesDashboard() {
     if (error) {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
       setSavingNoteId(null);
+      setSavedNoteId(null);
       return;
     }
 
@@ -313,6 +327,7 @@ export default function NotesDashboard() {
       toast({ title: "Note removed" });
       closeNoteModal();
       setSavingNoteId(null);
+      setSavedNoteId(null);
       return;
     }
 
@@ -325,8 +340,14 @@ export default function NotesDashboard() {
         )
         .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     );
-    toast({ title: "Note updated" });
-    setIsEditingNote(false);
+    toast({ title: "Note saved successfully" });
+    setSavedNoteId(activeNoteId);
+    if (saveFeedbackTimerRef.current) {
+      window.clearTimeout(saveFeedbackTimerRef.current);
+    }
+    saveFeedbackTimerRef.current = window.setTimeout(() => {
+      setSavedNoteId((prev) => (prev === activeNoteId ? null : prev));
+    }, 2200);
     setSavingNoteId(null);
   }, [activeNoteId, closeNoteModal, noteDraft, user]);
 
@@ -812,7 +833,10 @@ export default function NotesDashboard() {
                 {isEditingNote ? (
                   <RichTextNoteEditor
                     value={noteDraft}
-                    onChange={setNoteDraft}
+                    onChange={(value) => {
+                      setNoteDraft(value);
+                      setSavedNoteId(null);
+                    }}
                     placeholder="Refine your thoughts here..."
                     rows={12}
                     autoFocus
@@ -857,8 +881,16 @@ export default function NotesDashboard() {
                         disabled={savingNoteId === activeNoteId}
                         className="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
                       >
-                        {savingNoteId === activeNoteId ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Save Note
+                        {savingNoteId === activeNoteId
+                          ? <Loader2 size={16} className="animate-spin" />
+                          : savedNoteId === activeNoteId
+                            ? <CheckCircle2 size={16} />
+                            : <Save size={16} />}
+                        {savingNoteId === activeNoteId
+                          ? "Saving..."
+                          : savedNoteId === activeNoteId
+                            ? "Saved"
+                            : "Save Note"}
                       </button>
                     </>
                   ) : (

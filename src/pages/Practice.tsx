@@ -48,11 +48,22 @@ export default function Practice() {
   const [loadingState, setLoadingState] = useState(false);
   const [upsertingProblemId, setUpsertingProblemId] = useState<string | null>(null);
   const [savingNotesFor, setSavingNotesFor] = useState<Record<string, boolean>>({});
+  const [savedNotesFor, setSavedNotesFor] = useState<Record<string, boolean>>({});
   const [openSubtopicId, setOpenSubtopicId] = useState<string | null>(null);
   const [activeNotesProblem, setActiveNotesProblem] = useState<{ id: string; title: string } | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [celebrationBursts, setCelebrationBursts] = useState<CelebrationBurst[]>([]);
   const celebrationIdRef = useRef(0);
+  const noteSaveFeedbackTimersRef = useRef<Record<string, ReturnType<typeof window.setTimeout>>>({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(noteSaveFeedbackTimersRef.current).forEach((timer) => {
+        window.clearTimeout(timer);
+      });
+      noteSaveFeedbackTimersRef.current = {};
+    };
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -191,6 +202,7 @@ export default function Practice() {
   const saveNotes = async (id: string, nextNotes: string) => {
     const notes = nextNotes;
     const trimmed = notes.trim();
+    setSavedNotesFor((prev) => ({ ...prev, [id]: false }));
     setSavingNotesFor((prev) => ({ ...prev, [id]: true }));
     const ok = await upsertUserState(
       id,
@@ -217,6 +229,15 @@ export default function Practice() {
           return next;
         });
       }
+
+      setSavedNotesFor((prev) => ({ ...prev, [id]: true }));
+      if (noteSaveFeedbackTimersRef.current[id]) {
+        window.clearTimeout(noteSaveFeedbackTimersRef.current[id]);
+      }
+      noteSaveFeedbackTimersRef.current[id] = window.setTimeout(() => {
+        setSavedNotesFor((prev) => ({ ...prev, [id]: false }));
+        delete noteSaveFeedbackTimersRef.current[id];
+      }, 2200);
 
       toast({ title: trimmed.length > 0 ? "Notes saved" : "Notes cleared" });
     }
@@ -255,6 +276,7 @@ export default function Practice() {
 
   const openNotesPopup = (id: string, title: string) => {
     setNoteDraft(notesByProblem[id] ?? "");
+    setSavedNotesFor((prev) => ({ ...prev, [id]: false }));
     setActiveNotesProblem({ id, title });
   };
 
@@ -556,7 +578,10 @@ export default function Practice() {
               <div className="bg-muted/20 rounded-[24px] p-4">
                 <RichTextNoteEditor
                   value={noteDraft}
-                  onChange={setNoteDraft}
+                  onChange={(value) => {
+                    setNoteDraft(value);
+                    setSavedNotesFor((prev) => ({ ...prev, [activeNotesProblem.id]: false }));
+                  }}
                   placeholder="Add your personal notes for this problem..."
                   rows={10}
                   autoFocus
@@ -579,8 +604,14 @@ export default function Practice() {
                 >
                   {(savingNotesFor[activeNotesProblem.id] ?? false)
                     ? <Loader2 size={14} className="animate-spin" />
-                    : <Save size={14} />}
-                  Save Note
+                    : (savedNotesFor[activeNotesProblem.id] ?? false)
+                      ? <CheckCircle2 size={14} />
+                      : <Save size={14} />}
+                  {(savingNotesFor[activeNotesProblem.id] ?? false)
+                    ? "Saving..."
+                    : (savedNotesFor[activeNotesProblem.id] ?? false)
+                      ? "Saved"
+                      : "Save Note"}
                 </button>
               </div>
             </motion.div>
