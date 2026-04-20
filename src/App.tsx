@@ -688,6 +688,32 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                           AI
                         </span>
                       )}
+                      {/* Maximize button - expands Guru panel to full width */}
+                      <button
+                        onClick={() => setSplitPct(15)}
+                        className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                        title="Maximize Guru Panel"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="15 3 21 3 21 9"></polyline>
+                          <polyline points="9 21 3 21 3 15"></polyline>
+                          <line x1="21" y1="3" x2="14" y2="10"></line>
+                          <line x1="3" y1="21" x2="10" y2="14"></line>
+                        </svg>
+                      </button>
+                      {/* Restore button - resets to default 75/25 split */}
+                      <button
+                        onClick={() => setSplitPct(75)}
+                        className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                        title="Restore Default Split"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="4 14 10 14 10 20"></polyline>
+                          <polyline points="20 10 14 10 14 4"></polyline>
+                          <line x1="14" y1="10" x2="21" y2="3"></line>
+                          <line x1="3" y1="21" x2="10" y2="14"></line>
+                        </svg>
+                      </button>
                       <button
                         onClick={() => setGuruOpen(false)}
                         className="touch-manipulation flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
