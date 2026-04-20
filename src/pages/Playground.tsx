@@ -826,7 +826,34 @@ export default function Playground() {
           bracketSpacing: true,
           arrowParens: "always",
         });
-        setCode(formatted);
+        
+        // Post-process: Remove excessive blank lines (max 1 blank line between code blocks)
+        const lines = formatted.split('\n');
+        const compactLines = [];
+        let consecutiveBlankLines = 0;
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const trimmed = line.trim();
+          
+          if (!trimmed) {
+            consecutiveBlankLines++;
+            // Allow max 1 blank line, but not at the start or after opening brace
+            if (consecutiveBlankLines <= 1) {
+              const prevLine = compactLines[compactLines.length - 1];
+              const nextLine = lines[i + 1]?.trim();
+              // Don't add blank line after opening brace or before closing brace
+              if (prevLine && !prevLine.trim().endsWith('{') && nextLine && nextLine !== '}') {
+                compactLines.push(line);
+              }
+            }
+          } else {
+            consecutiveBlankLines = 0;
+            compactLines.push(line);
+          }
+        }
+        
+        setCode(compactLines.join('\n'));
         setOutput("✓ Code formatted successfully");
         setTimeout(() => setOutput(""), 2000);
       } catch (error) {
@@ -837,15 +864,25 @@ export default function Playground() {
           const formattedJava = [];
           let indent = 0;
           let inMultilineComment = false;
+          let consecutiveBlankLines = 0;
 
           for (let line of lines) {
             let trimmed = line.trim();
             
-            // Handle empty lines
+            // Handle empty lines - allow max 1 consecutive blank line
             if (!trimmed) {
-              formattedJava.push('');
+              consecutiveBlankLines++;
+              if (consecutiveBlankLines <= 1 && formattedJava.length > 0) {
+                const prevLine = formattedJava[formattedJava.length - 1];
+                // Don't add blank line right after opening brace
+                if (!prevLine.trim().endsWith('{')) {
+                  formattedJava.push('');
+                }
+              }
               continue;
             }
+            
+            consecutiveBlankLines = 0;
 
             // Handle multi-line comments
             if (trimmed.startsWith('/*')) inMultilineComment = true;
