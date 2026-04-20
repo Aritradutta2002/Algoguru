@@ -1225,7 +1225,11 @@ export default function Playground() {
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => (
     <div
-      className="fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-64 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 animate-in fade-in zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
+      className="fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-64 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 animate-in fade-in zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
+      style={{ 
+        backgroundColor: 'hsl(var(--card))',
+        backdropFilter: 'blur(12px)',
+      }}
     >
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
@@ -1405,7 +1409,11 @@ export default function Playground() {
               <>
                 <div className="fixed inset-0 z-[9998]" onClick={() => setShowTemplateMenu(false)} />
                 <div
-                  className="fixed sm:absolute left-4 sm:left-auto right-4 sm:right-0 top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-80 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
+                  className="fixed sm:absolute left-4 sm:left-auto right-4 sm:right-0 top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-80 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
+                  style={{ 
+                    backgroundColor: 'hsl(var(--card))',
+                    backdropFilter: 'blur(12px)',
+                  }}
                 >
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
                   
@@ -1565,7 +1573,12 @@ export default function Playground() {
           {/* Settings */}
           <div className="relative flex-shrink-0">
             <button
-              onClick={() => { setShowSettingsMenu(!showSettingsMenu); setSettingsCompilerOpen(false); setSettingsThemeOpen(false); }}
+              onClick={() => { 
+                console.log('Settings clicked, current state:', showSettingsMenu);
+                setShowSettingsMenu(!showSettingsMenu); 
+                setSettingsCompilerOpen(false); 
+                setSettingsThemeOpen(false); 
+              }}
               className={`flex items-center justify-center w-10 h-10 rounded-2xl border transition-all duration-300 shadow-sm ${
                 showSettingsMenu 
                   ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
