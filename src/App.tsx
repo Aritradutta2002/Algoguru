@@ -495,10 +495,12 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   
   const [isDragging, setIsDragging] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
+  const isSmallMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
     localStorage.setItem("guru-split-pct", splitPct.toString());
@@ -551,52 +553,65 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top bar */}
           <header
-            className="h-16 flex items-center gap-4 px-6 border-b flex-shrink-0 sticky top-0 z-40 backdrop-blur-md header"
+            className="h-16 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 border-b flex-shrink-0 sticky top-0 z-40 backdrop-blur-md header"
             style={{
               borderColor: "hsl(var(--border) / 0.3)",
               background: "hsl(var(--background) / 0.8)",
             }}
           >
             <SidebarTrigger
-              className="lg:hidden flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30"
+              className="lg:hidden flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30 flex-shrink-0"
               style={{ color: "hsl(var(--foreground))" }}
             >
               <Menu size={18} />
             </SidebarTrigger>
             
-            <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
+            <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95 flex-shrink-0"
               onClick={() => window.location.href="/"}
               title="Go to Home"
             >
-              <div className="relative flex-shrink-0 min-w-[32px] max-w-[48px] md:w-auto">
+              <div className="relative flex-shrink-0 w-8 h-8">
                 <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <AlgoGuruLogo size={32} showText={false} className="relative z-10 block w-full h-auto" />
               </div>
-              <span className="text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
+              <span className="hidden sm:inline text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
                 AlgoGuru
               </span>
             </div>
             
-            <div className="flex-1" />
+            <div className="flex-1 min-w-0" />
 
-            <div className="flex items-center gap-3">
-              <SearchButton />
-              <div className="h-6 w-px bg-border/20 mx-1" />
-              <HeaderControls />
-              <div className="h-6 w-px bg-border/20 mx-1" />
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
+              {/* Mobile: Show search icon button only */}
+              <button
+                onClick={() => document.querySelector<HTMLButtonElement>('[title="Search topics (Ctrl+K)"]')?.click()}
+                className="sm:hidden touch-manipulation flex items-center justify-center w-11 h-11 rounded-2xl transition-all duration-300 border border-border/30 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
+                title="Search"
+              >
+                <Search size={18} />
+              </button>
+              {/* Desktop: Show full search bar */}
+              <div className="hidden sm:block">
+                <SearchButton />
+              </div>
+              <div className="hidden md:block h-6 w-px bg-border/20" />
+              <div className="hidden md:block">
+                <HeaderControls />
+              </div>
+              <div className="hidden sm:block h-6 w-px bg-border/20" />
               <UserMenu />
-              <div className="h-6 w-px bg-border/20 mx-1" />
+              <div className="h-6 w-px bg-border/20" />
               <button
                 onClick={() => setGuruOpen((o) => !o)}
                 title={guruOpen ? "Close Guru" : "Open Guru"}
-                className={`touch-manipulation flex items-center gap-2 px-4 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center md:justify-start active:scale-95 ${
+                className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${
                   guruOpen 
                     ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
                     : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
                 }`}
               >
                 <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
-                <span className="hidden md:inline">Guru</span>
+                <span className="hidden sm:inline">Guru</span>
               </button>
             </div>
           </header>
@@ -699,6 +714,28 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
+      
+      {/* Mobile floating menu button (only on small screens where HeaderControls is hidden) */}
+      {isSmallMobile && !guruOpen && (
+        <>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/30 flex items-center justify-center transition-all duration-300 active:scale-95 border-2 border-primary/20"
+            title="Settings"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Sun size={20} />}
+          </button>
+          
+          {mobileMenuOpen && (
+            <div 
+              className="md:hidden fixed bottom-24 right-6 z-50 bg-card border border-border/50 rounded-3xl shadow-2xl p-4 animate-in slide-in-from-bottom-4 fade-in duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <HeaderControls />
+            </div>
+          )}
+        </>
+      )}
     </SidebarProvider>
   );
 }
