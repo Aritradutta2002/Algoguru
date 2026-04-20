@@ -819,10 +819,96 @@ export default function Playground() {
           plugins: [prettierPluginJava],
           tabWidth: 4,
           printWidth: 100,
+          useTabs: false,
+          semi: true,
+          singleQuote: false,
+          trailingComma: "none",
+          bracketSpacing: true,
+          arrowParens: "always",
         });
         setCode(formatted);
+        setOutput("✓ Code formatted successfully");
+        setTimeout(() => setOutput(""), 2000);
       } catch (error) {
         console.error("Java formatting error:", error);
+        // Fallback: Basic Java formatting
+        try {
+          const lines = raw.split('\n');
+          const formattedJava = [];
+          let indent = 0;
+          let inMultilineComment = false;
+
+          for (let line of lines) {
+            let trimmed = line.trim();
+            
+            // Handle empty lines
+            if (!trimmed) {
+              formattedJava.push('');
+              continue;
+            }
+
+            // Handle multi-line comments
+            if (trimmed.startsWith('/*')) inMultilineComment = true;
+            if (inMultilineComment) {
+              formattedJava.push('    '.repeat(indent) + trimmed);
+              if (trimmed.endsWith('*/')) inMultilineComment = false;
+              continue;
+            }
+
+            // Handle single-line comments
+            if (trimmed.startsWith('//')) {
+              formattedJava.push('    '.repeat(indent) + trimmed);
+              continue;
+            }
+
+            // Handle annotations
+            if (trimmed.startsWith('@')) {
+              formattedJava.push('    '.repeat(indent) + trimmed);
+              continue;
+            }
+
+            // Handle package and import statements
+            if (trimmed.startsWith('package ') || trimmed.startsWith('import ')) {
+              formattedJava.push(trimmed);
+              continue;
+            }
+
+            // Count closing braces at the start of the line
+            const startClosers = (trimmed.match(/^[}]+/g) || [''])[0].length;
+            let currentIndent = Math.max(0, indent - startClosers);
+
+            // Handle case and default labels
+            if (trimmed.match(/^(case\s+.*:|default\s*:)/)) {
+              currentIndent = Math.max(0, indent - 1);
+            }
+
+            // Apply indentation
+            formattedJava.push('    '.repeat(currentIndent) + trimmed);
+
+            // Calculate next line indent
+            const codePart = trimmed.split('//')[0]; // Ignore inline comments
+            const opens = (codePart.match(/\{/g) || []).length;
+            const closes = (codePart.match(/\}/g) || []).length;
+            indent += opens - closes;
+            indent = Math.max(indent, 0);
+
+            // Special handling for case statements
+            if (trimmed.match(/^(case\s+.*:|default\s*:)/) && !trimmed.includes('{')) {
+              indent++;
+            }
+            if (trimmed === 'break;' || trimmed === 'return;') {
+              indent = Math.max(0, indent - 1);
+            }
+          }
+          
+          setCode(formattedJava.join('\n'));
+          setOutput("✓ Code formatted (basic formatting applied)");
+          setTimeout(() => setOutput(""), 2000);
+        } catch (fallbackError) {
+          console.error("Fallback formatting error:", fallbackError);
+          setOutput("✗ Formatting failed. Please check your code syntax.");
+          setTimeout(() => setOutput(""), 3000);
+        }
       }
       return;
     }
