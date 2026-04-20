@@ -1223,14 +1223,16 @@ export default function Playground() {
   );
 
   // Settings dropdown content (reusable)
-  const SettingsDropdownContent = () => (
-    <div
-      className="fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-64 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 animate-in fade-in zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
-      style={{ 
-        backgroundColor: 'hsl(var(--card))',
-        backdropFilter: 'blur(12px)',
-      }}
-    >
+  const SettingsDropdownContent = () => {
+    console.log('SettingsDropdownContent rendering');
+    return (
+      <div
+        className="fixed left-1/2 -translate-x-1/2 top-24 w-[90vw] max-w-md rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 animate-in fade-in zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
+        style={{ 
+          backgroundColor: 'hsl(var(--card))',
+          backdropFilter: 'blur(12px)',
+        }}
+      >
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
       {/* Language Section — Collapsible */}
@@ -1342,6 +1344,7 @@ export default function Playground() {
       </button>
     </div>
   );
+  };
 
   return (
     <div className={`${isFullscreen ? 'fixed inset-0 z-50 h-screen' : 'h-[calc(100vh-3.5rem)]'} flex flex-col bg-background`}>
@@ -1409,7 +1412,7 @@ export default function Playground() {
               <>
                 <div className="fixed inset-0 z-[9998]" onClick={() => setShowTemplateMenu(false)} />
                 <div
-                  className="fixed sm:absolute left-4 sm:left-auto right-4 sm:right-0 top-20 sm:top-full mt-0 sm:mt-3 w-auto sm:w-80 rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
+                  className="fixed left-1/2 -translate-x-1/2 top-24 w-[90vw] max-w-md rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
                   style={{ 
                     backgroundColor: 'hsl(var(--card))',
                     backdropFilter: 'blur(12px)',
