@@ -19,17 +19,16 @@ interface LanguageOption {
   label: string;
   subtitle: string;
   icon: JSX.Element;
-  bg: string;
-  textColor: string;
+  color: string;
 }
 
 interface LearningPathOption {
-  id: "data-structure" | "core-java-qa" | "system-design" | "sql-structure";
+  id: "data-structure" | "core-java-qa" | "language-questions" | "system-design" | "sql-structure";
   title: string;
   subtitle: string;
   icon: JSX.Element;
-  bg: string;
-  textColor: string;
+  color: string;
+  route: string;
 }
 
 const LANGUAGE_OPTIONS: LanguageOption[] = [
@@ -56,36 +55,83 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
   },
 ];
 
-const LEARNING_PATH_OPTIONS: LearningPathOption[] = [
-  {
-    id: "data-structure",
-    title: "Data Structure",
-    subtitle: "Master core DSA patterns used in rounds",
-    icon: <Target size={24} />,
-    color: "hsl(var(--accent))",
-  },
-  {
-    id: "core-java-qa",
-    title: "Core Java Q&A",
-    subtitle: "Most asked Java interview theory and scenarios",
-    icon: <Coffee size={24} />,
-    color: "hsl(var(--primary))",
-  },
-  {
-    id: "system-design",
-    title: "System Design",
-    subtitle: "Design thinking for scalable systems",
-    icon: <Layers size={24} />,
-    color: "hsl(var(--destructive))",
-  },
-  {
-    id: "sql-structure",
-    title: "SQL Structure",
-    subtitle: "Interview-focused SQL concepts and patterns",
-    icon: <Code2 size={24} />,
-    color: "hsl(var(--primary))",
-  },
-];
+const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption[] => {
+  if (language === "java") {
+    return [
+      {
+        id: "data-structure",
+        title: "Data Structure",
+        subtitle: "Master core DSA patterns used in rounds",
+        icon: <Target size={24} />,
+        color: "hsl(var(--accent))",
+        route: "data-structure",
+      },
+      {
+        id: "core-java-qa",
+        title: "Core Java Q&A",
+        subtitle: "Most asked Java interview theory and scenarios",
+        icon: <Coffee size={24} />,
+        color: "hsl(var(--primary))",
+        route: "core-java-qa",
+      },
+      {
+        id: "system-design",
+        title: "System Design",
+        subtitle: "Design thinking for scalable systems",
+        icon: <Layers size={24} />,
+        color: "hsl(var(--destructive))",
+        route: "system-design",
+      },
+      {
+        id: "sql-structure",
+        title: "SQL Questions",
+        subtitle: "Interview-focused SQL concepts and patterns",
+        icon: <Code2 size={24} />,
+        color: "hsl(var(--primary))",
+        route: "sql-structure",
+      },
+    ];
+  }
+
+  const isCpp = language === "cpp";
+
+  return [
+    {
+      id: "data-structure",
+      title: "Data Structure",
+      subtitle: "Master core DSA patterns used in rounds",
+      icon: <Target size={24} />,
+      color: "hsl(var(--accent))",
+      route: "data-structure",
+    },
+    {
+      id: "language-questions",
+      title: isCpp ? "C++ Questions" : "Python Questions",
+      subtitle: isCpp
+        ? "Most asked C++ interview theory and scenarios"
+        : "Most asked Python interview theory and scenarios",
+      icon: isCpp ? <Code2 size={24} /> : <BrainCircuit size={24} />,
+      color: isCpp ? "hsl(var(--accent))" : "hsl(var(--info))",
+      route: "language-questions",
+    },
+    {
+      id: "system-design",
+      title: "System Design",
+      subtitle: "Design thinking for scalable systems",
+      icon: <Layers size={24} />,
+      color: "hsl(var(--destructive))",
+      route: "system-design",
+    },
+    {
+      id: "sql-structure",
+      title: "SQL Questions",
+      subtitle: "Interview-focused SQL concepts and patterns",
+      icon: <Code2 size={24} />,
+      color: "hsl(var(--primary))",
+      route: "sql-structure",
+    },
+  ];
+};
 
 const isInterviewLanguage = (value: string | undefined): value is InterviewLanguage =>
   value === "java" || value === "cpp" || value === "python";
@@ -95,6 +141,7 @@ export default function Interview() {
   const { language } = useParams<{ language?: string }>();
   const selectedLanguage = isInterviewLanguage(language) ? language : null;
   const selectedLanguageOption = LANGUAGE_OPTIONS.find((option) => option.id === selectedLanguage);
+  const learningPathOptions = selectedLanguage ? getLearningPathOptions(selectedLanguage) : [];
 
   useEffect(() => {
     if (language && !selectedLanguage) {
@@ -220,14 +267,14 @@ export default function Interview() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              {LEARNING_PATH_OPTIONS.map((path, index) => (
+              {learningPathOptions.map((path, index) => (
                 <motion.div
                   key={path.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ y: -5 }}
-                  onClick={() => navigate(`/interview/${selectedLanguage}/${path.id}`)}
+                  onClick={() => navigate(`/interview/${selectedLanguage}/${path.route}`)}
                   className="group relative bg-card border rounded-[32px] p-8 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
                 >
                   <div 
