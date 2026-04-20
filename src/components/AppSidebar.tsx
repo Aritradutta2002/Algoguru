@@ -353,6 +353,7 @@ export function AppSidebar() {
                                 <SidebarMenuSubButton asChild className="h-auto p-0">
                                   <button
                                     onClick={() => navigate(`/${topic.id}#${sub.id}`)}
+                                    title={sub.title}
                                     className={cn(
                                       "touch-manipulation flex items-center gap-3 w-full px-3 py-2 min-h-[44px] rounded-xl text-[12px] font-semibold transition-all duration-200 text-left active:scale-95",
                                       active 
@@ -364,7 +365,7 @@ export function AppSidebar() {
                                       className={cn("w-1.5 h-1.5 rounded-full transition-all duration-300", active ? "scale-125" : "opacity-30")}
                                       style={{ background: active ? color : "currentColor" }}
                                     />
-                                    <span className="truncate">{sub.title}</span>
+                                    <span className="truncate" title={sub.title}>{sub.title}</span>
                                   </button>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -412,6 +413,7 @@ export function AppSidebar() {
                     <button
                       key={item.path}
                       onClick={() => { navigate(item.path); setSearchQuery(""); }}
+                      title={item.title}
                       className="touch-manipulation w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] text-left transition-all hover:bg-muted/50 active:bg-muted/70 border-b border-border/10 last:border-0 active:scale-95"
                     >
                       <div className="w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center text-sm flex-shrink-0 border border-border/20">
@@ -419,7 +421,7 @@ export function AppSidebar() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-[12px] font-bold truncate text-foreground">{item.title}</span>
+                          <span className="text-[12px] font-bold truncate text-foreground" title={item.title}>{item.title}</span>
                           {item.difficulty && (
                             <span
                               className={cn(
@@ -461,8 +463,8 @@ export function AppSidebar() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-black tracking-tight truncate text-foreground">{userName}</div>
-              <div className="text-[10px] font-bold text-muted-foreground/50 truncate uppercase tracking-widest">{user?.email?.split('@')[0]}</div>
+              <div className="text-[13px] font-black tracking-tight truncate text-foreground" title={userName}>{userName}</div>
+              <div className="text-[10px] font-bold text-muted-foreground/50 truncate uppercase tracking-widest" title={user?.email?.split('@')[0]}>{user?.email?.split('@')[0]}</div>
             </div>
             <button
               onClick={signOut}
