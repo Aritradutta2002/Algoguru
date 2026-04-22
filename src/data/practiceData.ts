@@ -821,6 +821,46 @@ export const practiceData: Topic[] = [
           gfgProblem({ id: "gr-fl-3", title: "Detect Negative Cycle Using Floyd-Warshall", difficulty: "Medium", companies: ["Amazon", "Microsoft", "PhonePe"] }),
         ],
       },
+      {
+        id: "graph-scc",
+        title: "Strongly Connected Components",
+        description: "Use Tarjan's or Kosaraju's algorithm -> find components where every node is reachable from every other node.",
+        problems: [
+          gfgProblem({ id: "gr-sc-1", title: "Strongly Connected Components (Kosaraju's Algo)", difficulty: "Medium", companies: ["Amazon", "Google", "Microsoft"] }),
+          lcProblem({ id: "gr-sc-2", title: "Critical Connections in a Network", difficulty: "Hard", slug: "critical-connections-in-a-network", companies: ["Amazon", "Facebook", "Google"] }),
+          gfgProblem({ id: "gr-sc-3", title: "Tarjan's Algorithm (SCC)", difficulty: "Hard", companies: ["Google", "Cisco"] }),
+        ],
+      },
+      {
+        id: "graph-eulerian",
+        title: "Eulerian Path & Circuit",
+        description: "Hierholzer's algorithm -> find a path that visits every edge exactly once.",
+        problems: [
+          gfgProblem({ id: "gr-eu-1", title: "Euler Circuit and Path", difficulty: "Medium", companies: ["Amazon", "Microsoft"] }),
+          lcProblem({ id: "gr-eu-2", title: "Reconstruct Itinerary", difficulty: "Hard", slug: "reconstruct-itinerary", companies: ["Google", "Apple", "Zomato"] }),
+          lcProblem({ id: "gr-eu-3", title: "Valid Arrangement of Pairs", difficulty: "Hard", slug: "valid-arrangement-of-pairs", companies: ["Google", "Goldman Sachs"] }),
+        ],
+      },
+      {
+        id: "graph-advanced-tree",
+        title: "Advanced Tree (HLD / LCA)",
+        description: "Binary Lifting for LCA, Heavy-Light Decomposition for path queries, and tree linearization.",
+        problems: [
+          gfgProblem({ id: "gr-at-1", title: "LCA in a Binary Tree", difficulty: "Medium", companies: ["Amazon", "Google", "Goldman Sachs"] }),
+          gfgProblem({ id: "gr-at-2", title: "Heavy Light Decomposition", difficulty: "Hard", companies: ["Google", "Directi"] }),
+          lcProblem({ id: "gr-at-3", title: "Kth Ancestor of a Tree Node", difficulty: "Hard", slug: "kth-ancestor-of-a-tree-node", companies: ["Google", "Amazon"] }),
+        ],
+      },
+      {
+        id: "graph-flow-matching",
+        title: "Flow & Matching",
+        description: "Max Flow (Edmonds-Karp/Dinic) and Bipartite Matching (Hopcroft-Karp).",
+        problems: [
+          gfgProblem({ id: "gr-fm-1", title: "Find Maximum Flow", difficulty: "Hard", companies: ["Google", "Amazon", "Microsoft"] }),
+          gfgProblem({ id: "gr-fm-2", title: "Maximum Bipartite Matching", difficulty: "Hard", companies: ["Google", "Directi"] }),
+          lcProblem({ id: "gr-fm-3", title: "Find the Maximum Number of Markings on a Grid", difficulty: "Hard", slug: "maximum-number-of-accepted-invitations", companies: ["Google", "Amazon"] }),
+        ],
+      },
     ],
   },
   {

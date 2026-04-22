@@ -1041,369 +1041,459 @@ public class AllPairsShortestPath {
     ],
   },
   {
-    id: "graph-mst",
-    title: "Minimum Spanning Tree",
+    id: "graph-mst-intro",
+    title: "MST Fundamentals",
+    difficulty: "Medium",
+    theory: [
+      "A Minimum Spanning Tree (MST) of a weighted undirected graph is a subset of edges that connects ALL vertices with the minimum possible total edge weight. It has exactly V-1 edges and no cycles — it's a tree that 'spans' the entire graph at minimum cost.",
+      "**Real-world Analogy**: Imagine you are laying down optical fiber cables to connect 10 cities. You want every city to be able to communicate with every other city (directly or indirectly). To minimize cost, you want to use the minimum total length of cable. The optimal layout is an MST.",
+      "**Core Properties**: (1) **V-1 Edges**: Any tree with V vertices must have exactly V-1 edges. (2) **Acyclic**: Adding any more edges will create a cycle. (3) **Uniqueness**: If all edge weights are distinct, the MST is unique. If not, multiple MSTs may exist with the same minimum total weight.",
+      "**The Cut Property**: This is the 'Greedy' foundation for all MST algorithms. For any partition of vertices into two non-empty sets (a 'cut'), the lightest edge crossing that cut MUST be part of some MST. This is why we can greedily pick the smallest available edges as long as they don't form cycles.",
+      "**The Cycle Property**: For any cycle in the graph, the heaviest edge in that cycle cannot be part of the MST. If we included it, we could replace it with a lighter edge from the same cycle and get a smaller tree.",
+      "MST is NOT the same as shortest paths! A shortest path tree (from Dijkstra) minimizes distance from a SINGLE source. An MST minimizes the TOTAL weight of the entire tree. A shortest path from A to B in a graph might NOT use edges from the MST.",
+    ],
+    diagram: {
+      type: "table-visual",
+      title: "MST vs Shortest Path (Dijkstra)",
+      data: [
+        {
+          label: "Minimum Spanning Tree",
+          color: "success",
+          children: [
+            { label: "Goal: Min total weight of all edges" },
+            { label: "Structure: Undirected weighted graph" },
+            { label: "Logic: Cut/Cycle property (Greedy)" },
+            { label: "Result: One tree for the whole graph" }
+          ]
+        },
+        {
+          label: "Shortest Path Tree",
+          color: "info",
+          children: [
+            { label: "Goal: Min distance from source to each node" },
+            { label: "Structure: Directed or Undirected" },
+            { label: "Logic: Edge relaxation" },
+            { label: "Result: Different tree for each source" }
+          ]
+        }
+      ]
+    },
+    keyPoints: [
+      "MST minimizes total edge sum; Dijkstra minimizes individual path costs",
+      "MST property: V-1 edges, connected, no cycles",
+      "Cut Property: Lightest edge across any cut is in the MST",
+      "Cycle Property: Heaviest edge in any cycle is NOT in the MST",
+      "If all weights are distinct, the MST is unique",
+    ],
+    tip: "If a problem asks to 'connect all nodes with minimum cost', it's almost always an MST problem. If it asks for 'minimum cost to reach destination', it's a shortest path problem.",
+  },
+  {
+    id: "graph-kruskal",
+    title: "Kruskal's Algorithm",
     difficulty: "Hard",
-    timeComplexity: "Kruskal: O(E log E) | Prim: O((V+E) log V)",
+    timeComplexity: "O(E log E) or O(E log V)",
     spaceComplexity: "O(V + E)",
     theory: [
-      "A Minimum Spanning Tree (MST) of a weighted undirected graph is a subset of edges that connects ALL vertices with the minimum possible total edge weight. It has exactly V-1 edges and no cycles — it's a tree.",
-      "**MST Properties** (from cp-algorithms): (1) If all edge weights are **distinct**, the MST is **unique**. (2) MST is also the tree with **minimum product** of edge weights (proved by replacing weights with logarithms). (3) The **maximum weight edge** in the MST is the minimum possible among all spanning trees. (4) **Maximum spanning tree** can be found by negating all edge weights and running any MST algorithm.",
-      "**Cut Property** (why MST algorithms work): For any cut (partition of vertices into two groups), the lightest edge crossing the cut must be in the MST. **Proof**: Suppose the lightest cut edge e is NOT in MST T. Adding e to T creates a cycle, which must cross the cut again via some heavier edge e'. Swapping e' for e gives a lighter tree — contradiction.",
-      "**Cycle Property**: The heaviest edge in any cycle does NOT belong to the MST (assuming distinct weights). Kruskal's skips cycle-forming edges; Prim's never adds them.",
-      "**Kruskal's Algorithm** (Joseph Kruskal, 1956): Sort all edges by weight. Iterate in ascending order. For each edge, if it connects two different components (checked via Union-Find), add it to the MST. Time: O(M log M + M·α(N)) ≈ O(M log M).",
-      "**Prim's Algorithm**: Start from any vertex. Maintain a set of vertices in the MST. At each step, add the minimum weight edge connecting MST to non-MST vertex. Uses a priority queue. Time: O((V+E) log V). Better for dense graphs.",
-      "**Borůvka's Algorithm** (O(E log V)): Each component finds its cheapest outgoing edge simultaneously, then merges. Repeat until one component remains. Runs in O(log V) phases (components halve each phase). **Key advantage**: easily parallelizable, and useful for MST with special cost functions.",
-      "When to use which: Kruskal's is simplest (90% of CP). Prim's is better for dense graphs (E ≈ V²). Borůvka's for parallel/online settings or when edges have implicit structure.",
-      "MST has a special property: the maximum weight edge on the unique path between any two vertices in the MST is minimized. This is the **minimax path** / **bottleneck spanning tree** property.",
-      "**Second-best MST** (from cp-algorithms): For each non-MST edge (u,v), adding it creates a cycle. The second-best MST replaces the heaviest MST edge on the u→v path with (u,v). Use **LCA with binary lifting** storing max edge weights — O(n log n) preprocessing, O(log n) per query. Total: O(E log V).",
-      "MST applications: Network design, clustering (remove k-1 heaviest edges), second-best MST, bottleneck shortest path, Steiner tree approximation.",
+      "Kruskal's algorithm (1956) is an elegant greedy approach: 'Always pick the cheapest edge that doesn't create a cycle.' It builds the forest of components and merges them until only one tree remains.",
+      "**Step-by-Step Logic**: (1) Sort all edges by weight in ascending order. (2) Initialize each vertex as its own component (using Union-Find). (3) Iterate through sorted edges: if the edge (u, v) connects two different components, ADD it to the MST and UNION the components. Otherwise, SKIP it to avoid a cycle.",
+      "**Why it works**: Kruskal's essentially processes every possible 'cut' in the graph. Since it picks the lightest edge between components, it satisfies the Cut Property at every step.",
+      "**Data Structure Efficiency**: The bottleneck is sorting edges (O(E log E)). The actual merging using Union-Find (DSU) takes almost constant time amortized, making it extremely fast for sparse graphs.",
+      "**Optimization**: If edges are already sorted or have a small range of weights (weights ≤ 10^6), we can use Counting Sort/Bucket Sort to achieve O(E).",
+      "Example Walkthrough: Edges {(A,B,1), (B,C,4), (A,C,3), (C,D,2)}. Sorted: (A,B,1), (C,D,2), (A,C,3), (B,C,4). (1) Pick (A,B,1). (2) Pick (C,D,2). (3) Pick (A,C,3) — Connects {A,B} and {C,D}. (4) Skip (B,C,4) — forms a cycle A-B-C-A. Result: 1+2+3 = 6.",
     ],
     keyPoints: [
-      "MST has exactly V-1 edges and connects all V vertices",
-      "Kruskal's: sort edges + Union-Find — O(E log E)",
-      "Prim's: priority queue from a starting vertex — O((V+E) log V)",
-      "Borůvka's: O(E log V), each phase halves the number of components",
-      "Cut property: the minimum weight edge crossing any cut belongs to the MST",
-      "Cycle property: the heaviest edge in any cycle is NOT in the MST",
-      "If all edge weights are distinct, the MST is unique",
-      "Second-best MST: O(E log V) using LCA with max edge on path",
+      "Greedy strategy: process lightest edges first",
+      "Relies on Union-Find (DSU) for cycle detection — O(α(V))",
+      "Best for sparse graphs where sorting is the main cost",
+      "Always produces a Minimum Spanning Forest if the graph is disconnected",
+      "Highly intuitive and common in competitive programming",
     ],
-    tip: "In competitive programming, always use Kruskal's with Union-Find. It's the simplest to code and handles most MST problems. For second-best MST, precompute max edge on MST paths using binary lifting.",
     code: [
       {
-        title: "Kruskal's & Prim's MST",
+        title: "Kruskal's MST — Complete & Optimized",
         language: "java",
         content: `import java.util.*;
 
-public class MinimumSpanningTree {
-    
-    // ==================== UNION-FIND (DSU) ====================
-    
-    static int[] parent, rank;
-    
-    static void init(int n) {
-        parent = new int[n]; rank = new int[n];
-        for (int i = 0; i < n; i++) parent[i] = i;
+public class KruskalsMST {
+    static class Edge implements Comparable<Edge> {
+        int u, v, w;
+        Edge(int u, int v, int w) { this.u = u; this.v = v; this.w = w; }
+        public int compareTo(Edge other) { return Integer.compare(this.w, other.w); }
     }
-    
-    static int find(int x) {
-        if (parent[x] != x) parent[x] = find(parent[x]); // Path compression
-        return parent[x];
+
+    static class DSU {
+        int[] parent, rank;
+        DSU(int n) {
+            parent = new int[n]; rank = new int[n];
+            for (int i = 0; i < n; i++) parent[i] = i;
+        }
+        int find(int i) {
+            if (parent[i] == i) return i;
+            return parent[i] = find(parent[i]); // Path compression
+        }
+        boolean union(int i, int j) {
+            int rootI = find(i), rootJ = find(j);
+            if (rootI != rootJ) {
+                if (rank[rootI] < rank[rootJ]) parent[rootI] = rootJ;
+                else if (rank[rootI] > rank[rootJ]) parent[rootJ] = rootI;
+                else { parent[rootI] = rootJ; rank[rootJ]++; }
+                return true;
+            }
+            return false;
+        }
     }
-    
-    static boolean union(int x, int y) {
-        int px = find(x), py = find(y);
-        if (px == py) return false; // Same component — would form cycle
-        if (rank[px] < rank[py]) { int t = px; px = py; py = t; }
-        parent[py] = px;
-        if (rank[px] == rank[py]) rank[px]++;
-        return true;
-    }
-    
-    // ==================== KRUSKAL'S ALGORITHM ====================
-    
-    public static int kruskal(int V, int[][] edges) {
-        // Sort edges by weight
-        Arrays.sort(edges, Comparator.comparingInt(e -> e[2]));
-        init(V);
-        
-        int mstWeight = 0, edgesUsed = 0;
-        List<int[]> mstEdges = new ArrayList<>();
-        
-        for (int[] edge : edges) {
-            int u = edge[0], v = edge[1], w = edge[2];
-            if (union(u, v)) {       // Doesn't form cycle
-                mstWeight += w;
-                mstEdges.add(edge);
-                edgesUsed++;
-                if (edgesUsed == V - 1) break; // MST has V-1 edges
+
+    public static List<Edge> kruskal(int n, List<Edge> edges) {
+        Collections.sort(edges); // O(E log E)
+        DSU dsu = new DSU(n);
+        List<Edge> mst = new ArrayList<>();
+        int mstWeight = 0;
+
+        for (Edge e : edges) {
+            if (dsu.union(e.u, e.v)) { // O(α(V))
+                mst.add(e);
+                mstWeight += e.w;
+                if (mst.size() == n - 1) break;
             }
         }
-        
-        System.out.println("MST Edges (Kruskal):");
-        for (int[] e : mstEdges)
-            System.out.printf("  %d -- %d (weight %d)%n", e[0], e[1], e[2]);
-        return mstWeight;
+        return mst;
     }
-    
-    // ==================== PRIM'S ALGORITHM ====================
-    
-    public static int prims(List<List<int[]>> adj, int V) {
-        boolean[] inMST = new boolean[V];
-        int[] key = new int[V]; // Min weight edge to connect vertex to MST
+}`
+      }
+    ]
+  },
+  {
+    id: "graph-prim",
+    title: "Prim's Algorithm",
+    difficulty: "Hard",
+    timeComplexity: "O(E log V) or O(V²) for dense graphs",
+    spaceComplexity: "O(V + E)",
+    theory: [
+      "Prim's algorithm (1930 / 1957) grows the MST from a single starting vertex, one edge at a time. It's essentially Dijkstra's algorithm adapted for MST: instead of minimizing path *from* source, it minimizes weight to connect to the *existing* tree.",
+      "**Step-by-Step Logic**: (1) Pick an arbitrary starting vertex. (2) Keep track of two sets: 'In MST' and 'Not yet in MST'. (3) At each step, find the minimum weight edge that connects an 'In MST' vertex to a 'Not yet in MST' vertex. (4) Add that vertex and edge to the tree. Repeat until all vertices are included.",
+      "**Algorithm Choice**: (1) **Adjacency List + Priority Queue**: O(E log V). Preferred for sparse graphs. (2) **Adjacency Matrix + Linear Scan**: O(V²). Better for very dense graphs (where E ≈ V²).",
+      "**Correctness Proof**: Prim's satisfies the Cut Property at every step. The 'In MST' set vs 'Not In MST' set defines a cut, and Prim's always picks the minimum weight edge across that cut, ensuring it's part of the MST.",
+      "**Differences from Dijkstra**: In Dijkstra, `dist[v]` is the distance from source to v. In Prim, `key[v]` is the distance from the ENTIRE growing tree to v. Relaxation in Prim: `if (w(u,v) < key[v]) key[v] = w(u,v)`.",
+      "Example Walkthrough: Start at A. Neighbors: (A,B,4), (A,C,1). (1) Pick (A,C,1). Tree: {A,C}. Neighbors of {A,C}: (A,B,4), (C,B,2), (C,D,5). (2) Pick (C,B,2). Tree: {A,B,C}. Neighbors: (C,D,5), (B,D,3). (3) Pick (B,D,3). Total Weight: 1+2+3 = 6.",
+    ],
+    keyPoints: [
+      "Greedy strategy: grow tree from a seed vertex",
+      "Uses a Priority Queue to pick the next cheapest node",
+      "Better for dense graphs (if implemented as O(V²))",
+      "Does not require edge sorting upfront",
+      "Algorithm logic is very similar to Dijkstra",
+    ],
+    code: [
+      {
+        title: "Prim's MST — Sparse & Dense Implementations",
+        language: "java",
+        content: `import java.util.*;
+
+public class PrimsMST {
+    // ==================== O(E log V) Implementation (Sparse) ====================
+    static class Node implements Comparable<Node> {
+        int id, key;
+        Node(int id, int key) { this.id = id; this.key = key; }
+        public int compareTo(Node o) { return Integer.compare(this.key, o.key); }
+    }
+
+    public static int primSparse(List<List<int[]>> adj, int n) {
+        int[] key = new int[n];
+        boolean[] inMST = new boolean[n];
         Arrays.fill(key, Integer.MAX_VALUE);
         key[0] = 0;
-        
-        // Min-heap: [weight, vertex]
-        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
-        pq.offer(new int[]{0, 0});
-        int mstWeight = 0;
-        
+
+        PriorityQueue<Node> pq = new PriorityQueue<>();
+        pq.offer(new Node(0, 0));
+        int totalWeight = 0, count = 0;
+
         while (!pq.isEmpty()) {
-            int[] curr = pq.poll();
-            int w = curr[0], u = curr[1];
+            Node curr = pq.poll();
+            if (inMST[curr.id]) continue;
             
-            if (inMST[u]) continue;
-            inMST[u] = true;
-            mstWeight += w;
-            
-            for (int[] edge : adj.get(u)) {
-                int v = edge[0], weight = edge[1];
-                if (!inMST[v] && weight < key[v]) {
-                    key[v] = weight;
-                    pq.offer(new int[]{key[v], v});
+            inMST[curr.id] = true;
+            totalWeight += curr.key;
+            count++;
+
+            for (int[] neighbor : adj.get(curr.id)) {
+                int v = neighbor[0], w = neighbor[1];
+                if (!inMST[v] && w < key[v]) {
+                    key[v] = w;
+                    pq.offer(new Node(v, key[v]));
                 }
             }
         }
-        return mstWeight;
+        return count == n ? totalWeight : -1;
     }
-    
-    public static void main(String[] args) {
-        int[][] edges = {{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}};
-        System.out.println("MST Weight (Kruskal): " + kruskal(4, edges)); // 19
+
+    // ==================== O(V²) Implementation (Dense) ====================
+    public static int primDense(int[][] matrix, int n) {
+        int[] key = new int[n];
+        boolean[] inMST = new boolean[n];
+        Arrays.fill(key, Integer.MAX_VALUE);
+        key[0] = 0;
+        int totalWeight = 0;
+
+        for (int i = 0; i < n; i++) {
+            int u = -1;
+            for (int j = 0; j < n; j++) {
+                if (!inMST[j] && (u == -1 || key[j] < key[u])) u = j;
+            }
+            if (key[u] == Integer.MAX_VALUE) return -1;
+            
+            inMST[u] = true;
+            totalWeight += key[u];
+            for (int v = 0; v < n; v++) {
+                if (matrix[u][v] != 0 && !inMST[v] && matrix[u][v] < key[v]) {
+                    key[v] = matrix[u][v];
+                }
+            }
+        }
+        return totalWeight;
     }
-}`,
-      },
-    ],
+}`
+      }
+    ]
   },
   {
     id: "graph-topo",
-    title: "Topological Sort & SCC",
-    difficulty: "Hard",
+    title: "Topological Sort Deep Dive",
+    difficulty: "Medium",
     timeComplexity: "O(V + E)",
     spaceComplexity: "O(V)",
     theory: [
-      "Topological Sort: Linear ordering of vertices in a DAG (Directed Acyclic Graph) such that for every directed edge u→v, u appears before v in the ordering. Think of it as ordering variables so that constraints like 'a < b' are satisfied.",
-      "Topological sort only exists for DAGs (Directed Acyclic Graphs). If the graph has a cycle, no valid ordering exists. **Topological order can be non-unique** — if vertices a, b, c exist where a→b and a→c but no path between b and c, both [a,b,c] and [a,c,b] are valid.",
-      "**DFS-based approach** (from cp-algorithms): Run DFS, append vertex v to a list when dfs(v) finishes (post-order). **Proof of correctness**: For any edge v→u, when dfs(v) is called, either (1) u is already visited (u finishes before v), or (2) u is unvisited → dfs(u) is called and finishes before dfs(v). Either way, u appears earlier in post-order, later in reversed order. So v appears before u in the reversed list ✓.",
-      "**Kahn's Algorithm (BFS-based)**: Start with all nodes having in-degree 0, process them, reduce in-degrees of neighbors, add new 0-in-degree nodes. If processed count < V → cycle exists. Use a **min-heap** instead of queue for lexicographically smallest order.",
-      "**Shortest paths in a DAG** (from cp-algorithms): Relax edges in topological order — O(V+E). For each vertex u in topo order, for each edge u→v with weight w: d[v] = min(d[v], d[u] + w). This works even with **negative edges** (unlike Dijkstra) because there are no cycles. Also works for longest path (negate weights or use max).",
-      "**Counting paths in DAG**: Process in topo order. cnt[v] = Σ cnt[u] for all u→v. This counts the number of distinct paths from source to each vertex.",
-      "Classic applications: Course scheduling (prerequisites), build systems (Makefile), task scheduling, compilation order, dependency resolution in package managers, shortest/longest paths in DAG, critical path method (CPM) in project management.",
-      "**Strongly Connected Components (SCC)**: A subset C ⊆ V is an SCC if: (1) for all u,v ∈ C with u≠v, there's a path from u to v AND from v to u, and (2) C is **maximal** (no vertex can be added). SCCs **partition** the vertex set — every vertex belongs to exactly one SCC.",
-      "**Condensation graph**: Replace each SCC with a single node. The result is always a **DAG** (acyclic by definition — if two SCCs had a cycle between them, they'd be one SCC). This lets you solve problems on cyclic directed graphs by reducing to DAG problems. Example: find the minimum number of vertices from which all other vertices are reachable = count nodes with in-degree 0 in the condensation.",
-      "**Kosaraju's Algorithm** (O(V+E)): Based on the theorem that if edge C→C' exists in the condensation, then t_out[C] > t_out[C']. Step 1: DFS on original graph, record exit times. Step 2: DFS on transposed graph in decreasing exit time order. Each DFS tree in step 2 is one SCC.",
+      "Topological Sort is a linear ordering of vertices in a **Directed Acyclic Graph (DAG)** such that for every directed edge `u → v`, `u` appears before `v`. Think of it as a valid sequence of tasks where prerequisites must be completed first.",
+      "**Constraint**: Topological sort ONLY exists for DAGs. If the graph has even one cycle, no valid topological order can exist. This makes it a primary tool for **Cycle Detection** in directed graphs.",
+      "**Algorithm 1: Kahn's Algorithm (BFS-based)**: (1) Calculate the 'in-degree' (number of incoming edges) for every node. (2) Put all nodes with in-degree 0 into a queue. (3) While the queue is not empty: pull a node `u`, add it to the result, and 'remove' its outgoing edges by decrementing neighbor in-degrees. If a neighbor's in-degree becomes 0, add it to the queue.",
+      "**Lexicographical Smallest Order**: If you need the 'alphabetically first' valid topological order, use a **Priority Queue (Min-Heap)** instead of a standard Queue in Kahn's Algorithm. This ensures that among all available tasks with no prerequisites, we always pick the one with the smallest ID.",
+      "**Algorithm 2: DFS-based**: Run a standard DFS. When a node's recursive calls are finished (post-order), push it onto a stack. The final stack (or reversed list) is a topological order. This is often faster to code but slightly harder to adapt for lexicographical order.",
+      "**Shortest Path in DAG**: In a DAG, you can find the shortest (or longest) path in O(V + E) by relaxing edges in topological order. This works even with **negative edge weights**, making it superior to Dijkstra for DAGs.",
     ],
     keyPoints: [
-      "Topological sort ONLY exists for DAGs — no cycles allowed",
-      "Kahn's: BFS with in-degree tracking, naturally detects cycles",
-      "DFS topo sort: post-order DFS, then reverse the order",
-      "Shortest path in DAG: relax in topo order — O(V+E), works with negative edges",
-      "Longest path in DAG: negate weights + shortest path, or use max instead of min",
-      "If Kahn's processes fewer than V nodes, the graph has a cycle",
-      "Use min-heap in Kahn's for lexicographically smallest topo order",
-      "Course Schedule = check if topo sort exists = check if DAG",
-      "Condensation: in-degree 0 nodes = minimum sources to reach everything",
+      "Valid only for Directed Acyclic Graphs (DAGs)",
+      "Kahn's Algorithm is usually preferred for cycle detection",
+      "Use Priority Queue for Lexicographical Topo Sort",
+      "Number of valid topo sorts can be very large (up to V!)",
+      "Foundation for path counting and DP on graphs",
     ],
-    tip: "For 'Course Schedule' type problems: if you just need to check if valid ordering exists, Kahn's is easiest — just check if the result has all V nodes. If you need the actual ordering, both approaches work.",
-    note: "Topological sort is not unique — a DAG can have many valid orderings. For shortest/longest paths in DAGs, topo sort + relaxation is faster than Dijkstra/Bellman-Ford and handles negative weights.",
     code: [
       {
-        title: "Topological Sort & Kosaraju's SCC",
+        title: "Kahn's Algorithm (BFS) — Standard & Lexicographical",
         language: "java",
         content: `import java.util.*;
 
-public class TopoSortSCC {
-    
-    // ==================== KAHN'S ALGORITHM (BFS Topo Sort) ====================
-    
-    public static List<Integer> kahnTopoSort(List<List<Integer>> adj, int V) {
-        int[] inDegree = new int[V];
-        for (int u = 0; u < V; u++)
-            for (int v : adj.get(u)) inDegree[v]++;
-        
-        Queue<Integer> queue = new LinkedList<>();
-        for (int i = 0; i < V; i++)
-            if (inDegree[i] == 0) queue.offer(i);
-        
-        List<Integer> order = new ArrayList<>();
-        while (!queue.isEmpty()) {
-            int u = queue.poll();
-            order.add(u);
-            for (int v : adj.get(u)) {
-                inDegree[v]--;
-                if (inDegree[v] == 0) queue.offer(v);
+public class TopologicalSort {
+    // Standard Kahn's Algorithm
+    public static List<Integer> kahn(int v, List<List<Integer>> adj) {
+        int[] inDegree = new int[v];
+        for (int i = 0; i < v; i++) {
+            for (int neighbor : adj.get(i)) inDegree[neighbor]++;
+        }
+
+        Queue<Integer> q = new LinkedList<>();
+        for (int i = 0; i < v; i++) if (inDegree[i] == 0) q.add(i);
+
+        List<Integer> result = new ArrayList<>();
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            result.add(u);
+            for (int neighbor : adj.get(u)) {
+                if (--inDegree[neighbor] == 0) q.add(neighbor);
             }
         }
-        
-        if (order.size() != V) {
-            System.out.println("Cycle detected — no topological order!");
-            return new ArrayList<>();
+        return result.size() == v ? result : new ArrayList<>();
+    }
+
+    // Lexicographical Smallest (use PriorityQueue)
+    public static List<Integer> lexSmallest(int v, List<List<Integer>> adj) {
+        int[] inDegree = new int[v];
+        for (int i = 0; i < v; i++) {
+            for (int neighbor : adj.get(i)) inDegree[neighbor]++;
         }
-        return order;
-    }
-    
-    // DFS-based Topo Sort
-    public static List<Integer> dfsTopoSort(List<List<Integer>> adj, int V) {
-        boolean[] visited = new boolean[V];
-        Deque<Integer> stack = new ArrayDeque<>();
-        
-        for (int i = 0; i < V; i++)
-            if (!visited[i]) toposDFS(adj, i, visited, stack);
-        
-        List<Integer> result = new ArrayList<>(stack);
-        return result;
-    }
-    
-    private static void toposDFS(List<List<Integer>> adj, int u, boolean[] visited, Deque<Integer> stack) {
-        visited[u] = true;
-        for (int v : adj.get(u))
-            if (!visited[v]) toposDFS(adj, v, visited, stack);
-        stack.push(u); // Add AFTER all descendants (post-order)
-    }
-    
-    // ==================== KOSARAJU'S SCC ====================
-    
-    public static List<List<Integer>> kosarajuSCC(List<List<Integer>> adj, int V) {
-        // Step 1: DFS on original graph, push to stack by finish time
-        boolean[] visited = new boolean[V];
-        Deque<Integer> stack = new ArrayDeque<>();
-        for (int i = 0; i < V; i++)
-            if (!visited[i]) dfsFirst(adj, i, visited, stack);
-        
-        // Step 2: Build reversed graph
-        List<List<Integer>> revAdj = new ArrayList<>();
-        for (int i = 0; i < V; i++) revAdj.add(new ArrayList<>());
-        for (int u = 0; u < V; u++)
-            for (int v : adj.get(u)) revAdj.get(v).add(u);
-        
-        // Step 3: DFS on reversed graph in stack order
-        Arrays.fill(visited, false);
-        List<List<Integer>> sccs = new ArrayList<>();
-        
-        while (!stack.isEmpty()) {
-            int node = stack.pop();
-            if (!visited[node]) {
-                List<Integer> scc = new ArrayList<>();
-                dfsSecond(revAdj, node, visited, scc);
-                sccs.add(scc);
+
+        PriorityQueue<Integer> pq = new PriorityQueue<>(); // Min-heap
+        for (int i = 0; i < v; i++) if (inDegree[i] == 0) pq.add(i);
+
+        List<Integer> result = new ArrayList<>();
+        while (!pq.isEmpty()) {
+            int u = pq.poll();
+            result.add(u);
+            for (int neighbor : adj.get(u)) {
+                if (--inDegree[neighbor] == 0) pq.add(neighbor);
             }
+        }
+        return result.size() == v ? result : new ArrayList<>();
+    }
+}`
+      }
+    ],
+    tip: "If a problem mentions 'prerequisites' and asks for any valid order, it's a Topo Sort problem. If it asks for the 'smallest' order, use PriorityQueue in Kahn's.",
+  },
+  {
+    id: "graph-scc",
+    title: "SCC: Strongly Connected Components",
+    difficulty: "Expert",
+    timeComplexity: "O(V + E)",
+    spaceComplexity: "O(V)",
+    theory: [
+      "A **Strongly Connected Component (SCC)** is a maximal subgroup of nodes in a directed graph where every node can reach every other node in the same group. SCCs help simplify complex cyclic graphs.",
+      "**Condensation Graph**: If you shrink every SCC into a single node, the resulting graph is always a **DAG**. This allows us to apply DAG algorithms (like Topo Sort or Longest Path) to any directed graph by first condensing its SCCs.",
+      "**Tarjan's Algorithm (Single Pass)**: Tracks discovery time and the 'lowest' node reachable in the DFS tree. A node `u` is the root of an SCC when `low[u] == disc[u]`. Highly efficient as it only requires one DFS pass.",
+      "**Kosaraju's Algorithm (Two Passes)**: (1) DFS finish-time stack. (2) Reverse graph edges. (3) DFS in stack order on reversed graph. More intuitive for some but requires more memory for graph reversal.",
+      "**2-SAT Solver**: 2-Satisfiability problems can be solved in linear time using SCCs! A 2-SAT formula is unsatisfiable if and only if a variable `x` and its negation `not x` end up in the same SCC.",
+    ],
+    keyPoints: [
+      "SCCs partition a directed graph into reachability clusters",
+      "Condensing SCCs always results in a DAG (Directed Acyclic Graph)",
+      "Used in connectivity analysis, cycle detection, and 2-SAT solvers",
+      "Tarjan's is usually the winner in terms of performance (one pass)",
+    ],
+    code: [
+      {
+        title: "Tarjan's SCC — Expert Implementation",
+        language: "java",
+        content: `import java.util.*;
+
+public class TarjansSCC {
+    int time = 0;
+    int[] disc, low;
+    boolean[] onStack;
+    Stack<Integer> st;
+    List<List<Integer>> sccs;
+
+    public List<List<Integer>> findSCCs(int n, List<List<Integer>> adj) {
+        disc = new int[n]; low = new int[n]; onStack = new boolean[n];
+        Arrays.fill(disc, -1);
+        st = new Stack<>();
+        sccs = new ArrayList<>();
+
+        for (int i = 0; i < n; i++) {
+            if (disc[i] == -1) dfs(i, adj);
         }
         return sccs;
     }
-    
-    private static void dfsFirst(List<List<Integer>> adj, int u, boolean[] visited, Deque<Integer> stack) {
-        visited[u] = true;
-        for (int v : adj.get(u)) if (!visited[v]) dfsFirst(adj, v, visited, stack);
-        stack.push(u);
+
+    private void dfs(int u, List<List<Integer>> adj) {
+        disc[u] = low[u] = time++;
+        st.push(u); onStack[u] = true;
+
+        for (int v : adj.get(u)) {
+            if (disc[v] == -1) {
+                dfs(v, adj);
+                low[u] = Math.min(low[u], low[v]);
+            } else if (onStack[v]) {
+                low[u] = Math.min(low[u], disc[v]);
+            }
+        }
+
+        if (low[u] == disc[u]) {
+            List<Integer> scc = new ArrayList<>();
+            while (true) {
+                int node = st.pop();
+                onStack[node] = false;
+                scc.add(node);
+                if (u == node) break;
+            }
+            sccs.add(scc);
+        }
     }
-    
-    private static void dfsSecond(List<List<Integer>> adj, int u, boolean[] visited, List<Integer> scc) {
-        visited[u] = true;
-        scc.add(u);
-        for (int v : adj.get(u)) if (!visited[v]) dfsSecond(adj, v, visited, scc);
-    }
-    
-    // Course Schedule (classic topo sort application)
-    public static boolean canFinishCourses(int n, int[][] prereqs) {
-        List<List<Integer>> adj = new ArrayList<>();
-        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
-        for (int[] p : prereqs) adj.get(p[1]).add(p[0]);
-        return kahnTopoSort(adj, n).size() == n;
-    }
-    
-    public static void main(String[] args) {
-        List<List<Integer>> adj = new ArrayList<>();
-        for (int i = 0; i < 6; i++) adj.add(new ArrayList<>());
-        adj.get(5).add(2); adj.get(5).add(0);
-        adj.get(4).add(0); adj.get(4).add(1);
-        adj.get(2).add(3); adj.get(3).add(1);
-        
-        System.out.println("Topological Order: " + kahnTopoSort(adj, 6));
-        System.out.println("Can finish 2 courses [[1,0]]: " + canFinishCourses(2, new int[][]{{1,0}}));
-    }
-}`,
-      },
+}`
+      }
     ],
+    tip: "Use SCCs to simplify a messy directed graph with cycles into a clean DAG of components.",
   },
+
   {
     id: "graph-dsu",
-    title: "Union-Find (DSU)",
+    title: "DSU — Union-Find Deep Dive",
     difficulty: "Medium",
-    timeComplexity: "O(α(n)) per operation — nearly O(1)",
-    spaceComplexity: "O(n)",
+    timeComplexity: "O(α(V)) amortized — nearly O(1)",
+    spaceComplexity: "O(V)",
     theory: [
-      "**Disjoint Set Union** (DSU), also called Union-Find, provides three operations: `make_set(v)` — create a singleton set, `find_set(v)` — return the representative (root) of v's set, `union_sets(a, b)` — merge the sets containing a and b. Used whenever we need to dynamically merge groups and query connectivity.",
-      "Sets are stored as **trees**: each tree = one set, root = representative. `parent[v]` points to v's parent; root has parent[root] = root. Naive implementation: find walks up to root O(n), union attaches one root to another O(1). Worst case: degenerate chain → O(n) per find.",
-      "**Path Compression**: During find(v), make every node on the path point directly to the root. Implementation: `parent[v] = find(parent[v])` — one line! Alone gives amortized O(log n). Visualization: a tall tree gets flattened to a star after one find call.",
-      "**Union by Size/Rank**: Always attach the **smaller** tree under the root of the **larger** tree. This limits tree height to O(log n). Implementation: maintain size[] array; on union, compare sizes, attach smaller under larger, update size of new root.",
-      "Both optimizations together: amortized **O(α(n))** per operation, where α is the inverse Ackermann function. For all practical n (< 10^80), α(n) ≤ 4. Effectively constant time.",
-      "**Advanced applications** (from cp-algorithms): (1) **Storing extra info** — maintain distances to root, edge weights, or parity along paths. (2) **Offline RMQ** — answer range minimum queries using DSU. (3) **Kruskal's MST** — process edges in sorted order, use DSU to check/merge components. (4) **Connected components on grid images** — union adjacent same-color cells. (5) **Painting subarrays offline** — process queries in reverse, use DSU to skip already-painted cells.",
+      "**Disjoint Set Union (DSU)**, or Union-Find, maintains a partition of a set into disjoint groups. It's the 'Swiss Army Knife' of connectivity: used for Kruskal's MST, detecting cycles, finding connected components, and solving complex offline queries.",
+      "**Sets as Trees**: Each group is represented as a tree where every child points to its parent. The **Root** of the tree is the 'representative' of the group. If `find(u) == find(v)`, they belong to the same group.",
+      "**Optimization 1: Path Compression**: During the `find(u)` operation, we make every node on the path from `u` to the root point *directly* to the root. This 'flattens' the tree, ensuring future queries are extremely fast. Logic: `parent[u] = find(parent[u])`.",
+      "**Optimization 2: Union by Rank/Size**: When merging two trees, we always attach the **shorter** (or smaller) tree under the root of the **taller** (or larger) one. This prevents the tree from becoming a long chain. Combined with path compression, the time complexity becomes **O(α(V))**, where α is the inverse Ackermann function (≤ 4 for all practical purposes).",
+      "**Advanced: DSU with Rollbacks**: In some problems, you need to 'undo' a union (e.g., in persistent connectivity or divide and conquer on edges). To support this, we **cannot use path compression** (as it destroys tree structure). We use only Union by Rank/Size (O(log V)) and maintain a stack of changes to undo them in O(1).",
+      "**Advanced: DSU with Path Info**: You can store extra information on edges (e.g., distance to root or weight parity). For example, to check if a graph is **Bipartite** using DSU, we maintain `dist[u]` (parity of path length to root). If we merge `u` and `v` with a new edge and their distances have the same parity, we've found an odd cycle!",
+      "**Offline Queries on DSU**: Many problems that seem to require deletions can be solved using DSU by processing queries in reverse. If nodes are removed, start from the final state and 'add' them back by processing edges from the end to the start.",
     ],
     keyPoints: [
-      "Two operations: find(x) returns root, union(x,y) merges sets",
-      "Path compression: parent[x] = find(parent[x]) — one line, huge speedup",
-      "Union by rank: attach smaller tree under larger — keeps trees balanced",
-      "Both optimizations together: amortized O(α(n)) ≈ O(1) per operation",
-      "Track component count: decrement on each successful union",
-      "Track component size: size[root] += size[other] during union",
+      "Always use BOTH Path Compression and Union by Rank for O(α(V))",
+      "For undo/rollback support: use ONLY Union by rank/size (O(log V))",
+      "DSU can track component sizes, counts, and path weights",
+      "Great for dynamic connectivity (add edges, query components)",
+      "Standard for Kruskal's MST and Cycle Detection in undirected graphs",
     ],
-    tip: "Always implement BOTH path compression AND union by rank. Path compression alone gives amortized O(log n). Union by rank alone gives O(log n). Together they give O(α(n)) ≈ O(1). It's free performance!",
     code: [
       {
-        title: "DSU — Full Implementation & Applications",
+        title: "Standard DSU (Alpha Implementation)",
         language: "java",
         content: `public class DSU {
-    int[] parent, rank, size;
+    int[] parent, size, rank;
     int components;
-    
-    DSU(int n) {
-        parent = new int[n]; rank = new int[n]; size = new int[n];
+
+    public DSU(int n) {
+        parent = new int[n]; size = new int[n]; rank = new int[n];
         components = n;
-        for (int i = 0; i < n; i++) { parent[i] = i; size[i] = 1; }
+        for (int i = 0; i < n; i++) {
+            parent[i] = i; size[i] = 1;
+        }
     }
-    
-    // Path compression — O(α(n)) amortized
-    int find(int x) {
-        if (parent[x] != x) parent[x] = find(parent[x]);
-        return parent[x];
+
+    // Path compression: O(α(V)) amortized
+    public int find(int x) {
+        if (parent[x] == x) return x;
+        return parent[x] = find(parent[x]);
     }
-    
-    // Union by rank
-    boolean union(int x, int y) {
-        int px = find(x), py = find(y);
-        if (px == py) return false;
-        if (rank[px] < rank[py]) { int t = px; px = py; py = t; }
-        parent[py] = px;
-        size[px] += size[py];
-        if (rank[px] == rank[py]) rank[px]++;
+
+    // Union by rank: keeps tree balanced
+    public boolean union(int x, int y) {
+        int rootX = find(x), rootY = find(y);
+        if (rootX == rootY) return false;
+
+        if (rank[rootX] < rank[rootY]) parent[rootX] = rootY;
+        else if (rank[rootX] > rank[rootY]) parent[rootY] = rootX;
+        else { parent[rootX] = rootY; rank[rootY]++; }
+        
+        size[find(rootY)] += size[rootX]; // Size tracking
         components--;
         return true;
     }
-    
-    boolean connected(int x, int y) { return find(x) == find(y); }
-    int getSize(int x) { return size[find(x)]; }
-    
-    // Application: Number of Provinces
-    public static int findCircleNum(int[][] isConnected) {
-        int n = isConnected.length;
-        DSU dsu = new DSU(n);
-        for (int i = 0; i < n; i++)
-            for (int j = i+1; j < n; j++)
-                if (isConnected[i][j] == 1) dsu.union(i, j);
-        return dsu.components;
-    }
-    
-    // Application: Redundant Connection (detect first cycle-forming edge)
-    public static int[] findRedundantConnection(int[][] edges) {
-        int n = edges.length;
-        DSU dsu = new DSU(n + 1);
-        for (int[] edge : edges)
-            if (!dsu.union(edge[0], edge[1])) return edge;
-        return new int[]{};
-    }
-    
-    public static void main(String[] args) {
-        DSU dsu = new DSU(5);
-        dsu.union(0, 1); dsu.union(1, 2); dsu.union(3, 4);
-        System.out.println("Components: " + dsu.components); // 2
-        System.out.println("0 and 2 connected? " + dsu.connected(0, 2)); // true
-        System.out.println("0 and 3 connected? " + dsu.connected(0, 3)); // false
-    }
-}`,
+}`
       },
+      {
+        title: "Advanced: DSU with Weights (Bipartite Check)",
+        language: "java",
+        content: `public class WeightedDSU {
+    int[] parent, dist; // dist[i] = parity of distance to root
+    
+    public WeightedDSU(int n) {
+        parent = new int[n]; dist = new int[n];
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+
+    public int[] find(int i) {
+        if (parent[i] == i) return new int[]{i, 0};
+        int[] res = find(parent[i]);
+        parent[i] = res[0];
+        dist[i] = (dist[i] + res[1]) % 2; // Propagate parity
+        return new int[]{parent[i], dist[i]};
+    }
+
+    public boolean addEdge(int i, int j) {
+        int[] rootI = find(i), rootY = find(j);
+        if (rootI[0] != rootY[0]) {
+            parent[rootI[0]] = rootY[0];
+            dist[rootI[0]] = (rootI[1] + rootY[1] + 1) % 2;
+            return true;
+        }
+        return rootI[1] != rootY[1]; // False if same parity (odd cycle!)
+    }
+}`
+      }
     ],
+    tip: "When you hear 'groups', 'connectivity', or 'merging components', DSU should be your first thought. For problems with deletions, try reversing the operations and using DSU as 'additions'.",
   },
   {
     id: "graph-scc",
@@ -2088,6 +2178,170 @@ public class HLD {
         ["LCA", "O(log n)", "Chain jumping"],
       ],
     },
+  },
+
+  {
+    id: "graph-eulerian",
+    title: "Eulerian Path & Circuit",
+    difficulty: "Hard",
+    timeComplexity: "O(V + E)",
+    spaceComplexity: "O(V)",
+    theory: [
+      "An **Eulerian Path** is a trail in a graph which visits every **edge** exactly once. An **Eulerian Circuit** is an Eulerian path which starts and ends on the same vertex.",
+      "**Existence (Undirected)**: (1) Connected (all edges in one component). (2) **Circuit**: Every vertex has even degree. (3) **Path**: Exactly zero or two vertices have odd degree.",
+      "**Existence (Directed)**: (1) Weakly connected. (2) **Circuit**: For every vertex, `in-degree == out-degree`. (3) **Path**: For all but two vertices `in == out`. For the other two, one has `out - in = 1` (start) and one has `in - out = 1` (end).",
+      "**Hierholzer's Algorithm**: The standard O(E) approach. Start at a valid starting vertex. Perform a DFS, but only add a vertex to the result list **after** all its outgoing edges are explored (post-order). The reversed list is the Eulerian circuit/path.",
+      "**Implementation Detail**: To achieve O(E), you must ensure each edge is deleted or 'marked' immediately so it's never processed twice. In Java, using an `ArrayList` of `Iterator`s for the adjacency list is a common trick to keep track of current progress.",
+    ],
+    keyPoints: [
+      "Visits every EDGE exactly once (contrast with Hamiltonian: every Vertex)",
+      "Hierholzer's Algorithm runs in linear time O(E)",
+      "Zero or two odd-degree vertices for an undirected path",
+      "In-degree == Out-degree for all vertices for a directed circuit",
+    ],
+    code: [
+      {
+        title: "Hierholzer's Algorithm (Directed Eulerian Circuit)",
+        language: "java",
+        content: `public List<Integer> getEulerianCircuit(int v, List<List<Integer>> adj) {
+    LinkedList<Integer> circuit = new LinkedList<>();
+    Stack<Integer> stack = new Stack<>();
+    int[] currEdge = new int[v];
+
+    stack.push(0); // Start from any node with an edge
+    while (!stack.isEmpty()) {
+        int u = stack.peek();
+        if (currEdge[u] < adj.get(u).size()) {
+            stack.push(adj.get(u).get(currEdge[u]++));
+        } else {
+            circuit.addFirst(stack.pop());
+        }
+    }
+    return circuit;
+}`
+      }
+    ],
+    tip: "If a problem asks to 'trace a path using all lines on a drawing without lifting the pen', it's an Eulerian Path problem.",
+  },
+  {
+    id: "graph-lca",
+    title: "LCA: Binary Lifting Deep Dive",
+    difficulty: "Expert",
+    timeComplexity: "O(V log V) build | O(log V) query",
+    spaceComplexity: "O(V log V)",
+    theory: [
+      "The **Lowest Common Ancestor (LCA)** of nodes `u` and `v` is the deepest node that is an ancestor of both. While RMQ + Euler Tour is O(1) query, **Binary Lifting** is the most flexible and widely used technique in competitive programming.",
+      "**The Preprocessing**: Precompute `up[v][i]`, which is the `2^i`-th ancestor of node `v`. This takes O(V log V) using the relation: `up[v][i] = up[up[v][i-1]][i-1]`.",
+      "**The Query**: (1) Bring both nodes to the same depth by jumping the deeper node up in powers of 2. (2) If they are now the same, that's the LCA. (3) If not, jump both nodes up simultaneously in decreasing powers of 2, but ONLY if they don't land on the same node. The parent of the final nodes is the LCA.",
+      "**Path Queries**: Binary lifting can also precompute path information (like min/max/sum on path) in the same O(V log V) table. For example, `minWeight[v][i]` would store the minimum edge weight on the path from `v` to its `2^i`-th ancestor.",
+    ],
+    keyPoints: [
+      "Standard approach for tree path queries",
+      "Preprocessing: O(N log N) | Query: O(log N)",
+      "Can store path aggregates (sum, min, max) in the sparse table",
+      "Extremely robust for tree DP and distance queries",
+    ],
+    code: [
+      {
+        title: "LCA — Binary Lifting Implementation",
+        language: "java",
+        content: `public class LCA {
+    int log;
+    int[][] up;
+    int[] depth;
+
+    public void preprocess(int root, int n, List<List<Integer>> adj) {
+        log = (int) (Math.log(n) / Math.log(2)) + 1;
+        up = new int[n][log + 1];
+        depth = new int[n];
+        dfs(root, root, 0, adj);
+    }
+
+    private void dfs(int u, int p, int d, List<List<Integer>> adj) {
+        depth[u] = d;
+        up[u][0] = p;
+        for (int i = 1; i <= log; i++) {
+            up[u][i] = up[up[u][i - 1]][i - 1];
+        }
+        for (int v : adj.get(u)) {
+            if (v != p) dfs(v, u, d + 1, adj);
+        }
+    }
+
+    public int getLCA(int u, int v) {
+        if (depth[u] < depth[v]) { int tmp = u; u = v; v = tmp; }
+        for (int i = log; i >= 0; i--) {
+            if (depth[u] - (1 << i) >= depth[v]) u = up[u][i];
+        }
+        if (u == v) return u;
+        for (int i = log; i >= 0; i--) {
+            if (up[u][i] != up[v][i]) {
+                u = up[u][i];
+                v = up[v][i];
+            }
+        }
+        return up[u][0];
+    }
+}`
+      }
+    ],
+    tip: "LCA is the foundation for finding the distance between two nodes in a tree: `dist(u, v) = depth[u] + depth[v] - 2 * depth[LCA(u, v)]`.",
+  },
+  {
+    id: "graph-flow",
+    title: "Flow Networks: Max Flow & Min Cut",
+    difficulty: "Expert",
+    timeComplexity: "Edmonds-Karp: O(V E²) | Dinic: O(V² E)",
+    spaceComplexity: "O(V + E)",
+    theory: [
+      "A **Flow Network** is a directed graph where each edge has a **Capacity**. We want to find the maximum amount of 'flow' that can be sent from a **Source (S)** to a **Sink (T)**.",
+      "**Ford-Fulkerson Method**: Find any 'augmenting path' from S to T in the **Residual Graph** (a graph showing remaining capacities and 'back-flow' edges). Add its bottleneck capacity to the total flow. Repeat until no paths exist.",
+      "**Edmonds-Karp**: A specific implementation of Ford-Fulkerson that uses **BFS** to find the shortest augmenting path. This guarantees a polynomial time complexity of O(V E²).",
+      "**Max-Flow Min-Cut Theorem**: The maximum flow in a network is exactly equal to the capacity of the **Minimum Cut** (the minimum capacity of edges whose removal disconnects S from T). This is a deep duality used in many partition problems.",
+      "**Bipartite Matching via Max Flow**: Create a dummy source S connected to all left nodes with capacity 1, and all right nodes connected to a dummy sink T with capacity 1. Max flow == Max Bipartite Matching.",
+    ],
+    keyPoints: [
+      "Source (S) produces flow, Sink (T) consumes it",
+      "Residual graph handles 'undoing' flow via back-edges",
+      "Max Flow is always equal to Min Cut",
+      "Edmonds-Karp (BFS) vs Dinic (Level Graph) vs Push-Relabel",
+    ],
+    code: [
+      {
+        title: "Edmonds-Karp Algorithm (Max Flow)",
+        language: "java",
+        content: `public int maxFlow(int s, int t, int n, int[][] capacity) {
+    int[][] flow = new int[n][n];
+    int totalFlow = 0;
+    while (true) {
+        int[] parent = new int[n];
+        Arrays.fill(parent, -1);
+        Queue<Integer> q = new LinkedList<>();
+        q.add(s); parent[s] = s;
+        while (!q.isEmpty() && parent[t] == -1) {
+            int u = q.poll();
+            for (int v = 0; v < n; v++) {
+                if (parent[v] == -1 && capacity[u][v] - flow[u][v] > 0) {
+                    parent[v] = u; q.add(v);
+                }
+            }
+        }
+        if (parent[t] == -1) break;
+        int push = Integer.MAX_VALUE;
+        for (int v = t; v != s; v = parent[v]) {
+            push = Math.min(push, capacity[parent[v]][v] - flow[parent[v]][v]);
+        }
+        for (int v = t; v != s; v = parent[v]) {
+            flow[parent[v]][v] += push;
+            flow[v][parent[v]] -= push;
+        }
+        totalFlow += push;
+    }
+    return totalFlow;
+}`
+      }
+    ],
+    tip: "Min-Cut is often the hidden answer to problems asking for the 'minimum cost to disconnect' something.",
   },
   {
     id: "graph-matching",

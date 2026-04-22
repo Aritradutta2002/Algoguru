@@ -845,8 +845,8 @@ export default function Playground() {
           let consecutiveBlankLines = 0;
 
           for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            let trimmed = line.trim();
+            const line = lines[i];
+            const trimmed = line.trim();
             
             // Handle empty lines - max 1 consecutive
             if (!trimmed) {
@@ -933,11 +933,11 @@ export default function Playground() {
       const formattedPython = [];
       let previousBlank = false;
 
-      for (let line of lines) {
-        let trimmed = line.trim();
+      for (const line of lines) {
+        const trimmed = line.trim();
         
-        let spacesMatches = line.match(/^\s*/);
-        let spaces = spacesMatches ? spacesMatches[0].replace(/\t/g, '    ') : '';
+        const spacesMatches = line.match(/^\s*/);
+        const spaces = spacesMatches ? spacesMatches[0].replace(/\t/g, '    ') : '';
 
         if (!trimmed) {
           if (!previousBlank) formattedPython.push('');
@@ -957,8 +957,8 @@ export default function Playground() {
       const formattedCpp = [];
       let indent = 0;
 
-      for (let line of lines) {
-        let trimmed = line.trim();
+      for (const line of lines) {
+        const trimmed = line.trim();
         if (!trimmed) { 
           formattedCpp.push(''); 
           continue; 

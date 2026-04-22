@@ -46,7 +46,7 @@ serve(async (req) => {
       let apiKey = "";
       let baseUrl = "";
       
-      let headers: Record<string, string> = {
+      const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
 
