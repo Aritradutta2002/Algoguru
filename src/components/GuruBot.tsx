@@ -18,12 +18,11 @@ interface ModelOption {
 }
 
 const MODELS: ModelOption[] = [
-  { key: "auto", label: "Auto (Fastest)", tag: "Speed" },
+  { key: "auto", label: "Auto (Fastest GLM)", tag: "Speed" },
   { key: "openrouter", label: "OpenRouter Free", tag: "OpenRouter" },
-  { key: "qwen", label: "Qwen 3.5 397B", tag: "Alibaba" },
-  { key: "kimi", label: "Kimi K2.5", tag: "Moonshot" },
   { key: "minimax", label: "MiniMax M2.7", tag: "MiniMax" },
-  { key: "glm", label: "GLM 5.1", tag: "Zhipu" },
+  { key: "glm", label: "GLM 5.1 (Modal)", tag: "Modal" },
+  { key: "glm_nvidia", label: "GLM 5.1 (Nvidia)", tag: "Nvidia" },
 ];
 
 async function streamChat({
@@ -62,8 +61,12 @@ async function streamChat({
       if (json === "[DONE]") { onDone(); return; }
       try {
         const parsed = JSON.parse(json);
-        const content = parsed.choices?.[0]?.delta?.content;
-        if (content) onDelta(content);
+        const delta = parsed.choices?.[0]?.delta;
+        if (!delta) continue;
+        let chunkStr = "";
+        if (delta.reasoning_content) chunkStr += delta.reasoning_content;
+        if (delta.content) chunkStr += delta.content;
+        if (chunkStr) onDelta(chunkStr);
       } catch {
         buf = line + "\n" + buf;
         break;
