@@ -1,3 +1,4 @@
+import React, { memo } from "react";
 import { ContentSection } from "@/data/recursionContent";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DiagramRenderer } from "@/components/DiagramRenderer";
@@ -193,7 +194,7 @@ interface ContentRendererProps {
   isPractice?: boolean;
 }
 
-export function ContentRenderer({ section, isPractice }: ContentRendererProps) {
+export const ContentRenderer = memo(function ContentRenderer({ section, isPractice }: ContentRendererProps) {
   const navigate = useNavigate();
   const classified = classifyTheoryLines(section.theory);
 
@@ -230,8 +231,9 @@ export function ContentRenderer({ section, isPractice }: ContentRendererProps) {
       className="cr-problem-card"
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: "0px", amount: 0.1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      style={{ willChange: "transform, opacity" }}
     >
       {/* ═══ Header: Title + Difficulty + Complexity ═══ */}
       <div className="cr-header">
@@ -381,4 +383,4 @@ export function ContentRenderer({ section, isPractice }: ContentRendererProps) {
       )}
     </motion.div>
   );
-}
+});

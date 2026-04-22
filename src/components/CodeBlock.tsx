@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check, Code2 } from "lucide-react";
@@ -10,7 +10,7 @@ interface CodeBlockProps {
   code: string;
 }
 
-export function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
+export const CodeBlock = memo(function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const { theme } = useSettings();
 
@@ -80,4 +80,4 @@ export function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
       </div>
     </div>
   );
-}
+});

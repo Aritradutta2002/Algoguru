@@ -388,6 +388,7 @@
     box-shadow: var(--shadow-card);
     border-radius: 0.5rem;
     letter-spacing: 0;
+    will-change: transform, opacity;
   }
 
   .cr-header {
@@ -725,6 +726,8 @@
     border-radius: 50%;
     filter: blur(100px);
     pointer-events: none;
+    will-change: transform, filter;
+    transform: translateZ(0);
   }
 
   .glass-panel {
