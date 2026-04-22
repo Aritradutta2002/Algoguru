@@ -100,8 +100,8 @@ serve(async (req) => {
     let response: Response;
 
     if (modelKey === "auto") {
-      // Race the two GLM 5.1 models against each other
-      const fastModels = ["glm", "glm_nvidia"]; 
+      // Race all available models against each other to find the absolute fastest
+      const fastModels = Object.keys(ALLOWED_MODELS); 
       const abortControllers = fastModels.map(() => new AbortController());
       
       try {
