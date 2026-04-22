@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useEffect, useRef } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check, Code2 } from "lucide-react";
@@ -12,7 +12,23 @@ interface CodeBlockProps {
 
 export const CodeBlock = memo(function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useSettings();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: "600px" });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
@@ -53,30 +69,36 @@ export const CodeBlock = memo(function CodeBlock({ title, language = "java", cod
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <div style={{ touchAction: 'pan-x', overflowX: 'auto' }}>
-        <SyntaxHighlighter
-          language={language}
-          style={oneDark}
-          customStyle={{
-            margin: 0,
-            padding: "1.5rem 1.75rem",
-            background: "#282a36",
-            fontSize: "0.85rem",
-            lineHeight: "1.75",
-            borderRadius: 0,
-            fontFamily: "'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace",
-          }}
-          showLineNumbers
-          lineNumberStyle={{
-            color: "hsl(var(--muted-foreground)/0.25)",
-            fontSize: "0.7rem",
-            paddingRight: "1.5rem",
-            minWidth: "2.5rem",
-            userSelect: "none",
-          }}
-        >
-          {code.trim()}
-        </SyntaxHighlighter>
+      <div ref={containerRef} style={{ touchAction: 'pan-x', overflowX: 'auto', minHeight: '150px' }}>
+        {isVisible ? (
+          <SyntaxHighlighter
+            language={language}
+            style={oneDark}
+            customStyle={{
+              margin: 0,
+              padding: "1.5rem 1.75rem",
+              background: "#282a36",
+              fontSize: "0.85rem",
+              lineHeight: "1.75",
+              borderRadius: 0,
+              fontFamily: "'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace",
+            }}
+            showLineNumbers
+            lineNumberStyle={{
+              color: "hsl(var(--muted-foreground)/0.25)",
+              fontSize: "0.7rem",
+              paddingRight: "1.5rem",
+              minWidth: "2.5rem",
+              userSelect: "none",
+            }}
+          >
+            {code.trim()}
+          </SyntaxHighlighter>
+        ) : (
+          <div className="flex items-center justify-center p-12 text-muted-foreground/30 font-mono text-xs">
+            Loading...
+          </div>
+        )}
       </div>
     </div>
   );

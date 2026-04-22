@@ -554,10 +554,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top bar */}
           <header
-            className="h-16 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 border-b flex-shrink-0 sticky top-0 z-40 backdrop-blur-md header"
+            className="h-16 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 border-b flex-shrink-0 sticky top-0 z-40 header"
             style={{
               borderColor: "hsl(var(--border) / 0.3)",
-              background: "hsl(var(--background) / 0.8)",
+              background: "hsl(var(--background) / 0.98)",
             }}
           >
             <SidebarTrigger

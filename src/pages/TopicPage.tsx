@@ -160,8 +160,7 @@ export default function TopicPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Subtle background glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] blur-[120px] rounded-full pointer-events-none opacity-[0.05]" style={{ background: color }} />
+          {/* Subtle background glow removed for performance */}
 
           <div className="relative z-10 px-4 md:px-12 lg:px-16 py-12 md:py-20">
             <div className="flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">

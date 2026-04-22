@@ -2,7 +2,6 @@ import React, { memo } from "react";
 import { ContentSection } from "@/data/recursionContent";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DiagramRenderer } from "@/components/DiagramRenderer";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Play, Lightbulb, FlaskConical, BookOpen } from "lucide-react";
 
@@ -226,14 +225,9 @@ export const ContentRenderer = memo(function ContentRenderer({ section, isPracti
   };
 
   return (
-    <motion.div
+    <div
       id={section.id}
       className="cr-problem-card"
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px", amount: 0.1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      style={{ willChange: "transform, opacity" }}
     >
       {/* ═══ Header: Title + Difficulty + Complexity ═══ */}
       <div className="cr-header">
@@ -371,16 +365,14 @@ export const ContentRenderer = memo(function ContentRenderer({ section, isPracti
 
       {/* ═══ Practice in Playground ═══ */}
       {isPractice && section.code && section.code.length > 0 && (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={openInPlayground}
           className="cr-playground-btn"
         >
           <Play size={15} />
           Practice in Playground
-        </motion.button>
+        </button>
       )}
-    </motion.div>
+    </div>
   );
 });
