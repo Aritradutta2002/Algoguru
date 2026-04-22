@@ -214,7 +214,7 @@ export default function TopicPage() {
           </div>
         </motion.div>
 
-        <div className="px-4 md:px-12 lg:px-16 py-8 md:py-12 lg:py-16 max-w-5xl mx-auto">
+        <div className="px-4 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16 w-full max-w-[1400px] mx-auto">
           <div className="space-y-10 md:space-y-15 lg:space-y-20">
             {content.map((section) => (
               <ContentRenderer key={section.id} section={section} isPractice={detectedMode === "practice"} />
