@@ -15,6 +15,7 @@ import { treesContent } from "@/data/treesContent";
 import { segmentTreeContent } from "@/data/segmentTreeContent";
 import { advancedMathContent } from "@/data/advancedMathContent";
 import { advancedTopicsContent } from "@/data/advancedTopicsContent";
+import { arraysContent } from "@/data/arraysContent";
 import { javaContentMap } from "@/data/javaContent";
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
@@ -26,6 +27,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMode } from "@/contexts/ModeContext";
 
 const dsContentMap: Record<string, ContentSection[]> = {
+  arrays: arraysContent,
   "stack-queue": stackQueueContent,
   recursion: recursionContent,
   backtracking: backtrackingContent,
@@ -42,6 +44,7 @@ const dsContentMap: Record<string, ContentSection[]> = {
 };
 
 const topicColorVars: Record<string, string> = {
+  arrays: "hsl(var(--primary))",
   "stack-queue": "hsl(var(--info))",
   recursion: "hsl(var(--primary))",
   backtracking: "hsl(var(--accent))",

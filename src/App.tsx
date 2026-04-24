@@ -52,6 +52,7 @@ import { segmentTreeContent } from "@/data/segmentTreeContent";
 import { advancedMathContent } from "@/data/advancedMathContent";
 import { advancedTopicsContent } from "@/data/advancedTopicsContent";
 import { stackQueueContent } from "@/data/stackQueueContent";
+import { arraysContent } from "@/data/arraysContent";
 import { javaContentMap } from "@/data/javaContent";
 import { practiceContentMap } from "@/data/practiceContent";
 
@@ -59,6 +60,7 @@ const allTopics = [...topics, ...javaTopics, ...practiceTopics];
 
 // DS content map
 const dsContentMap: Record<string, any[]> = {
+  arrays: arraysContent,
   "stack-queue": stackQueueContent,
   recursion: recursionContent,
   backtracking: backtrackingContent,

@@ -24,8 +24,8 @@ const SECTIONS = [
     desc: "Curated top-company DSA questions, system design patterns, and behavioral frameworks to crush technical interviews.",
     icon: <Target size={24} />,
     color: "hsl(var(--accent))",
-    tag: "Most Popular",
-    route: "/stack-queue",
+      tag: "Most Popular",
+      route: "/arrays",
     stats: "500+ Questions",
   },
   {
