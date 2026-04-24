@@ -161,7 +161,8 @@ public class ArrayListDemo {
       "**Two main patterns**:",
       "1. **Opposite Ends**: One pointer starts at the beginning (`left = 0`), the other at the end (`right = n-1`). They move toward each other based on conditions. Used for: pair sums, container problems, palindrome checks.",
       "2. **Same Direction (Fast & Slow)**: Both pointers start at the beginning, but one moves faster. Used for: removing duplicates, Dutch National Flag, cycle detection (Floyd's).",
-      "**Why it works**: By moving pointers intelligently, we eliminate large portions of the search space without nested loops.",
+      "**Why it works**: By moving pointers intelligently, we eliminate large portions of the search space without nested loops. Since each pointer iterates at most `n` times in a single direction, the total number of operations scales linearly with `O(n)`.",
+      "**In-Depth Theory**: The essence of Two Pointers is maintaining a 'window' or 'boundary' of valid elements. In the Opposite Ends approach, the pointers form a monotonically decreasing search space. Every time a pointer is moved, an entire row or column of potential pairs is discarded, guaranteeing optimality.",
     ],
     keyPoints: [
       "Two pointers usually require O(1) extra space — a space-efficient alternative to hashing.",
@@ -169,6 +170,9 @@ public class ArrayListDemo {
       "Opposite-end pattern: move the pointer that leads to a better solution.",
       "Same-direction pattern: the slow pointer tracks valid elements, fast pointer scans.",
       "Always check for edge cases: empty array, single element, all same elements.",
+      "**Tip:** When moving pointers, ensure `left < right` bounds are strictly checked to avoid out-of-bounds or overlapping pointer errors.",
+      "**Trick:** If dealing with duplicates in 3Sum or similar problems, advance the pointer with a `while` loop until a new value is encountered to skip duplicates.",
+      "**Trick:** Use Two Pointers from the end of the array when you need to merge sorted arrays or process elements in-place without overwriting unread elements.",
     ],
     diagram: {
       type: "flow",
@@ -500,6 +504,55 @@ public class ThreeSum {
   },
 
   {
+    id: "tp-squares",
+    title: "Squares of a Sorted Array",
+    difficulty: "Easy",
+    timeComplexity: "O(n)",
+    spaceComplexity: "O(n)",
+    theory: [
+      "**Problem**: Given an integer array `nums` sorted in non-decreasing order, return an array of the squares of each number sorted in non-decreasing order.",
+      "**Example**: Input: `nums = [-4, -1, 0, 3, 10]`. Output: `[0, 1, 9, 16, 100]`.",
+      "**Brute Force**: Square every element, then sort the array. `O(n log n)`.",
+      "**Optimal Approach**: Use two pointers from the start and end of the original array. Since the array is sorted, the largest square must come from either the largest positive number at the end or the largest negative number at the beginning.",
+      "Compare the absolute values or squares of the elements at both pointers. Place the larger square at the end of the new output array, and move the corresponding pointer inward.",
+    ],
+    keyPoints: [
+      "Process the array from the outside in (Opposite Ends pattern).",
+      "Fill the result array backwards, starting from the last index (`n-1`) down to `0`.",
+      "This pattern beautifully handles mixed negative and positive sorted sequences.",
+    ],
+    code: [
+      {
+        title: "Squares of a Sorted Array (Java)",
+        language: "java",
+        content: `public class SortedSquares {
+    public int[] sortedSquares(int[] nums) {
+        int n = nums.length;
+        int[] result = new int[n];
+        int left = 0;
+        int right = n - 1;
+        
+        for (int i = n - 1; i >= 0; i--) {
+            int squareLeft = nums[left] * nums[left];
+            int squareRight = nums[right] * nums[right];
+            
+            if (squareLeft > squareRight) {
+                result[i] = squareLeft;
+                left++;
+            } else {
+                result[i] = squareRight;
+                right--;
+            }
+        }
+        
+        return result;
+    }
+}`,
+      },
+    ],
+  },
+
+  {
     id: "tp-summary",
     title: "Two Pointer Pattern Summary",
     difficulty: "Easy",
@@ -536,6 +589,7 @@ public class ThreeSum {
       "**When to use**: Range sum queries, subarray sum problems, finding subarrays with specific sum properties, and problems that can be transformed into 'find two indices with same prefix sum'.",
       "**Difference Array**: The inverse of prefix sum. A difference array `diff` where `diff[i] = arr[i] - arr[i-1]` allows O(1) range updates and O(n) final array reconstruction.",
       "**2D Prefix Sum**: For matrices, `prefix[i][j]` stores the sum of the rectangle from (0,0) to (i,j). Submatrix sum queries become O(1).",
+      "**In-Depth Theory**: Prefix Sum is a form of dynamic programming where the state is purely cumulative. By offloading the computation to a preprocessing step, repeated aggregate functions become simple array lookups. Prefix sums are powerful when combined with HashMaps, turning `O(n²)` subarray searching into `O(n)` linear scans by checking if a valid previous prefix exists in the map.",
     ],
     keyPoints: [
       "Prefix sum preprocessing: O(n). Each range query: O(1).",
@@ -543,6 +597,9 @@ public class ThreeSum {
       "Difference array enables O(1) range add/update operations.",
       "HashMap + Prefix Sum solves 'subarray sum equals K' problems.",
       "2D prefix sum formula: prefix[i][j] = arr[i][j] + prefix[i-1][j] + prefix[i][j-1] - prefix[i-1][j-1].",
+      "**Tip:** Always consider using a 1-indexed prefix array of size `n+1` (where `prefix[0] = 0`). This elegantly avoids out-of-bounds errors when querying a range starting from index `0`.",
+      "**Trick:** When dealing with negative numbers, simple sliding windows fail because the sum function isn't monotonically increasing. Prefix Sum + HashMap is the go-to alternative.",
+      "**Trick:** If you only need to return the *number* of subarrays or checking *existence*, you don't need a sliding window. A HashMap tracking previously seen prefix sums is often the key.",
     ],
     code: [
       {
@@ -876,6 +933,60 @@ public class ContinuousSubarraySum {
         }
         
         return false;
+    }
+}`,
+      },
+    ],
+  },
+
+  {
+    id: "ps-difference-array",
+    title: "Difference Array Technique",
+    difficulty: "Medium",
+    timeComplexity: "O(1) updates, O(n) reconstruct",
+    spaceComplexity: "O(n)",
+    theory: [
+      "**Problem**: Given an array initialized to 0, process multiple range update queries (e.g., add `val` to all elements from index `i` to `j`). After all updates, return the final array.",
+      "**Brute Force**: Loop from `i` to `j` and add `val`. Time complexity is `O(n)` per query. If there are `q` queries, time is `O(n * q)`.",
+      "**Optimal Approach (Difference Array)**: A Difference Array `diff` is defined as `diff[i] = A[i] - A[i-1]`. To add `val` to range `[i, j]`:",
+      "1. Add `val` to `diff[i]`.",
+      "2. Subtract `val` from `diff[j+1]`.",
+      "This turns a range update into an `O(1)` point update.",
+      "**Reconstruction**: After all updates, calculate the prefix sum of the `diff` array. `A[i] = A[i-1] + diff[i]`. This takes `O(n)` time.",
+    ],
+    keyPoints: [
+      "Difference Array is the perfect inverse of a Prefix Sum Array.",
+      "It makes range modifications strictly `O(1)`. Ideal when you don't need to read the array *between* updates.",
+      "Always ensure `j+1` is within bounds before subtracting `val`. If `j+1 >= n`, just ignore it.",
+    ],
+    code: [
+      {
+        title: "Difference Array Range Updates (Java)",
+        language: "java",
+        content: `public class DifferenceArray {
+    public int[] getModifiedArray(int length, int[][] updates) {
+        int[] diff = new int[length];
+        
+        for (int[] update : updates) {
+            int start = update[0];
+            int end = update[1];
+            int val = update[2];
+            
+            // Apply difference bounds
+            diff[start] += val;
+            if (end + 1 < length) {
+                diff[end + 1] -= val;
+            }
+        }
+        
+        // Reconstruct the array using Prefix Sum
+        int[] res = new int[length];
+        res[0] = diff[0];
+        for (int i = 1; i < length; i++) {
+            res[i] = res[i - 1] + diff[i];
+        }
+        
+        return res;
     }
 }`,
       },
