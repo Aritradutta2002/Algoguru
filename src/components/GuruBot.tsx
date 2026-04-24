@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Send, Copy, Check, PanelRightClose, Bot, ChevronDown, RotateCcw, MessageSquarePlus, Square, MessageSquare, Trash2, X, History, Target, Code2, ArrowRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -95,7 +95,7 @@ function CodeBlock({ children, className }: { children: string; className?: stri
       <div className="text-[13px] leading-[1.7] font-mono" style={{ touchAction: 'pan-x', overflowX: 'auto' }}>
         <SyntaxHighlighter
           language={lang}
-          style={dracula}
+          style={oneDark}
           customStyle={{ margin: 0, border: 'none', background: 'transparent', padding: '1.25rem' }}
           wrapLongLines={true}
         >

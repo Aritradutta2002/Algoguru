@@ -78,60 +78,62 @@
     --difficulty-expert: 320 65% 52%;
   }
 
-  /* ===== ONE DARK MODE ===== */
+  /* ===== TUF+ DARK MODE ===== */
   .dark {
-    /* One Dark Pro core palette */
-    --background: 220 13% 18%;
-    --foreground: 220 10% 80%;
+    /* Background: Deep charcoal / off-black (#121212) */
+    --background: 0 0% 7%;
+    --foreground: 0 0% 90%;
 
-    --card: 220 12% 16%;
-    --card-foreground: 220 10% 80%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 90%;
 
-    --popover: 220 12% 16%;
-    --popover-foreground: 220 10% 80%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 90%;
 
-    /* One Dark Syntax Highlights as UI Colors */
-    --primary: 207 82% 66%;
-    --primary-foreground: 220 13% 18%;
+    /* Accents: Golden-yellow for primary buttons/headings */
+    --primary: 43 95% 55%;
+    --primary-foreground: 0 0% 7%;
 
-    --secondary: 286 60% 67%;
+    /* Signature blue for TUF+ branding and play buttons */
+    --secondary: 217 91% 60%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 10% 25%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 39 67% 69%;
-    --accent-foreground: 220 13% 18%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 355 65% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 25%;
-    --input: 220 13% 14%;
-    --ring: 207 82% 66%;
+    --border: 0 0% 18%;
+    --input: 0 0% 15%;
+    --ring: 43 95% 55%;
 
-    --sidebar-background: 220 13% 16%;
-    --sidebar-foreground: 220 10% 80%;
-    --sidebar-primary: 207 82% 66%;
-    --sidebar-primary-foreground: 220 13% 18%;
-    --sidebar-accent: 220 10% 25%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 10% 22%;
-    --sidebar-ring: 207 82% 66%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 43 95% 55%;
+    --sidebar-primary-foreground: 0 0% 7%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 43 95% 55%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 43 95% 55%;
 
-    --gradient-primary: hsl(207 82% 66%);
-    --gradient-accent: hsl(286 60% 67%);
-    --gradient-card: hsl(220 12% 16%);
-    --gradient-sidebar: hsl(220 13% 16%);
+    --gradient-primary: hsl(43 95% 55%);
+    --gradient-accent: hsl(217 91% 60%);
+    --gradient-card: hsl(0 0% 10%);
+    --gradient-sidebar: hsl(0 0% 7%);
 
     --reading-surface: 0 0% 9%;
     --reading-foreground: 0 0% 96%;
-    --reading-muted: 0 0% 74%;
-    --reading-border: 0 0% 36%;
+    --reading-muted: 0 0% 60%;
+    --reading-border: 0 0% 20%;
 
-    --code-bg: 0 0% 8%;
-    --code-border: 0 0% 34%;
-    --code-header: 0 0% 12%;
+    /* Code Blocks: One Dark style */
+    --code-bg: 220 13% 18%;
+    --code-border: 0 0% 25%;
+    --code-header: 220 13% 15%;
 
     --shadow-card: 4px 4px 0px 0px rgba(255,255,255,1);
     --shadow-accent: 4px 4px 0px 0px rgba(255,255,255,1);
