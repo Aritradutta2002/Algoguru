@@ -85,7 +85,7 @@
   .dark {
     /* Background: Deep charcoal / off-black (#121212) */
     --background: 0 0% 7%;
-    --foreground: 0 0% 90%;
+    --foreground: 214 32% 91%; /* Slate-200 */
 
     --card: 0 0% 10%;
     --card-foreground: 0 0% 90%;
@@ -102,7 +102,7 @@
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted-foreground: 215 25% 65%; /* Slate-400 */
 
     --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
@@ -115,7 +115,7 @@
     --ring: 43 95% 55%;
 
     --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 90%;
+    --sidebar-foreground: 214 32% 91%; /* Slate-200 */
     --sidebar-primary: 43 95% 55%;
     --sidebar-primary-foreground: 0 0% 7%;
     --sidebar-accent: 0 0% 15%;

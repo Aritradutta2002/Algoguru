@@ -307,7 +307,7 @@ export function AppSidebar() {
                         "touch-manipulation flex items-center justify-between w-full px-4 py-3 min-h-[44px] rounded-[20px] text-[13px] font-bold tracking-tight transition-all duration-200 group border active:scale-95",
                         isActive 
                           ? "bg-muted/50 border-border/50 text-foreground" 
-                          : "bg-transparent border-transparent text-muted-foreground/80 hover:bg-muted/30 hover:text-foreground"
+                          : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground"
                       )}
                     >
                       <div className="flex items-center gap-3">
@@ -358,7 +358,7 @@ export function AppSidebar() {
                                       "touch-manipulation flex items-center gap-3 w-full px-3 py-2 min-h-[44px] rounded-xl text-[12px] font-semibold transition-all duration-200 text-left active:scale-95",
                                       active 
                                         ? "text-foreground bg-muted/30" 
-                                        : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/10"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/10"
                                     )}
                                   >
                                     <div
