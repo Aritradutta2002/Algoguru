@@ -623,6 +623,7 @@ export default function Playground() {
   const [copied, setCopied] = useState(false);
   const [stdin, setStdin] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const playgroundShellRef = useRef<HTMLDivElement>(null);
   const [showTemplateMenu, setShowTemplateMenu] = useState(false);
   const [userTemplates, setUserTemplates] =
     useState<UserTemplate[]>(loadUserTemplates);
@@ -749,6 +750,36 @@ export default function Playground() {
   const decorationsRef = useRef<any[]>([]);
   const dbTemplatesRef = useRef(dbTemplates);
   dbTemplatesRef.current = dbTemplates;
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    const shell = playgroundShellRef.current;
+
+    if (!shell || !document.fullscreenEnabled) {
+      setIsFullscreen((value) => !value);
+      return;
+    }
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await shell.requestFullscreen();
+      }
+    } catch {
+      setIsFullscreen((value) => !value);
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(PLAYGROUND_FONT_SIZE_KEY, String(editorFontSize));
@@ -2215,6 +2246,7 @@ export default function Playground() {
 
   return (
     <div
+      ref={playgroundShellRef}
       className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-[calc(100vh-3.5rem)]"} relative flex flex-col overflow-hidden bg-background`}
     >
       {/* Breakpoint & debug CSS */}
@@ -2467,14 +2499,7 @@ export default function Playground() {
           >
             <AlignLeft size={14} />
           </button>
-          <button
-            onClick={() => runCode(true)}
-            disabled={isRunning || breakpoints.size === 0}
-            title="Debug"
-            className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all disabled:opacity-30"
-          >
-            <Bug size={14} />
-          </button>
+
           <button
             onClick={() => resetCode()}
             title="Reset code"
@@ -2484,7 +2509,7 @@ export default function Playground() {
           </button>
           <div className="w-px h-4 bg-border/30 mx-0.5" />
           <button
-            onClick={() => setIsFullscreen((v) => !v)}
+            onClick={toggleFullscreen}
             title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
           >
