@@ -77,6 +77,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown } from "@/lib/renderNoteMarkdown";
+import { useToast } from "@/components/ui/use-toast";
 interface UserTemplate {
   id: string;
   name: string;
@@ -528,6 +529,7 @@ function instrumentCodeForDebug(
 
 export default function Playground() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const practiceId = searchParams.get("practice");
@@ -727,7 +729,7 @@ export default function Playground() {
   const initialNotesLoaded = useRef(false);
 
   const saveNotesNow = useCallback(
-    async (content = notesContent) => {
+    async (content = notesContent, showToast = false) => {
       if (!user) return;
 
       const dbId = practiceId || "playground-generic";
@@ -744,12 +746,25 @@ export default function Playground() {
       if (error) {
         console.error("Failed to save notes to DB", error);
         setNotesSaveStatus("Save failed");
+        if (showToast) {
+          toast({
+            title: "Save failed",
+            description: "Could not save your note. Please try again.",
+            variant: "destructive",
+          });
+        }
         return;
       }
 
       setNotesSaveStatus(content.trim() ? "Saved" : "Cleared");
+      if (showToast) {
+        toast({
+          title: "Note saved",
+          description: "Your playground note was saved successfully.",
+        });
+      }
     },
-    [notesContent, practiceId, user],
+    [notesContent, practiceId, toast, user],
   );
 
   // Load notes from Supabase database
@@ -2999,7 +3014,7 @@ export default function Playground() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => saveNotesNow()}
+                      onClick={() => saveNotesNow(notesContent, true)}
                       className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-widest text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
                     >
                       <Save size={13} />
