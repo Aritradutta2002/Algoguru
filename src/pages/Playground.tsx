@@ -3044,38 +3044,40 @@ export default function Playground() {
                   )
                 }
                 title="Expand input and output"
-                className="group h-full w-full flex flex-col items-center justify-between overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-3 text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+                className="group h-full w-full cursor-pointer overflow-hidden border-l border-primary/45 bg-primary/15 p-1 text-muted-foreground transition-all duration-200 hover:bg-primary/20"
               >
-                <ChevronRight
-                  size={14}
-                  className="rotate-180 text-primary/80 transition-transform group-hover:-translate-x-0.5"
-                />
+                <div className="flex h-full w-full flex-col items-center justify-between rounded-r-2xl border border-border/40 bg-card/95 py-4 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+                  <ChevronRight
+                    size={14}
+                    className="rotate-180 text-primary transition-transform group-hover:-translate-x-0.5"
+                  />
 
-                <div className="flex flex-1 flex-col items-center justify-center gap-5">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary shadow-sm">
-                      <Keyboard size={15} />
+                  <div className="flex flex-1 flex-col items-center justify-center gap-6">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary shadow-sm">
+                        <Keyboard size={15} />
+                      </div>
+                      <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-foreground">
+                        Input
+                      </span>
                     </div>
-                    <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.18em]">
-                      Input
-                    </span>
+
+                    <div className="h-px w-7 bg-border/60" />
+
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-success/30 bg-success/10 text-success shadow-sm">
+                        <Terminal size={15} />
+                      </div>
+                      <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-foreground">
+                        Console
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="h-px w-7 bg-border/60" />
-
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-success/25 bg-success/10 text-success shadow-sm">
-                      <Terminal size={15} />
-                    </div>
-                    <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.18em]">
-                      Console
-                    </span>
-                  </div>
+                  <span className="[writing-mode:vertical-rl] rotate-180 text-[9px] font-black uppercase tracking-[0.24em] text-muted-foreground/70">
+                    I/O
+                  </span>
                 </div>
-
-                <span className="[writing-mode:vertical-rl] rotate-180 text-[9px] font-black uppercase tracking-[0.22em] text-muted-foreground/70">
-                  I/O
-                </span>
               </button>
             ) : (
               <ResizablePanelGroup
