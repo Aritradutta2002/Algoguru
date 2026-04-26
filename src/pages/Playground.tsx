@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
@@ -203,7 +203,7 @@ function instrumentCodeForDebug(source: string, breakpointLines: Set<number>): s
 
     const prevDepth = braceDepth;
     
-    // Process closing braces FIRST — remove out-of-scope variables
+    // Process closing braces FIRST â€” remove out-of-scope variables
     if (closeBraces > 0) {
       const newDepthAfterClose = braceDepth - closeBraces;
       // Remove variables whose scope depth is greater than the new depth
@@ -220,7 +220,7 @@ function instrumentCodeForDebug(source: string, breakpointLines: Set<number>): s
 
     const inMethodBody = braceDepth >= 2 || prevDepth >= 2;
 
-    // Track method parameters — detect any line that looks like a method signature with params
+    // Track method parameters â€” detect any line that looks like a method signature with params
     // Matches: accessModifiers returnType methodName(Type param1, Type param2, ...) {
     if (openBraces > 0) {
       const methodSigMatch = trimmed.match(/\w+\s*\(([^)]+)\)\s*(?:throws\s+\w+(?:\s*,\s*\w+)*)?\s*\{/);
@@ -696,7 +696,7 @@ export default function Playground() {
       },
     });
 
-    // 3. CP Templates from database — prefix-triggered snippets
+    // 3. CP Templates from database â€” prefix-triggered snippets
     const FULL_TEMPLATE_PREFIXES = new Set([
       "template", "cpfull", "codeforces", "codeforces-contest",
       "codechef", "codechef-contest", "leetcode", "leetcode-contest", "interview",
@@ -730,7 +730,7 @@ export default function Playground() {
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: isFullTemplate ? t.code : t.code,
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.None,
-            detail: `⚡ ${t.name}`,
+            detail: `âš¡ ${t.name}`,
             documentation: t.description,
             filterText: `${t.prefix} ${t.name}`,
             sortText: `0_${t.prefix}`,
@@ -743,7 +743,7 @@ export default function Playground() {
       },
     });
 
-    // 4. User-defined symbol autocomplete (IntelliSense) — parses current code for variables, methods, classes
+    // 4. User-defined symbol autocomplete (IntelliSense) â€” parses current code for variables, methods, classes
     const JAVA_RESERVED = new Set([
       "abstract","assert","boolean","break","byte","case","catch","char","class","const",
       "continue","default","do","double","else","enum","extends","final","finally","float",
@@ -888,7 +888,7 @@ export default function Playground() {
           const data = await response.json();
           if (data.formatted) {
             setCode(data.formatted);
-            setOutput("✓ Code formatted with Google Java Format");
+            setOutput("âœ“ Code formatted with Google Java Format");
             setTimeout(() => setOutput(""), 2000);
             return;
           }
@@ -980,11 +980,11 @@ export default function Playground() {
           }
           
           setCode(formattedJava.join('\n'));
-          setOutput("✓ Code formatted (fallback formatter)");
+          setOutput("âœ“ Code formatted (fallback formatter)");
           setTimeout(() => setOutput(""), 2000);
         } catch (fallbackError) {
           console.error("Fallback formatting error:", fallbackError);
-          setOutput("✗ Formatting failed. Check your code syntax.");
+          setOutput("âœ— Formatting failed. Check your code syntax.");
           setTimeout(() => setOutput(""), 3000);
         }
       }
@@ -1076,7 +1076,7 @@ export default function Playground() {
       // If debug mode, instrument the code with print statements at breakpoints
       if (debugRun && breakpoints.size > 0 && isJava) {
         sourceCode = instrumentCodeForDebug(sourceCode, breakpoints);
-        setOutput("🔍 Debug mode: Instrumented " + breakpoints.size + " breakpoint(s)...\n\n");
+        setOutput("ðŸ” Debug mode: Instrumented " + breakpoints.size + " breakpoint(s)...\n\n");
       }
 
       let processedCode = sourceCode;
@@ -1099,7 +1099,7 @@ export default function Playground() {
 
       if (!res.ok) {
         const errorText = await res.text();
-        setOutput((prev) => prev + `⚠ Compile service error (${res.status}): ${errorText || "Unknown error"}`);
+        setOutput((prev) => prev + `âš  Compile service error (${res.status}): ${errorText || "Unknown error"}`);
         return;
       }
 
@@ -1117,14 +1117,14 @@ export default function Playground() {
         parts.push(`[Runtime Error]\n${data.program_error}`);
       }
 
-      const result = parts.join("\n") || "✓ Program executed successfully (no output)";
+      const result = parts.join("\n") || "âœ“ Program executed successfully (no output)";
       if (debugRun && breakpoints.size > 0) {
         setOutput((prev) => prev + result);
       } else {
         setOutput(result);
       }
     } catch (err) {
-      setOutput((prev) => prev + `⚠ Could not connect to compiler.\n${err instanceof Error ? err.message : "Unknown error"}`);
+      setOutput((prev) => prev + `âš  Could not connect to compiler.\n${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
       setIsRunning(false);
     }
@@ -1276,7 +1276,7 @@ export default function Playground() {
       >
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
-      {/* Language Section — Collapsible */}
+      {/* Language Section â€” Collapsible */}
       <div className="relative z-10">
         <button
           onClick={() => setSettingsCompilerOpen(!settingsCompilerOpen)}
@@ -1313,7 +1313,7 @@ export default function Playground() {
 
       <div className="mx-5 h-px bg-border/10" />
 
-      {/* Editor Theme Section — Collapsible */}
+      {/* Editor Theme Section â€” Collapsible */}
       <div className="relative z-10">
         <button
           onClick={() => setSettingsThemeOpen(!settingsThemeOpen)}
@@ -1408,23 +1408,22 @@ export default function Playground() {
         }
       `}</style>
 
-      {/* ═══════════════════════════════════════════════
-          VS CODE-STYLE HEADER — Row 1: Activity/Language Bar
-      ═══════════════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+          ROW 1 â€” Activity / Language Bar
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex items-center justify-between px-3 border-b flex-shrink-0 select-none"
+        className="flex items-center justify-between px-2 border-b flex-shrink-0 select-none"
         style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border)/0.25)', minHeight: 38 }}
       >
-        {/* Left: Language selector + info + status */}
+        {/* Left: Language + i + Auto */}
         <div className="flex items-center gap-1 h-full">
-          {/* Language pill */}
           <div className="relative flex-shrink-0">
             <button
               onClick={() => { setShowSettingsMenu(!showSettingsMenu); setSettingsCompilerOpen(true); setSettingsThemeOpen(false); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all duration-150 gap-2"
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
             >
-              <span className="text-[13px]">☕</span>
-              <span className="font-bold">{selectedLanguage.label}</span>
+              <span className="text-[13px]">â˜•</span>
+              <span>{selectedLanguage.label}</span>
               <ChevronDown size={11} className={`transition-transform duration-200 ${showSettingsMenu && settingsCompilerOpen ? 'rotate-180' : ''}`} />
             </button>
             {showSettingsMenu && (
@@ -1434,26 +1433,18 @@ export default function Playground() {
               </>
             )}
           </div>
-          {/* Info dot */}
-          <button className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-[11px] italic font-serif font-bold">
-            i
-          </button>
-          {/* Auto pill */}
+          <button className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-[11px] italic font-serif font-bold">i</button>
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-muted-foreground/60 border border-border/20 bg-muted/20">
             <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
             Auto
           </div>
         </div>
 
-        {/* Right: Icon toolbar */}
+        {/* Right: icon toolbar */}
         <div className="flex items-center gap-0.5 h-full">
           {/* Templates */}
           <div className="relative">
-            <button
-              onClick={() => setShowTemplateMenu(!showTemplateMenu)}
-              title="Templates"
-              className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
-            >
+            <button onClick={() => setShowTemplateMenu(!showTemplateMenu)} title="Templates" className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all">
               <FileCode size={15} />
             </button>
             {showTemplateMenu && (
@@ -1510,7 +1501,6 @@ export default function Playground() {
               </>
             )}
           </div>
-
           <button onClick={copyCode} title="Copy code" className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all">
             {copied ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
           </button>
@@ -1528,44 +1518,90 @@ export default function Playground() {
             {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
           </button>
           <button onClick={() => { setShowSettingsMenu(v => !v); setSettingsCompilerOpen(false); setSettingsThemeOpen(false); }} title="Settings" className={`w-8 h-8 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && !settingsCompilerOpen ? 'text-primary bg-primary/10' : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40'}`}>
-            <Settings size={14} className={showSettingsMenu && !settingsCompilerOpen ? 'animate-spin-slow' : ''} />
+            <Settings size={14} />
           </button>
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════
-          VS CODE-STYLE HEADER — Row 2: Tab Bar + Status
-      ═══════════════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+          ROW 2 â€” Tab Bar + Run + Status
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex items-center justify-between px-0 border-b flex-shrink-0 select-none"
-        style={{ background: 'hsl(var(--muted)/0.15)', borderColor: 'hsl(var(--border)/0.2)', minHeight: 36 }}
+        className="flex items-center border-b flex-shrink-0 select-none"
+        style={{ background: 'hsl(var(--muted)/0.08)', borderColor: 'hsl(var(--border)/0.2)', minHeight: 36 }}
       >
-        {/* Solution tabs */}
+        {/* Left: file tabs */}
         <div className="flex items-center h-full">
-          <div className="flex items-center h-full px-4 border-r gap-2 text-[12px] font-medium" style={{ borderColor: 'hsl(var(--border)/0.2)', background: 'hsl(var(--card)/0.6)', color: 'hsl(var(--foreground))' }}>
+          {/* Solution / Practice tab */}
+          <div
+            className="flex items-center h-full px-4 gap-2 text-[12px] font-medium border-r"
+            style={{ borderColor: 'hsl(var(--border)/0.2)', background: 'hsl(var(--card)/0.7)', color: 'hsl(var(--foreground))' }}
+          >
             <Code2 size={13} className="text-primary/70" />
-            <span>{practiceData ? `Practice: ${practiceData.title?.slice(0, 18)}` : 'Solution 1'}</span>
+            <span>{practiceData ? `Practice: ${practiceData.title?.slice(0, 20)}` : 'Solution 1'}</span>
             {practiceData && (
               <button onClick={() => navigate("/playground")} className="ml-1 w-4 h-4 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"><X size={10} /></button>
             )}
           </div>
+
+          {/* Note tab â€” only visible when notes are open */}
+          {practiceTab === "notes" && (
+            <div
+              className="flex items-center h-full px-3 gap-2 text-[12px] font-medium border-r"
+              style={{ borderColor: 'hsl(var(--border)/0.2)', background: 'hsl(var(--card)/0.7)', color: 'hsl(var(--foreground))' }}
+            >
+              <StickyNote size={13} className="text-amber-400/80" />
+              <span className="text-amber-400/90">Note</span>
+              <button
+                onClick={() => setPracticeTab("editor")}
+                className="ml-0.5 w-4 h-4 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                title="Close note"
+              >
+                <X size={10} />
+              </button>
+            </div>
+          )}
+
+          {/* + new tab (save as template) */}
           <button onClick={openCreateTemplate} title="Save as template" className="flex items-center justify-center w-8 h-full text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all border-r" style={{ borderColor: 'hsl(var(--border)/0.2)' }}>
             <Plus size={13} />
           </button>
         </div>
 
-        {/* Right: NeetBot + Hint + lock + Ln/Col */}
-        <div className="flex items-center gap-0 h-full pr-2">
-          {/* NeetBot button */}
+        {/* Run + Debug inline */}
+        <div className="flex items-center gap-1 px-2 border-r" style={{ borderColor: 'hsl(var(--border)/0.2)', height: '100%' }}>
+          <RunButton compact />
+          <DebugButton compact />
+        </div>
+
+        <div className="flex-1" />
+
+        {/* Right status */}
+        <div className="flex items-center gap-0 h-full">
+          {/* NeetBot */}
           <button
             onClick={() => setNeetBotOpen(true)}
             className="flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l hover:bg-primary/10 transition-all group"
             style={{ borderColor: 'hsl(var(--border)/0.2)', color: 'hsl(var(--primary))' }}
-            title="Open NeetBot — step-by-step debug coach"
+            title="Open NeetBot"
           >
-            <Bot size={13} className="group-hover:scale-110 transition-transform" />
+            <Bot size={13} />
             <span>NeetBot</span>
           </button>
+          <div className="w-px h-4 bg-border/30" />
+          {/* Notes button */}
+          <button
+            onClick={() => setPracticeTab(practiceTab === "notes" ? "editor" : "notes")}
+            className={`flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l transition-all ${
+              practiceTab === "notes" ? "text-amber-400 bg-amber-400/10" : "text-muted-foreground hover:bg-muted/30"
+            }`}
+            style={{ borderColor: 'hsl(var(--border)/0.2)' }}
+            title="Toggle Notes"
+          >
+            <StickyNote size={12} />
+            <span>Notes</span>
+          </button>
+          <div className="w-px h-4 bg-border/30" />
           {/* Hint */}
           <button
             className="flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l text-amber-400/80 hover:bg-amber-400/10 hover:text-amber-400 transition-all"
@@ -1575,12 +1611,9 @@ export default function Playground() {
             <Lightbulb size={12} />
             <span>Hint</span>
           </button>
+          <div className="w-px h-4 bg-border/30" />
           {/* Lock */}
-          <button
-            className="flex items-center justify-center w-8 h-full border-l text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all"
-            style={{ borderColor: 'hsl(var(--border)/0.2)' }}
-            title="Lock editor"
-          >
+          <button className="flex items-center justify-center w-8 h-full border-l text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all" style={{ borderColor: 'hsl(var(--border)/0.2)' }} title="Lock editor">
             <Lock size={12} />
           </button>
           {/* Ln/Col */}
@@ -1590,24 +1623,6 @@ export default function Playground() {
         </div>
       </div>
 
-      {/* Run bar always visible under header */}
-      <div className="flex items-center gap-2 px-4 py-1.5 border-b flex-shrink-0" style={{ borderColor: 'hsl(var(--border)/0.15)', background: 'hsl(var(--background))' }}>
-        <RunButton compact />
-        <DebugButton compact />
-        <div className="flex-1" />
-        {breakpoints.size > 0 && (
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-warning/10 border border-warning/20 text-warning text-[9px] font-black uppercase tracking-widest">
-            <Bug size={10} /> {breakpoints.size} BP
-          </div>
-        )}
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success/10 border border-success/20 text-success text-[9px] font-black uppercase tracking-widest">
-          <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
-          {selectedLanguage.label}
-        </div>
-        <button onClick={downloadCode} title="Download" className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all"><Download size={13} /></button>
-      </div>
-
-
 
       {/* Editor + Output with resizable panels */}
       <div className="flex-1 min-h-0">
@@ -1615,78 +1630,8 @@ export default function Playground() {
           {/* Code Editor Panel */}
           <ResizablePanel defaultSize={isMobile ? 60 : 55} minSize={30}>
             <div className="flex flex-col h-full">
-              {/* Tab bar */}
-              <div className={PANEL_HEADER_CLASSES} style={PANEL_BORDER_STYLE}>
-                {practiceData && (
-                  <button
-                    onClick={() => setPracticeTab("problem")}
-                    className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                      practiceTab === "problem" 
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    <BookOpen size={14} />
-                    Problem
-                  </button>
-                )}
-                <button
-                  onClick={() => setPracticeTab("editor")}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    (!practiceData || practiceTab === "editor") 
-                      ? "bg-card border border-border/30 text-foreground shadow-lg shadow-black/5" 
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <Code2 size={14} />
-                  Code
-                </button>
-                <button
-                  onClick={() => setPracticeTab("notes")}
-                  className={`flex items-center gap-2 pl-4 pr-2 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    practiceTab === "notes"
-                      ? "bg-card border border-border/30 text-foreground shadow-lg shadow-black/5" 
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <FileCode size={14} />
-                  Note
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPracticeTab("editor");
-                    }}
-                    className="ml-1 w-4 h-4 rounded-full hover:bg-muted-foreground/20 flex items-center justify-center transition-colors"
-                  >
-                    <X size={10} />
-                  </div>
-                </button>
 
-                <div className="flex-1" />
-
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success text-[9px] font-black uppercase tracking-widest">
-                    <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
-                    {selectedLanguage.label}
-                  </div>
-                  {breakpoints.size > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/10 border border-warning/20 text-warning text-[9px] font-black uppercase tracking-widest">
-                      <Bug size={10} />
-                      {breakpoints.size} BP
-                    </div>
-                  )}
-                </div>
-
-                {practiceData && (
-                  <button
-                    onClick={() => navigate("/playground")}
-                    title="Exit practice mode"
-                    className="ml-2 w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 border border-transparent hover:border-border/30 hover:bg-muted text-muted-foreground hover:text-foreground"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
+              {/* Problem panel */}
 
               {/* Problem panel */}
               {practiceData && practiceTab === "problem" ? (
@@ -1906,7 +1851,7 @@ export default function Playground() {
                     <pre
                       className="p-6 font-mono text-[13px] leading-relaxed whitespace-pre-wrap h-full selection:bg-primary/20"
                       style={{
-                        color: output.includes("Error") || output.includes("⚠")
+                        color: output.includes("Error") || output.includes("âš ")
                           ? "hsl(var(--destructive))"
                           : output.includes("[DEBUG")
                           ? "hsl(var(--warning))"
@@ -1974,7 +1919,7 @@ export default function Playground() {
               />
             </div>
             <div className="text-[10px] px-2 py-1.5 rounded" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
-              💡 The current editor code will be saved with this template.
+              ðŸ’¡ The current editor code will be saved with this template.
             </div>
           </div>
           <DialogFooter className="gap-2">

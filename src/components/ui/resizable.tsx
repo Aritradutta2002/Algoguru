@@ -32,25 +32,31 @@ const ResizableHandle = React.forwardRef<
   <ResizablePrimitive.PanelResizeHandle
     className={cn(
       "group/handle relative flex shrink-0 items-center justify-center select-none",
-      // LeetCode-style: thin line, expands on hover
-      "w-[2px] cursor-col-resize bg-border/40 transition-all duration-150",
-      "hover:bg-primary/30 hover:w-[4px] active:bg-primary/50 active:w-[4px]",
-      // Invisible hit area for easy grabbing
-      "after:absolute after:inset-y-0 after:left-1/2 after:w-4 after:-translate-x-1/2",
-      // Vertical direction
-      "data-[panel-group-direction=vertical]:h-[2px] data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:cursor-row-resize",
-      "data-[panel-group-direction=vertical]:hover:h-[4px] data-[panel-group-direction=vertical]:active:h-[4px]",
-      "data-[panel-group-direction=vertical]:after:inset-x-0 data-[panel-group-direction=vertical]:after:inset-y-auto data-[panel-group-direction=vertical]:after:top-1/2 data-[panel-group-direction=vertical]:after:h-4 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0",
-      "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+      // Horizontal handle (default): thin dark bar like in image
+      "w-[5px] cursor-col-resize bg-muted/20 transition-all duration-200",
+      "hover:bg-primary/20 active:bg-primary/30",
+      // Invisible wider hit area so it's easy to grab
+      "after:absolute after:inset-y-0 after:left-1/2 after:w-5 after:-translate-x-1/2",
+      // Vertical direction overrides
+      "data-[panel-group-direction=vertical]:h-[5px] data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:cursor-row-resize",
+      "data-[panel-group-direction=vertical]:hover:bg-primary/20",
+      "data-[panel-group-direction=vertical]:after:inset-x-0 data-[panel-group-direction=vertical]:after:inset-y-auto data-[panel-group-direction=vertical]:after:top-1/2 data-[panel-group-direction=vertical]:after:h-5 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0",
+      "focus-visible:outline-none",
       className,
     )}
     {...props}
   >
-    {withHandle && (
-      <div className="pointer-events-none z-10 flex items-center justify-center opacity-0 group-hover/handle:opacity-100 transition-opacity duration-150">
-        <div className="h-6 w-[3px] rounded-full bg-primary/30" />
-      </div>
-    )}
+    {/* Pill handle — always rendered, opacity driven by group-hover */}
+    <div
+      className={cn(
+        "pointer-events-none z-10 flex items-center justify-center",
+        "transition-all duration-200",
+        // Horizontal pill
+        "h-10 w-[4px] rounded-full bg-border group-hover/handle:bg-primary group-hover/handle:shadow-[0_0_8px_hsl(var(--primary)/0.6)] group-[data-resize-handle-state=drag]/handle:bg-primary",
+        // Vertical pill
+        "data-[panel-group-direction=vertical]:w-10 data-[panel-group-direction=vertical]:h-[4px]",
+      )}
+    />
   </ResizablePrimitive.PanelResizeHandle>
 ));
 ResizableHandle.displayName = "ResizableHandle";
