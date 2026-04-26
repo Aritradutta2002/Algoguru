@@ -536,7 +536,7 @@ export default function Playground() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const ioPanelRef = useRef<ImperativePanelHandle>(null);
   const [ioPanelOpen, setIoPanelOpen] = useState(true);
-  const [ioPanelSize, setIoPanelSize] = useState(45);
+  const ioPanelSizeRef = useRef(IO_DEFAULT_SIZE);
   const [ioCollapsed, setIoCollapsed] = useState(false);
 
   const expandIOPanel = useCallback(
@@ -544,7 +544,7 @@ export default function Playground() {
       const expandedSize =
         targetSize ?? (isMobile ? IO_MOBILE_DEFAULT_SIZE : IO_DEFAULT_SIZE);
       setIoPanelOpen(true);
-      setIoPanelSize(expandedSize);
+      ioPanelSizeRef.current = expandedSize;
       setIoCollapsed(false);
       requestAnimationFrame(() => {
         ioPanelRef.current?.resize(expandedSize);
@@ -2816,8 +2816,11 @@ export default function Playground() {
               return;
             }
 
-            setIoPanelSize(nextIoSize);
-            setIoCollapsed(nextIoSize <= IO_EXPAND_TRIGGER_SIZE);
+            ioPanelSizeRef.current = nextIoSize;
+            const nextCollapsed = nextIoSize <= IO_EXPAND_TRIGGER_SIZE;
+            if (nextCollapsed !== ioCollapsed) {
+              setIoCollapsed(nextCollapsed);
+            }
           }}
         >
           {/* Code Editor Panel */}
@@ -3051,25 +3054,30 @@ export default function Playground() {
                     return;
                   }
 
-                  setIoPanelSize(size);
-                  setIoCollapsed(size <= IO_EXPAND_TRIGGER_SIZE);
+                  ioPanelSizeRef.current = size;
+                  const nextCollapsed = size <= IO_EXPAND_TRIGGER_SIZE;
+                  if (nextCollapsed !== ioCollapsed) {
+                    setIoCollapsed(nextCollapsed);
+                  }
                 }}
                 onCollapse={() => {
-                  setIoPanelSize(IO_COLLAPSED_SIZE);
-                  setIoCollapsed(true);
+                  ioPanelSizeRef.current = IO_COLLAPSED_SIZE;
+                  if (!ioCollapsed) {
+                    setIoCollapsed(true);
+                  }
                 }}
                 onExpand={() => {
                   const nextSize =
-                    ioPanelSize > IO_EXPAND_TRIGGER_SIZE
-                      ? ioPanelSize
+                    ioPanelSizeRef.current > IO_EXPAND_TRIGGER_SIZE
+                      ? ioPanelSizeRef.current
                       : IO_DEFAULT_SIZE;
-                  setIoPanelSize(nextSize);
-                  setIoCollapsed(false);
+                  ioPanelSizeRef.current = nextSize;
+                  if (ioCollapsed) {
+                    setIoCollapsed(false);
+                  }
                 }}
               >
-                {ioCollapsed &&
-                ioPanelSize <= IO_EXPAND_TRIGGER_SIZE &&
-                !isMobile ? (
+                {ioCollapsed && !isMobile ? (
                   <button
                     type="button"
                     onClick={() =>
