@@ -1,7 +1,6 @@
 ﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
-import { motion } from "framer-motion";
+
 import {
   Play,
   Loader2,
@@ -101,6 +100,7 @@ const PLAYGROUND_ASK_GURU_SELECTION_KEY = "playground-ask-guru-selection";
 const IO_COLLAPSED_SIZE = 3.5;
 const IO_EXPAND_TRIGGER_SIZE = 4.25;
 const IO_DEFAULT_SIZE = 45;
+const IO_GURU_DEFAULT_SIZE = 25;
 const IO_MOBILE_DEFAULT_SIZE = 40;
 
 const loadNumberSetting = (key: string, fallback: number) => {
@@ -536,12 +536,16 @@ export default function Playground() {
   const [ioPanelSize, setIoPanelSize] = useState(45);
   const [ioCollapsed, setIoCollapsed] = useState(false);
 
-  const expandIOPanel = useCallback(() => {
-    const expandedSize = isMobile ? IO_MOBILE_DEFAULT_SIZE : IO_DEFAULT_SIZE;
-    setIoPanelSize(expandedSize);
-    setIoCollapsed(false);
-    ioPanelRef.current?.resize(expandedSize);
-  }, [isMobile]);
+  const expandIOPanel = useCallback(
+    (targetSize?: number) => {
+      const expandedSize =
+        targetSize ?? (isMobile ? IO_MOBILE_DEFAULT_SIZE : IO_DEFAULT_SIZE);
+      setIoPanelSize(expandedSize);
+      setIoCollapsed(false);
+      ioPanelRef.current?.resize(expandedSize);
+    },
+    [isMobile],
+  );
 
   const practiceData = useMemo(() => {
     if (!practiceId) return null;
@@ -2279,7 +2283,7 @@ export default function Playground() {
           minHeight: 38,
         }}
       >
-        {/* Left: Language + i + Auto */}
+        {/* Left: Language selector */}
         <div className="flex items-center gap-1 h-full">
           <div className="relative flex-shrink-0">
             <button
@@ -2288,9 +2292,8 @@ export default function Playground() {
                 setSettingsCompilerOpen(true);
                 setSettingsThemeOpen(false);
               }}
-              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
             >
-              <span className="text-[13px]">â˜•</span>
               <span>{selectedLanguage.label}</span>
               <ChevronDown
                 size={11}
@@ -2308,12 +2311,23 @@ export default function Playground() {
               </>
             )}
           </div>
-          <button className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-[11px] italic font-serif font-bold">
-            i
-          </button>
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-muted-foreground/60 border border-border/20 bg-muted/20">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
-            Auto
+          <div className="relative group flex-shrink-0">
+            <button
+              type="button"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-[11px] italic font-serif font-bold"
+              title={`${selectedLanguage.label} version: ${selectedLanguage.version}`}
+            >
+              i
+            </button>
+            <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[260px] -translate-x-1/2 rounded-xl border border-border/30 bg-card px-3 py-2 text-[10px] font-bold text-muted-foreground opacity-0 shadow-2xl shadow-black/20 backdrop-blur-xl transition-all duration-200 group-hover:opacity-100">
+              <span className="font-black text-foreground">
+                {selectedLanguage.label}
+              </span>
+              <span className="mx-1">version:</span>
+              <span className="font-mono text-primary">
+                {selectedLanguage.version}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -2665,13 +2679,15 @@ export default function Playground() {
             <DebugButton compact />
           </div>
           <button
-            onClick={() => setGuruBotOpen(true)}
-            className="flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l hover:bg-primary/10 transition-all group"
+            onClick={() => setGuruBotOpen((open) => !open)}
+            className={`flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l transition-all group ${
+              guruBotOpen ? "bg-primary/10 text-primary" : "hover:bg-primary/10"
+            }`}
             style={{
               borderColor: "hsl(var(--border)/0.2)",
               color: "hsl(var(--primary))",
             }}
-            title="Open GuruBot"
+            title={guruBotOpen ? "Close GuruBot" : "Open GuruBot"}
           >
             <Bot size={13} />
             <span>GuruBot</span>
@@ -2729,13 +2745,19 @@ export default function Playground() {
         <ResizablePanelGroup
           direction={isMobile ? "vertical" : "horizontal"}
           className="h-full"
-          autoSaveId="playground-editor-io-layout"
+          autoSaveId={
+            guruBotOpen && !isMobile
+              ? "playground-editor-io-guru-layout"
+              : "playground-editor-io-layout"
+          }
           onLayout={(sizes) => {
             if (isMobile) return;
 
             const nextIoSize = sizes[1] ?? IO_DEFAULT_SIZE;
             if (ioCollapsed && nextIoSize > IO_EXPAND_TRIGGER_SIZE) {
-              expandIOPanel();
+              expandIOPanel(
+                guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
+              );
               return;
             }
 
@@ -2744,7 +2766,10 @@ export default function Playground() {
           }}
         >
           {/* Code Editor Panel */}
-          <ResizablePanel defaultSize={isMobile ? 60 : 55} minSize={30}>
+          <ResizablePanel
+            defaultSize={isMobile ? 60 : guruBotOpen ? 50 : 55}
+            minSize={30}
+          >
             <div className="flex flex-col h-full">
               {/* Problem panel */}
 
@@ -2955,7 +2980,7 @@ export default function Playground() {
           {/* Right Panel: Input (top) + Output (bottom) */}
           <ResizablePanel
             ref={ioPanelRef}
-            defaultSize={IO_DEFAULT_SIZE}
+            defaultSize={guruBotOpen && !isMobile ? 25 : IO_DEFAULT_SIZE}
             minSize={isMobile ? 25 : 24}
             collapsible={!isMobile}
             collapsedSize={isMobile ? 25 : IO_COLLAPSED_SIZE}
@@ -2963,7 +2988,9 @@ export default function Playground() {
               if (isMobile) return;
 
               if (ioCollapsed && size > IO_EXPAND_TRIGGER_SIZE) {
-                expandIOPanel();
+                expandIOPanel(
+                  guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
+                );
                 return;
               }
 
@@ -2988,7 +3015,11 @@ export default function Playground() {
             !isMobile ? (
               <button
                 type="button"
-                onClick={expandIOPanel}
+                onClick={() =>
+                  expandIOPanel(
+                    guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
+                  )
+                }
                 title="Expand input and output"
                 className="group h-full w-full flex flex-col items-center justify-between overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-3 text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
               >
@@ -3123,6 +3154,28 @@ export default function Playground() {
               </ResizablePanelGroup>
             )}
           </ResizablePanel>
+
+          {guruBotOpen && !isMobile && (
+            <>
+              <ResizableHandle
+                withHandle
+                className="w-[3px] bg-border/20 data-[panel-group-direction=vertical]:h-[3px]"
+              />
+
+              <ResizablePanel defaultSize={25} minSize={20} maxSize={45}>
+                <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-background">
+                  <GuruBot
+                    open={guruBotOpen}
+                    onClose={() => setGuruBotOpen(false)}
+                    debugMode={true}
+                    initialContext={guruBotContext}
+                    initialPrompt={guruInitialPrompt}
+                    embedded={true}
+                  />
+                </div>
+              </ResizablePanel>
+            </>
+          )}
         </ResizablePanelGroup>
       </div>
 
@@ -3238,46 +3291,16 @@ export default function Playground() {
         </DialogContent>
       </Dialog>
 
-      {/* GuruBot slide-out drawer */}
-      <AnimatePresence>
-        {guruBotOpen && (
-          <>
-            <motion.div
-              className="absolute inset-0 z-40 bg-background/20 backdrop-blur-[2px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              onClick={() => setGuruBotOpen(false)}
-            />
-            <motion.aside
-              className="absolute right-0 top-0 z-50 flex h-full w-full max-w-[430px] flex-col border-l border-border/40 bg-background shadow-[0_0_80px_rgba(0,0,0,0.35)]"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 420, damping: 38 }}
-            >
-              <button
-                type="button"
-                onClick={() => setGuruBotOpen(false)}
-                title="Close GuruBot"
-                className="absolute -left-12 top-4 hidden h-10 w-10 items-center justify-center rounded-l-2xl border border-r-0 border-border/40 bg-card/95 text-muted-foreground shadow-xl backdrop-blur-xl transition-all hover:bg-muted hover:text-foreground md:flex"
-              >
-                <X size={16} />
-              </button>
-
-              <GuruBot
-                open={guruBotOpen}
-                onClose={() => setGuruBotOpen(false)}
-                debugMode={true}
-                initialContext={guruBotContext}
-                initialPrompt={guruInitialPrompt}
-                embedded={true}
-              />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Mobile GuruBot fallback */}
+      {guruBotOpen && isMobile && (
+        <GuruBot
+          open={guruBotOpen}
+          onClose={() => setGuruBotOpen(false)}
+          debugMode={true}
+          initialContext={guruBotContext}
+          initialPrompt={guruInitialPrompt}
+        />
+      )}
     </div>
   );
 }
