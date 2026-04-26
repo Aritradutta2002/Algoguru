@@ -503,6 +503,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isPlaygroundRoute = location.pathname === "/playground";
   const contentBottomPaddingClass =
     location.pathname === "/" || isPlaygroundRoute ? "pb-0" : "pb-10";
+  const contentSurfaceClass = isPlaygroundRoute
+    ? "h-full min-h-0 pb-0"
+    : `min-h-full ${contentBottomPaddingClass}`;
 
   const expandGuruPanel = (targetSize?: number) => {
     const expandedSize = clamp(
@@ -615,7 +618,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <>
                 {/* Main content hidden on mobile when GuruBot is open */}
                 <main ref={contentScrollRef} className="hidden">
-                  <div className={`min-h-full ${contentBottomPaddingClass}`}>
+                  <div className={contentSurfaceClass}>
                     {children}
                     {location.pathname === "/" && (
                       <Footer onSupportClick={() => setSupportOpen(true)} />
@@ -665,7 +668,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                     className="h-full overflow-y-auto"
                     style={{ overscrollBehavior: "contain" }}
                   >
-                    <div className={`min-h-full ${contentBottomPaddingClass}`}>
+                    <div className={contentSurfaceClass}>
                       {children}
                       {location.pathname === "/" && (
                         <Footer onSupportClick={() => setSupportOpen(true)} />
@@ -816,7 +819,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             )
           ) : (
             <main ref={contentScrollRef} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
-              <div className={`min-h-full ${contentBottomPaddingClass}`}>
+              <div className={contentSurfaceClass}>
                 {children}
                 {location.pathname === "/" && (
                   <Footer onSupportClick={() => setSupportOpen(true)} />
