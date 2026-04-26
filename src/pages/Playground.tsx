@@ -8,6 +8,7 @@ import {
   AlignLeft, ChevronDown, ChevronRight, Keyboard, Settings, Maximize, Minimize,
   FileCode, Plus, Pencil, Trash2, Save, X,
   BookOpen, ArrowLeft, Download, Bug,
+  GitBranch, StickyNote, Bot, Lock, Lightbulb, GitMerge, SplitSquareHorizontal,
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import * as prettier from "prettier/standalone";
@@ -22,7 +23,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-
+import { GuruBot } from "@/components/GuruBot";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 interface UserTemplate {
   id: string;
   name: string;
@@ -343,6 +347,7 @@ function instrumentCodeForDebug(source: string, breakpointLines: Set<number>): s
 }
 
 export default function Playground() {
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const practiceId = searchParams.get("practice");
@@ -385,7 +390,7 @@ export default function Playground() {
   const [templateName, setTemplateName] = useState("");
   const [templateDesc, setTemplateDesc] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [practiceTab, setPracticeTab] = useState<"problem" | "editor">("editor");
+  const [practiceTab, setPracticeTab] = useState<"problem" | "editor" | "notes">("editor");
   
   // Debugger state
   const [breakpoints, setBreakpoints] = useState<Set<number>>(new Set());
@@ -394,6 +399,59 @@ export default function Playground() {
   // Settings sub-section toggles
   const [settingsCompilerOpen, setSettingsCompilerOpen] = useState(false);
   const [settingsThemeOpen, setSettingsThemeOpen] = useState(false);
+
+  // NeetBot (GuruBot in debug-coach mode)
+  const [neetBotOpen, setNeetBotOpen] = useState(false);
+
+  // Cursor position for VS Code-style status bar
+  const [cursorPos, setCursorPos] = useState({ ln: 1, col: 1 });
+
+  const [notesContent, setNotesContent] = useState("");
+  const initialNotesLoaded = useRef(false);
+
+  // Load notes from Supabase database
+  useEffect(() => {
+    if (!user) return;
+    const fetchNotes = async () => {
+      const dbId = practiceId || "playground-generic";
+      const { data } = await supabase
+        .from("practice_problem_user_state")
+        .select("notes")
+        .eq("user_id", user.id)
+        .eq("problem_id", dbId)
+        .single();
+      
+      if (data?.notes !== undefined) {
+        setNotesContent(data.notes || "");
+      }
+      initialNotesLoaded.current = true;
+    };
+    fetchNotes();
+  }, [user, practiceId]);
+
+  // Save notes to Supabase (debounced)
+  useEffect(() => {
+    if (!initialNotesLoaded.current) return;
+    if (!user) return;
+    
+    const timer = setTimeout(async () => {
+      const dbId = practiceId || "playground-generic";
+      
+      // Upsert the notes
+      const { error } = await supabase
+        .from("practice_problem_user_state")
+        .upsert({
+          user_id: user.id,
+          problem_id: dbId,
+          notes: notesContent,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id,problem_id" });
+        
+      if (error) console.error("Failed to save notes to DB", error);
+    }, 1000); // 1 second debounce
+    
+    return () => clearTimeout(timer);
+  }, [notesContent, user, practiceId]);
 
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -428,6 +486,11 @@ export default function Playground() {
     monacoRef.current = monaco;
     monaco.editor.defineTheme("dracula", DRACULA_THEME as any);
     monaco.editor.defineTheme("solarized-dark", SOLARIZED_DARK_THEME);
+
+    // Track cursor position for VS Code-style Ln/Col status
+    editor.onDidChangeCursorPosition((e: any) => {
+      setCursorPos({ ln: e.position.lineNumber, col: e.position.column });
+    });
     
     // Explicitly apply the theme since defining it inside onMount might be too late for the initial render
     monaco.editor.setTheme(currentTheme.id);
@@ -1345,181 +1408,102 @@ export default function Playground() {
         }
       `}</style>
 
-      {/* Header */}
-      {!isFullscreen && (
+      {/* ═══════════════════════════════════════════════
+          VS CODE-STYLE HEADER — Row 1: Activity/Language Bar
+      ═══════════════════════════════════════════════ */}
       <div
-        className="h-auto md:h-16 flex flex-col md:flex-row items-stretch md:items-center justify-between px-3 sm:px-4 md:px-6 py-3 md:py-0 border-b flex-shrink-0 gap-3 md:gap-4 bg-card/50 backdrop-blur-md sticky top-0 z-40"
-        style={PANEL_BORDER_STYLE}
+        className="flex items-center justify-between px-3 border-b flex-shrink-0 select-none"
+        style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border)/0.25)', minHeight: 38 }}
       >
-        <div className="flex items-center gap-3 md:gap-4">
-          <div
-            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5 flex-shrink-0"
-          >
-            <Code2 size={20} className="text-primary" />
+        {/* Left: Language selector + info + status */}
+        <div className="flex items-center gap-1 h-full">
+          {/* Language pill */}
+          <div className="relative flex-shrink-0">
+            <button
+              onClick={() => { setShowSettingsMenu(!showSettingsMenu); setSettingsCompilerOpen(true); setSettingsThemeOpen(false); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all duration-150 gap-2"
+            >
+              <span className="text-[13px]">☕</span>
+              <span className="font-bold">{selectedLanguage.label}</span>
+              <ChevronDown size={11} className={`transition-transform duration-200 ${showSettingsMenu && settingsCompilerOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {showSettingsMenu && (
+              <>
+                <div className="fixed inset-0 z-[9998]" onClick={() => setShowSettingsMenu(false)} style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} />
+                <SettingsDropdownContent />
+              </>
+            )}
           </div>
-          <div className="space-y-0.5 min-w-0 flex-1">
-            <h1 className="text-sm font-black uppercase tracking-tight text-foreground truncate">
-              {practiceData ? `Practice: ${practiceData.title}` : "Java Playground"}
-            </h1>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 truncate">
-                {practiceData ? practiceData.difficulty || "Practice Mode" : "Virtual Execution Engine"}
-              </p>
-            </div>
+          {/* Info dot */}
+          <button className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-[11px] italic font-serif font-bold">
+            i
+          </button>
+          {/* Auto pill */}
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-muted-foreground/60 border border-border/20 bg-muted/20">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
+            Auto
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 -mb-2 md:mb-0">
+        {/* Right: Icon toolbar */}
+        <div className="flex items-center gap-0.5 h-full">
           {/* Templates */}
-          <div className="relative flex-shrink-0">
+          <div className="relative">
             <button
               onClick={() => setShowTemplateMenu(!showTemplateMenu)}
-              className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border whitespace-nowrap ${
-                showTemplateMenu 
-                  ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                  : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+              title="Templates"
+              className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
             >
-              <FileCode size={14} />
-              <span className="hidden sm:inline">Templates</span>
-              <ChevronDown size={12} className={`transition-transform duration-300 ${showTemplateMenu ? "rotate-180" : ""}`} />
+              <FileCode size={15} />
             </button>
-            
             {showTemplateMenu && (
               <>
-                <div 
-                  className="fixed inset-0 z-[9998]" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log('Template backdrop clicked');
-                    setShowTemplateMenu(false);
-                  }}
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                />
-                <div
-                  className="fixed left-1/2 -translate-x-1/2 top-24 w-[90vw] max-w-md rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
-                  style={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    backdropFilter: 'blur(12px)',
-                  }}
-                >
+                <div className="fixed inset-0 z-[9998]" onClick={() => setShowTemplateMenu(false)} style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} />
+                <div className="fixed left-1/2 -translate-x-1/2 top-20 w-[90vw] max-w-md rounded-[24px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200" style={{ backgroundColor: 'hsl(var(--card))', backdropFilter: 'blur(12px)' }}>
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
-                  
-                  <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-b border-border/10 bg-muted/10">
-                    Standard Blueprints
-                  </div>
-                  
+                  <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-b border-border/10 bg-muted/10">Standard Blueprints</div>
                   <div className="relative z-10 p-2 space-y-1">
                     {CP_TEMPLATES.map((tmpl) => {
                       const override = builtinOverrides[tmpl.prefix];
                       const isOverridden = !!override;
                       return (
                         <div key={tmpl.prefix} className="group flex items-center rounded-2xl hover:bg-muted/50 transition-all duration-300 border border-transparent hover:border-border/10">
-                          <button
-                            onClick={() => {
-                              setCode(override?.code ?? tmpl.code);
-                              setOutput("");
-                              setShowTemplateMenu(false);
-                            }}
-                            className="flex-1 flex flex-col gap-1 px-4 py-3 text-left"
-                          >
+                          <button onClick={() => { setCode(override?.code ?? tmpl.code); setOutput(""); setShowTemplateMenu(false); }} className="flex-1 flex flex-col gap-1 px-4 py-3 text-left">
                             <div className="flex items-center gap-2">
-                              <span className="text-[12px] font-bold tracking-tight text-foreground">
-                                {tmpl.name}
-                              </span>
-                              {isOverridden && (
-                                <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
-                                  edited
-                                </span>
-                              )}
+                              <span className="text-[12px] font-bold tracking-tight text-foreground">{tmpl.name}</span>
+                              {isOverridden && <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">edited</span>}
                             </div>
-                            <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
-                              {override?.description ?? tmpl.description}
-                            </span>
+                            <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">{override?.description ?? tmpl.description}</span>
                           </button>
-                          
-                          <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); openEditBuiltinTemplate(tmpl); }}
-                              className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
-                              title="Edit blueprint"
-                            >
-                              <Pencil size={12} />
-                            </button>
-                            {isOverridden && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleResetBuiltinTemplate(tmpl.prefix); }}
-                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-warning hover:border-warning/30 transition-all shadow-sm"
-                                title="Reset to original"
-                              >
-                                <RotateCcw size={12} />
-                              </button>
-                            )}
+                          <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                            <button onClick={(e) => { e.stopPropagation(); openEditBuiltinTemplate(tmpl); }} className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm" title="Edit blueprint"><Pencil size={12} /></button>
+                            {isOverridden && <button onClick={(e) => { e.stopPropagation(); handleResetBuiltinTemplate(tmpl.prefix); }} className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-warning hover:border-warning/30 transition-all shadow-sm" title="Reset to original"><RotateCcw size={12} /></button>}
                           </div>
                         </div>
                       );
                     })}
                   </div>
-
                   {userTemplates.length > 0 && (
                     <>
-                      <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-y border-border/10 bg-muted/10 mt-2">
-                        My Personal Vault
-                      </div>
+                      <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-y border-border/10 bg-muted/10 mt-2">My Personal Vault</div>
                       <div className="relative z-10 p-2 space-y-1">
                         {userTemplates.map((tmpl) => (
                           <div key={tmpl.id} className="group flex items-center rounded-2xl hover:bg-muted/50 transition-all duration-300 border border-transparent hover:border-border/10">
-                            <button
-                              onClick={() => {
-                                setCode(tmpl.code);
-                                setOutput("");
-                                setShowTemplateMenu(false);
-                              }}
-                              className="flex-1 flex flex-col gap-1 px-4 py-3 text-left"
-                            >
-                              <span className="text-[12px] font-bold tracking-tight text-foreground">
-                                {tmpl.name}
-                              </span>
-                              {tmpl.description && (
-                                <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
-                                  {tmpl.description}
-                                </span>
-                              )}
+                            <button onClick={() => { setCode(tmpl.code); setOutput(""); setShowTemplateMenu(false); }} className="flex-1 flex flex-col gap-1 px-4 py-3 text-left">
+                              <span className="text-[12px] font-bold tracking-tight text-foreground">{tmpl.name}</span>
+                              {tmpl.description && <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">{tmpl.description}</span>}
                             </button>
-                            <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); openEditTemplate(tmpl); }}
-                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
-                                title="Edit template"
-                              >
-                                <Pencil size={12} />
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(tmpl.id === deleteConfirmId ? null : tmpl.id); }}
-                                className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all shadow-sm ${
-                                  deleteConfirmId === tmpl.id 
-                                    ? "bg-destructive text-white border-destructive" 
-                                    : "bg-card border-border/30 text-muted-foreground hover:text-destructive hover:border-destructive/30"
-                                }`}
-                                title="Delete template"
-                              >
-                                {deleteConfirmId === tmpl.id ? <Check size={12} /> : <Trash2 size={12} />}
-                              </button>
+                            <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                              <button onClick={(e) => { e.stopPropagation(); openEditTemplate(tmpl); }} className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm" title="Edit template"><Pencil size={12} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(tmpl.id === deleteConfirmId ? null : tmpl.id); }} className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all shadow-sm ${deleteConfirmId === tmpl.id ? "bg-destructive text-white border-destructive" : "bg-card border-border/30 text-muted-foreground hover:text-destructive hover:border-destructive/30"}`} title="Delete template">{deleteConfirmId === tmpl.id ? <Check size={12} /> : <Trash2 size={12} />}</button>
                             </div>
                           </div>
                         ))}
                       </div>
                     </>
                   )}
-
-                  <button
-                    onClick={openCreateTemplate}
-                    className="relative z-10 w-full flex items-center justify-center gap-3 px-6 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all border-t border-border/10 group"
-                  >
-                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Plus size={14} />
-                    </div>
+                  <button onClick={openCreateTemplate} className="relative z-10 w-full flex items-center justify-center gap-3 px-6 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all border-t border-border/10 group">
+                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform"><Plus size={14} /></div>
                     Snapshot Editor to Template
                   </button>
                 </div>
@@ -1527,103 +1511,103 @@ export default function Playground() {
             )}
           </div>
 
-          <div className="hidden md:block h-6 w-px bg-border/20 mx-1 flex-shrink-0" />
-
-          {/* Format */}
-          <button
-            onClick={formatCode}
-            title="Format Code"
-            className={`${ICON_BUTTON_CLASSES} flex-shrink-0`}
-          >
-            <AlignLeft size={16} />
+          <button onClick={copyCode} title="Copy code" className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all">
+            {copied ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
           </button>
-
-          {/* Debug */}
-          <div className="flex-shrink-0">
-            <DebugButton />
-          </div>
-
-          {/* Run */}
-          <div className="flex-shrink-0">
-            <RunButton />
-          </div>
-
-          <div className="hidden sm:block h-6 w-px bg-border/20 mx-1 flex-shrink-0" />
-
-          {/* Fullscreen */}
-          <button
-            onClick={() => setIsFullscreen(true)}
-            title="Fullscreen Mode"
-            className={`${ICON_BUTTON_CLASSES} hidden sm:flex flex-shrink-0`}
-          >
-            <Maximize size={16} />
+          <button onClick={formatCode} title="Format code" className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all">
+            <AlignLeft size={14} />
           </button>
+          <button onClick={() => runCode(true)} disabled={isRunning || breakpoints.size === 0} title="Debug" className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all disabled:opacity-30">
+            <Bug size={14} />
+          </button>
+          <button onClick={() => resetCode()} title="Reset code" className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all">
+            <RotateCcw size={14} />
+          </button>
+          <div className="w-px h-4 bg-border/30 mx-0.5" />
+          <button onClick={() => setIsFullscreen(v => !v)} title={isFullscreen ? "Exit fullscreen" : "Fullscreen"} className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all">
+            {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+          </button>
+          <button onClick={() => { setShowSettingsMenu(v => !v); setSettingsCompilerOpen(false); setSettingsThemeOpen(false); }} title="Settings" className={`w-8 h-8 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && !settingsCompilerOpen ? 'text-primary bg-primary/10' : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40'}`}>
+            <Settings size={14} className={showSettingsMenu && !settingsCompilerOpen ? 'animate-spin-slow' : ''} />
+          </button>
+        </div>
+      </div>
 
-          {/* Settings */}
-          <div className="relative flex-shrink-0">
-            <button
-              onClick={() => { 
-                console.log('Settings clicked, current state:', showSettingsMenu);
-                setShowSettingsMenu(!showSettingsMenu); 
-                setSettingsCompilerOpen(false); 
-                setSettingsThemeOpen(false); 
-              }}
-              className={`flex items-center justify-center w-10 h-10 rounded-2xl border transition-all duration-300 shadow-sm ${
-                showSettingsMenu 
-                  ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
-                  : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              <Settings size={16} className={showSettingsMenu ? "animate-spin-slow" : ""} />
-            </button>
-            {showSettingsMenu && (
-              <>
-                <div 
-                  className="fixed inset-0 z-[9998]" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log('Settings backdrop clicked');
-                    setShowSettingsMenu(false);
-                  }}
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                />
-                <SettingsDropdownContent />
-              </>
+      {/* ═══════════════════════════════════════════════
+          VS CODE-STYLE HEADER — Row 2: Tab Bar + Status
+      ═══════════════════════════════════════════════ */}
+      <div
+        className="flex items-center justify-between px-0 border-b flex-shrink-0 select-none"
+        style={{ background: 'hsl(var(--muted)/0.15)', borderColor: 'hsl(var(--border)/0.2)', minHeight: 36 }}
+      >
+        {/* Solution tabs */}
+        <div className="flex items-center h-full">
+          <div className="flex items-center h-full px-4 border-r gap-2 text-[12px] font-medium" style={{ borderColor: 'hsl(var(--border)/0.2)', background: 'hsl(var(--card)/0.6)', color: 'hsl(var(--foreground))' }}>
+            <Code2 size={13} className="text-primary/70" />
+            <span>{practiceData ? `Practice: ${practiceData.title?.slice(0, 18)}` : 'Solution 1'}</span>
+            {practiceData && (
+              <button onClick={() => navigate("/playground")} className="ml-1 w-4 h-4 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"><X size={10} /></button>
             )}
+          </div>
+          <button onClick={openCreateTemplate} title="Save as template" className="flex items-center justify-center w-8 h-full text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all border-r" style={{ borderColor: 'hsl(var(--border)/0.2)' }}>
+            <Plus size={13} />
+          </button>
+        </div>
+
+        {/* Right: NeetBot + Hint + lock + Ln/Col */}
+        <div className="flex items-center gap-0 h-full pr-2">
+          {/* NeetBot button */}
+          <button
+            onClick={() => setNeetBotOpen(true)}
+            className="flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l hover:bg-primary/10 transition-all group"
+            style={{ borderColor: 'hsl(var(--border)/0.2)', color: 'hsl(var(--primary))' }}
+            title="Open NeetBot — step-by-step debug coach"
+          >
+            <Bot size={13} className="group-hover:scale-110 transition-transform" />
+            <span>NeetBot</span>
+          </button>
+          {/* Hint */}
+          <button
+            className="flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l text-amber-400/80 hover:bg-amber-400/10 hover:text-amber-400 transition-all"
+            style={{ borderColor: 'hsl(var(--border)/0.2)' }}
+            title="Hint"
+          >
+            <Lightbulb size={12} />
+            <span>Hint</span>
+          </button>
+          {/* Lock */}
+          <button
+            className="flex items-center justify-center w-8 h-full border-l text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all"
+            style={{ borderColor: 'hsl(var(--border)/0.2)' }}
+            title="Lock editor"
+          >
+            <Lock size={12} />
+          </button>
+          {/* Ln/Col */}
+          <div className="flex items-center px-3 h-full border-l text-[11px] font-mono text-muted-foreground/50" style={{ borderColor: 'hsl(var(--border)/0.2)' }}>
+            Ln {cursorPos.ln}, Col {cursorPos.col}
           </div>
         </div>
       </div>
-      )}
 
-      {/* Fullscreen toggle bar */}
-      {isFullscreen && (
-        <div className="flex items-center justify-between px-4 py-1.5 border-b flex-shrink-0" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--muted)/0.3)" }}>
-          <span className="text-xs font-mono font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>
-            ☕ Java Playground — Fullscreen
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={formatCode}
-              title="Format Code"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all hover:bg-muted border border-border"
-              style={{ color: "hsl(var(--muted-foreground))" }}
-            >
-              <AlignLeft size={13} />
-              Format
-            </button>
-            <DebugButton compact />
-            <RunButton compact />
-            <button
-              onClick={() => setIsFullscreen(false)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all hover:bg-muted border border-border"
-              style={{ color: "hsl(var(--muted-foreground))" }}
-            >
-              <Minimize size={13} />
-              Exit
-            </button>
+      {/* Run bar always visible under header */}
+      <div className="flex items-center gap-2 px-4 py-1.5 border-b flex-shrink-0" style={{ borderColor: 'hsl(var(--border)/0.15)', background: 'hsl(var(--background))' }}>
+        <RunButton compact />
+        <DebugButton compact />
+        <div className="flex-1" />
+        {breakpoints.size > 0 && (
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-warning/10 border border-warning/20 text-warning text-[9px] font-black uppercase tracking-widest">
+            <Bug size={10} /> {breakpoints.size} BP
           </div>
+        )}
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success/10 border border-success/20 text-success text-[9px] font-black uppercase tracking-widest">
+          <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
+          {selectedLanguage.label}
         </div>
-      )}
+        <button onClick={downloadCode} title="Download" className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all"><Download size={13} /></button>
+      </div>
+
+
 
       {/* Editor + Output with resizable panels */}
       <div className="flex-1 min-h-0">
@@ -1655,7 +1639,27 @@ export default function Playground() {
                   }`}
                 >
                   <Code2 size={14} />
-                  Editor
+                  Code
+                </button>
+                <button
+                  onClick={() => setPracticeTab("notes")}
+                  className={`flex items-center gap-2 pl-4 pr-2 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                    practiceTab === "notes"
+                      ? "bg-card border border-border/30 text-foreground shadow-lg shadow-black/5" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <FileCode size={14} />
+                  Note
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPracticeTab("editor");
+                    }}
+                    className="ml-1 w-4 h-4 rounded-full hover:bg-muted-foreground/20 flex items-center justify-center transition-colors"
+                  >
+                    <X size={10} />
+                  </div>
                 </button>
 
                 <div className="flex-1" />
@@ -1788,6 +1792,18 @@ export default function Playground() {
                       Initialize Environment
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                     </button>
+                  </div>
+                </div>
+              ) : practiceTab === "notes" ? (
+                <div className="flex-1 min-h-0 bg-background relative overflow-y-auto">
+                  <RichTextNoteEditor
+                    value={notesContent}
+                    onChange={setNotesContent}
+                    placeholder="Type here...(Markdown is enabled)"
+                    autoFocus
+                  />
+                  <div className="absolute bottom-2 left-4 text-xs text-muted-foreground">
+                    Saved
                   </div>
                 </div>
               ) : (
@@ -1972,6 +1988,14 @@ export default function Playground() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* NeetBot debug-coach panel */}
+      <GuruBot 
+        open={neetBotOpen} 
+        onClose={() => setNeetBotOpen(false)} 
+        debugMode={true}
+        initialContext={code}
+      />
     </div>
   );
 }
