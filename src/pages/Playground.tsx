@@ -535,6 +535,7 @@ export default function Playground() {
   // Detect mobile viewport
   const isMobile = useMediaQuery("(max-width: 767px)");
   const ioPanelRef = useRef<ImperativePanelHandle>(null);
+  const [ioPanelOpen, setIoPanelOpen] = useState(true);
   const [ioPanelSize, setIoPanelSize] = useState(45);
   const [ioCollapsed, setIoCollapsed] = useState(false);
 
@@ -542,12 +543,20 @@ export default function Playground() {
     (targetSize?: number) => {
       const expandedSize =
         targetSize ?? (isMobile ? IO_MOBILE_DEFAULT_SIZE : IO_DEFAULT_SIZE);
+      setIoPanelOpen(true);
       setIoPanelSize(expandedSize);
       setIoCollapsed(false);
-      ioPanelRef.current?.resize(expandedSize);
+      requestAnimationFrame(() => {
+        ioPanelRef.current?.resize(expandedSize);
+      });
     },
     [isMobile],
   );
+
+  const closeIOPanel = useCallback(() => {
+    setIoPanelOpen(false);
+    setIoCollapsed(false);
+  }, []);
 
   const practiceData = useMemo(() => {
     if (!practiceId) return null;
@@ -1686,6 +1695,16 @@ export default function Playground() {
 
   const runCode = useCallback(
     async (debugRun = false) => {
+      if (!ioPanelOpen || ioCollapsed) {
+        expandIOPanel(
+          isMobile
+            ? IO_MOBILE_DEFAULT_SIZE
+            : guruBotOpen
+              ? IO_GURU_DEFAULT_SIZE
+              : IO_DEFAULT_SIZE,
+        );
+      }
+
       setIsRunning(true);
       setOutput("");
       try {
@@ -1764,7 +1783,17 @@ export default function Playground() {
         setIsRunning(false);
       }
     },
-    [code, stdin, selectedLanguage, breakpoints],
+    [
+      code,
+      stdin,
+      selectedLanguage,
+      breakpoints,
+      ioPanelOpen,
+      ioCollapsed,
+      isMobile,
+      guruBotOpen,
+      expandIOPanel,
+    ],
   );
 
   const downloadCode = useCallback(() => {
@@ -2768,12 +2797,16 @@ export default function Playground() {
           direction={isMobile ? "vertical" : "horizontal"}
           className="h-full"
           autoSaveId={
-            guruBotOpen && !isMobile
-              ? "playground-editor-io-guru-layout"
-              : "playground-editor-io-layout"
+            ioPanelOpen
+              ? guruBotOpen && !isMobile
+                ? "playground-editor-io-guru-layout"
+                : "playground-editor-io-layout"
+              : guruBotOpen && !isMobile
+                ? "playground-editor-guru-layout"
+                : "playground-editor-layout"
           }
           onLayout={(sizes) => {
-            if (isMobile) return;
+            if (isMobile || !ioPanelOpen) return;
 
             const nextIoSize = sizes[1] ?? IO_DEFAULT_SIZE;
             if (ioCollapsed && nextIoSize > IO_EXPAND_TRIGGER_SIZE) {
@@ -2993,176 +3026,178 @@ export default function Playground() {
             </div>
           </ResizablePanel>
 
-          {/* Resize Handle */}
-          <ResizableHandle
-            withHandle
-            className="w-[3px] bg-border/20 data-[panel-group-direction=vertical]:h-[3px]"
-          />
+          {ioPanelOpen && (
+            <>
+              {/* Resize Handle */}
+              <ResizableHandle
+                withHandle
+                className="w-[3px] bg-border/20 data-[panel-group-direction=vertical]:h-[3px]"
+              />
 
-          {/* Right Panel: Input (top) + Output (bottom) */}
-          <ResizablePanel
-            ref={ioPanelRef}
-            defaultSize={guruBotOpen && !isMobile ? 25 : IO_DEFAULT_SIZE}
-            minSize={isMobile ? 25 : 24}
-            collapsible={!isMobile}
-            collapsedSize={isMobile ? 25 : IO_COLLAPSED_SIZE}
-            onResize={(size) => {
-              if (isMobile) return;
+              {/* Right Panel: Input (top) + Output (bottom) */}
+              <ResizablePanel
+                ref={ioPanelRef}
+                defaultSize={guruBotOpen && !isMobile ? 25 : IO_DEFAULT_SIZE}
+                minSize={isMobile ? 25 : 24}
+                collapsible={!isMobile}
+                collapsedSize={isMobile ? 25 : IO_COLLAPSED_SIZE}
+                onResize={(size) => {
+                  if (isMobile) return;
 
-              if (ioCollapsed && size > IO_EXPAND_TRIGGER_SIZE) {
-                expandIOPanel(
-                  guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
-                );
-                return;
-              }
+                  if (ioCollapsed && size > IO_EXPAND_TRIGGER_SIZE) {
+                    expandIOPanel(
+                      guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
+                    );
+                    return;
+                  }
 
-              setIoPanelSize(size);
-              setIoCollapsed(size <= IO_EXPAND_TRIGGER_SIZE);
-            }}
-            onCollapse={() => {
-              setIoPanelSize(IO_COLLAPSED_SIZE);
-              setIoCollapsed(true);
-            }}
-            onExpand={() => {
-              const nextSize =
-                ioPanelSize > IO_EXPAND_TRIGGER_SIZE
-                  ? ioPanelSize
-                  : IO_DEFAULT_SIZE;
-              setIoPanelSize(nextSize);
-              setIoCollapsed(false);
-            }}
-          >
-            {ioCollapsed &&
-            ioPanelSize <= IO_EXPAND_TRIGGER_SIZE &&
-            !isMobile ? (
-              <button
-                type="button"
-                onClick={() =>
-                  expandIOPanel(
-                    guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
-                  )
-                }
-                title="Expand input and output"
-                className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
+                  setIoPanelSize(size);
+                  setIoCollapsed(size <= IO_EXPAND_TRIGGER_SIZE);
+                }}
+                onCollapse={() => {
+                  setIoPanelSize(IO_COLLAPSED_SIZE);
+                  setIoCollapsed(true);
+                }}
+                onExpand={() => {
+                  const nextSize =
+                    ioPanelSize > IO_EXPAND_TRIGGER_SIZE
+                      ? ioPanelSize
+                      : IO_DEFAULT_SIZE;
+                  setIoPanelSize(nextSize);
+                  setIoCollapsed(false);
+                }}
               >
-                <Keyboard size={18} className="text-primary" />
-                <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
-                  Input / Output
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    ioPanelRef.current?.collapse();
-                    setIoPanelSize(IO_COLLAPSED_SIZE);
-                    setIoCollapsed(true);
-                  }}
-                  title="Close Input / Output"
-                  className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
-                >
-                  <X size={12} />
-                </button>
-              </button>
-            ) : (
-              <ResizablePanelGroup
-                direction="vertical"
-                className="h-full"
-                autoSaveId="playground-stdin-console-layout"
-              >
-                {/* Input Panel - always visible */}
-                <ResizablePanel defaultSize={32} minSize={12}>
-                  <div className="flex flex-col h-full bg-background">
-                    <div
-                      className={PANEL_HEADER_CLASSES}
-                      style={PANEL_BORDER_STYLE}
+                {ioCollapsed &&
+                ioPanelSize <= IO_EXPAND_TRIGGER_SIZE &&
+                !isMobile ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      expandIOPanel(
+                        guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
+                      )
+                    }
+                    title="Expand input and output"
+                    className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
+                  >
+                    <Keyboard size={18} className="text-primary" />
+                    <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+                      Input / Output
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeIOPanel();
+                      }}
+                      title="Close Input / Output"
+                      className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-                        <Keyboard size={14} />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
-                        Standard Input (stdin)
-                      </span>
-                    </div>
-                    <textarea
-                      value={stdin}
-                      onChange={(e) => setStdin(e.target.value)}
-                      placeholder="Enter input for your program..."
-                      className="flex-1 w-full px-6 py-4 font-mono text-sm resize-none outline-none bg-transparent placeholder:text-muted-foreground/50 text-foreground selection:bg-primary/20"
-                    />
-                  </div>
-                </ResizablePanel>
-
-                <ResizableHandle
-                  withHandle
-                  className="data-[panel-group-direction=vertical]:h-[3px] bg-border/20"
-                />
-
-                {/* Output Panel */}
-                <ResizablePanel defaultSize={68} minSize={18}>
-                  <div className="flex flex-col h-full bg-background">
-                    <div
-                      className={PANEL_HEADER_CLASSES}
-                      style={PANEL_BORDER_STYLE}
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-sm">
-                        <Terminal size={14} />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
-                        Virtual Console
-                      </span>
-                      {isRunning && (
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest animate-pulse">
-                          <Loader2 size={10} className="animate-spin" />
-                          Executing
-                        </div>
-                      )}
-                      {output && !isRunning && (
-                        <button
-                          onClick={() => setOutput("")}
-                          className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-300"
+                      <X size={12} />
+                    </button>
+                  </button>
+                ) : (
+                  <ResizablePanelGroup
+                    direction="vertical"
+                    className="h-full"
+                    autoSaveId="playground-stdin-console-layout"
+                  >
+                    {/* Input Panel - always visible */}
+                    <ResizablePanel defaultSize={32} minSize={12}>
+                      <div className="flex flex-col h-full bg-background">
+                        <div
+                          className={PANEL_HEADER_CLASSES}
+                          style={PANEL_BORDER_STYLE}
                         >
-                          <RotateCcw size={10} />
-                          Flush
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex-1 min-h-0 overflow-auto bg-zinc-950">
-                      <pre
-                        className="p-6 font-mono text-[13px] leading-relaxed whitespace-pre-wrap h-full selection:bg-primary/20"
-                        style={{
-                          color:
-                            output.includes("Error") || output.includes("âš ")
-                              ? "hsl(var(--destructive))"
-                              : output.includes("[DEBUG")
-                                ? "hsl(var(--warning))"
-                                : "hsl(var(--success))",
-                        }}
-                      >
-                        {output || (
-                          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-70 select-none pt-12">
-                            <div className="w-16 h-16 rounded-[24px] border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
-                              <Play
-                                size={24}
-                                className="text-muted-foreground/40 translate-x-0.5"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-[11px] font-black uppercase tracking-widest">
-                                Awaiting Command
-                              </p>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
-                                Press Ctrl+Enter to initialize
-                              </p>
-                            </div>
+                          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                            <Keyboard size={14} />
                           </div>
-                        )}
-                      </pre>
-                    </div>
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            )}
-          </ResizablePanel>
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+                            Standard Input (stdin)
+                          </span>
+                        </div>
+                        <textarea
+                          value={stdin}
+                          onChange={(e) => setStdin(e.target.value)}
+                          placeholder="Enter input for your program..."
+                          className="flex-1 w-full px-6 py-4 font-mono text-sm resize-none outline-none bg-transparent placeholder:text-muted-foreground/50 text-foreground selection:bg-primary/20"
+                        />
+                      </div>
+                    </ResizablePanel>
+
+                    <ResizableHandle
+                      withHandle
+                      className="data-[panel-group-direction=vertical]:h-[3px] bg-border/20"
+                    />
+
+                    {/* Output Panel */}
+                    <ResizablePanel defaultSize={68} minSize={18}>
+                      <div className="flex flex-col h-full bg-background">
+                        <div
+                          className={PANEL_HEADER_CLASSES}
+                          style={PANEL_BORDER_STYLE}
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-sm">
+                            <Terminal size={14} />
+                          </div>
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+                            Virtual Console
+                          </span>
+                          {isRunning && (
+                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest animate-pulse">
+                              <Loader2 size={10} className="animate-spin" />
+                              Executing
+                            </div>
+                          )}
+                          {output && !isRunning && (
+                            <button
+                              onClick={() => setOutput("")}
+                              className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-300"
+                            >
+                              <RotateCcw size={10} />
+                              Flush
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex-1 min-h-0 overflow-auto bg-zinc-950">
+                          <pre
+                            className="p-6 font-mono text-[13px] leading-relaxed whitespace-pre-wrap h-full selection:bg-primary/20"
+                            style={{
+                              color:
+                                output.includes("Error") || output.includes("âš ")
+                                  ? "hsl(var(--destructive))"
+                                  : output.includes("[DEBUG")
+                                    ? "hsl(var(--warning))"
+                                    : "hsl(var(--success))",
+                            }}
+                          >
+                            {output || (
+                              <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-70 select-none pt-12">
+                                <div className="w-16 h-16 rounded-[24px] border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
+                                  <Play
+                                    size={24}
+                                    className="text-muted-foreground/40 translate-x-0.5"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-[11px] font-black uppercase tracking-widest">
+                                    Awaiting Command
+                                  </p>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                    Press Ctrl+Enter to initialize
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </pre>
+                        </div>
+                      </div>
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                )}
+              </ResizablePanel>
+            </>
+          )}
 
           {guruBotOpen && !isMobile && (
             <>
