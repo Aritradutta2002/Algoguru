@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "16rem";
+const SIDEBAR_DEFAULT_WIDTH = 340;
 const SIDEBAR_WIDTH_MOBILE = "280px";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_COLLAPSED_RAIL_WIDTH = "3.5rem";
@@ -53,8 +53,24 @@ const SidebarProvider = React.forwardRef<
     defaultOpen?: boolean;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    defaultWidth?: number;
+    widthStorageKey?: string;
   }
->(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
+>(
+  (
+    {
+      defaultOpen = true,
+      open: openProp,
+      onOpenChange: setOpenProp,
+      defaultWidth = SIDEBAR_DEFAULT_WIDTH,
+      widthStorageKey = "sidebar-width",
+      className,
+      style,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
   const isMobile = useIsMobile();
   const { sidebarOpen, setSidebarOpen } = useResponsivePreferences();
   
@@ -93,22 +109,29 @@ const SidebarProvider = React.forwardRef<
     [setOpenProp, open, setSidebarOpen],
   );
 
-  // Resizable sidebar width - default to 280px
-  const [sidebarWidth, _setSidebarWidth] = React.useState<number>(() => {
-    const saved = localStorage.getItem("sidebar-width");
-    return saved ? Number(saved) : 280;
-  });
-
-  const setSidebarWidth = React.useCallback((w: number) => {
+  const clampSidebarWidth = React.useCallback((w: number) => {
     const viewportMax = Math.max(
       SIDEBAR_MIN_WIDTH,
       Math.floor(window.innerWidth * 0.75),
     );
     const maxAllowed = Math.min(SIDEBAR_MAX_WIDTH, viewportMax);
-    const clamped = Math.max(SIDEBAR_MIN_WIDTH, Math.min(maxAllowed, w));
-    _setSidebarWidth(clamped);
-    localStorage.setItem("sidebar-width", String(clamped));
+    return Math.max(SIDEBAR_MIN_WIDTH, Math.min(maxAllowed, w));
   }, []);
+
+  // Resizable sidebar width.
+  const [sidebarWidth, _setSidebarWidth] = React.useState<number>(() => {
+    const saved = localStorage.getItem(widthStorageKey);
+    const initialWidth = saved ? Number(saved) : defaultWidth;
+    return Number.isFinite(initialWidth)
+      ? Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, initialWidth))
+      : defaultWidth;
+  });
+
+  const setSidebarWidth = React.useCallback((w: number) => {
+    const clamped = clampSidebarWidth(w);
+    _setSidebarWidth(clamped);
+    localStorage.setItem(widthStorageKey, String(clamped));
+  }, [clampSidebarWidth, widthStorageKey]);
 
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
@@ -163,7 +186,8 @@ const SidebarProvider = React.forwardRef<
       </TooltipProvider>
     </SidebarContext.Provider>
   );
-});
+  },
+);
 SidebarProvider.displayName = "SidebarProvider";
 
 const Sidebar = React.forwardRef<
@@ -174,7 +198,7 @@ const Sidebar = React.forwardRef<
     collapsible?: "offcanvas" | "icon" | "none";
   }
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
-  const { isMobile, state, setOpen, openMobile, setOpenMobile, sidebarWidth, setSidebarWidth } = useSidebar();
+  const { isMobile, state, setOpen, openMobile, setOpenMobile, setSidebarWidth } = useSidebar();
   const isResizing = React.useRef(false);
   const [dragging, setDragging] = React.useState(false);
   const [railDismissed, setRailDismissed] = React.useState(false);

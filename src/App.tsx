@@ -532,7 +532,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultWidth={340} widthStorageKey="algoguru-sidebar-width">
       <div
         className="flex h-[100dvh] w-full overflow-hidden"
         style={{
