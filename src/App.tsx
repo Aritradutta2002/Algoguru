@@ -500,7 +500,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isNarrow = guruPct < 30;
   // When Guru panel narrower than ~22%, hide non-essential UI entirely
   const isTiny = guruPct < 22;
-  const contentBottomPaddingClass = location.pathname === "/" ? "pb-0" : "pb-10";
+  const isPlaygroundRoute = location.pathname === "/playground";
+  const contentBottomPaddingClass =
+    location.pathname === "/" || isPlaygroundRoute ? "pb-0" : "pb-10";
 
   const expandGuruPanel = (targetSize?: number) => {
     const expandedSize = clamp(

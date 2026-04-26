@@ -76,6 +76,7 @@ import { GuruBot } from "@/components/GuruBot";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
+import { renderNoteMarkdown } from "@/lib/renderNoteMarkdown";
 interface UserTemplate {
   id: string;
   name: string;
@@ -721,7 +722,35 @@ export default function Playground() {
   const [cursorPos, setCursorPos] = useState({ ln: 1, col: 1 });
 
   const [notesContent, setNotesContent] = useState("");
+  const [notesPreviewOpen, setNotesPreviewOpen] = useState(false);
+  const [notesSaveStatus, setNotesSaveStatus] = useState("Saved");
   const initialNotesLoaded = useRef(false);
+
+  const saveNotesNow = useCallback(
+    async (content = notesContent) => {
+      if (!user) return;
+
+      const dbId = practiceId || "playground-generic";
+      const { error } = await supabase.from("practice_problem_user_state").upsert(
+        {
+          user_id: user.id,
+          problem_id: dbId,
+          notes: content,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,problem_id" },
+      );
+
+      if (error) {
+        console.error("Failed to save notes to DB", error);
+        setNotesSaveStatus("Save failed");
+        return;
+      }
+
+      setNotesSaveStatus(content.trim() ? "Saved" : "Cleared");
+    },
+    [notesContent, practiceId, user],
+  );
 
   // Load notes from Supabase database
   useEffect(() => {
@@ -749,26 +778,11 @@ export default function Playground() {
     if (!user) return;
 
     const timer = setTimeout(async () => {
-      const dbId = practiceId || "playground-generic";
-
-      // Upsert the notes
-      const { error } = await supabase
-        .from("practice_problem_user_state")
-        .upsert(
-          {
-            user_id: user.id,
-            problem_id: dbId,
-            notes: notesContent,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id,problem_id" },
-        );
-
-      if (error) console.error("Failed to save notes to DB", error);
+      await saveNotesNow(notesContent);
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timer);
-  }, [notesContent, user, practiceId]);
+  }, [notesContent, saveNotesNow, user]);
 
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -2292,7 +2306,7 @@ export default function Playground() {
   return (
     <div
       ref={playgroundShellRef}
-      className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-[calc(100vh-3.5rem)]"} relative flex flex-col overflow-hidden bg-background`}
+      className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-full min-h-0"} relative flex flex-col overflow-hidden bg-background`}
     >
       {/* Breakpoint & debug CSS */}
       <style>{`
@@ -2966,15 +2980,69 @@ export default function Playground() {
                   </div>
                 </div>
               ) : practiceTab === "notes" ? (
-                <div className="flex-1 min-h-0 bg-background relative overflow-y-auto">
-                  <RichTextNoteEditor
-                    value={notesContent}
-                    onChange={setNotesContent}
-                    placeholder="Type here...(Markdown is enabled)"
-                    autoFocus
-                  />
-                  <div className="absolute bottom-2 left-4 text-xs text-muted-foreground">
-                    Saved
+                <div className="flex-1 min-h-0 bg-background relative flex flex-col overflow-hidden">
+                  <div
+                    className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b px-4 py-3"
+                    style={PANEL_BORDER_STYLE}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setNotesPreviewOpen((open) => !open)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                        notesPreviewOpen
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "border-border/30 bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                      }`}
+                    >
+                      <BookOpen size={13} />
+                      {notesPreviewOpen ? "Edit" : "Preview"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => saveNotesNow()}
+                      className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-widest text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
+                    >
+                      <Save size={13} />
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNotesContent("");
+                        setNotesPreviewOpen(false);
+                        void saveNotesNow("");
+                      }}
+                      className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/20 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-all hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive active:scale-95"
+                    >
+                      <Trash2 size={13} />
+                      Clear
+                    </button>
+                    <div className="flex-1" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                      {notesSaveStatus}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-h-0 overflow-auto p-4">
+                    {notesPreviewOpen ? (
+                      <div
+                        className="note-rendered min-h-full whitespace-pre-wrap rounded-lg border border-border/30 bg-muted/10 p-5 text-sm leading-relaxed text-foreground"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            renderNoteMarkdown(notesContent) ||
+                            '<span class="text-muted-foreground">No notes to preview.</span>',
+                        }}
+                      />
+                    ) : (
+                      <RichTextNoteEditor
+                        value={notesContent}
+                        onChange={(value) => {
+                          setNotesContent(value);
+                          setNotesSaveStatus("Saving...");
+                        }}
+                        placeholder="Type here...(Markdown is enabled)"
+                        autoFocus
+                      />
+                    )}
                   </div>
                 </div>
               ) : (
