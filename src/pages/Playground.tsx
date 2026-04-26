@@ -85,12 +85,23 @@ interface UserTemplate {
   code: string;
 }
 
+interface CodeTab {
+  id: string;
+  title: string;
+  code: string;
+  protected?: boolean;
+}
+
 const USER_TEMPLATES_KEY = "playground-user-templates";
 const BUILTIN_OVERRIDES_KEY = "playground-builtin-overrides";
 const PLAYGROUND_FONT_SIZE_KEY = "playground-editor-font-size";
 const PLAYGROUND_TAB_SIZE_KEY = "playground-editor-tab-size";
 const PLAYGROUND_RELATIVE_LINES_KEY = "playground-editor-relative-lines";
 const PLAYGROUND_ASK_GURU_SELECTION_KEY = "playground-ask-guru-selection";
+const IO_COLLAPSED_SIZE = 3.5;
+const IO_EXPAND_TRIGGER_SIZE = 4.25;
+const IO_DEFAULT_SIZE = 45;
+const IO_MOBILE_DEFAULT_SIZE = 40;
 
 const loadNumberSetting = (key: string, fallback: number) => {
   try {
@@ -526,7 +537,7 @@ export default function Playground() {
   const [ioCollapsed, setIoCollapsed] = useState(false);
 
   const expandIOPanel = useCallback(() => {
-    const expandedSize = isMobile ? 40 : 45;
+    const expandedSize = isMobile ? IO_MOBILE_DEFAULT_SIZE : IO_DEFAULT_SIZE;
     setIoPanelSize(expandedSize);
     setIoCollapsed(false);
     ioPanelRef.current?.resize(expandedSize);
@@ -544,17 +555,70 @@ export default function Playground() {
     return null;
   }, [practiceId]);
 
-  const [code, setCode] = useState(() => {
+  const initialCode = useMemo(() => {
     if (practiceData?.code?.[0]?.content) return practiceData.code[0].content;
     return DEFAULT_CODE["java"];
-  });
+  }, [practiceData]);
+
+  const [codeTabs, setCodeTabs] = useState<CodeTab[]>(() => [
+    {
+      id: "solution",
+      title: "Solution",
+      code: initialCode,
+      protected: true,
+    },
+  ]);
+  const [activeCodeTabId, setActiveCodeTabId] = useState("solution");
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    SUPPORTED_LANGUAGES[0],
+  );
+
+  const activeCodeTab = useMemo(
+    () => codeTabs.find((tab) => tab.id === activeCodeTabId) || codeTabs[0],
+    [activeCodeTabId, codeTabs],
+  );
+  const code = activeCodeTab?.code || "";
+
+  const setCode = useCallback(
+    (nextCode: string) => {
+      setCodeTabs((tabs) =>
+        tabs.map((tab) =>
+          tab.id === activeCodeTabId ? { ...tab, code: nextCode } : tab,
+        ),
+      );
+    },
+    [activeCodeTabId],
+  );
+
+  const openNewCodeTab = useCallback(() => {
+    const id = crypto.randomUUID();
+    const codeTabCount = codeTabs.filter((tab) => tab.id !== "solution").length;
+    setCodeTabs((tabs) => [
+      ...tabs,
+      {
+        id,
+        title: `Code ${codeTabCount + 2}`,
+        code: DEFAULT_CODE[selectedLanguage.language] || "",
+      },
+    ]);
+    setActiveCodeTabId(id);
+    setPracticeTab("editor");
+  }, [codeTabs, selectedLanguage.language]);
+
+  const closeCodeTab = useCallback((tabId: string) => {
+    if (tabId === "solution") return;
+
+    setCodeTabs((tabs) => tabs.filter((tab) => tab.id !== tabId));
+    setActiveCodeTabId((currentId) =>
+      currentId === tabId ? "solution" : currentId,
+    );
+    setPracticeTab("editor");
+  }, []);
+
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    SUPPORTED_LANGUAGES[0],
-  );
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [stdin, setStdin] = useState("");
@@ -579,6 +643,21 @@ export default function Playground() {
   const [practiceTab, setPracticeTab] = useState<
     "problem" | "editor" | "notes"
   >("editor");
+  const [notesTabOpen, setNotesTabOpen] = useState(false);
+
+  useEffect(() => {
+    setCodeTabs((tabs) => [
+      {
+        id: "solution",
+        title: "Solution",
+        code: initialCode,
+        protected: true,
+      },
+      ...tabs.filter((tab) => tab.id !== "solution"),
+    ]);
+    setActiveCodeTabId("solution");
+    setPracticeTab("editor");
+  }, [initialCode, practiceId]);
 
   // Debugger state
   const [breakpoints, setBreakpoints] = useState<Set<number>>(new Set());
@@ -2438,66 +2517,109 @@ export default function Playground() {
       >
         {/* Left: file tabs */}
         <div className="flex items-center h-full">
-          {/* Solution tab */}
-          <div
-            className="flex items-center h-full border-r"
-            style={{
-              borderColor: "hsl(var(--border)/0.2)",
-              background:
-                practiceTab !== "notes"
-                  ? "hsl(var(--card)/0.85)"
-                  : "transparent",
-            }}
-          >
-            <button
-              onClick={() => setPracticeTab("editor")}
-              className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
-                practiceTab !== "notes"
-                  ? "text-foreground border-b-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-              }`}
-              title="Switch to Solution"
+          {/* Code tabs — Solution is protected, extra code tabs are closable */}
+          {codeTabs.map((tab) => {
+            const isActive =
+              practiceTab !== "notes" && activeCodeTabId === tab.id;
+
+            return (
+              <div
+                key={tab.id}
+                className="flex items-center h-full border-r"
+                style={{
+                  borderColor: "hsl(var(--border)/0.2)",
+                  background: isActive
+                    ? "hsl(var(--card)/0.85)"
+                    : "transparent",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setActiveCodeTabId(tab.id);
+                    setPracticeTab("editor");
+                  }}
+                  className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
+                    isActive
+                      ? "text-foreground border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                  }`}
+                  title={`Switch to ${tab.title}`}
+                >
+                  <Code2 size={13} className="text-primary/70" />
+                  <span>{tab.title}</span>
+                </button>
+
+                {!tab.protected && (
+                  <button
+                    onClick={() => closeCodeTab(tab.id)}
+                    className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                    title={`Close ${tab.title}`}
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+
+                {tab.id === "solution" && practiceData && (
+                  <button
+                    onClick={() => navigate("/playground")}
+                    className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                    title="Close practice problem"
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Notes tab — opens from toolbar and can be closed */}
+          {notesTabOpen && (
+            <div
+              className="flex items-center h-full border-r"
+              style={{
+                borderRightColor: "hsl(var(--border)/0.2)",
+                background:
+                  practiceTab === "notes"
+                    ? "hsl(var(--card)/0.85)"
+                    : "transparent",
+              }}
             >
-              <Code2 size={13} className="text-primary/70" />
-              <span>Solution</span>
-            </button>
-            {practiceData && (
               <button
-                onClick={() => navigate("/playground")}
+                onClick={() => setPracticeTab("notes")}
+                className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
+                  practiceTab === "notes"
+                    ? "text-amber-400 border-b-2 border-amber-400"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                }`}
+                title="Switch to Notes"
+              >
+                <StickyNote
+                  size={13}
+                  className={
+                    practiceTab === "notes"
+                      ? "text-amber-400"
+                      : "text-muted-foreground/70"
+                  }
+                />
+                <span>Notes</span>
+              </button>
+              <button
+                onClick={() => {
+                  setNotesTabOpen(false);
+                  if (practiceTab === "notes") setPracticeTab("editor");
+                }}
                 className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                title="Close practice problem"
+                title="Close Notes tab"
               >
                 <X size={10} />
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Notes tab */}
+          {/* + new code tab */}
           <button
-            onClick={() => setPracticeTab("notes")}
-            className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold border-r transition-all ${
-              practiceTab === "notes"
-                ? "text-amber-400 bg-amber-400/10 border-b-2 border-amber-400"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-            }`}
-            style={{ borderRightColor: "hsl(var(--border)/0.2)" }}
-            title="Switch to Notes"
-          >
-            <StickyNote
-              size={13}
-              className={
-                practiceTab === "notes"
-                  ? "text-amber-400"
-                  : "text-muted-foreground/70"
-              }
-            />
-            <span>Notes</span>
-          </button>
-
-          {/* + new tab (save as template) */}
-          <button
-            onClick={openCreateTemplate}
-            title="Save as template"
+            onClick={openNewCodeTab}
+            title="New code tab"
             className="flex items-center justify-center w-8 h-full text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all border-r"
             style={{ borderColor: "hsl(var(--border)/0.2)" }}
           >
@@ -2529,6 +2651,25 @@ export default function Playground() {
             <Bot size={13} />
             <span>GuruBot</span>
           </button>
+          <div className="w-px h-4 bg-border/30" />
+          {/* Notes button */}
+          <button
+            onClick={() => {
+              setNotesTabOpen(true);
+              setPracticeTab("notes");
+            }}
+            className={`flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l transition-all ${
+              practiceTab === "notes"
+                ? "text-amber-400 bg-amber-400/10"
+                : "text-muted-foreground hover:bg-muted/30"
+            }`}
+            style={{ borderColor: "hsl(var(--border)/0.2)" }}
+            title="Open Notes tab"
+          >
+            <StickyNote size={12} />
+            <span>Notes</span>
+          </button>
+          <div className="w-px h-4 bg-border/30" />
 
           {/* Hint */}
           <button
@@ -2567,9 +2708,14 @@ export default function Playground() {
           onLayout={(sizes) => {
             if (isMobile) return;
 
-            const nextIoSize = sizes[1] ?? 45;
+            const nextIoSize = sizes[1] ?? IO_DEFAULT_SIZE;
+            if (ioCollapsed && nextIoSize > IO_EXPAND_TRIGGER_SIZE) {
+              expandIOPanel();
+              return;
+            }
+
             setIoPanelSize(nextIoSize);
-            setIoCollapsed(nextIoSize <= 12);
+            setIoCollapsed(nextIoSize <= IO_EXPAND_TRIGGER_SIZE);
           }}
         >
           {/* Code Editor Panel */}
@@ -2784,41 +2930,51 @@ export default function Playground() {
           {/* Right Panel: Input (top) + Output (bottom) */}
           <ResizablePanel
             ref={ioPanelRef}
-            defaultSize={45}
+            defaultSize={IO_DEFAULT_SIZE}
             minSize={isMobile ? 25 : 24}
             collapsible={!isMobile}
-            collapsedSize={isMobile ? 25 : 6}
+            collapsedSize={isMobile ? 25 : IO_COLLAPSED_SIZE}
             onResize={(size) => {
               if (isMobile) return;
 
+              if (ioCollapsed && size > IO_EXPAND_TRIGGER_SIZE) {
+                expandIOPanel();
+                return;
+              }
+
               setIoPanelSize(size);
-              setIoCollapsed(size <= 12);
+              setIoCollapsed(size <= IO_EXPAND_TRIGGER_SIZE);
             }}
             onCollapse={() => {
-              setIoPanelSize(6);
+              setIoPanelSize(IO_COLLAPSED_SIZE);
               setIoCollapsed(true);
             }}
             onExpand={() => {
-              const nextSize = ioPanelSize > 12 ? ioPanelSize : 45;
+              const nextSize =
+                ioPanelSize > IO_EXPAND_TRIGGER_SIZE
+                  ? ioPanelSize
+                  : IO_DEFAULT_SIZE;
               setIoPanelSize(nextSize);
               setIoCollapsed(false);
             }}
           >
-            {ioCollapsed && ioPanelSize <= 12 && !isMobile ? (
+            {ioCollapsed &&
+            ioPanelSize <= IO_EXPAND_TRIGGER_SIZE &&
+            !isMobile ? (
               <button
                 type="button"
                 onClick={expandIOPanel}
                 title="Expand input and output"
-                className="group h-full w-full flex flex-col items-center justify-between overflow-hidden border-l border-primary/40 bg-muted/70 px-1 py-4 text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+                className="group h-full w-full flex flex-col items-center justify-between overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-3 text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
               >
                 <ChevronRight
                   size={14}
                   className="rotate-180 text-primary/80 transition-transform group-hover:-translate-x-0.5"
                 />
 
-                <div className="flex flex-1 flex-col items-center justify-center gap-6">
+                <div className="flex flex-1 flex-col items-center justify-center gap-5">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary shadow-sm">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary shadow-sm">
                       <Keyboard size={15} />
                     </div>
                     <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.18em]">
@@ -2829,7 +2985,7 @@ export default function Playground() {
                   <div className="h-px w-7 bg-border/60" />
 
                   <div className="flex flex-col items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-success/25 bg-success/10 text-success shadow-sm">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-success/25 bg-success/10 text-success shadow-sm">
                       <Terminal size={15} />
                     </div>
                     <span className="[writing-mode:vertical-rl] rotate-180 text-[10px] font-black uppercase tracking-[0.18em]">
