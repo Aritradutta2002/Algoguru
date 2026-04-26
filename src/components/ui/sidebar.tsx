@@ -20,6 +20,7 @@ const SIDEBAR_WIDTH_MOBILE = "280px";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_MIN_WIDTH = 200;
 const SIDEBAR_MAX_WIDTH = 480;
+const SIDEBAR_COLLAPSE_DRAG_TRIGGER = SIDEBAR_MIN_WIDTH + 24;
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContext = {
@@ -166,7 +167,7 @@ const Sidebar = React.forwardRef<
     collapsible?: "offcanvas" | "icon" | "none";
   }
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
-  const { isMobile, state, openMobile, setOpenMobile, sidebarWidth, setSidebarWidth } = useSidebar();
+  const { isMobile, state, setOpen, openMobile, setOpenMobile, sidebarWidth, setSidebarWidth } = useSidebar();
   const isResizing = React.useRef(false);
   const [dragging, setDragging] = React.useState(false);
 
@@ -182,6 +183,20 @@ const Sidebar = React.forwardRef<
         if (!isResizing.current) return;
         requestAnimationFrame(() => {
           const newWidth = side === "left" ? e.clientX : window.innerWidth - e.clientX;
+
+          // Dragging close to the minimum width collapses the sidebar,
+          // mirroring panel collapse behavior used elsewhere in the app.
+          if (newWidth <= SIDEBAR_COLLAPSE_DRAG_TRIGGER) {
+            if (state === "expanded") {
+              setOpen(false);
+            }
+            isResizing.current = false;
+            setDragging(false);
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+            return;
+          }
+
           setSidebarWidth(newWidth);
         });
       };
@@ -198,7 +213,7 @@ const Sidebar = React.forwardRef<
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
     },
-    [setSidebarWidth, side],
+    [setOpen, setSidebarWidth, side, state],
   );
 
   if (collapsible === "none") {

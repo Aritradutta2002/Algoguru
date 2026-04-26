@@ -11,6 +11,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
@@ -477,6 +478,7 @@ export function AppSidebar() {
         </div>
 
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   );
 }
