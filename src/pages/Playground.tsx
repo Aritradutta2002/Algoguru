@@ -2633,7 +2633,7 @@ export default function Playground() {
         <div className="flex items-center gap-0 h-full">
           {/* Run + Debug + GuruBot */}
           <div
-            className="flex items-center gap-1 px-2 h-full border-l"
+            className="flex items-center gap-2.5 px-3 h-full border-l"
             style={{ borderColor: "hsl(var(--border)/0.2)" }}
           >
             <RunButton compact />
