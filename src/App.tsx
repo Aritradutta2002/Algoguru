@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,6 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  ResizablePanel,
+  ResizablePanelGroup,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import TopicPage from "./pages/TopicPage";
@@ -37,6 +42,7 @@ import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 
 // Import all content maps for deep search
 import { recursionContent } from "@/data/recursionContent";
@@ -328,6 +334,17 @@ function SearchResultItem({ item, onSelect }: { item: typeof allSearchItems[numb
 
 const queryClient = new QueryClient();
 
+const MAIN_PANEL_DEFAULT_SIZE = 75;
+const MAIN_PANEL_MIN_SIZE = 30;
+const GURU_PANEL_DEFAULT_SIZE = 25;
+const GURU_PANEL_MIN_SIZE = 8;
+const GURU_PANEL_MAX_SIZE = 70;
+const GURU_PANEL_COLLAPSED_SIZE = 3.5;
+const GURU_PANEL_EXPAND_TRIGGER_SIZE = 4.25;
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
+
 const ZOOM_MAP: Record<string, string> = { sm: "85%", md: "100%", lg: "115%", xl: "125%" };
 
 function HeaderControls() {
@@ -442,47 +459,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-/* ── Custom Drag Handle ──────────────────────────── */
-function DragHandle({ onMouseDown, isDragging }: { onMouseDown: (e: React.MouseEvent) => void; isDragging: boolean }) {
-  return (
-    <div
-      onMouseDown={onMouseDown}
-      title="Drag to resize"
-      className="group flex-shrink-0 relative flex flex-col items-center justify-center z-10 select-none"
-      style={{
-        width: "14px",
-        cursor: "col-resize",
-        background: isDragging ? "hsl(var(--primary))" : "hsl(var(--muted))",
-        borderLeft: "2px solid hsl(var(--border))",
-        borderRight: "2px solid hsl(var(--border))",
-        transition: "background 0.15s ease",
-      }}
-    >
-      {/* Grip dots */}
-      <div className="flex flex-col gap-[5px]">
-        {[0,1,2,3,4,5].map(i => (
-          <div
-            key={i}
-            className="rounded-full transition-all duration-150"
-            style={{
-              width: 4, height: 4,
-              background: isDragging
-                ? "hsl(var(--primary-foreground))"
-                : "hsl(var(--muted-foreground))",
-              opacity: isDragging ? 1 : 0.5,
-            }}
-          />
-        ))}
-      </div>
-      {/* Hover highlight line */}
-      <div
-        className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-        style={{ background: "hsl(var(--primary))" }}
-      />
-    </div>
-  );
-}
-
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [guruOpen, setGuruOpen] = useState(false);
@@ -490,16 +466,22 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [splitPct, setSplitPct] = useState(() => {
     try {
       const saved = localStorage.getItem("guru-split-pct");
-      return saved ? parseFloat(saved) : 75; // Default main panel 75% wide so content isn't squished
+      const parsed = saved ? parseFloat(saved) : MAIN_PANEL_DEFAULT_SIZE;
+      return Number.isFinite(parsed)
+        ? clamp(parsed, MAIN_PANEL_MIN_SIZE, 100 - GURU_PANEL_MIN_SIZE)
+        : MAIN_PANEL_DEFAULT_SIZE;
     } catch {
-      return 75;
+      return MAIN_PANEL_DEFAULT_SIZE;
     }
   });
-  
-  const [isDragging, setIsDragging] = useState(false);
+
+  const [guruCollapsed, setGuruCollapsed] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const guruPanelRef = useRef<ImperativePanelHandle>(null);
+  const guruPanelSizeRef = useRef(
+    clamp(100 - splitPct, GURU_PANEL_MIN_SIZE, GURU_PANEL_MAX_SIZE),
+  );
 
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
@@ -520,27 +502,34 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isTiny = guruPct < 22;
   const contentBottomPaddingClass = location.pathname === "/" ? "pb-0" : "pb-10";
 
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
+  const expandGuruPanel = (targetSize?: number) => {
+    const expandedSize = clamp(
+      targetSize ?? guruPanelSizeRef.current,
+      GURU_PANEL_MIN_SIZE,
+      GURU_PANEL_MAX_SIZE,
+    );
+    const nextSize =
+      expandedSize > GURU_PANEL_EXPAND_TRIGGER_SIZE
+        ? expandedSize
+        : GURU_PANEL_DEFAULT_SIZE;
+    guruPanelSizeRef.current = nextSize;
+    setGuruCollapsed(false);
+    requestAnimationFrame(() => {
+      guruPanelRef.current?.resize(nextSize);
+    });
+  };
 
-    const onMouseMove = (ev: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const rawPct = ((ev.clientX - rect.left) / rect.width) * 100;
-      // Constrain: main panel 30%–85% (so Guru panel can be narrow)
-      setSplitPct(Math.min(Math.max(rawPct, 30), 85));
-    };
-
-    const onMouseUp = () => {
-      setIsDragging(false);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  }, []);
+  const toggleGuruPanel = () => {
+    setGuruOpen((isOpen) => {
+      const nextOpen = !isOpen;
+      if (nextOpen && !isMobile) {
+        requestAnimationFrame(() => {
+          expandGuruPanel(guruPanelSizeRef.current);
+        });
+      }
+      return nextOpen;
+    });
+  };
 
   return (
     <SidebarProvider>
@@ -548,8 +537,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         className="flex h-[100dvh] w-full overflow-hidden"
         style={{
           background: "hsl(var(--background))",
-          cursor: isDragging ? "col-resize" : "auto",
-          userSelect: isDragging ? "none" : "auto",
         }}
       >
         <AppSidebar />
@@ -606,7 +593,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <UserMenu />
               <div className="h-6 w-px bg-border/20" />
               <button
-                onClick={() => setGuruOpen((o) => !o)}
+                onClick={toggleGuruPanel}
                 title={guruOpen ? "Close Guru" : "Open Guru"}
                 className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${
                   guruOpen 
@@ -637,99 +624,193 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
               </>
             ) : (
-              /* ── Desktop: Custom flex split with mouse-event drag ── */
-              <div
-                ref={containerRef}
-                className="flex-1 flex flex-row min-h-0 overflow-hidden"
+              /* ── Desktop: Resizable split with collapsible Guru panel ── */
+              <ResizablePanelGroup
+                direction="horizontal"
+                className="h-full"
+                autoSaveId="app-content-guru-layout"
+                onLayout={(sizes) => {
+                  const nextMainSize = sizes[0] ?? MAIN_PANEL_DEFAULT_SIZE;
+                  const nextGuruSize = sizes[1] ?? GURU_PANEL_DEFAULT_SIZE;
+
+                  setSplitPct(nextMainSize);
+
+                  if (guruCollapsed && nextGuruSize > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                    expandGuruPanel(guruPanelSizeRef.current);
+                    return;
+                  }
+
+                  if (nextGuruSize > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                    guruPanelSizeRef.current = clamp(
+                      nextGuruSize,
+                      GURU_PANEL_MIN_SIZE,
+                      GURU_PANEL_MAX_SIZE,
+                    );
+                  }
+
+                  const nextCollapsed = nextGuruSize <= GURU_PANEL_EXPAND_TRIGGER_SIZE;
+                  if (nextCollapsed !== guruCollapsed) {
+                    setGuruCollapsed(nextCollapsed);
+                  }
+                }}
               >
-                {/* Main content panel */}
-                <main
-                  ref={contentScrollRef}
-                  className="overflow-y-auto flex-shrink-0"
-                  style={{
-                    width: `${splitPct}%`,
-                    overscrollBehavior: "contain",
-                    minWidth: "30%",
+                <ResizablePanel
+                  defaultSize={splitPct}
+                  minSize={MAIN_PANEL_MIN_SIZE}
+                >
+                  <main
+                    ref={contentScrollRef}
+                    className="h-full overflow-y-auto"
+                    style={{ overscrollBehavior: "contain" }}
+                  >
+                    <div className={`min-h-full ${contentBottomPaddingClass}`}>
+                      {children}
+                      {location.pathname === "/" && (
+                        <Footer onSupportClick={() => setSupportOpen(true)} />
+                      )}
+                    </div>
+                  </main>
+                </ResizablePanel>
+
+                <ResizableHandle
+                  withHandle
+                  className="w-[3px] bg-border/20"
+                />
+
+                <ResizablePanel
+                  ref={guruPanelRef}
+                  defaultSize={clamp(
+                    100 - splitPct,
+                    GURU_PANEL_MIN_SIZE,
+                    GURU_PANEL_MAX_SIZE,
+                  )}
+                  minSize={GURU_PANEL_MIN_SIZE}
+                  maxSize={GURU_PANEL_MAX_SIZE}
+                  collapsible
+                  collapsedSize={GURU_PANEL_COLLAPSED_SIZE}
+                  onResize={(size) => {
+                    if (guruCollapsed && size > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                      expandGuruPanel(guruPanelSizeRef.current);
+                      return;
+                    }
+
+                    if (size > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                      guruPanelSizeRef.current = clamp(
+                        size,
+                        GURU_PANEL_MIN_SIZE,
+                        GURU_PANEL_MAX_SIZE,
+                      );
+                    }
+
+                    const nextCollapsed = size <= GURU_PANEL_EXPAND_TRIGGER_SIZE;
+                    if (nextCollapsed !== guruCollapsed) {
+                      setGuruCollapsed(nextCollapsed);
+                    }
+                  }}
+                  onCollapse={() => {
+                    if (!guruCollapsed) {
+                      setGuruCollapsed(true);
+                    }
+                  }}
+                  onExpand={() => {
+                    if (guruCollapsed) {
+                      setGuruCollapsed(false);
+                    }
                   }}
                 >
-                  <div className={`min-h-full ${contentBottomPaddingClass}`}>
-                    {children}
-                    {location.pathname === "/" && (
-                      <Footer onSupportClick={() => setSupportOpen(true)} />
-                    )}
-                  </div>
-                </main>
-
-                {/* ── Drag handle ── */}
-                <DragHandle onMouseDown={handleDragStart} isDragging={isDragging} />
-
-                {/* Guru panel */}
-                <div
-                  className="flex-1 min-w-0 overflow-hidden flex flex-col"
-                  style={{ minWidth: "250px" }}
-                >
-                  {/* Guru panel title bar — premium minimal style */}
-                  {!isTiny && (
+                  {guruCollapsed ? (
                     <div
-                      className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b bg-card/50 backdrop-blur-sm"
-                      style={{
-                        borderColor: "hsl(var(--border) / 0.3)",
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => expandGuruPanel()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          expandGuruPanel();
+                        }
                       }}
+                      title="Expand Guru AI Assistant"
+                      className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
                     >
-                      <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                        <Sparkles size={14} className="text-primary" />
-                      </div>
-                      <span
-                        className="text-xs font-black uppercase tracking-[0.15em] text-foreground overflow-hidden text-ellipsis white-space-nowrap"
-                      >
-                        {isNarrow ? "Guru" : "Guru AI Assistant"}
+                      <Sparkles size={18} className="text-primary" />
+                      <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+                        Guru AI Assistant
                       </span>
-                      <div className="flex-1" />
-                      {!isNarrow && (
-                        <span
-                          className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary"
-                        >
-                          AI
-                        </span>
-                      )}
-                      {/* Maximize button - expands Guru panel to full width */}
                       <button
-                        onClick={() => setSplitPct(15)}
-                        className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                        title="Maximize Guru Panel"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="15 3 21 3 21 9"></polyline>
-                          <polyline points="9 21 3 21 3 15"></polyline>
-                          <line x1="21" y1="3" x2="14" y2="10"></line>
-                          <line x1="3" y1="21" x2="10" y2="14"></line>
-                        </svg>
-                      </button>
-                      {/* Restore button - resets to default 75/25 split */}
-                      <button
-                        onClick={() => setSplitPct(75)}
-                        className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                        title="Restore Default Split"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="4 14 10 14 10 20"></polyline>
-                          <polyline points="20 10 14 10 14 4"></polyline>
-                          <line x1="14" y1="10" x2="21" y2="3"></line>
-                          <line x1="3" y1="21" x2="10" y2="14"></line>
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setGuruOpen(false)}
-                        className="touch-manipulation flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setGuruOpen(false);
+                        }}
                         title="Close Guru"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
                       >
-                        <X size={14} />
+                        <X size={12} />
                       </button>
                     </div>
+                  ) : (
+                    <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border/30 bg-background">
+                      {!isTiny && (
+                        <div
+                          className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b bg-card/50 backdrop-blur-sm"
+                          style={{
+                            borderColor: "hsl(var(--border) / 0.3)",
+                          }}
+                        >
+                          <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                            <Sparkles size={14} className="text-primary" />
+                          </div>
+                          <span
+                            className="text-xs font-black uppercase tracking-[0.15em] text-foreground overflow-hidden text-ellipsis white-space-nowrap"
+                          >
+                            {isNarrow ? "Guru" : "Guru AI Assistant"}
+                          </span>
+                          <div className="flex-1" />
+                          {!isNarrow && (
+                            <span
+                              className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary"
+                            >
+                              AI
+                            </span>
+                          )}
+                          <button
+                            onClick={() => expandGuruPanel(GURU_PANEL_MAX_SIZE)}
+                            className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                            title="Maximize Guru Panel"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="15 3 21 3 21 9"></polyline>
+                              <polyline points="9 21 3 21 3 15"></polyline>
+                              <line x1="21" y1="3" x2="14" y2="10"></line>
+                              <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => expandGuruPanel(GURU_PANEL_DEFAULT_SIZE)}
+                            className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                            title="Restore Default Split"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="4 14 10 14 10 20"></polyline>
+                              <polyline points="20 10 14 10 14 4"></polyline>
+                              <line x1="14" y1="10" x2="21" y2="3"></line>
+                              <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setGuruOpen(false)}
+                            className="touch-manipulation flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                            title="Close Guru"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      )}
+                      <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+                    </div>
                   )}
-                  <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
-                </div>
-              </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
             )
           ) : (
             <main ref={contentScrollRef} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
