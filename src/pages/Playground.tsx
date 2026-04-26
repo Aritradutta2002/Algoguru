@@ -102,6 +102,7 @@ const IO_EXPAND_TRIGGER_SIZE = 4.25;
 const IO_DEFAULT_SIZE = 45;
 const IO_GURU_DEFAULT_SIZE = 25;
 const IO_MOBILE_DEFAULT_SIZE = 40;
+const GURU_COLLAPSE_TRIGGER_SIZE = 12;
 
 const loadNumberSetting = (key: string, fallback: number) => {
   try {
@@ -3162,7 +3163,19 @@ export default function Playground() {
                 className="w-[3px] bg-border/20 data-[panel-group-direction=vertical]:h-[3px]"
               />
 
-              <ResizablePanel defaultSize={25} minSize={20} maxSize={45}>
+              <ResizablePanel
+                defaultSize={25}
+                minSize={8}
+                maxSize={45}
+                collapsible
+                collapsedSize={0}
+                onResize={(size) => {
+                  if (size <= GURU_COLLAPSE_TRIGGER_SIZE) {
+                    setGuruBotOpen(false);
+                  }
+                }}
+                onCollapse={() => setGuruBotOpen(false)}
+              >
                 <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-background">
                   <GuruBot
                     open={guruBotOpen}
