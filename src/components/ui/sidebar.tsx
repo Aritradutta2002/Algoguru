@@ -18,9 +18,9 @@ const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "280px";
 const SIDEBAR_WIDTH_ICON = "3rem";
+const SIDEBAR_COLLAPSED_RAIL_WIDTH = "3.5rem";
 const SIDEBAR_MIN_WIDTH = 200;
-const SIDEBAR_MAX_WIDTH = 480;
-const SIDEBAR_COLLAPSE_DRAG_TRIGGER = SIDEBAR_MIN_WIDTH + 24;
+const SIDEBAR_MAX_WIDTH = 720;
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContext = {
@@ -99,7 +99,12 @@ const SidebarProvider = React.forwardRef<
   });
 
   const setSidebarWidth = React.useCallback((w: number) => {
-    const clamped = Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, w));
+    const viewportMax = Math.max(
+      SIDEBAR_MIN_WIDTH,
+      Math.floor(window.innerWidth * 0.75),
+    );
+    const maxAllowed = Math.min(SIDEBAR_MAX_WIDTH, viewportMax);
+    const clamped = Math.max(SIDEBAR_MIN_WIDTH, Math.min(maxAllowed, w));
     _setSidebarWidth(clamped);
     localStorage.setItem("sidebar-width", String(clamped));
   }, []);
@@ -144,6 +149,7 @@ const SidebarProvider = React.forwardRef<
             {
               "--sidebar-width": `${sidebarWidth}px`,
               "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+              "--sidebar-rail-width": SIDEBAR_COLLAPSED_RAIL_WIDTH,
               ...style,
             } as React.CSSProperties
           }
@@ -183,20 +189,6 @@ const Sidebar = React.forwardRef<
         if (!isResizing.current) return;
         requestAnimationFrame(() => {
           const newWidth = side === "left" ? e.clientX : window.innerWidth - e.clientX;
-
-          // Dragging close to the minimum width collapses the sidebar,
-          // mirroring panel collapse behavior used elsewhere in the app.
-          if (newWidth <= SIDEBAR_COLLAPSE_DRAG_TRIGGER) {
-            if (state === "expanded") {
-              setOpen(false);
-            }
-            isResizing.current = false;
-            setDragging(false);
-            document.body.style.cursor = "";
-            document.body.style.userSelect = "";
-            return;
-          }
-
           setSidebarWidth(newWidth);
         });
       };
@@ -213,7 +205,7 @@ const Sidebar = React.forwardRef<
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
     },
-    [setOpen, setSidebarWidth, side, state],
+    [setSidebarWidth, side, state],
   );
 
   if (collapsible === "none") {
@@ -262,7 +254,7 @@ const Sidebar = React.forwardRef<
         className={cn(
           "relative h-svh w-[--sidebar-width] bg-transparent ease-linear",
           !dragging && "transition-[width] duration-200",
-          "group-data-[collapsible=offcanvas]:w-0",
+          "group-data-[collapsible=offcanvas]:w-[--sidebar-rail-width]",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
             ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
@@ -300,6 +292,26 @@ const Sidebar = React.forwardRef<
           </div>
         )}
       </div>
+
+      {collapsible === "offcanvas" && state === "collapsed" && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          title="Expand Sidebar"
+          aria-label="Expand Sidebar"
+          className={cn(
+            "fixed inset-y-0 z-20 hidden w-[--sidebar-rail-width] cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden bg-muted/70 py-4 text-primary transition-all duration-200 hover:bg-muted lg:flex",
+            side === "left"
+              ? "left-0 border-r border-primary/40"
+              : "right-0 border-l border-primary/40",
+          )}
+        >
+          <PanelLeft size={18} className="text-primary" />
+          <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+            Navigation
+          </span>
+        </button>
+      )}
     </div>
   );
 });
