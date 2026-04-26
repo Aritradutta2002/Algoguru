@@ -295,11 +295,22 @@ interface GuruBotProps {
   debugMode?: boolean;
   /** Current code + problem title injected as context for debug mode */
   initialContext?: string;
+  /** Optional prompt to prefill when opened from selected code */
+  initialPrompt?: string;
+  /** When true, render inside a parent drawer instead of using fixed mobile positioning */
+  embedded?: boolean;
 }
 
 export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
   function GuruBot(
-    { open, onClose, debugMode = false, initialContext = "" },
+    {
+      open,
+      onClose,
+      debugMode = false,
+      initialContext = "",
+      initialPrompt = "",
+      embedded = false,
+    },
     ref,
   ) {
     // Detect mobile viewport (< lg breakpoint = 1024px)
@@ -341,6 +352,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const abortRef = useRef<AbortController | null>(null);
+    const prefilledPromptRef = useRef("");
 
     const activeSession = useMemo(
       () => sessions.find((s) => s.id === currentId),
@@ -365,6 +377,15 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       if (open && !showHistory)
         setTimeout(() => inputRef.current?.focus(), 200);
     }, [open, showHistory]);
+
+    useEffect(() => {
+      if (!open || !debugMode || !initialPrompt) return;
+      if (prefilledPromptRef.current === initialPrompt) return;
+
+      prefilledPromptRef.current = initialPrompt;
+      setInput(initialPrompt);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }, [open, debugMode, initialPrompt]);
 
     const saveToSession = (newMessages: Msg[], curModel: string) => {
       setSessions((prev) => {
@@ -519,9 +540,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
     if (!open) return null;
 
-    // Mobile: full-screen overlay with fixed positioning
-    // Desktop: flex container (used within split panel in App.tsx)
-    const containerClasses = isMobile
+    // Mobile: full-screen overlay unless GuruBot is embedded in a parent drawer
+    // Desktop/embedded: flex container fills the parent panel
+    const shouldUseFixedOverlay = isMobile && !embedded;
+    const containerClasses = shouldUseFixedOverlay
       ? "fixed inset-0 z-50 flex flex-col h-full bg-background font-sans"
       : "flex flex-col h-full bg-background font-sans relative";
 
@@ -558,8 +580,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             >
               <MessageSquarePlus size={18} />
             </button>
-            {/* Mobile: show close button */}
-            {isMobile && (
+            {/* Mobile/embedded drawer: show close button */}
+            {(isMobile || embedded) && (
               <button
                 onClick={handleClose}
                 className="touch-manipulation p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"

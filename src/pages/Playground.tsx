@@ -71,7 +71,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { GuruBot } from "@/components/GuruBot";
@@ -87,6 +87,29 @@ interface UserTemplate {
 
 const USER_TEMPLATES_KEY = "playground-user-templates";
 const BUILTIN_OVERRIDES_KEY = "playground-builtin-overrides";
+const PLAYGROUND_FONT_SIZE_KEY = "playground-editor-font-size";
+const PLAYGROUND_TAB_SIZE_KEY = "playground-editor-tab-size";
+const PLAYGROUND_RELATIVE_LINES_KEY = "playground-editor-relative-lines";
+const PLAYGROUND_ASK_GURU_SELECTION_KEY = "playground-ask-guru-selection";
+
+const loadNumberSetting = (key: string, fallback: number) => {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? Number(raw) : fallback;
+    return Number.isFinite(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const loadBooleanSetting = (key: string, fallback: boolean) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : raw === "true";
+  } catch {
+    return fallback;
+  }
+};
 
 const loadUserTemplates = (): UserTemplate[] => {
   try {
@@ -499,11 +522,14 @@ export default function Playground() {
   // Detect mobile viewport
   const isMobile = useMediaQuery("(max-width: 767px)");
   const ioPanelRef = useRef<ImperativePanelHandle>(null);
+  const [ioPanelSize, setIoPanelSize] = useState(45);
   const [ioCollapsed, setIoCollapsed] = useState(false);
 
   const expandIOPanel = useCallback(() => {
+    const expandedSize = isMobile ? 40 : 45;
+    setIoPanelSize(expandedSize);
     setIoCollapsed(false);
-    ioPanelRef.current?.resize(isMobile ? 40 : 45);
+    ioPanelRef.current?.resize(expandedSize);
   }, [isMobile]);
 
   const practiceData = useMemo(() => {
@@ -564,6 +590,27 @@ export default function Playground() {
 
   // GuruBot debug-coach mode
   const [guruBotOpen, setGuruBotOpen] = useState(false);
+  const [selectedCodeForGuru, setSelectedCodeForGuru] = useState("");
+  const [guruInitialPrompt, setGuruInitialPrompt] = useState("");
+  const [askGuruPopup, setAskGuruPopup] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+
+  // Editor preference state
+  const [editorFontSize, setEditorFontSize] = useState(() =>
+    loadNumberSetting(PLAYGROUND_FONT_SIZE_KEY, 14),
+  );
+  const [editorTabSize, setEditorTabSize] = useState(() =>
+    loadNumberSetting(PLAYGROUND_TAB_SIZE_KEY, 4),
+  );
+  const [relativeLineNumbers, setRelativeLineNumbers] = useState(() =>
+    loadBooleanSetting(PLAYGROUND_RELATIVE_LINES_KEY, false),
+  );
+  const [askGuruOnSelection, setAskGuruOnSelection] = useState(() =>
+    loadBooleanSetting(PLAYGROUND_ASK_GURU_SELECTION_KEY, true),
+  );
+  const askGuruOnSelectionRef = useRef(askGuruOnSelection);
 
   // Cursor position for VS Code-style status bar
   const [cursorPos, setCursorPos] = useState({ ln: 1, col: 1 });
@@ -624,6 +671,45 @@ export default function Playground() {
   const dbTemplatesRef = useRef(dbTemplates);
   dbTemplatesRef.current = dbTemplates;
 
+  useEffect(() => {
+    localStorage.setItem(PLAYGROUND_FONT_SIZE_KEY, String(editorFontSize));
+    editorRef.current?.updateOptions({ fontSize: editorFontSize });
+  }, [editorFontSize]);
+
+  useEffect(() => {
+    localStorage.setItem(PLAYGROUND_TAB_SIZE_KEY, String(editorTabSize));
+
+    const editor = editorRef.current;
+    editor?.updateOptions({
+      tabSize: editorTabSize,
+      insertSpaces: true,
+      detectIndentation: false,
+    });
+    editor?.getModel()?.updateOptions({
+      tabSize: editorTabSize,
+      insertSpaces: true,
+    });
+  }, [editorTabSize]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      PLAYGROUND_RELATIVE_LINES_KEY,
+      String(relativeLineNumbers),
+    );
+    editorRef.current?.updateOptions({
+      lineNumbers: relativeLineNumbers ? "relative" : "on",
+    });
+  }, [relativeLineNumbers]);
+
+  useEffect(() => {
+    askGuruOnSelectionRef.current = askGuruOnSelection;
+    localStorage.setItem(
+      PLAYGROUND_ASK_GURU_SELECTION_KEY,
+      String(askGuruOnSelection),
+    );
+    if (!askGuruOnSelection) setAskGuruPopup(null);
+  }, [askGuruOnSelection]);
+
   // Update breakpoint decorations whenever breakpoints change
   const updateBreakpointDecorations = useCallback(() => {
     const editor = editorRef.current;
@@ -655,9 +741,54 @@ export default function Playground() {
     monaco.editor.defineTheme("dracula", DRACULA_THEME as any);
     monaco.editor.defineTheme("solarized-dark", SOLARIZED_DARK_THEME);
 
+    editor.updateOptions({
+      fontSize: editorFontSize,
+      tabSize: editorTabSize,
+      insertSpaces: true,
+      detectIndentation: false,
+      lineNumbers: relativeLineNumbers ? "relative" : "on",
+    });
+    editor.getModel()?.updateOptions({
+      tabSize: editorTabSize,
+      insertSpaces: true,
+    });
+
     // Track cursor position for VS Code-style Ln/Col status
     editor.onDidChangeCursorPosition((e: any) => {
       setCursorPos({ ln: e.position.lineNumber, col: e.position.column });
+    });
+
+    // Show "Ask GuruBot" popup when code is highlighted
+    editor.onDidChangeCursorSelection((e: any) => {
+      if (!askGuruOnSelectionRef.current) {
+        setAskGuruPopup(null);
+        return;
+      }
+
+      const selectedText =
+        editor.getModel()?.getValueInRange(e.selection)?.trim() || "";
+      if (!selectedText || selectedText.length < 2) {
+        setAskGuruPopup(null);
+        return;
+      }
+
+      const domNode = editor.getDomNode();
+      const endPosition = {
+        lineNumber: e.selection.endLineNumber,
+        column: e.selection.endColumn,
+      };
+      const visiblePosition = editor.getScrolledVisiblePosition(endPosition);
+      if (!domNode || !visiblePosition) return;
+
+      const rect = domNode.getBoundingClientRect();
+      setSelectedCodeForGuru(selectedText);
+      setAskGuruPopup({
+        top: rect.top + visiblePosition.top + 28,
+        left: Math.min(
+          rect.left + visiblePosition.left + 12,
+          window.innerWidth - 180,
+        ),
+      });
     });
 
     // Explicitly apply the theme since defining it inside onMount might be too late for the initial render
@@ -1616,7 +1747,9 @@ export default function Playground() {
       onClick={() => runCode(false)}
       disabled={isRunning || !code.trim()}
       className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
-        compact ? "px-4 py-2 text-[10px]" : "px-6 py-2.5 text-[11px]"
+        compact
+          ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
+          : "px-6 py-2.5 text-[11px]"
       } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
       title="Run (Ctrl+Enter)"
     >
@@ -1625,7 +1758,7 @@ export default function Playground() {
       ) : (
         <Play size={14} fill="currentColor" strokeWidth={0} />
       )}
-      {isRunning ? "Running..." : "Run"}
+      {!compact && (isRunning ? "Running..." : "Run")}
     </button>
   );
 
@@ -1635,7 +1768,9 @@ export default function Playground() {
       onClick={() => runCode(true)}
       disabled={isRunning || !code.trim() || breakpoints.size === 0}
       className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
-        compact ? "px-4 py-2 text-[10px]" : "px-6 py-2.5 text-[11px]"
+        compact
+          ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
+          : "px-6 py-2.5 text-[11px]"
       } ${
         breakpoints.size > 0
           ? "bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90"
@@ -1648,7 +1783,9 @@ export default function Playground() {
       }
     >
       <Bug size={14} />
-      Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}
+      {!compact && (
+        <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>
+      )}
     </button>
   );
 
@@ -1689,13 +1826,26 @@ export default function Playground() {
       keyPoints ? `Key points / lesson hints:\n${keyPoints}` : "",
       `Language: ${selectedLanguage.label}`,
       `Breakpoints: ${breakpointsText}`,
+      guruInitialPrompt ? `GuruBot request:\n${guruInitialPrompt}` : "",
+      selectedCodeForGuru
+        ? `Selected code for GuruBot:\n${selectedCodeForGuru}`
+        : "",
       `Current stdin:\n${stdin || "(empty)"}`,
       `Current output / errors:\n${output || "(empty)"}`,
       `Current code:\n${code || "(empty)"}`,
     ]
       .filter(Boolean)
       .join("\n\n");
-  }, [breakpoints, code, output, practiceData, selectedLanguage.label, stdin]);
+  }, [
+    breakpoints,
+    code,
+    guruInitialPrompt,
+    output,
+    practiceData,
+    selectedCodeForGuru,
+    selectedLanguage.label,
+    stdin,
+  ]);
 
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => {
@@ -1814,6 +1964,122 @@ export default function Playground() {
 
         <div className="mx-5 h-px bg-border/10" />
 
+        {/* Editor Preferences */}
+        <div className="relative z-10 p-4 space-y-4">
+          <div className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/50">
+            Editor Preferences
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
+                  Font Size
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground/50">
+                  Current: {editorFontSize}px
+                </p>
+              </div>
+              <div className="flex items-center gap-1 rounded-xl border border-border/20 bg-muted/20 p-1">
+                <button
+                  onClick={() =>
+                    setEditorFontSize((size) => Math.max(10, size - 1))
+                  }
+                  className="h-8 w-8 rounded-lg text-xs font-black text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  -
+                </button>
+                <button
+                  onClick={() =>
+                    setEditorFontSize((size) => Math.min(24, size + 1))
+                  }
+                  className="h-8 w-8 rounded-lg text-xs font-black text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
+                  Tab Size
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground/50">
+                  Current: {editorTabSize} spaces
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-1 rounded-xl border border-border/20 bg-muted/20 p-1">
+                {[2, 4, 8].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setEditorTabSize(size)}
+                    className={`h-8 w-9 rounded-lg text-xs font-black transition-all ${
+                      editorTabSize === size
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setRelativeLineNumbers((value) => !value)}
+              className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border/20 bg-muted/10 px-4 py-3 text-left transition-all hover:bg-muted/30"
+            >
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
+                  Relative Line Numbers
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground/50">
+                  Show distance from current cursor line.
+                </p>
+              </div>
+              <span
+                className={`h-5 w-9 rounded-full p-0.5 transition-all ${
+                  relativeLineNumbers ? "bg-primary" : "bg-muted"
+                }`}
+              >
+                <span
+                  className={`block h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                    relativeLineNumbers ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </span>
+            </button>
+
+            <button
+              onClick={() => setAskGuruOnSelection((value) => !value)}
+              className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border/20 bg-muted/10 px-4 py-3 text-left transition-all hover:bg-muted/30"
+            >
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
+                  Ask GuruBot on Selection
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground/50">
+                  Show Ask GuruBot popup when highlighting code.
+                </p>
+              </div>
+              <span
+                className={`h-5 w-9 rounded-full p-0.5 transition-all ${
+                  askGuruOnSelection ? "bg-primary" : "bg-muted"
+                }`}
+              >
+                <span
+                  className={`block h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                    askGuruOnSelection ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mx-5 h-px bg-border/10" />
+
         {/* Actions */}
         <div className="relative z-10 p-2 grid grid-cols-2 gap-1">
           <button
@@ -1870,7 +2136,7 @@ export default function Playground() {
 
   return (
     <div
-      className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-[calc(100vh-3.5rem)]"} flex flex-col bg-background`}
+      className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-[calc(100vh-3.5rem)]"} relative flex flex-col overflow-hidden bg-background`}
     >
       {/* Breakpoint & debug CSS */}
       <style>{`
@@ -2172,52 +2438,61 @@ export default function Playground() {
       >
         {/* Left: file tabs */}
         <div className="flex items-center h-full">
-          {/* Solution / Practice tab */}
+          {/* Solution tab */}
           <div
-            className="flex items-center h-full px-4 gap-2 text-[12px] font-medium border-r"
+            className="flex items-center h-full border-r"
             style={{
               borderColor: "hsl(var(--border)/0.2)",
-              background: "hsl(var(--card)/0.7)",
-              color: "hsl(var(--foreground))",
+              background:
+                practiceTab !== "notes"
+                  ? "hsl(var(--card)/0.85)"
+                  : "transparent",
             }}
           >
-            <Code2 size={13} className="text-primary/70" />
-            <span>
-              {practiceData
-                ? `Practice: ${practiceData.title?.slice(0, 20)}`
-                : "Solution 1"}
-            </span>
+            <button
+              onClick={() => setPracticeTab("editor")}
+              className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
+                practiceTab !== "notes"
+                  ? "text-foreground border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+              title="Switch to Solution"
+            >
+              <Code2 size={13} className="text-primary/70" />
+              <span>Solution</span>
+            </button>
             {practiceData && (
               <button
                 onClick={() => navigate("/playground")}
-                className="ml-1 w-4 h-4 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                title="Close practice problem"
               >
                 <X size={10} />
               </button>
             )}
           </div>
 
-          {/* Note tab â€” only visible when notes are open */}
-          {practiceTab === "notes" && (
-            <div
-              className="flex items-center h-full px-3 gap-2 text-[12px] font-medium border-r"
-              style={{
-                borderColor: "hsl(var(--border)/0.2)",
-                background: "hsl(var(--card)/0.7)",
-                color: "hsl(var(--foreground))",
-              }}
-            >
-              <StickyNote size={13} className="text-amber-400/80" />
-              <span className="text-amber-400/90">Note</span>
-              <button
-                onClick={() => setPracticeTab("editor")}
-                className="ml-0.5 w-4 h-4 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                title="Close note"
-              >
-                <X size={10} />
-              </button>
-            </div>
-          )}
+          {/* Notes tab */}
+          <button
+            onClick={() => setPracticeTab("notes")}
+            className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold border-r transition-all ${
+              practiceTab === "notes"
+                ? "text-amber-400 bg-amber-400/10 border-b-2 border-amber-400"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+            }`}
+            style={{ borderRightColor: "hsl(var(--border)/0.2)" }}
+            title="Switch to Notes"
+          >
+            <StickyNote
+              size={13}
+              className={
+                practiceTab === "notes"
+                  ? "text-amber-400"
+                  : "text-muted-foreground/70"
+              }
+            />
+            <span>Notes</span>
+          </button>
 
           {/* + new tab (save as template) */}
           <button
@@ -2230,20 +2505,18 @@ export default function Playground() {
           </button>
         </div>
 
-        {/* Run + Debug inline */}
-        <div
-          className="flex items-center gap-1 px-2 border-r"
-          style={{ borderColor: "hsl(var(--border)/0.2)", height: "100%" }}
-        >
-          <RunButton compact />
-          <DebugButton compact />
-        </div>
-
         <div className="flex-1" />
 
         {/* Right status */}
         <div className="flex items-center gap-0 h-full">
-          {/* GuruBot */}
+          {/* Run + Debug + GuruBot */}
+          <div
+            className="flex items-center gap-1 px-2 h-full border-l"
+            style={{ borderColor: "hsl(var(--border)/0.2)" }}
+          >
+            <RunButton compact />
+            <DebugButton compact />
+          </div>
           <button
             onClick={() => setGuruBotOpen(true)}
             className="flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l hover:bg-primary/10 transition-all group"
@@ -2256,24 +2529,7 @@ export default function Playground() {
             <Bot size={13} />
             <span>GuruBot</span>
           </button>
-          <div className="w-px h-4 bg-border/30" />
-          {/* Notes button */}
-          <button
-            onClick={() =>
-              setPracticeTab(practiceTab === "notes" ? "editor" : "notes")
-            }
-            className={`flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l transition-all ${
-              practiceTab === "notes"
-                ? "text-amber-400 bg-amber-400/10"
-                : "text-muted-foreground hover:bg-muted/30"
-            }`}
-            style={{ borderColor: "hsl(var(--border)/0.2)" }}
-            title="Toggle Notes"
-          >
-            <StickyNote size={12} />
-            <span>Notes</span>
-          </button>
-          <div className="w-px h-4 bg-border/30" />
+
           {/* Hint */}
           <button
             className="flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l text-amber-400/80 hover:bg-amber-400/10 hover:text-amber-400 transition-all"
@@ -2309,7 +2565,11 @@ export default function Playground() {
           className="h-full"
           autoSaveId="playground-editor-io-layout"
           onLayout={(sizes) => {
-            if (!isMobile) setIoCollapsed((sizes[1] ?? 45) <= 8);
+            if (isMobile) return;
+
+            const nextIoSize = sizes[1] ?? 45;
+            setIoPanelSize(nextIoSize);
+            setIoCollapsed(nextIoSize <= 12);
           }}
         >
           {/* Code Editor Panel */}
@@ -2478,14 +2738,14 @@ export default function Playground() {
                     onChange={(val) => setCode(val || "")}
                     onMount={handleEditorMount}
                     options={{
-                      fontSize: 14,
+                      fontSize: editorFontSize,
                       fontFamily:
                         "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
                       fontLigatures: true,
                       minimap: { enabled: false },
                       scrollBeyondLastLine: false,
                       padding: { top: 16, bottom: 16 },
-                      lineNumbers: "on",
+                      lineNumbers: relativeLineNumbers ? "relative" : "on",
                       renderLineHighlight: "line",
                       bracketPairColorization: { enabled: true },
                       autoClosingBrackets: "always",
@@ -2500,7 +2760,9 @@ export default function Playground() {
                       quickSuggestionsDelay: 0,
                       suggestOnTriggerCharacters: true,
                       snippetSuggestions: "top",
-                      tabSize: 4,
+                      tabSize: editorTabSize,
+                      insertSpaces: true,
+                      detectIndentation: false,
                       wordWrap: "on",
                       smoothScrolling: true,
                       cursorBlinking: "smooth",
@@ -2526,10 +2788,23 @@ export default function Playground() {
             minSize={isMobile ? 25 : 24}
             collapsible={!isMobile}
             collapsedSize={isMobile ? 25 : 6}
-            onCollapse={() => setIoCollapsed(true)}
-            onExpand={() => setIoCollapsed(false)}
+            onResize={(size) => {
+              if (isMobile) return;
+
+              setIoPanelSize(size);
+              setIoCollapsed(size <= 12);
+            }}
+            onCollapse={() => {
+              setIoPanelSize(6);
+              setIoCollapsed(true);
+            }}
+            onExpand={() => {
+              const nextSize = ioPanelSize > 12 ? ioPanelSize : 45;
+              setIoPanelSize(nextSize);
+              setIoCollapsed(false);
+            }}
           >
-            {ioCollapsed && !isMobile ? (
+            {ioCollapsed && ioPanelSize <= 12 && !isMobile ? (
               <button
                 type="button"
                 onClick={expandIOPanel}
@@ -2670,18 +2945,37 @@ export default function Playground() {
         </ResizablePanelGroup>
       </div>
 
+      {/* Ask GuruBot on Selection popup */}
+      {askGuruPopup && askGuruOnSelection && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            setGuruInitialPrompt(
+              `Guide me through this selected code step by step. Help me spot bugs or understand what to improve without giving the final answer.\n\nSelected code:\n${selectedCodeForGuru}`,
+            );
+            setGuruBotOpen(true);
+            setAskGuruPopup(null);
+          }}
+          className="fixed z-[70] flex items-center gap-2 rounded-2xl border border-primary/30 bg-card/95 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-primary shadow-2xl shadow-black/20 backdrop-blur-xl transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
+          style={{ top: askGuruPopup.top, left: askGuruPopup.left }}
+        >
+          <Bot size={13} />
+          Ask GuruBot
+        </button>
+      )}
+
       {/* Create / Edit Template Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
         <DialogContent
-          className="sm:max-w-md"
+          className="w-[calc(100vw-2rem)] max-w-[525px] rounded-2xl border border-border/40 bg-card p-7 shadow-[0_32px_120px_-24px_rgba(0,0,0,0.65)]"
           style={{
-            backgroundColor: "hsl(var(--background))",
-            border: "1px solid hsl(var(--border))",
+            backgroundColor: "hsl(var(--card))",
           }}
         >
           <DialogHeader>
             <DialogTitle
-              className="text-base font-bold"
+              className="text-lg font-black tracking-tight"
               style={{ color: "hsl(var(--foreground))" }}
             >
               {editingBuiltinPrefix
@@ -2691,7 +2985,7 @@ export default function Playground() {
                   : "Save as Template"}
             </DialogTitle>
             <DialogDescription
-              className="text-xs"
+              className="text-sm font-medium leading-relaxed"
               style={{ color: "hsl(var(--muted-foreground))" }}
             >
               {editingBuiltinPrefix
@@ -2701,10 +2995,10 @@ export default function Playground() {
                   : "Save your current editor code as a reusable template."}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-3 py-2">
+          <div className="flex flex-col gap-4 py-2">
             <div>
               <label
-                className="text-[11px] font-medium mb-1 block"
+                className="mb-2 block text-[12px] font-black uppercase tracking-wider"
                 style={{ color: "hsl(var(--muted-foreground))" }}
               >
                 Template Name {editingBuiltinPrefix ? "" : "*"}
@@ -2713,13 +3007,13 @@ export default function Playground() {
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="e.g. My Graph Template"
-                className="text-sm"
+                className="h-12 rounded-xl !border-border/50 bg-background/70 px-4 text-sm font-bold text-foreground !shadow-none outline-none placeholder:text-muted-foreground/45 focus:!border-primary/60 focus-visible:ring-0 focus-visible:ring-offset-0 dark:!border-border/50 dark:!shadow-none"
                 disabled={!!editingBuiltinPrefix}
               />
             </div>
             <div>
               <label
-                className="text-[11px] font-medium mb-1 block"
+                className="mb-2 block text-[12px] font-black uppercase tracking-wider"
                 style={{ color: "hsl(var(--muted-foreground))" }}
               >
                 Description (optional)
@@ -2728,47 +3022,81 @@ export default function Playground() {
                 value={templateDesc}
                 onChange={(e) => setTemplateDesc(e.target.value)}
                 placeholder="e.g. BFS/DFS with adjacency list"
-                className="text-sm min-h-[60px]"
+                className="min-h-[74px] rounded-xl border-border/50 bg-background/70 px-4 py-3 text-sm font-bold text-foreground shadow-none outline-none placeholder:text-muted-foreground/45 focus:border-primary/60 focus-visible:ring-0 focus-visible:ring-offset-0"
                 rows={2}
               />
             </div>
             <div
-              className="text-[10px] px-2 py-1.5 rounded"
+              className="rounded-xl border border-border/20 px-4 py-2.5 text-[11px] font-bold"
               style={{
-                background: "hsl(var(--muted))",
+                background: "hsl(var(--muted) / 0.45)",
                 color: "hsl(var(--muted-foreground))",
               }}
             >
-              ðŸ’¡ The current editor code will be saved with this template.
+              💡 The current editor code will be saved with this template.
             </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+          <DialogFooter className="gap-3 pt-2">
+            <button
+              type="button"
               onClick={() => setTemplateDialogOpen(false)}
+              className="h-11 rounded-xl border border-border/50 bg-muted/20 px-5 text-sm font-black text-foreground shadow-none transition-all hover:bg-muted/50 active:scale-95"
             >
               Cancel
-            </Button>
-            <Button
-              size="sm"
+            </button>
+            <button
+              type="button"
               onClick={handleSaveTemplate}
               disabled={!editingBuiltinPrefix && !templateName.trim()}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary px-5 text-sm font-black text-primary-foreground shadow-none transition-all hover:bg-primary/90 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             >
-              <Save size={13} className="mr-1" />
+              <Save size={15} />
               {editingTemplate || editingBuiltinPrefix ? "Update" : "Save"}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* GuruBot debug-coach panel */}
-      <GuruBot
-        open={guruBotOpen}
-        onClose={() => setGuruBotOpen(false)}
-        debugMode={true}
-        initialContext={guruBotContext}
-      />
+      {/* GuruBot slide-out drawer */}
+      <AnimatePresence>
+        {guruBotOpen && (
+          <>
+            <motion.div
+              className="absolute inset-0 z-40 bg-background/20 backdrop-blur-[2px]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => setGuruBotOpen(false)}
+            />
+            <motion.aside
+              className="absolute right-0 top-0 z-50 flex h-full w-full max-w-[430px] flex-col border-l border-border/40 bg-background shadow-[0_0_80px_rgba(0,0,0,0.35)]"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 420, damping: 38 }}
+            >
+              <button
+                type="button"
+                onClick={() => setGuruBotOpen(false)}
+                title="Close GuruBot"
+                className="absolute -left-12 top-4 hidden h-10 w-10 items-center justify-center rounded-l-2xl border border-r-0 border-border/40 bg-card/95 text-muted-foreground shadow-xl backdrop-blur-xl transition-all hover:bg-muted hover:text-foreground md:flex"
+              >
+                <X size={16} />
+              </button>
+
+              <GuruBot
+                open={guruBotOpen}
+                onClose={() => setGuruBotOpen(false)}
+                debugMode={true}
+                initialContext={guruBotContext}
+                initialPrompt={guruInitialPrompt}
+                embedded={true}
+              />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
