@@ -338,7 +338,7 @@ const MAIN_PANEL_DEFAULT_SIZE = 75;
 const MAIN_PANEL_MIN_SIZE = 30;
 const GURU_PANEL_DEFAULT_SIZE = 25;
 const GURU_PANEL_MIN_SIZE = 8;
-const GURU_PANEL_MAX_SIZE = 70;
+const GURU_PANEL_MAX_SIZE = 45;
 const GURU_PANEL_COLLAPSED_SIZE = 3.5;
 const GURU_PANEL_EXPAND_TRIGGER_SIZE = 4.25;
 
@@ -504,7 +504,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   const expandGuruPanel = (targetSize?: number) => {
     const expandedSize = clamp(
-      targetSize ?? guruPanelSizeRef.current,
+      targetSize ?? GURU_PANEL_DEFAULT_SIZE,
       GURU_PANEL_MIN_SIZE,
       GURU_PANEL_MAX_SIZE,
     );
@@ -524,7 +524,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       const nextOpen = !isOpen;
       if (nextOpen && !isMobile) {
         requestAnimationFrame(() => {
-          expandGuruPanel(guruPanelSizeRef.current);
+          expandGuruPanel();
         });
       }
       return nextOpen;
@@ -636,7 +636,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   setSplitPct(nextMainSize);
 
                   if (guruCollapsed && nextGuruSize > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
-                    expandGuruPanel(guruPanelSizeRef.current);
+                    expandGuruPanel();
                     return;
                   }
 
@@ -690,7 +690,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   collapsedSize={GURU_PANEL_COLLAPSED_SIZE}
                   onResize={(size) => {
                     if (guruCollapsed && size > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
-                      expandGuruPanel(guruPanelSizeRef.current);
+                      expandGuruPanel();
                       return;
                     }
 
