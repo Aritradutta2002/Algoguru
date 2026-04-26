@@ -4,10 +4,37 @@ export interface DiagramBox {
   color?: string; // CSS var like "primary", "accent", "success"
 }
 
+export interface GraphNode {
+  id: string;
+  label?: string;
+  x?: number; // relative position 0-100
+  y?: number; // relative position 0-100
+  color?: string;
+  highlight?: boolean;
+}
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+  weight?: number;
+  color?: string;
+  directed?: boolean;
+  label?: string;
+}
+
+export interface GraphDiagramData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  directed?: boolean;
+  weighted?: boolean;
+  highlightPath?: string[]; // node ids in path
+  showLabels?: boolean;
+}
+
 export interface Diagram {
-  type: "layers" | "hierarchy" | "flow" | "table-visual";
+  type: "layers" | "hierarchy" | "flow" | "table-visual" | "graph";
   title: string;
-  data: DiagramBox[];
+  data: DiagramBox[] | GraphDiagramData;
   direction?: "vertical" | "horizontal";
 }
 
