@@ -102,7 +102,9 @@ const IO_EXPAND_TRIGGER_SIZE = 4.25;
 const IO_DEFAULT_SIZE = 45;
 const IO_GURU_DEFAULT_SIZE = 25;
 const IO_MOBILE_DEFAULT_SIZE = 40;
-const GURU_COLLAPSE_TRIGGER_SIZE = 12;
+const GURU_COLLAPSED_SIZE = 3.5;
+const GURU_EXPAND_TRIGGER_SIZE = 4.25;
+const GURU_DEFAULT_SIZE = 25;
 
 const loadNumberSetting = (key: string, fallback: number) => {
   try {
@@ -674,13 +676,23 @@ export default function Playground() {
   const [settingsThemeOpen, setSettingsThemeOpen] = useState(false);
 
   // GuruBot debug-coach mode
+  const guruPanelRef = useRef<ImperativePanelHandle>(null);
   const [guruBotOpen, setGuruBotOpen] = useState(false);
+  const [guruBotCollapsed, setGuruBotCollapsed] = useState(false);
   const [selectedCodeForGuru, setSelectedCodeForGuru] = useState("");
   const [guruInitialPrompt, setGuruInitialPrompt] = useState("");
   const [askGuruPopup, setAskGuruPopup] = useState<{
     top: number;
     left: number;
   } | null>(null);
+
+  const openGuruBotPanel = useCallback((targetSize = GURU_DEFAULT_SIZE) => {
+    setGuruBotOpen(true);
+    setGuruBotCollapsed(false);
+    requestAnimationFrame(() => {
+      guruPanelRef.current?.resize(targetSize);
+    });
+  }, []);
 
   // Editor preference state
   const [editorFontSize, setEditorFontSize] = useState(() =>
@@ -2680,7 +2692,13 @@ export default function Playground() {
             <DebugButton compact />
           </div>
           <button
-            onClick={() => setGuruBotOpen((open) => !open)}
+            onClick={() => {
+              if (!guruBotOpen || guruBotCollapsed) {
+                openGuruBotPanel();
+              } else {
+                setGuruBotOpen(false);
+              }
+            }}
             className={`flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l transition-all group ${
               guruBotOpen ? "bg-primary/10 text-primary" : "hover:bg-primary/10"
             }`}
@@ -2688,7 +2706,11 @@ export default function Playground() {
               borderColor: "hsl(var(--border)/0.2)",
               color: "hsl(var(--primary))",
             }}
-            title={guruBotOpen ? "Close GuruBot" : "Open GuruBot"}
+            title={
+              guruBotOpen && !guruBotCollapsed
+                ? "Close GuruBot"
+                : "Open GuruBot"
+            }
           >
             <Bot size={13} />
             <span>GuruBot</span>
@@ -3164,28 +3186,64 @@ export default function Playground() {
               />
 
               <ResizablePanel
-                defaultSize={25}
+                ref={guruPanelRef}
+                defaultSize={GURU_DEFAULT_SIZE}
                 minSize={8}
                 maxSize={45}
                 collapsible
-                collapsedSize={0}
+                collapsedSize={GURU_COLLAPSED_SIZE}
                 onResize={(size) => {
-                  if (size <= GURU_COLLAPSE_TRIGGER_SIZE) {
-                    setGuruBotOpen(false);
+                  if (guruBotCollapsed && size > GURU_EXPAND_TRIGGER_SIZE) {
+                    openGuruBotPanel();
+                    return;
                   }
+
+                  setGuruBotCollapsed(size <= GURU_EXPAND_TRIGGER_SIZE);
                 }}
-                onCollapse={() => setGuruBotOpen(false)}
+                onCollapse={() => setGuruBotCollapsed(true)}
               >
-                <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-background">
-                  <GuruBot
-                    open={guruBotOpen}
-                    onClose={() => setGuruBotOpen(false)}
-                    debugMode={true}
-                    initialContext={guruBotContext}
-                    initialPrompt={guruInitialPrompt}
-                    embedded={true}
-                  />
-                </div>
+                {guruBotCollapsed ? (
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openGuruBotPanel()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openGuruBotPanel();
+                      }
+                    }}
+                    title="Expand GuruBot"
+                    className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
+                  >
+                    <Bot size={18} className="text-primary" />
+                    <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+                      GuruBot
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGuruBotOpen(false);
+                      }}
+                      title="Close GuruBot"
+                      className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-background">
+                    <GuruBot
+                      open={guruBotOpen}
+                      onClose={() => setGuruBotOpen(false)}
+                      debugMode={true}
+                      initialContext={guruBotContext}
+                      initialPrompt={guruInitialPrompt}
+                      embedded={true}
+                    />
+                  </div>
+                )}
               </ResizablePanel>
             </>
           )}
