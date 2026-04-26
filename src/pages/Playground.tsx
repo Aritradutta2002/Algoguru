@@ -198,6 +198,20 @@ const BUTTON_BASE_CLASSES =
 const PANEL_HEADER_CLASSES =
   "flex items-center gap-3 px-5 py-3 border-b bg-muted/20 backdrop-blur-sm";
 const PANEL_BORDER_STYLE = { borderColor: "hsl(var(--border) / 0.3)" };
+const IO_PANEL_CLASSES =
+  "flex h-full flex-col bg-white text-slate-950 dark:bg-background dark:text-foreground";
+const IO_HEADER_CLASSES =
+  "flex items-center gap-3 border-b border-slate-200/80 bg-white/90 px-5 py-3 shadow-sm shadow-slate-200/40 backdrop-blur-sm dark:border-border/30 dark:bg-muted/20 dark:shadow-none";
+const IO_LABEL_CLASSES =
+  "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-muted-foreground/70";
+const IO_INPUT_ICON_CLASSES =
+  "flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 shadow-sm dark:border-transparent dark:bg-muted dark:text-muted-foreground dark:shadow-none";
+const IO_CONSOLE_ICON_CLASSES =
+  "flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm dark:border-success/20 dark:bg-success/10 dark:text-success";
+const IO_TEXTAREA_CLASSES =
+  "flex-1 w-full resize-none bg-white px-6 py-4 font-mono text-sm text-slate-900 outline-none placeholder:text-slate-400 selection:bg-emerald-200/60 dark:bg-transparent dark:text-foreground dark:placeholder:text-muted-foreground/50 dark:selection:bg-primary/20";
+const IO_CONSOLE_CLASSES =
+  "flex-1 min-h-0 overflow-auto border-t border-slate-100 bg-slate-50 dark:border-transparent dark:bg-zinc-950";
 const ICON_BUTTON_CLASSES =
   "flex items-center justify-center w-10 h-10 rounded-2xl border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:border-primary/30 hover:text-primary transition-all duration-300 shadow-sm";
 const DROPDOWN_ITEM_CLASSES =
@@ -1776,7 +1790,7 @@ export default function Playground() {
           setOutput(
             (prev) =>
               prev +
-              `âš  Compile service error (${res.status}): ${errorText || "Unknown error"}`,
+              `Warning: Compile service error (${res.status}): ${errorText || "Unknown error"}`,
           );
           return;
         }
@@ -1796,7 +1810,7 @@ export default function Playground() {
         }
 
         const result =
-          parts.join("\n") || "âœ“ Program executed successfully (no output)";
+          parts.join("\n") || "OK: Program executed successfully (no output)";
         if (debugRun && breakpoints.size > 0) {
           setOutput((prev) => prev + result);
         } else {
@@ -1806,7 +1820,7 @@ export default function Playground() {
         setOutput(
           (prev) =>
             prev +
-            `âš  Could not connect to compiler.\n${err instanceof Error ? err.message : "Unknown error"}`,
+            `Warning: Could not connect to compiler.\n${err instanceof Error ? err.message : "Unknown error"}`,
         );
       } finally {
         setIsRunning(false);
@@ -2030,6 +2044,13 @@ export default function Playground() {
     selectedLanguage.label,
     stdin,
   ]);
+
+  const outputToneClass =
+    output.includes("Error") || output.includes("Warning:")
+      ? "text-red-600 dark:text-destructive"
+      : output.includes("[DEBUG")
+        ? "text-amber-600 dark:text-warning"
+        : "text-emerald-600 dark:text-success";
 
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => {
@@ -3195,15 +3216,12 @@ export default function Playground() {
                   >
                     {/* Input Panel - always visible */}
                     <ResizablePanel defaultSize={32} minSize={12}>
-                      <div className="flex flex-col h-full bg-background">
-                        <div
-                          className={PANEL_HEADER_CLASSES}
-                          style={PANEL_BORDER_STYLE}
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                      <div className={IO_PANEL_CLASSES}>
+                        <div className={IO_HEADER_CLASSES}>
+                          <div className={IO_INPUT_ICON_CLASSES}>
                             <Keyboard size={14} />
                           </div>
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+                          <span className={IO_LABEL_CLASSES}>
                             Standard Input (stdin)
                           </span>
                         </div>
@@ -3211,31 +3229,28 @@ export default function Playground() {
                           value={stdin}
                           onChange={(e) => setStdin(e.target.value)}
                           placeholder="Enter input for your program..."
-                          className="flex-1 w-full px-6 py-4 font-mono text-sm resize-none outline-none bg-transparent placeholder:text-muted-foreground/50 text-foreground selection:bg-primary/20"
+                          className={IO_TEXTAREA_CLASSES}
                         />
                       </div>
                     </ResizablePanel>
 
                     <ResizableHandle
                       withHandle
-                      className="data-[panel-group-direction=vertical]:h-[3px] bg-border/20"
+                      className="bg-slate-200/80 data-[panel-group-direction=vertical]:h-[3px] [&>div]:bg-slate-400/70 dark:bg-border/20 dark:[&>div]:bg-border"
                     />
 
                     {/* Output Panel */}
                     <ResizablePanel defaultSize={68} minSize={18}>
-                      <div className="flex flex-col h-full bg-background">
-                        <div
-                          className={PANEL_HEADER_CLASSES}
-                          style={PANEL_BORDER_STYLE}
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-sm">
+                      <div className={IO_PANEL_CLASSES}>
+                        <div className={IO_HEADER_CLASSES}>
+                          <div className={IO_CONSOLE_ICON_CLASSES}>
                             <Terminal size={14} />
                           </div>
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+                          <span className={IO_LABEL_CLASSES}>
                             Virtual Console
                           </span>
                           {isRunning && (
-                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest animate-pulse">
+                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9px] font-black uppercase tracking-widest animate-pulse dark:bg-primary/10 dark:border-primary/20 dark:text-primary">
                               <Loader2 size={10} className="animate-spin" />
                               Executing
                             </div>
@@ -3243,38 +3258,30 @@ export default function Playground() {
                           {output && !isRunning && (
                             <button
                               onClick={() => setOutput("")}
-                              className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-300"
+                              className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-300 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 dark:border-border/30 dark:bg-muted/30 dark:text-muted-foreground dark:shadow-none dark:hover:bg-muted dark:hover:text-foreground"
                             >
                               <RotateCcw size={10} />
                               Flush
                             </button>
                           )}
                         </div>
-                        <div className="flex-1 min-h-0 overflow-auto bg-zinc-950">
+                        <div className={IO_CONSOLE_CLASSES}>
                           <pre
-                            className="p-6 font-mono text-[13px] leading-relaxed whitespace-pre-wrap h-full selection:bg-primary/20"
-                            style={{
-                              color:
-                                output.includes("Error") || output.includes("âš ")
-                                  ? "hsl(var(--destructive))"
-                                  : output.includes("[DEBUG")
-                                    ? "hsl(var(--warning))"
-                                    : "hsl(var(--success))",
-                            }}
+                            className={`h-full whitespace-pre-wrap p-6 font-mono text-[13px] leading-relaxed selection:bg-emerald-200/60 dark:selection:bg-primary/20 ${outputToneClass}`}
                           >
                             {output || (
-                              <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-70 select-none pt-12">
-                                <div className="w-16 h-16 rounded-[24px] border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
+                              <div className="h-full flex flex-col items-center justify-center text-center space-y-4 select-none pt-12 text-slate-500 dark:text-muted-foreground">
+                                <div className="w-16 h-16 rounded-[24px] border-2 border-dashed border-slate-300 bg-white flex items-center justify-center shadow-sm dark:border-muted-foreground/20 dark:bg-transparent dark:shadow-none">
                                   <Play
                                     size={24}
-                                    className="text-muted-foreground/40 translate-x-0.5"
+                                    className="translate-x-0.5 text-slate-400 dark:text-muted-foreground/40"
                                   />
                                 </div>
                                 <div className="space-y-1">
                                   <p className="text-[11px] font-black uppercase tracking-widest">
                                     Awaiting Command
                                   </p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-muted-foreground/80">
                                     Press Ctrl+Enter to initialize
                                   </p>
                                 </div>
