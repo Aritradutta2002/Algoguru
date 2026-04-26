@@ -168,6 +168,21 @@ public class GraphRepresentation {
       "BFS on implicit graphs: Sometimes the graph isn't given explicitly. You generate neighbors on the fly. For example, in Word Ladder, each word is a node, and two words are connected if they differ by one character. BFS finds the shortest transformation sequence.",
       "Time complexity is O(V + E) because each vertex is enqueued and dequeued exactly once, and each edge is examined exactly once (twice for undirected graphs).",
     ],
+    diagram: {
+      type: "flow",
+      title: "BFS — Level-by-Level Traversal",
+      direction: "vertical",
+      data: [
+        { label: "Start: Queue = [0] | Visited = {0}", color: "primary" },
+        { label: "Level 0: Process 0 → Enqueue neighbors 1,4", color: "info" },
+        { label: "Level 1: Process 1 → Enqueue 2,3 (4 already queued)", color: "success" },
+        { label: "Level 2: Process 4 → No new nodes", color: "success" },
+        { label: "Level 2: Process 2 → No new nodes", color: "success" },
+        { label: "Level 2: Process 3 → No new nodes", color: "success" },
+        { label: "Result: Shortest distances [0,1,2,2,1]", color: "accent" },
+        { label: "Key: FIFO queue ensures level order", color: "warning" },
+      ],
+    },
     keyPoints: [
       "BFS uses a Queue (FIFO) — always process the oldest discovered node first",
       "Mark nodes as visited WHEN ADDING TO QUEUE, not when processing — prevents duplicates",
@@ -421,6 +436,21 @@ public static int[] bfs01(List<List<int[]>> adj, int source, int V) {
       "**Applications**: Cycle detection, topological sort (vertices in descending order of exit time), connected/strongly connected components (Tarjan's, Kosaraju's), bridges & articulation points, path finding, flood fill, counting islands.",
       "DFS vs BFS: DFS uses O(h) stack space where h = max depth (could be O(V)). DFS is preferred for: detecting cycles, topological sort, finding all paths, solving puzzles with backtracking.",
     ],
+    diagram: {
+      type: "flow",
+      title: "DFS — Deep Traversal & Backtracking",
+      direction: "vertical",
+      data: [
+        { label: "Start at 0 → go deep", color: "primary" },
+        { label: "0 → 1 → 2 → 3 (deepest path)", color: "info" },
+        { label: "3 dead end → backtrack to 2", color: "warning" },
+        { label: "2 → 4 (next unvisited)", color: "info" },
+        { label: "4 dead end → backtrack to 2 → 1 → 0", color: "warning" },
+        { label: "0 → 5 (next unvisited)", color: "info" },
+        { label: "5 dead end → backtrack → done", color: "success" },
+        { label: "Key: LIFO stack → go deep, backtrack on dead end", color: "accent" },
+      ],
+    },
     keyPoints: [
       "DFS uses Stack (LIFO) — recursion is an implicit stack",
       "Back edge to an ancestor = cycle detected (undirected: back edge to non-parent)",
@@ -649,6 +679,20 @@ public static void dfsIterative(List<List<Integer>> adj, int start, int V) {
       "**Optimization**: Stop early when target is popped from PQ (single-target query). For 0/1 weights only, use **0-1 BFS** with deque instead — O(V+E) without logarithmic overhead.",
       "Dijkstra on grids: Treat each cell as a node with 4 neighbors. Edge weight = cost to enter neighbor. Use PQ with {cost, row, col}. Very common in CP!",
     ],
+    diagram: {
+      type: "flow",
+      title: "Dijkstra's Algorithm — Step-by-Step Relaxation",
+      direction: "vertical",
+      data: [
+        { label: "Init: dist = [0, ∞, ∞, ∞, ∞] | PQ = [(0,A)]", color: "primary" },
+        { label: "Pop A(0) → Relax A→B(4), A→C(1) | dist = [0,4,1,∞,∞]", color: "info" },
+        { label: "Pop C(1) → Relax C→B(2), C→D(5) | dist = [0,3,1,6,∞]", color: "success" },
+        { label: "Pop B(3) → Relax B→D(3) | dist = [0,3,1,6,∞]", color: "success" },
+        { label: "Pop D(6) → No improvement | dist = [0,3,1,6,∞]", color: "success" },
+        { label: "Key: Once finalized (popped), dist is optimal", color: "warning" },
+        { label: "Greedy: Always pick min-dist unvisited vertex", color: "accent" },
+      ],
+    },
     keyPoints: [
       "Only works with NON-NEGATIVE edge weights — this is the key constraint",
       "Greedy: once a vertex is finalized (popped from PQ), its distance is optimal",
@@ -780,6 +824,20 @@ public class Dijkstra {
       "**SPFA (Shortest Path Faster Algorithm)**: Queue-based optimization. Instead of scanning ALL edges in each phase, only re-process vertices whose distances actually changed. Maintain a queue and an `inQueue[]` boolean array. Average case O(E), worst case still O(VE). Extremely popular in competitive programming, especially on CSES and Codeforces.",
       "**When to use**: (1) Graph has negative edge weights → must use Bellman-Ford, not Dijkstra. (2) Need to detect negative cycles → run V-th phase check. (3) Arbitrage detection (currency exchange) → take negative log of exchange rates, detect negative cycles. (4) Difference constraints → model x_j - x_i ≤ w_ij as edge i→j with weight w_ij.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Bellman-Ford — Edge Relaxation Phases",
+      direction: "vertical",
+      data: [
+        { label: "Init: dist = [0, ∞, ∞, ∞] | All edges unrelaxed", color: "primary" },
+        { label: "Phase 1: Relax edges → dist = [0,4,5,1]", color: "info" },
+        { label: "Phase 2: Relax edges → dist = [0,4,2,1]", color: "info" },
+        { label: "Phase 3 (V-1=3): No change → early stop", color: "success" },
+        { label: "V-th phase check: No edge relaxes → No negative cycle", color: "success" },
+        { label: "If V-th phase relaxes anything → Negative cycle exists!", color: "warning" },
+        { label: "Key: V-1 phases enough (shortest path ≤ V-1 edges)", color: "accent" },
+      ],
+    },
     keyPoints: [
       "V-1 phases guarantee shortest paths (each phase fixes paths with one more edge)",
       "V-th phase detects negative cycles — if anything relaxes, cycle exists",
@@ -936,6 +994,20 @@ public class BellmanFord {
       "**Negative cycle detection in Floyd-Warshall**: After the algorithm, d[i][i] < 0 for any i means vertex i lies on a negative cycle. **Path reconstruction**: maintain p[i][j] = last intermediate vertex that improved d[i][j], then recursively reconstruct.",
       "**Transitive closure**: Floyd-Warshall variant with boolean OR instead of min+add. reach[i][j] |= (reach[i][k] && reach[k][j]). Determines reachability between all pairs in O(n³).",
     ],
+    diagram: {
+      type: "flow",
+      title: "Floyd-Warshall — All-Pairs Shortest Paths",
+      direction: "vertical",
+      data: [
+        { label: "Init: dist[i][j] = direct edge weight (or ∞)", color: "primary" },
+        { label: "k=0: Can we route through vertex 0?", color: "info" },
+        { label: "k=1: Can we route through vertices {0,1}?", color: "info" },
+        { label: "k=2: Can we route through {0,1,2}?", color: "info" },
+        { label: "k=n-1: All intermediates considered → done!", color: "success" },
+        { label: "Formula: dist[i][j] = min(dist[i][j], dist[i][k]+dist[k][j])", color: "accent" },
+        { label: "⚠ Loop order MUST be k → i → j (outer=k!)", color: "warning" },
+      ],
+    },
     keyPoints: [
       "Bellman-Ford: O(VE) — slower than Dijkstra but handles negative weights",
       "V-1 iterations suffice because shortest paths have at most V-1 edges",
@@ -1101,6 +1173,20 @@ public class AllPairsShortestPath {
       "**Optimization**: If edges are already sorted or have a small range of weights (weights ≤ 10^6), we can use Counting Sort/Bucket Sort to achieve O(E).",
       "Example Walkthrough: Edges {(A,B,1), (B,C,4), (A,C,3), (C,D,2)}. Sorted: (A,B,1), (C,D,2), (A,C,3), (B,C,4). (1) Pick (A,B,1). (2) Pick (C,D,2). (3) Pick (A,C,3) — Connects {A,B} and {C,D}. (4) Skip (B,C,4) — forms a cycle A-B-C-A. Result: 1+2+3 = 6.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Kruskal's Algorithm — Greedy Edge Selection",
+      direction: "vertical",
+      data: [
+        { label: "Step 1: Sort edges by weight", color: "primary" },
+        { label: "Edge (A,B,1): A,B different sets → ADD | MST: {A-B}", color: "info" },
+        { label: "Edge (C,D,2): C,D different sets → ADD | MST: {A-B, C-D}", color: "info" },
+        { label: "Edge (A,C,3): A,C different sets → ADD | MST: {A-B, C-D, A-C}", color: "success" },
+        { label: "Edge (B,C,4): B,C SAME set → SKIP (cycle!)", color: "warning" },
+        { label: "MST Complete! Total weight = 1+2+3 = 6", color: "accent" },
+        { label: "Key: DSU (Union-Find) detects cycles in O(α(V))", color: "primary" },
+      ],
+    },
     keyPoints: [
       "Greedy strategy: process lightest edges first",
       "Relies on Union-Find (DSU) for cycle detection — O(α(V))",
@@ -1176,6 +1262,20 @@ public class KruskalsMST {
       "**Differences from Dijkstra**: In Dijkstra, `dist[v]` is the distance from source to v. In Prim, `key[v]` is the distance from the ENTIRE growing tree to v. Relaxation in Prim: `if (w(u,v) < key[v]) key[v] = w(u,v)`.",
       "Example Walkthrough: Start at A. Neighbors: (A,B,4), (A,C,1). (1) Pick (A,C,1). Tree: {A,C}. Neighbors of {A,C}: (A,B,4), (C,B,2), (C,D,5). (2) Pick (C,B,2). Tree: {A,B,C}. Neighbors: (C,D,5), (B,D,3). (3) Pick (B,D,3). Total Weight: 1+2+3 = 6.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Prim's Algorithm — Growing the MST",
+      direction: "vertical",
+      data: [
+        { label: "Start at A | InMST = {A} | PQ = [(4,B), (1,C)]", color: "primary" },
+        { label: "Pick min edge (A,C,1) | InMST = {A,C}", color: "info" },
+        { label: "Add C's edges: PQ = [(2,B), (4,B), (5,D)]", color: "info" },
+        { label: "Pick min edge (C,B,2) | InMST = {A,B,C}", color: "success" },
+        { label: "Add B's edges: PQ = [(3,D), (4,B), (5,D)]", color: "info" },
+        { label: "Pick min edge (B,D,3) | InMST = {A,B,C,D}", color: "success" },
+        { label: "MST Complete! Total = 1+2+3 = 6", color: "accent" },
+      ],
+    },
     keyPoints: [
       "Greedy strategy: grow tree from a seed vertex",
       "Uses a Priority Queue to pick the next cheapest node",
@@ -1269,6 +1369,20 @@ public class PrimsMST {
       "**Algorithm 2: DFS-based**: Run a standard DFS. When a node's recursive calls are finished (post-order), push it onto a stack. The final stack (or reversed list) is a topological order. This is often faster to code but slightly harder to adapt for lexicographical order.",
       "**Shortest Path in DAG**: In a DAG, you can find the shortest (or longest) path in O(V + E) by relaxing edges in topological order. This works even with **negative edge weights**, making it superior to Dijkstra for DAGs.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Kahn's Algorithm — Topological Sort (BFS)",
+      direction: "vertical",
+      data: [
+        { label: "Init: Compute in-degree of all nodes", color: "primary" },
+        { label: "Queue nodes with in-degree 0 → [A, D]", color: "info" },
+        { label: "Process A → decrement B's in-degree", color: "success" },
+        { label: "Process D → decrement E's in-degree → E now 0", color: "success" },
+        { label: "Process E → decrement C's in-degree", color: "info" },
+        { label: "Process B → decrement C's in-degree → C now 0", color: "info" },
+        { label: "Result: [A, D, E, B, C] — valid topological order", color: "accent" },
+      ],
+    },
     keyPoints: [
       "Valid only for Directed Acyclic Graphs (DAGs)",
       "Kahn's Algorithm is usually preferred for cycle detection",
@@ -1342,6 +1456,20 @@ public class TopologicalSort {
       "**Kosaraju's Algorithm (Two Passes)**: (1) DFS finish-time stack. (2) Reverse graph edges. (3) DFS in stack order on reversed graph. More intuitive for some but requires more memory for graph reversal.",
       "**2-SAT Solver**: 2-Satisfiability problems can be solved in linear time using SCCs! A 2-SAT formula is unsatisfiable if and only if a variable `x` and its negation `not x` end up in the same SCC.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Tarjan's SCC — Finding Strongly Connected Components",
+      direction: "vertical",
+      data: [
+        { label: "DFS from node 0 → assign disc & low values", color: "primary" },
+        { label: "Push nodes onto stack as we enter them", color: "info" },
+        { label: "Back edge found? Update low[u] = min(low[u], disc[v])", color: "info" },
+        { label: "low[u] == disc[u]? → u is SCC root!", color: "success" },
+        { label: "Pop stack until u → that's one SCC", color: "success" },
+        { label: "Repeat for all unvisited nodes", color: "info" },
+        { label: "Result: Condensation graph is always a DAG", color: "accent" },
+      ],
+    },
     keyPoints: [
       "SCCs partition a directed graph into reachability clusters",
       "Condensing SCCs always results in a DAG (Directed Acyclic Graph)",
@@ -1418,6 +1546,35 @@ public class TarjansSCC {
       "**Advanced: DSU with Path Info**: You can store extra information on edges (e.g., distance to root or weight parity). For example, to check if a graph is **Bipartite** using DSU, we maintain `dist[u]` (parity of path length to root). If we merge `u` and `v` with a new edge and their distances have the same parity, we've found an odd cycle!",
       "**Offline Queries on DSU**: Many problems that seem to require deletions can be solved using DSU by processing queries in reverse. If nodes are removed, start from the final state and 'add' them back by processing edges from the end to the start.",
     ],
+    diagram: {
+      type: "hierarchy",
+      title: "DSU — Path Compression & Union by Rank",
+      data: [
+        {
+          label: "Before Path Compression",
+          color: "warning",
+          children: [
+            { label: "Root", children: [{ label: "A", children: [{ label: "B", children: [{ label: "C" }] }] }] }
+          ]
+        },
+        {
+          label: "After Path Compression",
+          color: "success",
+          children: [
+            { label: "Root", children: [{ label: "A" }, { label: "B" }, { label: "C" }] }
+          ]
+        },
+        {
+          label: "Union by Rank",
+          color: "info",
+          children: [
+            { label: "Attach shorter tree under taller root" },
+            { label: "Prevents long chains" },
+            { label: "Combined: O(α(V)) ≈ O(1)" }
+          ]
+        }
+      ],
+    },
     keyPoints: [
       "Always use BOTH Path Compression and Union by Rank for O(α(V))",
       "For undo/rollback support: use ONLY Union by rank/size (O(log V))",
@@ -1508,6 +1665,42 @@ public class TarjansSCC {
       "**Condensation Graph**: Replace each SCC with a single node — the result is always a **DAG** (if two SCCs formed a cycle, they'd be one SCC). The condensation is the most important property — it converts cyclic directed graph problems into DAG problems solvable with topological sort.",
       "Applications: **2-SAT** (formula with clauses of 2 literals — satisfiable iff no variable and its negation are in the same SCC), finding cycles in dependencies, deadlock detection, compiler optimizations, reachability queries on directed graphs.",
     ],
+    diagram: {
+      type: "table-visual",
+      title: "SCC Algorithms — Tarjan's vs Kosaraju's",
+      data: [
+        {
+          label: "Tarjan's Algorithm",
+          color: "success",
+          children: [
+            { label: "Single DFS pass — O(V+E)" },
+            { label: "Uses disc[] and low[] arrays" },
+            { label: "low[u]==disc[u] → SCC root found" },
+            { label: "⭐ Preferred in competitive programming" }
+          ]
+        },
+        {
+          label: "Kosaraju's Algorithm",
+          color: "info",
+          children: [
+            { label: "Two DFS passes — O(V+E)" },
+            { label: "Pass 1: DFS on G, record exit order" },
+            { label: "Pass 2: DFS on G^T in reverse exit order" },
+            { label: "More intuitive, needs graph reversal" }
+          ]
+        },
+        {
+          label: "Condensation Graph",
+          color: "accent",
+          children: [
+            { label: "Shrink each SCC → single node" },
+            { label: "Result is always a DAG" },
+            { label: "Enables Topo Sort on cyclic graphs" },
+            { label: "Foundation for 2-SAT solver" }
+          ]
+        }
+      ],
+    },
     keyPoints: [
       "Tarjan's is preferred in competitive programming (single pass, no graph reversal)",
       "The condensation DAG can be processed with topological sort",
@@ -1659,6 +1852,20 @@ public class TarjanSCC {
       "**Articulation point conditions**: (1) If v is the **DFS root**, it's an AP iff it has **2+ children** in the DFS tree. (2) If v is **non-root**, it's an AP iff it has a child 'to' where **low[to] ≥ tin[v]** — the subtree of 'to' can't reach above v.",
       "**Multi-edge handling**: When checking back edges, skip the parent edge only once (use a `parent_skipped` flag). This correctly handles parallel edges: if there are 2 edges between u and v, only one is the tree edge — the other is a back edge making (u,v) NOT a bridge.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Bridges & Articulation Points — Detection Logic",
+      direction: "vertical",
+      data: [
+        { label: "DFS assigns disc[u] and low[u] for each node", color: "primary" },
+        { label: "low[u] = min(disc[u], disc[back-edges], low[children])", color: "info" },
+        { label: "Bridge: edge (u,v) where low[v] > disc[u]", color: "warning" },
+        { label: "  → Subtree of v has NO back edge above u", color: "warning" },
+        { label: "AP (root): 2+ children in DFS tree", color: "success" },
+        { label: "AP (non-root): child v where low[v] ≥ disc[u]", color: "success" },
+        { label: "Key: low[] tells us if subtree can reach above", color: "accent" },
+      ],
+    },
     code: [
       {
         title: "Bridges & Articulation Points — Tarjan's",
@@ -1793,6 +2000,37 @@ public class BridgesAPs {
       "Applications: subtree sum/update queries, LCA via RMQ (Range Minimum Query), offline tree queries, handling tree updates efficiently.",
       "DFS Order variants: (1) Discovery order — just the entry times. (2) Full Euler tour — record on both entry and exit. (3) Edge-based tour — record each edge traversal.",
     ],
+    diagram: {
+      type: "hierarchy",
+      title: "Euler Tour — Flattening Tree to Array",
+      data: [
+        {
+          label: "Tree Structure",
+          color: "primary",
+          children: [
+            { label: "0", children: [{ label: "1", children: [{ label: "3" }, { label: "4" }] }, { label: "2", children: [{ label: "5" }] }] }
+          ]
+        },
+        {
+          label: "Flattened Array",
+          color: "success",
+          children: [
+            { label: "Index: [0, 1, 2, 3, 4, 5]" },
+            { label: "Node:  [0, 1, 3, 4, 2, 5]" },
+            { label: "Subtree(1) = [1,3,4]" }
+          ]
+        },
+        {
+          label: "Key Insight",
+          color: "accent",
+          children: [
+            { label: "Subtree of v = range [tin[v], tout[v]]" },
+            { label: "Subtree query → range query" },
+            { label: "Use Segment Tree / BIT on flat array" }
+          ]
+        }
+      ],
+    },
     keyPoints: [
       "tin[v] = when DFS first visits v; tout[v] = when DFS leaves v",
       "Subtree of v = indices [tin[v], tout[v]] in the tour",
@@ -2007,6 +2245,20 @@ public class LCAEulerTour {
       "**Three typical problems**: (1) **Max/sum on path** — segment tree on HLD chains, O(log² n) per query. (2) **Path updates** — lazy propagation on segment tree. (3) **LCA** — byproduct of HLD: jump chain heads until same chain, return shallower vertex.",
       "**Implementation tip**: Use the 'largest subtree child' definition (not the strict s(c) ≥ s(v)/2 definition). This may combine some heavy paths but keeps all guarantees. Store head[v] (top of v's chain) and pos[v] (position in segment tree array).",
     ],
+    diagram: {
+      type: "flow",
+      title: "Heavy-Light Decomposition — Chain Splitting",
+      direction: "vertical",
+      data: [
+        { label: "Step 1: Compute subtree sizes via DFS", color: "primary" },
+        { label: "Step 2: Heavy child = child with largest subtree", color: "info" },
+        { label: "Step 3: Decompose into heavy chains", color: "info" },
+        { label: "  Heavy chain: follow heavy edges until leaf", color: "success" },
+        { label: "  Light edge: starts a new chain", color: "warning" },
+        { label: "Step 4: Flatten chains into segment tree array", color: "info" },
+        { label: "Path query: O(log²n) via O(log n) chain jumps", color: "accent" },
+      ],
+    },
     keyPoints: [
       "Heavy child = child with largest subtree size",
       "Any root-to-leaf path has ≤ O(log n) light edges",
@@ -2193,6 +2445,19 @@ public class HLD {
       "**Hierholzer's Algorithm**: The standard O(E) approach. Start at a valid starting vertex. Perform a DFS, but only add a vertex to the result list **after** all its outgoing edges are explored (post-order). The reversed list is the Eulerian circuit/path.",
       "**Implementation Detail**: To achieve O(E), you must ensure each edge is deleted or 'marked' immediately so it's never processed twice. In Java, using an `ArrayList` of `Iterator`s for the adjacency list is a common trick to keep track of current progress.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Eulerian Path & Circuit — Existence Conditions",
+      direction: "vertical",
+      data: [
+        { label: "Undirected Circuit: All vertices have even degree", color: "primary" },
+        { label: "Undirected Path: Exactly 0 or 2 odd-degree vertices", color: "info" },
+        { label: "Directed Circuit: indegree == outdegree for ALL", color: "success" },
+        { label: "Directed Path: One node out-in=1 (start), one in-out=1 (end)", color: "info" },
+        { label: "Hierholzer's: DFS post-order → reversed = circuit", color: "accent" },
+        { label: "Key: Visit every EDGE exactly once", color: "warning" },
+      ],
+    },
     keyPoints: [
       "Visits every EDGE exactly once (contrast with Hamiltonian: every Vertex)",
       "Hierholzer's Algorithm runs in linear time O(E)",
@@ -2235,6 +2500,37 @@ public class HLD {
       "**The Query**: (1) Bring both nodes to the same depth by jumping the deeper node up in powers of 2. (2) If they are now the same, that's the LCA. (3) If not, jump both nodes up simultaneously in decreasing powers of 2, but ONLY if they don't land on the same node. The parent of the final nodes is the LCA.",
       "**Path Queries**: Binary lifting can also precompute path information (like min/max/sum on path) in the same O(V log V) table. For example, `minWeight[v][i]` would store the minimum edge weight on the path from `v` to its `2^i`-th ancestor.",
     ],
+    diagram: {
+      type: "hierarchy",
+      title: "LCA — Binary Lifting Table",
+      data: [
+        {
+          label: "up[v][0] = direct parent",
+          color: "primary",
+          children: [
+            { label: "up[v][1] = grandparent" },
+            { label: "up[v][2] = 4th ancestor" },
+            { label: "up[v][k] = 2^k-th ancestor" }
+          ]
+        },
+        {
+          label: "Query: LCA(u, v)",
+          color: "info",
+          children: [
+            { label: "1. Bring u,v to same depth" },
+            { label: "2. If same → that's LCA" },
+            { label: "3. Jump both up until parents match" }
+          ]
+        },
+        {
+          label: "Distance Formula",
+          color: "accent",
+          children: [
+            { label: "dist(u,v) = depth[u]+depth[v]-2*depth[LCA]" }
+          ]
+        }
+      ],
+    },
     keyPoints: [
       "Standard approach for tree path queries",
       "Preprocessing: O(N log N) | Query: O(log N)",
@@ -2300,6 +2596,20 @@ public class HLD {
       "**Max-Flow Min-Cut Theorem**: The maximum flow in a network is exactly equal to the capacity of the **Minimum Cut** (the minimum capacity of edges whose removal disconnects S from T). This is a deep duality used in many partition problems.",
       "**Bipartite Matching via Max Flow**: Create a dummy source S connected to all left nodes with capacity 1, and all right nodes connected to a dummy sink T with capacity 1. Max flow == Max Bipartite Matching.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Max Flow — Edmonds-Karp Algorithm",
+      direction: "vertical",
+      data: [
+        { label: "Source S → push flow toward Sink T", color: "primary" },
+        { label: "Find augmenting path via BFS in residual graph", color: "info" },
+        { label: "Push bottleneck capacity along the path", color: "success" },
+        { label: "Add reverse edges (residual) for flow 'undo'", color: "info" },
+        { label: "Repeat until no augmenting path exists", color: "success" },
+        { label: "Max Flow = Min Cut (duality theorem)", color: "accent" },
+        { label: "Time: O(V × E²) with BFS (Edmonds-Karp)", color: "warning" },
+      ],
+    },
     keyPoints: [
       "Source (S) produces flow, Sink (T) consumes it",
       "Residual graph handles 'undoing' flow via back-edges",
@@ -2356,6 +2666,20 @@ public class HLD {
       "König's Theorem: In bipartite graphs, max matching = min vertex cover. This connects matching to covering problems.",
       "Applications: job assignment, course scheduling, stable matching, network routing, image segmentation.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Bipartite Matching — Augmenting Path Method",
+      direction: "vertical",
+      data: [
+        { label: "Left set L | Right set R | Edges only between L and R", color: "primary" },
+        { label: "Start: Empty matching", color: "info" },
+        { label: "Find augmenting path: unmatched L → matched → ... → unmatched R", color: "info" },
+        { label: "Flip edges along path: unmatched→matched, matched→unmatched", color: "success" },
+        { label: "Matching size increases by 1", color: "success" },
+        { label: "Repeat until no augmenting path exists", color: "info" },
+        { label: "Hopcroft-Karp: O(E√V) via BFS+DFS phases", color: "accent" },
+      ],
+    },
     keyPoints: [
       "Augmenting path: alternating path from unmatched L to unmatched R",
       "Hopcroft-Karp is fastest: O(E√V) using BFS + DFS phases",
@@ -2581,6 +2905,20 @@ public class Hungarian {
       "**Max-flow applications**: Bipartite matching (source→L, R→sink, capacity 1), minimum vertex cover (via König's theorem), maximum edge-disjoint paths, image segmentation, baseball elimination.",
       "Applications of MCMF: assignment problems (generalizes bipartite matching with costs), transportation problems, project selection, network design optimization.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Min-Cost Max-Flow — Algorithm Flow",
+      direction: "vertical",
+      data: [
+        { label: "Each edge: (capacity, cost per unit flow)", color: "primary" },
+        { label: "Find cheapest augmenting path (SPFA/Bellman-Ford)", color: "info" },
+        { label: "Push max possible flow along that path", color: "success" },
+        { label: "Total cost += flow × path_cost", color: "info" },
+        { label: "Residual edges have NEGATIVE cost (undo flow)", color: "warning" },
+        { label: "Repeat until no augmenting path exists", color: "success" },
+        { label: "Result: Max flow at minimum total cost", color: "accent" },
+      ],
+    },
     keyPoints: [
       "Each edge has (capacity, cost): flow ≤ capacity, total cost = Σ flow × cost",
       "Residual edges have negative cost (sending flow back reduces cost)",
@@ -2718,6 +3056,39 @@ public class MinCostMaxFlow {
       "Euler Path & Circuit: An Euler path visits every EDGE exactly once. Euler circuit exists iff all vertices have even degree (undirected) or in-degree == out-degree (directed). Found via Hierholzer's algorithm in O(E).",
       "Centroid Decomposition: Decompose tree into centroids. Each node appears in O(log n) centroid subtrees — enables O(n log n) or O(n log² n) tree path queries.",
     ],
+    diagram: {
+      type: "table-visual",
+      title: "Advanced Graph Algorithms — Cheat Sheet",
+      data: [
+        {
+          label: "Max Flow Algorithms",
+          color: "primary",
+          children: [
+            { label: "Edmonds-Karp: O(VE²) — BFS augmenting paths" },
+            { label: "Dinic's: O(V²E) — Level graph + blocking flow" },
+            { label: "Push-Relabel: O(V²√E) — For large graphs" }
+          ]
+        },
+        {
+          label: "Tree Algorithms",
+          color: "success",
+          children: [
+            { label: "Binary Lifting LCA: O(n log n) build, O(log n) query" },
+            { label: "Centroid Decomposition: O(n log n) build" },
+            { label: "Euler Tour + RMQ: O(n) build, O(1) LCA query" }
+          ]
+        },
+        {
+          label: "Special BFS",
+          color: "info",
+          children: [
+            { label: "0-1 BFS: O(V+E) with deque" },
+            { label: "Multi-source BFS: All sources in queue" },
+            { label: "BFS on implicit graphs: Generate neighbors on-the-fly" }
+          ]
+        }
+      ],
+    },
     keyPoints: [
       "Max-Flow = Min-Cut (Ford-Fulkerson theorem) — fundamental duality",
       "Dinic's algorithm: O(V²E) general, O(E√V) for unit capacity graphs",
@@ -3095,6 +3466,20 @@ public class EulerPath {
       "**Floyd's cycle detection** (tortoise and hare): Use two pointers — slow (moves 1 step) and fast (moves 2 steps). They meet inside the cycle. Then reset slow to start and advance both by 1 — they meet at the cycle entry. Cycle length = continue advancing from the meeting point until returning to it.",
       "**Applications**: Permutation cycles (each permutation is a functional graph), iterated function queries (f^k(x)), detecting cycles in linked lists, pseudorandom number generators, functional graph problems on Codeforces.",
     ],
+    diagram: {
+      type: "flow",
+      title: "Successor Graph — ρ-Shaped Structure & Binary Lifting",
+      direction: "vertical",
+      data: [
+        { label: "Each node has exactly ONE outgoing edge", color: "primary" },
+        { label: "Structure: Tail → Cycle (ρ-shaped)", color: "info" },
+        { label: "Example: 0→1→2→3→1 (tail=0, cycle=1-2-3)", color: "info" },
+        { label: "Binary Lifting: succ[v][j] = 2^j-th successor", color: "success" },
+        { label: "Query k-th successor in O(log k)", color: "success" },
+        { label: "Floyd's cycle detection: slow/fast pointers", color: "warning" },
+        { label: "Key: Follow successors → always enters a cycle", color: "accent" },
+      ],
+    },
     keyPoints: [
       "Every node has exactly one outgoing edge → ρ-shaped components",
       "Binary lifting for k-th successor: O(n log n) space, O(log k) query",
