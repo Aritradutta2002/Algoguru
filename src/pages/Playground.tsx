@@ -2292,7 +2292,7 @@ export default function Playground() {
   return (
     <div
       ref={playgroundShellRef}
-      className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-[calc(100vh-3.5rem)]"} relative flex flex-col overflow-hidden bg-background`}
+      className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-full"} relative flex min-h-0 flex-col overflow-hidden bg-background`}
     >
       {/* Breakpoint & debug CSS */}
       <style>{`
@@ -2317,7 +2317,7 @@ export default function Playground() {
           ROW 1 â€” Activity / Language Bar
       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex items-center justify-between px-2 border-b flex-shrink-0 select-none"
+        className="flex items-center gap-2 px-2 border-b flex-shrink-0 select-none overflow-hidden"
         style={{
           background: "hsl(var(--card))",
           borderColor: "hsl(var(--border)/0.25)",
@@ -2325,7 +2325,7 @@ export default function Playground() {
         }}
       >
         {/* Left: Language selector */}
-        <div className="flex items-center gap-1 h-full">
+        <div className="flex min-w-0 flex-1 items-center gap-1 h-full">
           <div className="relative flex-shrink-0">
             <button
               onClick={() => {
@@ -2373,7 +2373,7 @@ export default function Playground() {
         </div>
 
         {/* Right: icon toolbar */}
-        <div className="flex items-center gap-0.5 h-full">
+        <div className="flex items-center gap-0.5 h-full flex-shrink-0">
           {/* Templates */}
           <div className="relative">
             <button
@@ -2588,7 +2588,7 @@ export default function Playground() {
           ROW 2 â€” Tab Bar + Run + Status
       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex items-center border-b flex-shrink-0 select-none"
+        className="flex items-center border-b flex-shrink-0 select-none overflow-hidden"
         style={{
           background: "hsl(var(--muted)/0.08)",
           borderColor: "hsl(var(--border)/0.2)",
@@ -2596,7 +2596,7 @@ export default function Playground() {
         }}
       >
         {/* Left: file tabs */}
-        <div className="flex items-center h-full">
+        <div className="flex min-w-0 flex-1 items-center h-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* Code tabs — Solution is protected, extra code tabs are closable */}
           {codeTabs.map((tab) => {
             const isActive =
@@ -2707,10 +2707,8 @@ export default function Playground() {
           </button>
         </div>
 
-        <div className="flex-1" />
-
         {/* Right status */}
-        <div className="flex items-center gap-0 h-full">
+        <div className="flex items-center gap-0 h-full flex-shrink-0 whitespace-nowrap">
           {/* Run + Debug + GuruBot */}
           <div
             className="flex items-center gap-2.5 px-3 h-full border-l"
