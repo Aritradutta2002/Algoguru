@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
-import { PanelLeft, ArrowLeft, ArrowRight } from "lucide-react";
+import { PanelLeft, ArrowLeft, ArrowRight, X } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useResponsivePreferences } from "@/hooks/useResponsivePreferences";
@@ -21,6 +21,7 @@ const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_COLLAPSED_RAIL_WIDTH = "3.5rem";
 const SIDEBAR_MIN_WIDTH = 200;
 const SIDEBAR_MAX_WIDTH = 720;
+const SIDEBAR_COLLAPSE_DRAG_TRIGGER = SIDEBAR_MIN_WIDTH + 24;
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContext = {
@@ -176,6 +177,13 @@ const Sidebar = React.forwardRef<
   const { isMobile, state, setOpen, openMobile, setOpenMobile, sidebarWidth, setSidebarWidth } = useSidebar();
   const isResizing = React.useRef(false);
   const [dragging, setDragging] = React.useState(false);
+  const [railDismissed, setRailDismissed] = React.useState(false);
+
+  React.useEffect(() => {
+    if (state === "expanded" && railDismissed) {
+      setRailDismissed(false);
+    }
+  }, [state, railDismissed]);
 
   const handleMouseDown = React.useCallback(
     (e: React.MouseEvent) => {
@@ -189,6 +197,18 @@ const Sidebar = React.forwardRef<
         if (!isResizing.current) return;
         requestAnimationFrame(() => {
           const newWidth = side === "left" ? e.clientX : window.innerWidth - e.clientX;
+
+          // Dragging narrow enough collapses the sidebar into the visible rail.
+          if (newWidth <= SIDEBAR_COLLAPSE_DRAG_TRIGGER && state === "expanded") {
+            setRailDismissed(false);
+            setOpen(false);
+            isResizing.current = false;
+            setDragging(false);
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+            return;
+          }
+
           setSidebarWidth(newWidth);
         });
       };
@@ -254,7 +274,8 @@ const Sidebar = React.forwardRef<
         className={cn(
           "relative h-svh w-[--sidebar-width] bg-transparent ease-linear",
           !dragging && "transition-[width] duration-200",
-          "group-data-[collapsible=offcanvas]:w-[--sidebar-rail-width]",
+          !railDismissed && "group-data-[collapsible=offcanvas]:w-[--sidebar-rail-width]",
+          railDismissed && "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
             ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
@@ -293,10 +314,17 @@ const Sidebar = React.forwardRef<
         )}
       </div>
 
-      {collapsible === "offcanvas" && state === "collapsed" && (
-        <button
-          type="button"
+      {collapsible === "offcanvas" && state === "collapsed" && !railDismissed && (
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => setOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setOpen(true);
+            }
+          }}
           title="Expand Sidebar"
           aria-label="Expand Sidebar"
           className={cn(
@@ -310,7 +338,18 @@ const Sidebar = React.forwardRef<
           <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
             Navigation
           </span>
-        </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              setRailDismissed(true);
+            }}
+            title="Hide Navigation Rail"
+            className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+          >
+            <X size={12} />
+          </button>
+        </div>
       )}
     </div>
   );
