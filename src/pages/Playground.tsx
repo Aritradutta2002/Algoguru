@@ -3139,7 +3139,7 @@ export default function Playground() {
               <ResizablePanel
                 ref={ioPanelRef}
                 defaultSize={guruBotOpen && !isMobile ? 25 : IO_DEFAULT_SIZE}
-                minSize={isMobile ? 25 : 5}
+                minSize={isMobile ? 25 : 15}
                 collapsible={!isMobile}
                 collapsedSize={isMobile ? 25 : IO_COLLAPSED_SIZE}
                 onResize={(size) => {
@@ -3299,11 +3299,6 @@ export default function Playground() {
                 collapsible
                 collapsedSize={GURU_COLLAPSED_SIZE}
                 onResize={(size) => {
-                  if (guruBotCollapsed && size > GURU_EXPAND_TRIGGER_SIZE) {
-                    openGuruBotPanel();
-                    return;
-                  }
-
                   setGuruBotCollapsed(size <= GURU_EXPAND_TRIGGER_SIZE);
                 }}
                 onCollapse={() => setGuruBotCollapsed(true)}
