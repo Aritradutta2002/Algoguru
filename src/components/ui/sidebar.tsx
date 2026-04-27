@@ -233,6 +233,12 @@ const Sidebar = React.forwardRef<
             return;
           }
 
+          // Expand sidebar when dragging collapsed rail to the right
+          if (newWidth > SIDEBAR_COLLAPSE_DRAG_TRIGGER && state === "collapsed") {
+            setOpen(true);
+            // Don't return, let dragging continue to set width
+          }
+
           setSidebarWidth(newWidth);
         });
       };
@@ -327,9 +333,10 @@ const Sidebar = React.forwardRef<
           {children}
         </div>
         {/* Resize handle */}
-        {state === "expanded" && (
+        {(state === "expanded" || (collapsible === "offcanvas" && state === "collapsed" && !railDismissed)) && (
           <div
             onMouseDown={handleMouseDown}
+            onClick={(e) => e.stopPropagation()} // Prevent trigger from expanding instantly, let drag handle it
             className="absolute top-0 bottom-0 w-1.5 cursor-col-resize z-20 group/resize hover:bg-primary/10 active:bg-primary/20 transition-colors"
             style={{ [side === "left" ? "right" : "left"]: "-3px" }}
           >
@@ -373,6 +380,18 @@ const Sidebar = React.forwardRef<
           >
             <X size={12} />
           </button>
+          
+          <div
+            role="presentation"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleMouseDown(e);
+            }}
+            className="absolute top-0 bottom-0 w-1.5 cursor-col-resize z-20 group/resize hover:bg-primary/10 active:bg-primary/20 transition-colors"
+            style={{ [side === "left" ? "right" : "left"]: "-3px" }}
+          >
+            <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-transparent group-hover/resize:bg-primary/30 transition-colors" />
+          </div>
         </div>
       )}
     </div>
