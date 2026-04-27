@@ -2859,12 +2859,6 @@ export default function Playground() {
             if (isMobile || !ioPanelOpen) return;
 
             const nextIoSize = sizes[1] ?? IO_DEFAULT_SIZE;
-            if (ioCollapsed && nextIoSize > IO_EXPAND_TRIGGER_SIZE) {
-              expandIOPanel(
-                guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
-              );
-              return;
-            }
 
             ioPanelSizeRef.current = nextIoSize;
             const nextCollapsed = nextIoSize <= IO_EXPAND_TRIGGER_SIZE;
@@ -3145,18 +3139,11 @@ export default function Playground() {
               <ResizablePanel
                 ref={ioPanelRef}
                 defaultSize={guruBotOpen && !isMobile ? 25 : IO_DEFAULT_SIZE}
-                minSize={isMobile ? 25 : 24}
+                minSize={isMobile ? 25 : 5}
                 collapsible={!isMobile}
                 collapsedSize={isMobile ? 25 : IO_COLLAPSED_SIZE}
                 onResize={(size) => {
                   if (isMobile) return;
-
-                  if (ioCollapsed && size > IO_EXPAND_TRIGGER_SIZE) {
-                    expandIOPanel(
-                      guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
-                    );
-                    return;
-                  }
 
                   ioPanelSizeRef.current = size;
                   const nextCollapsed = size <= IO_EXPAND_TRIGGER_SIZE;
