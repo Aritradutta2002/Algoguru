@@ -21,7 +21,7 @@ const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_COLLAPSED_RAIL_WIDTH = "3.5rem";
 const SIDEBAR_MIN_WIDTH = 200;
 const SIDEBAR_MAX_WIDTH = 720;
-const SIDEBAR_COLLAPSE_DRAG_TRIGGER = SIDEBAR_MIN_WIDTH + 24;
+const SIDEBAR_COLLAPSE_DRAG_TRIGGER = 120;
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContext = {
@@ -217,13 +217,15 @@ const Sidebar = React.forwardRef<
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
 
+      let dragState = state;
+
       const handleMouseMove = (e: MouseEvent) => {
         if (!isResizing.current) return;
         requestAnimationFrame(() => {
           const newWidth = side === "left" ? e.clientX : window.innerWidth - e.clientX;
 
           // Dragging narrow enough collapses the sidebar into the visible rail.
-          if (newWidth <= SIDEBAR_COLLAPSE_DRAG_TRIGGER && state === "expanded") {
+          if (newWidth <= SIDEBAR_COLLAPSE_DRAG_TRIGGER && dragState === "expanded") {
             setRailDismissed(false);
             setOpen(false);
             isResizing.current = false;
@@ -234,12 +236,15 @@ const Sidebar = React.forwardRef<
           }
 
           // Expand sidebar when dragging collapsed rail to the right
-          if (newWidth > SIDEBAR_COLLAPSE_DRAG_TRIGGER && state === "collapsed") {
+          if (newWidth > SIDEBAR_COLLAPSE_DRAG_TRIGGER && dragState === "collapsed") {
             setOpen(true);
-            // Don't return, let dragging continue to set width
+            dragState = "expanded"; // Update local drag state so it can collapse back if dragged left again
           }
 
-          setSidebarWidth(newWidth);
+          // Only update width if we are currently expanded
+          if (dragState === "expanded") {
+            setSidebarWidth(newWidth);
+          }
         });
       };
 
