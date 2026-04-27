@@ -15,10 +15,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_DEFAULT_WIDTH = 340;
+const SIDEBAR_DEFAULT_WIDTH = 420;
 const SIDEBAR_WIDTH_MOBILE = "280px";
-const SIDEBAR_WIDTH_ICON = "3rem";
-const SIDEBAR_COLLAPSED_RAIL_WIDTH = "3.5rem";
+const SIDEBAR_WIDTH_ICON = "2rem";
+const SIDEBAR_COLLAPSED_RAIL_WIDTH = "2rem";
 const SIDEBAR_MIN_WIDTH = 200;
 const SIDEBAR_MAX_WIDTH = 720;
 const SIDEBAR_COLLAPSE_DRAG_TRIGGER = SIDEBAR_MIN_WIDTH + 24;
