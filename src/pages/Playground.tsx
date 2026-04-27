@@ -99,12 +99,12 @@ const PLAYGROUND_TAB_SIZE_KEY = "playground-editor-tab-size";
 const PLAYGROUND_RELATIVE_LINES_KEY = "playground-editor-relative-lines";
 const PLAYGROUND_ASK_GURU_SELECTION_KEY = "playground-ask-guru-selection";
 const IO_COLLAPSED_SIZE = 3.5;
-const IO_EXPAND_TRIGGER_SIZE = 4.25;
+const IO_EXPAND_TRIGGER_SIZE = 15;
 const IO_DEFAULT_SIZE = 45;
 const IO_GURU_DEFAULT_SIZE = 25;
 const IO_MOBILE_DEFAULT_SIZE = 40;
 const GURU_COLLAPSED_SIZE = 3.5;
-const GURU_EXPAND_TRIGGER_SIZE = 4.25;
+const GURU_EXPAND_TRIGGER_SIZE = 15;
 const GURU_DEFAULT_SIZE = 25;
 
 const loadNumberSetting = (key: string, fallback: number) => {
@@ -3139,7 +3139,7 @@ export default function Playground() {
               <ResizablePanel
                 ref={ioPanelRef}
                 defaultSize={guruBotOpen && !isMobile ? 25 : IO_DEFAULT_SIZE}
-                minSize={isMobile ? 25 : 15}
+                minSize={isMobile ? 25 : 5}
                 collapsible={!isMobile}
                 collapsedSize={isMobile ? 25 : IO_COLLAPSED_SIZE}
                 onResize={(size) => {
