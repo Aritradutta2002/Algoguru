@@ -43,8 +43,6 @@ import {
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import * as prettier from "prettier/standalone";
-import prettierPluginJava from "prettier-plugin-java";
-import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
 import {
   ResizablePanelGroup,
@@ -655,6 +653,7 @@ export default function Playground() {
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isFormatted, setIsFormatted] = useState(false);
   const [stdin, setStdin] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const playgroundShellRef = useRef<HTMLDivElement>(null);
@@ -1531,11 +1530,15 @@ export default function Playground() {
       try {
         const formatted = await prettier.format(raw, {
           parser: "java",
-          plugins: [prettierPluginJava],
+          plugins: [prettierPluginJava, (prettierPluginJava as any)?.default || {}],
         });
         setCode(formatted);
         setOutput("✓ Code formatted successfully");
-        setTimeout(() => setOutput(""), 2000);
+        setIsFormatted(true);
+        setTimeout(() => {
+          setOutput("");
+          setIsFormatted(false);
+        }, 2000);
       } catch (error) {
         console.error("Formatting error:", error);
         setOutput("✗ Formatting failed. Check your code syntax.");
@@ -2491,9 +2494,16 @@ export default function Playground() {
           <button
             onClick={formatCode}
             title="Format code"
-            className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
+            className="h-8 px-2 flex items-center justify-center gap-1.5 rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all font-medium text-xs"
           >
-            <AlignLeft size={14} />
+            {isFormatted ? (
+              <>
+                <Check size={14} className="text-primary" />
+                <span className="text-primary hidden sm:inline-block">Formatted</span>
+              </>
+            ) : (
+              <AlignLeft size={14} />
+            )}
           </button>
 
           <button

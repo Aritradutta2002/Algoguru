@@ -1,3 +1,1 @@
-import prettier from 'prettier/standalone';
-import prettierPluginJava from 'prettier-plugin-java';
-console.log(prettier.format('class A{}', {parser: 'java', plugins: [prettierPluginJava]}))
+import prettier from 'prettier/standalone'; import prettierPluginJava from 'prettier-plugin-java'; prettier.format('class A {}', { parser: 'java', plugins: [prettierPluginJava] }).then(console.log).catch(console.error);
