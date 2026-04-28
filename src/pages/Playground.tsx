@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+﻿﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import {
@@ -206,19 +206,19 @@ const PANEL_HEADER_CLASSES =
   "flex items-center gap-3 px-5 py-3 border-b bg-muted/20 backdrop-blur-sm";
 const PANEL_BORDER_STYLE = { borderColor: "hsl(var(--border) / 0.3)" };
 const IO_PANEL_CLASSES =
-  "flex h-full flex-col bg-white text-slate-950 dark:bg-background dark:text-foreground";
+  "flex h-full flex-col bg-slate-50 text-slate-950 dark:bg-background dark:text-foreground";
 const IO_HEADER_CLASSES =
-  "flex items-center gap-3 border-b border-slate-300 bg-white px-5 py-3 shadow-sm shadow-slate-200/60 backdrop-blur-sm dark:border-border/30 dark:bg-muted/20 dark:shadow-none";
+  "flex items-center gap-3 border-b border-slate-300 bg-slate-100/95 px-5 py-3 shadow-sm shadow-slate-300/60 backdrop-blur-sm dark:border-border/30 dark:bg-muted/20 dark:shadow-none";
 const IO_LABEL_CLASSES =
-  "text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 dark:text-muted-foreground/70";
+  "text-[10px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-muted-foreground/70";
 const IO_INPUT_ICON_CLASSES =
-  "flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300 bg-slate-100 text-slate-700 shadow-sm dark:border-transparent dark:bg-muted dark:text-muted-foreground dark:shadow-none";
+  "flex h-7 w-7 items-center justify-center rounded-lg border border-slate-400/80 bg-white text-slate-800 shadow-sm dark:border-transparent dark:bg-muted dark:text-muted-foreground dark:shadow-none";
 const IO_CONSOLE_ICON_CLASSES =
-  "flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm dark:border-success/20 dark:bg-success/10 dark:text-success";
+  "flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-700 shadow-sm dark:border-success/20 dark:bg-success/10 dark:text-success";
 const IO_TEXTAREA_CLASSES =
-  "flex-1 w-full resize-none bg-white px-6 py-4 font-mono text-sm text-slate-950 outline-none placeholder:text-slate-500 selection:bg-emerald-200/60 dark:bg-transparent dark:text-foreground dark:placeholder:text-muted-foreground/50 dark:selection:bg-primary/20";
+  "flex-1 w-full resize-none bg-white px-6 py-4 font-mono text-sm leading-6 text-slate-950 outline-none placeholder:text-slate-500 shadow-inner shadow-slate-200/70 selection:bg-emerald-200/60 dark:bg-transparent dark:text-foreground dark:placeholder:text-muted-foreground/50 dark:shadow-none dark:selection:bg-primary/20";
 const IO_CONSOLE_CLASSES =
-  "flex-1 min-h-0 overflow-auto border-t border-slate-200 bg-slate-50 dark:border-transparent dark:bg-zinc-950";
+  "flex-1 min-h-0 overflow-auto border-t border-slate-300 bg-white shadow-inner shadow-slate-200/60 dark:border-transparent dark:bg-zinc-950 dark:shadow-none";
 const ICON_BUTTON_CLASSES =
   "flex items-center justify-center w-10 h-10 rounded-2xl border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:border-primary/30 hover:text-primary transition-all duration-300 shadow-sm";
 const DROPDOWN_ITEM_CLASSES =
@@ -3259,7 +3259,7 @@ export default function Playground() {
 
                     <ResizableHandle
                       withHandle
-                      className="bg-slate-200/80 data-[panel-group-direction=vertical]:h-[3px] [&>div]:bg-slate-400/70 dark:bg-border/20 dark:[&>div]:bg-border"
+                      className="bg-slate-300 data-[panel-group-direction=vertical]:h-[3px] [&>div]:bg-slate-500/80 dark:bg-border/20 dark:[&>div]:bg-border"
                     />
 
                     {/* Output Panel */}
@@ -3273,7 +3273,7 @@ export default function Playground() {
                             Virtual Console
                           </span>
                           {isRunning && (
-                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9px] font-black uppercase tracking-widest animate-pulse dark:bg-primary/10 dark:border-primary/20 dark:text-primary">
+                            <div className="flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-800 animate-pulse dark:bg-primary/10 dark:border-primary/20 dark:text-primary">
                               <Loader2 size={10} className="animate-spin" />
                               Executing
                             </div>
@@ -3281,7 +3281,7 @@ export default function Playground() {
                           {output && !isRunning && (
                             <button
                               onClick={() => setOutput("")}
-                              className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-300 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 dark:border-border/30 dark:bg-muted/30 dark:text-muted-foreground dark:shadow-none dark:hover:bg-muted dark:hover:text-foreground"
+                              className="ml-auto flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1 text-[9px] font-black uppercase tracking-widest text-slate-700 shadow-sm transition-all duration-300 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-950 dark:border-border/30 dark:bg-muted/30 dark:text-muted-foreground dark:shadow-none dark:hover:bg-muted dark:hover:text-foreground"
                             >
                               <RotateCcw size={10} />
                               Flush
@@ -3293,18 +3293,18 @@ export default function Playground() {
                             className={`h-full whitespace-pre-wrap p-6 font-mono text-[13px] leading-relaxed selection:bg-emerald-200/60 dark:selection:bg-primary/20 ${outputToneClass}`}
                           >
                             {output || (
-                              <div className="h-full flex flex-col items-center justify-center text-center space-y-4 select-none pt-12 text-slate-500 dark:text-muted-foreground">
-                                <div className="w-16 h-16 rounded-[24px] border-2 border-dashed border-slate-300 bg-white flex items-center justify-center shadow-sm dark:border-muted-foreground/20 dark:bg-transparent dark:shadow-none">
+                              <div className="h-full flex flex-col items-center justify-center space-y-4 pt-12 text-center select-none text-slate-600 dark:text-muted-foreground">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-[24px] border-2 border-dashed border-slate-400 bg-slate-100 shadow-sm dark:border-muted-foreground/20 dark:bg-transparent dark:shadow-none">
                                   <Play
                                     size={24}
-                                    className="translate-x-0.5 text-slate-400 dark:text-muted-foreground/40"
+                                    className="translate-x-0.5 text-slate-500 dark:text-muted-foreground/40"
                                   />
                                 </div>
                                 <div className="space-y-1">
                                   <p className="text-[11px] font-black uppercase tracking-widest">
                                     Awaiting Command
                                   </p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-muted-foreground/80">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-muted-foreground/80">
                                     Press Ctrl+Enter to initialize
                                   </p>
                                 </div>
