@@ -1855,7 +1855,7 @@ export default function Playground() {
       disabled={isRunning || !code.trim()}
       className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
         compact
-          ? "h-9 min-w-[78px] justify-center rounded-lg px-3 text-[10px] shadow-sm"
+          ? "h-8 min-w-[66px] justify-center rounded-md px-2.5 text-[9px] shadow-sm"
           : "px-6 py-2.5 text-[11px]"
       } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
       aria-label="Run code"
@@ -1884,7 +1884,7 @@ export default function Playground() {
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
           className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
             compact
-              ? "h-9 min-w-[86px] justify-center rounded-lg px-3 text-[10px] shadow-sm"
+              ? "h-8 min-w-[74px] justify-center rounded-md px-2.5 text-[9px] shadow-sm"
               : "px-6 py-2.5 text-[11px]"
           } ${
             breakpoints.size > 0
@@ -2730,8 +2730,8 @@ export default function Playground() {
         <div className="flex-1" />
 
         {/* Center: Run + Debug */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5 rounded-xl border border-border/20 bg-background/50 px-2 py-1 shadow-lg shadow-black/10 backdrop-blur-md">
-          <div className="pointer-events-auto flex items-center gap-2.5">
+        <div className="pointer-events-none absolute left-[44%] top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border border-border/20 bg-background/50 px-1.5 py-0.5 shadow-lg shadow-black/10 backdrop-blur-md">
+          <div className="pointer-events-auto flex items-center gap-2">
             <RunButton compact />
             <DebugButton compact />
           </div>
