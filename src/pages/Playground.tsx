@@ -2284,7 +2284,7 @@ export default function Playground() {
           ROW 1 â€” Activity / Language Bar
       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex items-center justify-between px-2 border-b flex-shrink-0 select-none"
+        className="relative flex items-center justify-between px-2 border-b flex-shrink-0 select-none"
         style={{
           background: "hsl(var(--card))",
           borderColor: "hsl(var(--border)/0.25)",
@@ -2339,6 +2339,14 @@ export default function Playground() {
                 {selectedLanguage.version}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Center: Run + Debug */}
+        <div className="pointer-events-none absolute left-[44%] top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border border-border/20 bg-background/50 px-1.5 py-0.5 shadow-lg shadow-black/10 backdrop-blur-md">
+          <div className="pointer-events-auto flex items-center gap-2">
+            <RunButton compact />
+            <DebugButton compact />
           </div>
         </div>
 
@@ -2728,14 +2736,6 @@ export default function Playground() {
         </div>
 
         <div className="flex-1" />
-
-        {/* Center: Run + Debug */}
-        <div className="pointer-events-none absolute left-[44%] top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border border-border/20 bg-background/50 px-1.5 py-0.5 shadow-lg shadow-black/10 backdrop-blur-md">
-          <div className="pointer-events-auto flex items-center gap-2">
-            <RunButton compact />
-            <DebugButton compact />
-          </div>
-        </div>
 
         {/* Right status */}
         <div className="flex items-center gap-0 h-full">
