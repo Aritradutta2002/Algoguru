@@ -1852,23 +1852,23 @@ export default function Playground() {
     <AppTooltip content="Run (Ctrl+Enter)">
       <button
         onClick={() => runCode(false)}
-        disabled={isRunning || !code.trim()}
-        className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
-          compact
-            ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
-            : "px-6 py-2.5 text-[11px]"
-        } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
-        aria-label="Run code"
-      >
+      disabled={isRunning || !code.trim()}
+      className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
+        compact
+          ? "h-9 min-w-[78px] justify-center rounded-lg px-3 text-[10px] shadow-sm"
+          : "px-6 py-2.5 text-[11px]"
+      } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
+      aria-label="Run code"
+    >
         {isRunning ? (
           <Loader2 size={14} className="animate-spin" />
         ) : (
-          <Play size={14} fill="currentColor" strokeWidth={0} />
-        )}
-        {!compact && (isRunning ? "Running..." : "Run")}
-      </button>
-    </AppTooltip>
-  );
+        <Play size={14} fill="currentColor" strokeWidth={0} />
+      )}
+      {compact ? "Run" : isRunning ? "Running..." : "Run"}
+    </button>
+  </AppTooltip>
+);
 
   // Debug button component
   const DebugButton = ({ compact = false }: { compact?: boolean }) => {
@@ -1884,7 +1884,7 @@ export default function Playground() {
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
           className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
             compact
-              ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
+              ? "h-9 min-w-[86px] justify-center rounded-lg px-3 text-[10px] shadow-sm"
               : "px-6 py-2.5 text-[11px]"
           } ${
             breakpoints.size > 0
@@ -1894,7 +1894,9 @@ export default function Playground() {
           aria-label={tooltip}
         >
           <Bug size={14} />
-          {!compact && (
+          {compact ? (
+            "Debug"
+          ) : (
             <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>
           )}
         </button>
