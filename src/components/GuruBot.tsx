@@ -22,6 +22,7 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = {
@@ -554,13 +555,15 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           className="flex items-center justify-between px-4 py-3 border-b bg-background/95 backdrop-blur-md z-20"
           style={{ borderColor: "hsl(var(--border) / 0.3)" }}
         >
-          <button
-            onClick={() => setShowHistory((o) => !o)}
-            className={`touch-manipulation p-2.5 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${showHistory ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30"}`}
-            title="Chat History"
-          >
-            {showHistory ? <X size={18} /> : <History size={18} />}
-          </button>
+          <AppTooltip content="Chat History">
+            <button
+              onClick={() => setShowHistory((o) => !o)}
+              className={`touch-manipulation p-2.5 rounded-xl transition-all duration-300 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${showHistory ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30"}`}
+              aria-label="Chat History"
+            >
+              {showHistory ? <X size={18} /> : <History size={18} />}
+            </button>
+          </AppTooltip>
 
           <div
             className={`flex items-center justify-center ${isMobile ? "flex-1 px-2" : "flex-1 px-4"}`}
@@ -573,22 +576,26 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={startNewChat}
-              className="touch-manipulation p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
-              title="New Chat"
-            >
-              <MessageSquarePlus size={18} />
-            </button>
+            <AppTooltip content="New Chat">
+              <button
+                onClick={startNewChat}
+                className="touch-manipulation p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
+                aria-label="New Chat"
+              >
+                <MessageSquarePlus size={18} />
+              </button>
+            </AppTooltip>
             {/* Mobile/embedded drawer: show close button */}
             {(isMobile || embedded) && (
-              <button
-                onClick={handleClose}
-                className="touch-manipulation p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
-                title="Close Guru"
-              >
-                <X size={18} />
-              </button>
+              <AppTooltip content="Close Guru">
+                <button
+                  onClick={handleClose}
+                  className="touch-manipulation p-2.5 rounded-xl transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border/30 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
+                  aria-label="Close Guru"
+                >
+                  <X size={18} />
+                </button>
+              </AppTooltip>
             )}
           </div>
         </div>
@@ -656,13 +663,15 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                             {s.title}
                           </div>
                         </div>
-                        <button
-                          onClick={(e) => deleteSession(s.id, e)}
-                          className="touch-manipulation opacity-0 group-hover:opacity-100 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-destructive/10 hover:text-destructive active:scale-95"
-                          title="Delete Chat"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        <AppTooltip content="Delete Chat">
+                          <button
+                            onClick={(e) => deleteSession(s.id, e)}
+                            className="touch-manipulation opacity-0 group-hover:opacity-100 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-destructive/10 hover:text-destructive active:scale-95"
+                            aria-label="Delete Chat"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </AppTooltip>
                       </div>
                     ))
                   )}
@@ -880,29 +889,31 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/30 disabled:opacity-50 resize-none min-h-[40px] max-h-[96px] md:max-h-[120px] py-2 font-bold tracking-tight leading-relaxed text-foreground"
               rows={1}
             />
-            <button
-              onClick={loading ? stopChat : send}
-              disabled={
-                (!input.trim() && !loading) ||
-                (loading && !input && messages.length === 0)
-              }
-              className={`touch-manipulation flex-shrink-0 w-11 h-11 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-xl active:scale-90 ${
-                loading
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-destructive/20"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/30 disabled:opacity-20 disabled:grayscale"
-              }`}
-              title={loading ? "Stop generating" : "Send message"}
-            >
-              {loading ? (
-                <Square
-                  fill="currentColor"
-                  size={16}
-                  className="rounded-[2px]"
-                />
-              ) : (
-                <Send size={18} className="ml-0.5" />
-              )}
-            </button>
+            <AppTooltip content={loading ? "Stop generating" : "Send message"}>
+              <button
+                onClick={loading ? stopChat : send}
+                disabled={
+                  (!input.trim() && !loading) ||
+                  (loading && !input && messages.length === 0)
+                }
+                className={`touch-manipulation flex-shrink-0 w-11 h-11 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-xl active:scale-90 ${
+                  loading
+                    ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-destructive/20"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/30 disabled:opacity-20 disabled:grayscale"
+                }`}
+                aria-label={loading ? "Stop generating" : "Send message"}
+              >
+                {loading ? (
+                  <Square
+                    fill="currentColor"
+                    size={16}
+                    className="rounded-[2px]"
+                  />
+                ) : (
+                  <Send size={18} className="ml-0.5" />
+                )}
+              </button>
+            </AppTooltip>
           </div>
           {!isMobile && (
             <div className="flex items-center justify-center gap-3 mt-4">

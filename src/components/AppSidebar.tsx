@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 import { useResponsivePreferences } from "@/hooks/useResponsivePreferences";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 // Content imports for deep search indexing
 import { recursionContent } from "@/data/recursionContent";
@@ -351,22 +352,23 @@ export function AppSidebar() {
                             return (
                               <SidebarMenuSubItem key={sub.id}>
                                 <SidebarMenuSubButton asChild className="h-auto p-0">
-                                  <button
-                                    onClick={() => navigate(`/${topic.id}#${sub.id}`)}
-                                    title={sub.title}
-                                    className={cn(
-                                      "touch-manipulation flex items-center gap-3 w-full px-3 py-2 min-h-[44px] rounded-xl text-[12px] font-semibold transition-all duration-200 text-left active:scale-95",
-                                      active 
-                                        ? "text-foreground bg-muted/30" 
-                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/10"
-                                    )}
-                                  >
-                                    <div
-                                      className={cn("w-1.5 h-1.5 rounded-full transition-all duration-300", active ? "scale-125" : "opacity-30")}
-                                      style={{ background: active ? color : "currentColor" }}
-                                    />
-                                    <span className="truncate" title={sub.title}>{sub.title}</span>
-                                  </button>
+                                  <AppTooltip content={sub.title} side="right">
+                                    <button
+                                      onClick={() => navigate(`/${topic.id}#${sub.id}`)}
+                                      className={cn(
+                                        "touch-manipulation flex items-center gap-3 w-full px-3 py-2 min-h-[44px] rounded-xl text-[12px] font-semibold transition-all duration-200 text-left active:scale-95",
+                                        active 
+                                          ? "text-foreground bg-muted/30" 
+                                          : "text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                                      )}
+                                    >
+                                      <div
+                                        className={cn("w-1.5 h-1.5 rounded-full transition-all duration-300", active ? "scale-125" : "opacity-30")}
+                                        style={{ background: active ? color : "currentColor" }}
+                                      />
+                                      <span className="truncate">{sub.title}</span>
+                                    </button>
+                                  </AppTooltip>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                             );
@@ -410,36 +412,36 @@ export function AppSidebar() {
                   </div>
                 ) : (
                   searchResults.slice(0, 20).map((item) => (
-                    <button
-                      key={item.path}
-                      onClick={() => { navigate(item.path); setSearchQuery(""); }}
-                      title={item.title}
-                      className="touch-manipulation w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] text-left transition-all hover:bg-muted/50 active:bg-muted/70 border-b border-border/10 last:border-0 active:scale-95"
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center text-sm flex-shrink-0 border border-border/20">
-                        {item.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[12px] font-bold truncate text-foreground" title={item.title}>{item.title}</span>
-                          {item.difficulty && (
-                            <span
-                              className={cn(
-                                "text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border",
-                                item.difficulty === "Easy" ? "bg-success/10 border-success/20 text-success" : 
-                                item.difficulty === "Medium" ? "bg-warning/10 border-warning/20 text-warning" : 
-                                "bg-destructive/10 border-destructive/20 text-destructive"
-                              )}
-                            >
-                              {item.difficulty}
-                            </span>
+                    <AppTooltip key={item.path} content={item.title} side="right">
+                      <button
+                        onClick={() => { navigate(item.path); setSearchQuery(""); }}
+                        className="touch-manipulation w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] text-left transition-all hover:bg-muted/50 active:bg-muted/70 border-b border-border/10 last:border-0 active:scale-95"
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center text-sm flex-shrink-0 border border-border/20">
+                          {item.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[12px] font-bold truncate text-foreground">{item.title}</span>
+                            {item.difficulty && (
+                              <span
+                                className={cn(
+                                  "text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border",
+                                  item.difficulty === "Easy" ? "bg-success/10 border-success/20 text-success" : 
+                                  item.difficulty === "Medium" ? "bg-warning/10 border-warning/20 text-warning" : 
+                                  "bg-destructive/10 border-destructive/20 text-destructive"
+                                )}
+                              >
+                                {item.difficulty}
+                              </span>
+                            )}
+                          </div>
+                          {item.parent && (
+                            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 mt-0.5">{item.parent}</div>
                           )}
                         </div>
-                        {item.parent && (
-                          <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/40 mt-0.5">{item.parent}</div>
-                        )}
-                      </div>
-                    </button>
+                      </button>
+                    </AppTooltip>
                   ))
                 )}
               </div>
@@ -463,16 +465,22 @@ export function AppSidebar() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-black tracking-tight truncate text-foreground" title={userName}>{userName}</div>
-              <div className="text-[10px] font-bold text-muted-foreground/50 truncate uppercase tracking-widest" title={user?.email?.split('@')[0]}>{user?.email?.split('@')[0]}</div>
+              <AppTooltip content={userName} side="top" align="start">
+                <div className="text-[13px] font-black tracking-tight truncate text-foreground">{userName}</div>
+              </AppTooltip>
+              <AppTooltip content={user?.email?.split('@')[0]} side="top" align="start">
+                <div className="text-[10px] font-bold text-muted-foreground/50 truncate uppercase tracking-widest">{user?.email?.split('@')[0]}</div>
+              </AppTooltip>
             </div>
-            <button
-              onClick={signOut}
-              title="Sign out"
-              className="touch-manipulation p-2.5 rounded-xl transition-all hover:bg-destructive/10 text-muted-foreground/40 hover:text-destructive group min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
-            >
-              <LogOut size={16} className="transition-transform group-hover:translate-x-0.5" />
-            </button>
+            <AppTooltip content="Sign out">
+              <button
+                onClick={signOut}
+                aria-label="Sign out"
+                className="touch-manipulation p-2.5 rounded-xl transition-all hover:bg-destructive/10 text-muted-foreground/40 hover:text-destructive group min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
+              >
+                <LogOut size={16} className="transition-transform group-hover:translate-x-0.5" />
+              </button>
+            </AppTooltip>
           </div>
         </div>
 

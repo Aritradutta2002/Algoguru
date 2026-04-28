@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AppTooltip, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -351,53 +351,54 @@ const Sidebar = React.forwardRef<
       </div>
 
       {collapsible === "offcanvas" && state === "collapsed" && !railDismissed && (
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => setOpen(true)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              setOpen(true);
-            }
-          }}
-          title="Expand Sidebar"
-          aria-label="Expand Sidebar"
-          className={cn(
-            "fixed inset-y-0 z-20 hidden w-[--sidebar-rail-width] cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden bg-muted/70 py-4 text-primary transition-all duration-200 hover:bg-muted lg:flex",
-            side === "left"
-              ? "left-0 border-r border-primary/40"
-              : "right-0 border-l border-primary/40",
-          )}
-        >
-          <PanelLeft size={18} className="text-primary" />
-          <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
-            Navigation
-          </span>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setRailDismissed(true);
-            }}
-            title="Hide Navigation Rail"
-            className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
-          >
-            <X size={12} />
-          </button>
-          
+        <AppTooltip content="Expand Sidebar" side="right">
           <div
-            role="presentation"
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              handleMouseDown(e);
+            role="button"
+            tabIndex={0}
+            onClick={() => setOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setOpen(true);
+              }
             }}
-            className="absolute top-0 bottom-0 w-1.5 cursor-col-resize z-20 group/resize hover:bg-primary/10 active:bg-primary/20 transition-colors"
-            style={{ [side === "left" ? "right" : "left"]: "-3px" }}
+            aria-label="Expand Sidebar"
+            className={cn(
+              "fixed inset-y-0 z-20 hidden w-[--sidebar-rail-width] cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden bg-muted/70 py-4 text-primary transition-all duration-200 hover:bg-muted lg:flex",
+              side === "left"
+                ? "left-0 border-r border-primary/40"
+                : "right-0 border-l border-primary/40",
+            )}
           >
-            <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-transparent group-hover/resize:bg-primary/30 transition-colors" />
+            <PanelLeft size={18} className="text-primary" />
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+              Navigation
+            </span>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setRailDismissed(true);
+              }}
+              aria-label="Hide Navigation Rail"
+              className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+            >
+              <X size={12} />
+            </button>
+            
+            <div
+              role="presentation"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                handleMouseDown(e);
+              }}
+              className="absolute top-0 bottom-0 w-1.5 cursor-col-resize z-20 group/resize hover:bg-primary/10 active:bg-primary/20 transition-colors"
+              style={{ [side === "left" ? "right" : "left"]: "-3px" }}
+            >
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-transparent group-hover/resize:bg-primary/30 transition-colors" />
+            </div>
           </div>
-        </div>
+        </AppTooltip>
       )}
     </div>
   );
@@ -439,7 +440,6 @@ const SidebarRail = React.forwardRef<HTMLButtonElement, React.ComponentProps<"bu
         aria-label="Toggle Sidebar"
         tabIndex={-1}
         onClick={toggleSidebar}
-        title="Toggle Sidebar"
         className={cn(
           "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] group-data-[side=left]:-right-4 group-data-[side=right]:left-0 hover:after:bg-sidebar-border sm:flex",
           "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize",

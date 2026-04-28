@@ -31,6 +31,7 @@ import { CodeBlock } from "@/components/CodeBlock";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown } from "@/lib/renderNoteMarkdown";
 import jsPDF from "jspdf";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 type SolutionView = "theory" | "code" | null;
 
@@ -275,16 +276,18 @@ export default function InterviewCoreJavaQuestionsPage() {
                 />
               </div>
 
-              <button
-                onClick={() => setTopicSidebarOpen(v => !v)}
-                className={`px-4 py-2.5 rounded-[22px] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border transition-all ${
-                  topicSidebarOpen ? "bg-primary text-primary-foreground border-primary" : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted"
-                }`}
-                title="Toggle Sidebar"
-              >
-                <BookOpen size={14} />
-                <span className="hidden sm:inline">Topics</span>
-              </button>
+              <AppTooltip content="Toggle Sidebar">
+                <button
+                  onClick={() => setTopicSidebarOpen(v => !v)}
+                  className={`px-4 py-2.5 rounded-[22px] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border transition-all ${
+                    topicSidebarOpen ? "bg-primary text-primary-foreground border-primary" : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted"
+                  }`}
+                  aria-label="Toggle Sidebar"
+                >
+                  <BookOpen size={14} />
+                  <span className="hidden sm:inline">Topics</span>
+                </button>
+              </AppTooltip>
 
               <button
                 onClick={() => setShowOnlyUndone(v => !v)}

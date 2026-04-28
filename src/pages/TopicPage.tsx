@@ -25,6 +25,7 @@ import { ContentSection } from "@/data/recursionContent";
 import { ChevronRight, ChevronLeft, List, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMode } from "@/contexts/ModeContext";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 const dsContentMap: Record<string, ContentSection[]> = {
   arrays: arraysContent,
@@ -198,20 +199,31 @@ export default function TopicPage() {
 
             <div className="flex items-center gap-2 mt-8">
               {content.map((s, i) => (
-                <div
-                  key={i}
-                  className="h-1 rounded-full transition-all duration-300 cursor-pointer"
-                  style={{
-                    background: activeSection === s.id ? color : "hsl(var(--muted)/50%)",
-                    width: activeSection === s.id ? "32px" : "8px",
-                  }}
-                  onClick={() => {
-                    const el = document.getElementById(s.id);
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    setActiveSection(s.id);
-                  }}
-                  title={s.title}
-                />
+                <AppTooltip key={i} content={s.title}>
+                  <div
+                    className="h-1 rounded-full transition-all duration-300 cursor-pointer"
+                    style={{
+                      background: activeSection === s.id ? color : "hsl(var(--muted)/50%)",
+                      width: activeSection === s.id ? "32px" : "8px",
+                    }}
+                    onClick={() => {
+                      const el = document.getElementById(s.id);
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      setActiveSection(s.id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={s.title}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        const el = document.getElementById(s.id);
+                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        setActiveSection(s.id);
+                      }
+                    }}
+                  />
+                </AppTooltip>
               ))}
             </div>
           </div>

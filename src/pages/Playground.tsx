@@ -70,6 +70,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  AppTooltip,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -1848,51 +1849,58 @@ export default function Playground() {
 
   // Run button component (reusable for both normal and fullscreen)
   const RunButton = ({ compact = false }: { compact?: boolean }) => (
-    <button
-      onClick={() => runCode(false)}
-      disabled={isRunning || !code.trim()}
-      className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
-        compact
-          ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
-          : "px-6 py-2.5 text-[11px]"
-      } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
-      title="Run (Ctrl+Enter)"
-    >
-      {isRunning ? (
-        <Loader2 size={14} className="animate-spin" />
-      ) : (
-        <Play size={14} fill="currentColor" strokeWidth={0} />
-      )}
-      {!compact && (isRunning ? "Running..." : "Run")}
-    </button>
+    <AppTooltip content="Run (Ctrl+Enter)">
+      <button
+        onClick={() => runCode(false)}
+        disabled={isRunning || !code.trim()}
+        className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
+          compact
+            ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
+            : "px-6 py-2.5 text-[11px]"
+        } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
+        aria-label="Run code"
+      >
+        {isRunning ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <Play size={14} fill="currentColor" strokeWidth={0} />
+        )}
+        {!compact && (isRunning ? "Running..." : "Run")}
+      </button>
+    </AppTooltip>
   );
 
   // Debug button component
-  const DebugButton = ({ compact = false }: { compact?: boolean }) => (
-    <button
-      onClick={() => runCode(true)}
-      disabled={isRunning || !code.trim() || breakpoints.size === 0}
-      className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
-        compact
-          ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
-          : "px-6 py-2.5 text-[11px]"
-      } ${
-        breakpoints.size > 0
-          ? "bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90"
-          : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
-      }`}
-      title={
-        breakpoints.size > 0
-          ? `Debug with ${breakpoints.size} breakpoint(s)`
-          : "Click line numbers to set breakpoints"
-      }
-    >
-      <Bug size={14} />
-      {!compact && (
-        <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>
-      )}
-    </button>
-  );
+  const DebugButton = ({ compact = false }: { compact?: boolean }) => {
+    const tooltip =
+      breakpoints.size > 0
+        ? `Debug with ${breakpoints.size} breakpoint(s)`
+        : "Click line numbers to set breakpoints";
+
+    return (
+      <AppTooltip content={tooltip}>
+        <button
+          onClick={() => runCode(true)}
+          disabled={isRunning || !code.trim() || breakpoints.size === 0}
+          className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
+            compact
+              ? "h-8 w-8 justify-center rounded-md p-0 text-[10px] shadow-none"
+              : "px-6 py-2.5 text-[11px]"
+          } ${
+            breakpoints.size > 0
+              ? "bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90"
+              : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
+          }`}
+          aria-label={tooltip}
+        >
+          <Bug size={14} />
+          {!compact && (
+            <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>
+          )}
+        </button>
+      </AppTooltip>
+    );
+  };
 
   const guruBotContext = useMemo(() => {
     const problemTheory = Array.isArray(practiceData?.theory)
@@ -2284,21 +2292,23 @@ export default function Playground() {
         {/* Left: Language selector */}
         <div className="flex items-center gap-1 h-full ml-2">
           <div className="relative flex-shrink-0">
-            <button
-              onClick={() => {
-                setShowSettingsMenu(!showSettingsMenu);
-                setSettingsCompilerOpen(true);
-                setSettingsThemeOpen(false);
-              }}
-              title="Change Language"
-              className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
-            >
-              <span>{selectedLanguage.label}</span>
-              <ChevronDown
-                size={14}
-                className={`transition-transform duration-200 ${showSettingsMenu && settingsCompilerOpen ? "rotate-180" : ""}`}
-              />
-            </button>
+            <AppTooltip content="Change Language" side="bottom">
+              <button
+                onClick={() => {
+                  setShowSettingsMenu(!showSettingsMenu);
+                  setSettingsCompilerOpen(true);
+                  setSettingsThemeOpen(false);
+                }}
+                aria-label="Change Language"
+                className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
+              >
+                <span>{selectedLanguage.label}</span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${showSettingsMenu && settingsCompilerOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+            </AppTooltip>
             {showSettingsMenu && (
               <>
                 <div
@@ -2314,7 +2324,7 @@ export default function Playground() {
             <button
               type="button"
               className="w-9 h-9 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-sm italic font-serif font-bold"
-              title={`Compiler Info: ${selectedLanguage.label} ${selectedLanguage.version}`}
+              aria-label={`Compiler Info: ${selectedLanguage.label} ${selectedLanguage.version}`}
             >
               i
             </button>
@@ -2398,27 +2408,31 @@ export default function Playground() {
                             </span>
                           </button>
                           <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditBuiltinTemplate(tmpl);
-                              }}
-                              className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
-                              title="Edit blueprint"
-                            >
-                              <Pencil size={12} />
-                            </button>
-                            {isOverridden && (
+                            <AppTooltip content="Edit blueprint">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleResetBuiltinTemplate(tmpl.prefix);
+                                  openEditBuiltinTemplate(tmpl);
                                 }}
-                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-warning hover:border-warning/30 transition-all shadow-sm"
-                                title="Reset to original"
+                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+                                aria-label="Edit blueprint"
                               >
-                                <RotateCcw size={12} />
+                                <Pencil size={12} />
                               </button>
+                            </AppTooltip>
+                            {isOverridden && (
+                              <AppTooltip content="Reset to original">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleResetBuiltinTemplate(tmpl.prefix);
+                                  }}
+                                  className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-warning hover:border-warning/30 transition-all shadow-sm"
+                                  aria-label="Reset to original"
+                                >
+                                  <RotateCcw size={12} />
+                                </button>
+                              </AppTooltip>
                             )}
                           </div>
                         </div>
@@ -2454,34 +2468,38 @@ export default function Playground() {
                               )}
                             </button>
                             <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openEditTemplate(tmpl);
-                                }}
-                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
-                                title="Edit template"
-                              >
-                                <Pencil size={12} />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteConfirmId(
-                                    tmpl.id === deleteConfirmId
-                                      ? null
-                                      : tmpl.id,
-                                  );
-                                }}
-                                className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all shadow-sm ${deleteConfirmId === tmpl.id ? "bg-destructive text-white border-destructive" : "bg-card border-border/30 text-muted-foreground hover:text-destructive hover:border-destructive/30"}`}
-                                title="Delete template"
-                              >
-                                {deleteConfirmId === tmpl.id ? (
-                                  <Check size={12} />
-                                ) : (
-                                  <Trash2 size={12} />
-                                )}
-                              </button>
+                              <AppTooltip content="Edit template">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditTemplate(tmpl);
+                                  }}
+                                  className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+                                  aria-label="Edit template"
+                                >
+                                  <Pencil size={12} />
+                                </button>
+                              </AppTooltip>
+                              <AppTooltip content="Delete template">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteConfirmId(
+                                      tmpl.id === deleteConfirmId
+                                        ? null
+                                        : tmpl.id,
+                                    );
+                                  }}
+                                  className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all shadow-sm ${deleteConfirmId === tmpl.id ? "bg-destructive text-white border-destructive" : "bg-card border-border/30 text-muted-foreground hover:text-destructive hover:border-destructive/30"}`}
+                                  aria-label="Delete template"
+                                >
+                                  {deleteConfirmId === tmpl.id ? (
+                                    <Check size={12} />
+                                  ) : (
+                                    <Trash2 size={12} />
+                                  )}
+                                </button>
+                              </AppTooltip>
                             </div>
                           </div>
                         ))}
@@ -2576,7 +2594,7 @@ export default function Playground() {
           ROW 2 â€” Tab Bar + Run + Status
       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex items-center border-b flex-shrink-0 select-none"
+        className="relative flex items-center border-b flex-shrink-0 select-none"
         style={{
           background: "hsl(var(--muted)/0.08)",
           borderColor: "hsl(var(--border)/0.2)",
@@ -2601,40 +2619,46 @@ export default function Playground() {
                     : "transparent",
                 }}
               >
-                <button
-                  onClick={() => {
-                    setActiveCodeTabId(tab.id);
-                    setPracticeTab("editor");
-                  }}
-                  className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
-                    isActive
-                      ? "text-foreground border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                  }`}
-                  title={`Switch to ${tab.title}`}
-                >
-                  <Code2 size={13} className="text-primary/70" />
-                  <span>{tab.title}</span>
-                </button>
+                <AppTooltip content={`Switch to ${tab.title}`}>
+                  <button
+                    onClick={() => {
+                      setActiveCodeTabId(tab.id);
+                      setPracticeTab("editor");
+                    }}
+                    className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
+                      isActive
+                        ? "text-foreground border-b-2 border-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                    }`}
+                    aria-label={`Switch to ${tab.title}`}
+                  >
+                    <Code2 size={13} className="text-primary/70" />
+                    <span>{tab.title}</span>
+                  </button>
+                </AppTooltip>
 
                 {!tab.protected && (
-                  <button
-                    onClick={() => closeCodeTab(tab.id)}
-                    className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                    title={`Close ${tab.title}`}
-                  >
-                    <X size={10} />
-                  </button>
+                  <AppTooltip content={`Close ${tab.title}`}>
+                    <button
+                      onClick={() => closeCodeTab(tab.id)}
+                      className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                      aria-label={`Close ${tab.title}`}
+                    >
+                      <X size={10} />
+                    </button>
+                  </AppTooltip>
                 )}
 
                 {tab.id === "solution" && practiceData && (
-                  <button
-                    onClick={() => navigate("/playground")}
-                    className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                    title="Close practice problem"
-                  >
-                    <X size={10} />
-                  </button>
+                  <AppTooltip content="Close practice problem">
+                    <button
+                      onClick={() => navigate("/playground")}
+                      className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                      aria-label="Close practice problem"
+                    >
+                      <X size={10} />
+                    </button>
+                  </AppTooltip>
                 )}
               </div>
             );
@@ -2652,123 +2676,133 @@ export default function Playground() {
                     : "transparent",
               }}
             >
-              <button
-                onClick={() => setPracticeTab("notes")}
-                className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
-                  practiceTab === "notes"
-                    ? "text-amber-400 border-b-2 border-amber-400"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                }`}
-                title="Switch to Notes"
-              >
-                <StickyNote
-                  size={13}
-                  className={
+              <AppTooltip content="Switch to Notes">
+                <button
+                  onClick={() => setPracticeTab("notes")}
+                  className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
                     practiceTab === "notes"
-                      ? "text-amber-400"
-                      : "text-muted-foreground/70"
-                  }
-                />
-                <span>Notes</span>
-              </button>
-              <button
-                onClick={() => {
-                  setNotesTabOpen(false);
-                  if (practiceTab === "notes") setPracticeTab("editor");
-                }}
-                className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                title="Close Notes tab"
-              >
-                <X size={10} />
-              </button>
+                      ? "text-amber-400 border-b-2 border-amber-400"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                  }`}
+                  aria-label="Switch to Notes"
+                >
+                  <StickyNote
+                    size={13}
+                    className={
+                      practiceTab === "notes"
+                        ? "text-amber-400"
+                        : "text-muted-foreground/70"
+                    }
+                  />
+                  <span>Notes</span>
+                </button>
+              </AppTooltip>
+              <AppTooltip content="Close Notes tab">
+                <button
+                  onClick={() => {
+                    setNotesTabOpen(false);
+                    if (practiceTab === "notes") setPracticeTab("editor");
+                  }}
+                  className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
+                  aria-label="Close Notes tab"
+                >
+                  <X size={10} />
+                </button>
+              </AppTooltip>
             </div>
           )}
 
           {/* + new code tab */}
-          <button
-            onClick={openNewCodeTab}
-            title="New code tab"
-            className="flex items-center justify-center w-8 h-full text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all border-r"
-            style={{ borderColor: "hsl(var(--border)/0.2)" }}
-          >
-            <Plus size={13} />
-          </button>
+          <AppTooltip content="New code tab">
+            <button
+              onClick={openNewCodeTab}
+              aria-label="New code tab"
+              className="flex items-center justify-center w-8 h-full text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all border-r"
+              style={{ borderColor: "hsl(var(--border)/0.2)" }}
+            >
+              <Plus size={13} />
+            </button>
+          </AppTooltip>
         </div>
 
         <div className="flex-1" />
 
-        {/* Right status */}
-        <div className="flex items-center gap-0 h-full">
-          {/* Run + Debug + GuruBot */}
-          <div
-            className="flex items-center gap-2.5 px-3 h-full border-l"
-            style={{ borderColor: "hsl(var(--border)/0.2)" }}
-          >
+        {/* Center: Run + Debug */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5 rounded-xl border border-border/20 bg-background/50 px-2 py-1 shadow-lg shadow-black/10 backdrop-blur-md">
+          <div className="pointer-events-auto flex items-center gap-2.5">
             <RunButton compact />
             <DebugButton compact />
           </div>
-          <button
-            onClick={() => {
-              if (!guruBotOpen || guruBotCollapsed) {
-                openGuruBotPanel();
-              } else {
-                setGuruBotOpen(false);
-              }
-            }}
-            className={`flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l transition-all group ${
-              guruBotOpen ? "bg-primary/10 text-primary" : "hover:bg-primary/10"
-            }`}
-            style={{
-              borderColor: "hsl(var(--border)/0.2)",
-              color: "hsl(var(--primary))",
-            }}
-            title={
-              guruBotOpen && !guruBotCollapsed
-                ? "Close GuruBot"
-                : "Open GuruBot"
-            }
-          >
-            <Bot size={13} />
-            <span>GuruBot</span>
-          </button>
+        </div>
+
+        {/* Right status */}
+        <div className="flex items-center gap-0 h-full">
+          <AppTooltip content={guruBotOpen && !guruBotCollapsed ? "Close GuruBot" : "Open GuruBot"}>
+            <button
+              onClick={() => {
+                if (!guruBotOpen || guruBotCollapsed) {
+                  openGuruBotPanel();
+                } else {
+                  setGuruBotOpen(false);
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l transition-all group ${
+                guruBotOpen ? "bg-primary/10 text-primary" : "hover:bg-primary/10"
+              }`}
+              style={{
+                borderColor: "hsl(var(--border)/0.2)",
+                color: "hsl(var(--primary))",
+              }}
+              aria-label={guruBotOpen && !guruBotCollapsed ? "Close GuruBot" : "Open GuruBot"}
+            >
+              <Bot size={13} />
+              <span>GuruBot</span>
+            </button>
+          </AppTooltip>
           <div className="w-px h-4 bg-border/30" />
           {/* Notes button */}
-          <button
-            onClick={() => {
-              setNotesTabOpen(true);
-              setPracticeTab("notes");
-            }}
-            className={`flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l transition-all ${
-              practiceTab === "notes"
-                ? "text-amber-400 bg-amber-400/10"
-                : "text-muted-foreground hover:bg-muted/30"
-            }`}
-            style={{ borderColor: "hsl(var(--border)/0.2)" }}
-            title="Open Notes tab"
-          >
-            <StickyNote size={12} />
-            <span>Notes</span>
-          </button>
+          <AppTooltip content="Open Notes tab">
+            <button
+              onClick={() => {
+                setNotesTabOpen(true);
+                setPracticeTab("notes");
+              }}
+              className={`flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l transition-all ${
+                practiceTab === "notes"
+                  ? "text-amber-400 bg-amber-400/10"
+                  : "text-muted-foreground hover:bg-muted/30"
+              }`}
+              style={{ borderColor: "hsl(var(--border)/0.2)" }}
+              aria-label="Open Notes tab"
+            >
+              <StickyNote size={12} />
+              <span>Notes</span>
+            </button>
+          </AppTooltip>
           <div className="w-px h-4 bg-border/30" />
 
           {/* Hint */}
-          <button
-            className="flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l text-amber-400/80 hover:bg-amber-400/10 hover:text-amber-400 transition-all"
-            style={{ borderColor: "hsl(var(--border)/0.2)" }}
-            title="Hint"
-          >
-            <Lightbulb size={12} />
-            <span>Hint</span>
-          </button>
+          <AppTooltip content="Hint">
+            <button
+              className="flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l text-amber-400/80 hover:bg-amber-400/10 hover:text-amber-400 transition-all"
+              style={{ borderColor: "hsl(var(--border)/0.2)" }}
+              aria-label="Hint"
+            >
+              <Lightbulb size={12} />
+              <span>Hint</span>
+            </button>
+          </AppTooltip>
           <div className="w-px h-4 bg-border/30" />
           {/* Lock */}
-          <button
-            className="flex items-center justify-center w-8 h-full border-l text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all"
-            style={{ borderColor: "hsl(var(--border)/0.2)" }}
-            title="Lock editor"
-          >
-            <Lock size={12} />
-          </button>
+          <AppTooltip content="Lock editor">
+            <button
+              className="flex items-center justify-center w-8 h-full border-l text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all"
+              style={{ borderColor: "hsl(var(--border)/0.2)" }}
+              aria-label="Lock editor"
+            >
+              <Lock size={12} />
+            </button>
+          </AppTooltip>
           {/* Ln/Col */}
           <div
             className="flex items-center px-3 h-full border-l text-[11px] font-mono text-muted-foreground/50"
@@ -3107,32 +3141,42 @@ export default function Playground() {
                 }}
               >
                 {ioCollapsed && !isMobile ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      expandIOPanel(
-                        guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
-                      )
-                    }
-                    title="Expand input and output"
-                    className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
-                  >
-                    <Keyboard size={18} className="text-primary" />
-                    <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
-                      Input / Output
-                    </span>
+                  <AppTooltip content="Expand input and output" side="left">
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        closeIOPanel();
-                      }}
-                      title="Close Input / Output"
-                      className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                      onClick={() =>
+                        expandIOPanel(
+                          guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
+                        )
+                      }
+                      aria-label="Expand input and output"
+                      className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
                     >
-                      <X size={12} />
+                      <Keyboard size={18} className="text-primary" />
+                      <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+                        Input / Output
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          closeIOPanel();
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            closeIOPanel();
+                          }
+                        }}
+                        aria-label="Close Input / Output"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                      >
+                        <X size={12} />
+                      </span>
                     </button>
-                  </button>
+                  </AppTooltip>
                 ) : (
                   <ResizablePanelGroup
                     direction="vertical"
@@ -3242,35 +3286,37 @@ export default function Playground() {
                 onCollapse={() => setGuruBotCollapsed(true)}
               >
                 {guruBotCollapsed ? (
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => openGuruBotPanel()}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        openGuruBotPanel();
-                      }
-                    }}
-                    title="Expand GuruBot"
-                    className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
-                  >
-                    <Bot size={18} className="text-primary" />
-                    <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
-                      GuruBot
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setGuruBotOpen(false);
+                  <AppTooltip content="Expand GuruBot" side="left">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openGuruBotPanel()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          openGuruBotPanel();
+                        }
                       }}
-                      title="Close GuruBot"
-                      className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                      aria-label="Expand GuruBot"
+                      className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
                     >
-                      <X size={12} />
-                    </button>
-                  </div>
+                      <Bot size={18} className="text-primary" />
+                      <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+                        GuruBot
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setGuruBotOpen(false);
+                        }}
+                        aria-label="Close GuruBot"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  </AppTooltip>
                 ) : (
                   <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-background">
                     <GuruBot

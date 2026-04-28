@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Heart, ExternalLink, Sparkles, Coffee, Zap, CreditCard } from "lucide-react";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 // ── CONFIG — Read from .env file ─────────────────────────────────────────────
 const UPI_ID = import.meta.env.VITE_UPI_ID || "your-upi@id";
@@ -64,18 +65,20 @@ function CopyButton({ text }: { text: string }) {
     });
   };
   return (
-    <button
-      onClick={handleCopy}
-      title="Copy"
-      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
-        copied 
-          ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
-          : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-      }`}
-    >
-      {copied ? <Check size={12} /> : <Copy size={12} />}
-      {copied ? "Copied!" : "Copy"}
-    </button>
+    <AppTooltip content={copied ? "Copied!" : "Copy"}>
+      <button
+        onClick={handleCopy}
+        aria-label="Copy"
+        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+          copied 
+            ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
+            : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+        }`}
+      >
+        {copied ? <Check size={12} /> : <Copy size={12} />}
+        {copied ? "Copied!" : "Copy"}
+      </button>
+    </AppTooltip>
   );
 }
 

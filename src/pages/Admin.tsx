@@ -4,6 +4,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Users, BarChart3, Shield, Trash2, Loader2, UserCog, Ban, ShieldCheck } from "lucide-react";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 interface UserEntry {
   id: string;
@@ -290,29 +291,35 @@ function UsersTab({
                     {!isAdminUser && (
                       <div className="flex items-center justify-end gap-2">
                         {banned ? (
-                          <button
-                            onClick={() => onUnban(user.id)}
-                            className="p-2.5 rounded-xl transition-all bg-success/5 text-success hover:bg-success/20 border border-success/10"
-                            title="Unban user"
-                          >
-                            <ShieldCheck size={16} />
-                          </button>
+                          <AppTooltip content="Unban user">
+                            <button
+                              onClick={() => onUnban(user.id)}
+                              className="p-2.5 rounded-xl transition-all bg-success/5 text-success hover:bg-success/20 border border-success/10"
+                              aria-label="Unban user"
+                            >
+                              <ShieldCheck size={16} />
+                            </button>
+                          </AppTooltip>
                         ) : (
-                          <button
-                            onClick={() => onBan(user.id, user.email)}
-                            className="p-2.5 rounded-xl transition-all bg-warning/5 text-warning hover:bg-warning/20 border border-warning/10"
-                            title="Ban user"
-                          >
-                            <Ban size={16} />
-                          </button>
+                          <AppTooltip content="Ban user">
+                            <button
+                              onClick={() => onBan(user.id, user.email)}
+                              className="p-2.5 rounded-xl transition-all bg-warning/5 text-warning hover:bg-warning/20 border border-warning/10"
+                              aria-label="Ban user"
+                            >
+                              <Ban size={16} />
+                            </button>
+                          </AppTooltip>
                         )}
-                        <button
-                          onClick={() => onDelete(user.id, user.email)}
-                          className="p-2.5 rounded-xl transition-all bg-destructive/5 text-destructive hover:bg-destructive/20 border border-destructive/10"
-                          title="Delete user"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <AppTooltip content="Delete user">
+                          <button
+                            onClick={() => onDelete(user.id, user.email)}
+                            className="p-2.5 rounded-xl transition-all bg-destructive/5 text-destructive hover:bg-destructive/20 border border-destructive/10"
+                            aria-label="Delete user"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </AppTooltip>
                       </div>
                     )}
                   </td>

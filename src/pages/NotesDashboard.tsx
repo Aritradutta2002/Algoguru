@@ -26,6 +26,7 @@ import jsPDF from "jspdf";
 import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { motion, AnimatePresence } from "framer-motion";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 type NoteSource = "core-java" | "practice";
 
@@ -734,23 +735,31 @@ export default function NotesDashboard() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <button onClick={() => openNoteModal(entry, false)} className="p-3 rounded-2xl bg-muted/30 text-primary hover:bg-primary/10 transition-all" title="View">
-                          <Eye size={18} />
-                        </button>
-                        <button onClick={() => openNoteModal(entry, true)} className="p-3 rounded-2xl bg-muted/30 text-warning hover:bg-warning/10 transition-all" title="Edit">
-                          <PencilLine size={18} />
-                        </button>
-                        <button onClick={() => downloadSingleNotePDF(entry)} className="p-3 rounded-2xl bg-muted/30 text-success hover:bg-success/10 transition-all" title="Download">
-                          <Download size={18} />
-                        </button>
-                        <button 
-                          onClick={() => deleteNote(entry)} 
-                          disabled={deletingId === noteId}
-                          className="p-3 rounded-2xl bg-muted/30 text-destructive hover:bg-destructive/10 transition-all" 
-                          title="Delete"
-                        >
-                          {deletingId === noteId ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
-                        </button>
+                        <AppTooltip content="View">
+                          <button onClick={() => openNoteModal(entry, false)} className="p-3 rounded-2xl bg-muted/30 text-primary hover:bg-primary/10 transition-all" aria-label="View note">
+                            <Eye size={18} />
+                          </button>
+                        </AppTooltip>
+                        <AppTooltip content="Edit">
+                          <button onClick={() => openNoteModal(entry, true)} className="p-3 rounded-2xl bg-muted/30 text-warning hover:bg-warning/10 transition-all" aria-label="Edit note">
+                            <PencilLine size={18} />
+                          </button>
+                        </AppTooltip>
+                        <AppTooltip content="Download">
+                          <button onClick={() => downloadSingleNotePDF(entry)} className="p-3 rounded-2xl bg-muted/30 text-success hover:bg-success/10 transition-all" aria-label="Download note">
+                            <Download size={18} />
+                          </button>
+                        </AppTooltip>
+                        <AppTooltip content="Delete">
+                          <button 
+                            onClick={() => deleteNote(entry)} 
+                            disabled={deletingId === noteId}
+                            className="p-3 rounded-2xl bg-muted/30 text-destructive hover:bg-destructive/10 transition-all" 
+                            aria-label="Delete note"
+                          >
+                            {deletingId === noteId ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                          </button>
+                        </AppTooltip>
                       </div>
                     </div>
 

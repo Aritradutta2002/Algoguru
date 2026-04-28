@@ -1,5 +1,6 @@
 import { useRef } from "react";
-import { Bold, Italic, Underline, Heading2, List, ListOrdered, Code, Undo2 } from "lucide-react";
+import { Bold, Italic, Underline, Heading2, List, ListOrdered, Code } from "lucide-react";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 interface RichTextNoteEditorProps {
   value: string;
@@ -71,63 +72,77 @@ export default function RichTextNoteEditor({
     <div className="border-2 border-border bg-background" style={{ boxShadow: "inset 2px 2px 0px 0px hsl(var(--border))" }}>
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border flex-wrap" style={{ background: "hsl(var(--muted)/0.2)" }}>
-        <button
-          type="button"
-          onClick={() => applyFormat("**", "**")}
-          className={toolbarBtnClass}
-          title="Bold (Ctrl+B)"
-        >
-          <Bold size={13} style={{ color: "hsl(var(--foreground))" }} />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyFormat("*", "*")}
-          className={toolbarBtnClass}
-          title="Italic (Ctrl+I)"
-        >
-          <Italic size={13} style={{ color: "hsl(var(--foreground))" }} />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyFormat("__", "__")}
-          className={toolbarBtnClass}
-          title="Underline"
-        >
-          <Underline size={13} style={{ color: "hsl(var(--foreground))" }} />
-        </button>
+        <AppTooltip content="Bold (Ctrl+B)">
+          <button
+            type="button"
+            onClick={() => applyFormat("**", "**")}
+            className={toolbarBtnClass}
+            aria-label="Bold"
+          >
+            <Bold size={13} style={{ color: "hsl(var(--foreground))" }} />
+          </button>
+        </AppTooltip>
+        <AppTooltip content="Italic (Ctrl+I)">
+          <button
+            type="button"
+            onClick={() => applyFormat("*", "*")}
+            className={toolbarBtnClass}
+            aria-label="Italic"
+          >
+            <Italic size={13} style={{ color: "hsl(var(--foreground))" }} />
+          </button>
+        </AppTooltip>
+        <AppTooltip content="Underline">
+          <button
+            type="button"
+            onClick={() => applyFormat("__", "__")}
+            className={toolbarBtnClass}
+            aria-label="Underline"
+          >
+            <Underline size={13} style={{ color: "hsl(var(--foreground))" }} />
+          </button>
+        </AppTooltip>
         <div className="w-px h-4 mx-1" style={{ background: "hsl(var(--border))" }} />
-        <button
-          type="button"
-          onClick={() => applyInsert("# ")}
-          className={toolbarBtnClass}
-          title="Heading"
-        >
-          <Heading2 size={13} style={{ color: "hsl(var(--foreground))" }} />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyInsert("- ")}
-          className={toolbarBtnClass}
-          title="Bullet list"
-        >
-          <List size={13} style={{ color: "hsl(var(--foreground))" }} />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyInsert("1. ")}
-          className={toolbarBtnClass}
-          title="Numbered list"
-        >
-          <ListOrdered size={13} style={{ color: "hsl(var(--foreground))" }} />
-        </button>
-        <button
-          type="button"
-          onClick={() => applyFormat("`", "`")}
-          className={toolbarBtnClass}
-          title="Inline code"
-        >
-          <Code size={13} style={{ color: "hsl(var(--foreground))" }} />
-        </button>
+        <AppTooltip content="Heading">
+          <button
+            type="button"
+            onClick={() => applyInsert("# ")}
+            className={toolbarBtnClass}
+            aria-label="Heading"
+          >
+            <Heading2 size={13} style={{ color: "hsl(var(--foreground))" }} />
+          </button>
+        </AppTooltip>
+        <AppTooltip content="Bullet list">
+          <button
+            type="button"
+            onClick={() => applyInsert("- ")}
+            className={toolbarBtnClass}
+            aria-label="Bullet list"
+          >
+            <List size={13} style={{ color: "hsl(var(--foreground))" }} />
+          </button>
+        </AppTooltip>
+        <AppTooltip content="Numbered list">
+          <button
+            type="button"
+            onClick={() => applyInsert("1. ")}
+            className={toolbarBtnClass}
+            aria-label="Numbered list"
+          >
+            <ListOrdered size={13} style={{ color: "hsl(var(--foreground))" }} />
+          </button>
+        </AppTooltip>
+        <AppTooltip content="Inline code">
+          <button
+            type="button"
+            onClick={() => applyFormat("`", "`")}
+            className={toolbarBtnClass}
+            aria-label="Inline code"
+          >
+            <Code size={13} style={{ color: "hsl(var(--foreground))" }} />
+          </button>
+        </AppTooltip>
         <div className="flex-1" />
         <span className="text-[9px] font-mono" style={{ color: "hsl(var(--muted-foreground))" }}>
           **bold** *italic* __underline__ `code`

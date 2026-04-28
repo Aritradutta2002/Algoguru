@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppTooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -175,22 +175,25 @@ function SearchButton() {
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        title="Search topics (Ctrl+K)"
-        className="touch-manipulation flex items-center gap-2.5 px-4 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 border border-border/40 bg-muted/30 text-foreground rounded-[20px] transition-all duration-300 hover:bg-muted/50 hover:border-primary/30 active:scale-95 w-auto sm:w-48 md:w-64 group justify-center sm:justify-start"
-      >
-        <Search size={14} strokeWidth={2.5} className="text-muted-foreground group-hover:text-primary transition-colors" />
-        <span className="hidden sm:inline-block flex-1 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
-          <span className="sm:inline md:hidden">Search...</span>
-          <span className="hidden md:inline">Search AlgoGuru...</span>
-        </span>
-        <kbd
-          className="hidden md:flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border border-border/30 bg-background/50 text-muted-foreground/40"
+      <AppTooltip content="Search topics (Ctrl+K)">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Search topics"
+          data-search-trigger="true"
+          className="touch-manipulation flex items-center gap-2.5 px-4 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 border border-border/40 bg-muted/30 text-foreground rounded-[20px] transition-all duration-300 hover:bg-muted/50 hover:border-primary/30 active:scale-95 w-auto sm:w-48 md:w-64 group justify-center sm:justify-start"
         >
-          ⌘K
-        </kbd>
-      </button>
+          <Search size={14} strokeWidth={2.5} className="text-muted-foreground group-hover:text-primary transition-colors" />
+          <span className="hidden sm:inline-block flex-1 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
+            <span className="sm:inline md:hidden">Search...</span>
+            <span className="hidden md:inline">Search AlgoGuru...</span>
+          </span>
+          <kbd
+            className="hidden md:flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border border-border/30 bg-background/50 text-muted-foreground/40"
+          >
+            ⌘K
+          </kbd>
+        </button>
+      </AppTooltip>
 
       {open && createPortal(
         <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999 }} onClick={() => setOpen(false)}>
@@ -357,55 +360,61 @@ function HeaderControls() {
     <div className="flex items-center gap-1 md:gap-3">
       {/* Zoom controls */}
       <div className="flex items-center gap-0.5 p-1 rounded-xl bg-muted/20 border border-border/30">
-        <button
-          onClick={decreaseFontSize}
-          disabled={isMin}
-          title="Zoom out"
-          className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
-        >
-          <ZoomOut size={14} />
-        </button>
+        <AppTooltip content="Zoom out">
+          <button
+            onClick={decreaseFontSize}
+            disabled={isMin}
+            aria-label="Zoom out"
+            className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
+          >
+            <ZoomOut size={14} />
+          </button>
+        </AppTooltip>
         <span className="hidden md:inline-block text-[10px] font-black min-w-[32px] text-center text-foreground/60">
           {ZOOM_MAP[fontSize] || "100%"}
         </span>
-        <button
-          onClick={increaseFontSize}
-          disabled={isMax}
-          title="Zoom in"
-          className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
-        >
-          <ZoomIn size={14} />
-        </button>
+        <AppTooltip content="Zoom in">
+          <button
+            onClick={increaseFontSize}
+            disabled={isMax}
+            aria-label="Zoom in"
+            className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
+          >
+            <ZoomIn size={14} />
+          </button>
+        </AppTooltip>
       </div>
 
       <div className="w-px h-4 mx-1.5 bg-border/30" />
 
       {/* Day/Night Toggle */}
-      <button
-        onClick={toggleTheme}
-        title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        className={`touch-manipulation relative flex items-center gap-2 px-3 py-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border active:scale-95 ${
-          isDark 
-            ? "bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]" 
-            : "bg-[#1a1a1a] border-white/10 text-white shadow-xl shadow-black/20"
-        }`}
-      >
-        {isDark ? (
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] flex items-center justify-center">
-              <span className="text-[8px]">☀️</span>
+      <AppTooltip content={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+        <button
+          onClick={toggleTheme}
+          aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          className={`touch-manipulation relative flex items-center gap-2 px-3 py-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border active:scale-95 ${
+            isDark 
+              ? "bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]" 
+              : "bg-[#1a1a1a] border-white/10 text-white shadow-xl shadow-black/20"
+          }`}
+        >
+          {isDark ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] flex items-center justify-center">
+                <span className="text-[8px]">☀️</span>
+              </div>
+              <span className="hidden md:inline">Day</span>
             </div>
-            <span className="hidden md:inline">Day</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
-              <span className="text-[8px]">🌙</span>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
+                <span className="text-[8px]">🌙</span>
+              </div>
+              <span className="hidden md:inline">Night</span>
             </div>
-            <span className="hidden md:inline">Night</span>
-          </div>
-        )}
-      </button>
+          )}
+        </button>
+      </AppTooltip>
     </div>
   );
 }
@@ -554,38 +563,52 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               background: "hsl(var(--background) / 0.98)",
             }}
           >
-            <SidebarTrigger
-              className="flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30 flex-shrink-0"
-              style={{ color: "hsl(var(--foreground))" }}
-              title="Toggle Sidebar (Ctrl+B)"
-            >
-              <Menu size={18} />
-            </SidebarTrigger>
+            <AppTooltip content="Toggle Sidebar (Ctrl+B)">
+              <SidebarTrigger
+                className="flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30 flex-shrink-0"
+                style={{ color: "hsl(var(--foreground))" }}
+                aria-label="Toggle Sidebar"
+              >
+                <Menu size={18} />
+              </SidebarTrigger>
+            </AppTooltip>
             
-            <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95 flex-shrink-0"
-              onClick={() => window.location.href="/"}
-              title="Go to Home"
-            >
-              <div className="relative flex-shrink-0 w-8 h-8">
-                <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <AlgoGuruLogo size={32} showText={false} className="relative z-10 block w-full h-auto" />
+            <AppTooltip content="Go to Home">
+              <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95 flex-shrink-0"
+                onClick={() => window.location.href="/"}
+                role="button"
+                tabIndex={0}
+                aria-label="Go to Home"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    window.location.href = "/";
+                  }
+                }}
+              >
+                <div className="relative flex-shrink-0 w-8 h-8">
+                  <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <AlgoGuruLogo size={32} showText={false} className="relative z-10 block w-full h-auto" />
+                </div>
+                <span className="hidden sm:inline text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
+                  AlgoGuru
+                </span>
               </div>
-              <span className="hidden sm:inline text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
-                AlgoGuru
-              </span>
-            </div>
+            </AppTooltip>
             
             <div className="flex-1 min-w-0" />
 
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
               {/* Mobile: Show search icon button only */}
-              <button
-                onClick={() => document.querySelector<HTMLButtonElement>('[title="Search topics (Ctrl+K)"]')?.click()}
-                className="sm:hidden touch-manipulation flex items-center justify-center w-11 h-11 rounded-2xl transition-all duration-300 border border-border/30 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
-                title="Search"
-              >
-                <Search size={18} />
-              </button>
+              <AppTooltip content="Search">
+                <button
+                  onClick={() => document.querySelector<HTMLButtonElement>('[data-search-trigger="true"]')?.click()}
+                  className="sm:hidden touch-manipulation flex items-center justify-center w-11 h-11 rounded-2xl transition-all duration-300 border border-border/30 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
+                  aria-label="Search"
+                >
+                  <Search size={18} />
+                </button>
+              </AppTooltip>
               {/* Desktop: Show full search bar */}
               <div className="hidden sm:block">
                 <SearchButton />
@@ -597,18 +620,20 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="hidden sm:block h-6 w-px bg-border/20" />
               <UserMenu />
               <div className="h-6 w-px bg-border/20" />
-              <button
-                onClick={toggleGuruPanel}
-                title={guruOpen ? "Close Guru" : "Open Guru"}
-                className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${
-                  guruOpen 
-                    ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
-                    : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
-                }`}
-              >
-                <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
-                <span className="hidden sm:inline">Guru</span>
-              </button>
+              <AppTooltip content={guruOpen ? "Close Guru" : "Open Guru"}>
+                <button
+                  onClick={toggleGuruPanel}
+                  aria-label={guruOpen ? "Close Guru" : "Open Guru"}
+                  className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${
+                    guruOpen 
+                      ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
+                      : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
+                  }`}
+                >
+                  <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
+                  <span className="hidden sm:inline">Guru</span>
+                </button>
+              </AppTooltip>
             </div>
           </header>
 
@@ -724,6 +749,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   {guruCollapsed ? (
+                    <AppTooltip content="Expand Guru AI Assistant" side="left">
                     <div
                       role="button"
                       tabIndex={0}
@@ -734,7 +760,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                           expandGuruPanel();
                         }
                       }}
-                      title="Expand Guru AI Assistant"
+                      aria-label="Expand Guru AI Assistant"
                       className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
                     >
                       <Sparkles size={18} className="text-primary" />
@@ -747,12 +773,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                           e.stopPropagation();
                           setGuruOpen(false);
                         }}
-                        title="Close Guru"
+                        aria-label="Close Guru"
                         className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
                       >
                         <X size={12} />
                       </button>
                     </div>
+                    </AppTooltip>
                   ) : (
                     <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border/30 bg-background">
                       {!isTiny && (
@@ -778,37 +805,43 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                               AI
                             </span>
                           )}
-                          <button
-                            onClick={() => expandGuruPanel(GURU_PANEL_MAX_SIZE)}
-                            className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                            title="Maximize Guru Panel"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="15 3 21 3 21 9"></polyline>
-                              <polyline points="9 21 3 21 3 15"></polyline>
-                              <line x1="21" y1="3" x2="14" y2="10"></line>
-                              <line x1="3" y1="21" x2="10" y2="14"></line>
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => expandGuruPanel(GURU_PANEL_DEFAULT_SIZE)}
-                            className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                            title="Restore Default Split"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="4 14 10 14 10 20"></polyline>
-                              <polyline points="20 10 14 10 14 4"></polyline>
-                              <line x1="14" y1="10" x2="21" y2="3"></line>
-                              <line x1="3" y1="21" x2="10" y2="14"></line>
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => setGuruOpen(false)}
-                            className="touch-manipulation flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                            title="Close Guru"
-                          >
-                            <X size={14} />
-                          </button>
+                          <AppTooltip content="Maximize Guru Panel">
+                            <button
+                              onClick={() => expandGuruPanel(GURU_PANEL_MAX_SIZE)}
+                              className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                              aria-label="Maximize Guru Panel"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <polyline points="9 21 3 21 3 15"></polyline>
+                                <line x1="21" y1="3" x2="14" y2="10"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                              </svg>
+                            </button>
+                          </AppTooltip>
+                          <AppTooltip content="Restore Default Split">
+                            <button
+                              onClick={() => expandGuruPanel(GURU_PANEL_DEFAULT_SIZE)}
+                              className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                              aria-label="Restore Default Split"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="4 14 10 14 10 20"></polyline>
+                                <polyline points="20 10 14 10 14 4"></polyline>
+                                <line x1="14" y1="10" x2="21" y2="3"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                              </svg>
+                            </button>
+                          </AppTooltip>
+                          <AppTooltip content="Close Guru">
+                            <button
+                              onClick={() => setGuruOpen(false)}
+                              className="touch-manipulation flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                              aria-label="Close Guru"
+                            >
+                              <X size={14} />
+                            </button>
+                          </AppTooltip>
                         </div>
                       )}
                       <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
@@ -834,13 +867,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile floating menu button (only on small screens where HeaderControls is hidden) */}
       {isSmallMobile && !guruOpen && (
         <>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/30 flex items-center justify-center transition-all duration-300 active:scale-95 border-2 border-primary/20"
-            title="Settings"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Sun size={20} />}
-          </button>
+          <AppTooltip content="Settings" side="left">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/30 flex items-center justify-center transition-all duration-300 active:scale-95 border-2 border-primary/20"
+              aria-label="Settings"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Sun size={20} />}
+            </button>
+          </AppTooltip>
           
           {mobileMenuOpen && (
             <div 
