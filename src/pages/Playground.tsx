@@ -69,6 +69,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -1520,6 +1526,13 @@ export default function Playground() {
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       runCode();
     });
+
+    editor.addCommand(
+      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
+      () => {
+        formatCode();
+      },
+    );
   };
 
   const formatCode = useCallback(async () => {
@@ -2269,7 +2282,7 @@ export default function Playground() {
         }}
       >
         {/* Left: Language selector */}
-        <div className="flex items-center gap-1 h-full">
+        <div className="flex items-center gap-1 h-full ml-2">
           <div className="relative flex-shrink-0">
             <button
               onClick={() => {
@@ -2277,11 +2290,12 @@ export default function Playground() {
                 setSettingsCompilerOpen(true);
                 setSettingsThemeOpen(false);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
+              title="Change Language"
+              className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
             >
               <span>{selectedLanguage.label}</span>
               <ChevronDown
-                size={11}
+                size={14}
                 className={`transition-transform duration-200 ${showSettingsMenu && settingsCompilerOpen ? "rotate-180" : ""}`}
               />
             </button>
@@ -2299,8 +2313,8 @@ export default function Playground() {
           <div className="relative group flex-shrink-0">
             <button
               type="button"
-              className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-[11px] italic font-serif font-bold"
-              title={`${selectedLanguage.label} version: ${selectedLanguage.version}`}
+              className="w-9 h-9 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-sm italic font-serif font-bold"
+              title={`Compiler Info: ${selectedLanguage.label} ${selectedLanguage.version}`}
             >
               i
             </button>
@@ -2317,16 +2331,23 @@ export default function Playground() {
         </div>
 
         {/* Right: icon toolbar */}
-        <div className="flex items-center gap-1.5 h-full mr-4">
-          {/* Templates */}
-          <div className="relative">
-            <button
-              onClick={() => setShowTemplateMenu(!showTemplateMenu)}
-              title="Templates"
-              className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
-            >
-              <FileCode size={18} />
-            </button>
+        <div className="flex items-center gap-2 h-full mr-6">
+          <TooltipProvider delayDuration={300}>
+            {/* Templates */}
+            <div className="relative flex h-full items-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setShowTemplateMenu(!showTemplateMenu)}
+                    className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
+                  >
+                    <FileCode size={18} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
+                  <p>Templates</p>
+                </TooltipContent>
+              </Tooltip>
             {showTemplateMenu && (
               <>
                 <div
@@ -2480,49 +2501,74 @@ export default function Playground() {
               </>
             )}
           </div>
-          <button
-            onClick={formatCode}
-            title="Format code"
-            className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all font-medium text-sm"
-          >
-            {isFormatted ? (
-              <>
-                <Check size={16} className="text-primary" />
-                <span className="text-primary hidden sm:inline-block">Formatted</span>
-              </>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={16} height={16} fill="currentColor">
-                <path d="M64 128C64 92.7 92.7 64 128 64L416 64C451.3 64 480 92.7 480 128L496 128C540.2 128 576 163.8 576 208L576 304C576 348.2 540.2 384 496 384L336 384C327.2 384 320 391.2 320 400L320 418.7C338.6 425.3 352 443.1 352 464L352 560C352 586.5 330.5 608 304 608L272 608C245.5 608 224 586.5 224 560L224 464C224 443.1 237.4 425.3 256 418.7L256 400C256 355.8 291.8 320 336 320L496 320C504.8 320 512 312.8 512 304L512 208C512 199.2 504.8 192 496 192L480 192C480 227.3 451.3 256 416 256L128 256C92.7 256 64 227.3 64 192L64 128z"/>
-              </svg>
-            )}
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={formatCode}
+                className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all font-medium text-sm"
+              >
+                {isFormatted ? (
+                  <>
+                    <Check size={16} className="text-primary" />
+                    <span className="text-primary hidden sm:inline-block">Formatted</span>
+                  </>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={16} height={16} fill="currentColor">
+                    <path d="M64 128C64 92.7 92.7 64 128 64L416 64C451.3 64 480 92.7 480 128L496 128C540.2 128 576 163.8 576 208L576 304C576 348.2 540.2 384 496 384L336 384C327.2 384 320 391.2 320 400L320 418.7C338.6 425.3 352 443.1 352 464L352 560C352 586.5 330.5 608 304 608L272 608C245.5 608 224 586.5 224 560L224 464C224 443.1 237.4 425.3 256 418.7L256 400C256 355.8 291.8 320 336 320L496 320C504.8 320 512 312.8 512 304L512 208C512 199.2 504.8 192 496 192L480 192C480 227.3 451.3 256 416 256L128 256C92.7 256 64 227.3 64 192L64 128z"/>
+                  </svg>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
+              <p>Format Code (Shift+Alt+F)</p>
+            </TooltipContent>
+          </Tooltip>
 
-          <button
-            onClick={() => resetCode()}
-            title="Reset code"
-            className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all"
-          >
-            <RotateCcw size={16} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => resetCode()}
+                className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all"
+              >
+                <RotateCcw size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
+              <p>Reset Code</p>
+            </TooltipContent>
+          </Tooltip>
           <div className="w-px h-5 bg-border/30 mx-1" />
-          <button
-            onClick={toggleFullscreen}
-            title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-            className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
-          >
-            {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-          </button>
-          <button
-            onClick={() => {
-              setShowSettingsMenu((v) => !v);
-              setSettingsCompilerOpen(false);
-              setSettingsThemeOpen(false);
-            }}
-            title="Settings"
-            className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && !settingsCompilerOpen ? "text-primary bg-primary/10" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40"}`}
-          >
-            <Settings size={16} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleFullscreen}
+                className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
+              >
+                {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
+              <p>{isFullscreen ? "Exit Fullscreen (F11)" : "Toggle Fullscreen (F11)"}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  setShowSettingsMenu((v) => !v);
+                  setSettingsCompilerOpen(false);
+                  setSettingsThemeOpen(false);
+                }}
+                className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && !settingsCompilerOpen ? "text-primary bg-primary/10" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40"}`}
+              >
+                <Settings size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
+              <p>Settings</p>
+            </TooltipContent>
+          </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
