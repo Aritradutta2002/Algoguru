@@ -43,6 +43,8 @@ import {
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import * as prettier from "prettier/standalone";
+import prettierPluginJava from "prettier-plugin-java";
+import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
 import {
   ResizablePanelGroup,
@@ -1527,128 +1529,17 @@ export default function Playground() {
 
     if (selectedLanguage.language === "java") {
       try {
-        // Use Google Java Format API
-        const response = await fetch(
-          "https://java-format-api.vercel.app/api/format",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code: raw }),
-          },
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.formatted) {
-            setCode(data.formatted);
-            setOutput("âœ“ Code formatted with Google Java Format");
-            setTimeout(() => setOutput(""), 2000);
-            return;
-          }
-        }
-
-        // If API fails, use fallback formatter
-        throw new Error("API formatting failed");
+        const formatted = await prettier.format(raw, {
+          parser: "java",
+          plugins: [prettierPluginJava],
+        });
+        setCode(formatted);
+        setOutput("✓ Code formatted successfully");
+        setTimeout(() => setOutput(""), 2000);
       } catch (error) {
-        console.error("Google Java Format API error:", error);
-
-        // Fallback: Enhanced Java formatting with proper indentation
-        try {
-          const lines = raw.split("\n");
-          const formattedJava = [];
-          let indent = 0;
-          let inMultilineComment = false;
-          let consecutiveBlankLines = 0;
-
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const trimmed = line.trim();
-
-            // Handle empty lines - max 1 consecutive
-            if (!trimmed) {
-              consecutiveBlankLines++;
-              if (consecutiveBlankLines <= 1 && formattedJava.length > 0) {
-                const prevLine = formattedJava[formattedJava.length - 1];
-                if (
-                  !prevLine.trim().endsWith("{") &&
-                  !prevLine.trim().endsWith("*/")
-                ) {
-                  formattedJava.push("");
-                }
-              }
-              continue;
-            }
-
-            consecutiveBlankLines = 0;
-
-            // Handle multi-line comments
-            if (trimmed.startsWith("/*")) inMultilineComment = true;
-            if (inMultilineComment) {
-              formattedJava.push("    ".repeat(indent) + trimmed);
-              if (trimmed.endsWith("*/")) inMultilineComment = false;
-              continue;
-            }
-
-            // Handle single-line comments
-            if (trimmed.startsWith("//")) {
-              formattedJava.push("    ".repeat(indent) + trimmed);
-              continue;
-            }
-
-            // Handle annotations
-            if (trimmed.startsWith("@")) {
-              formattedJava.push("    ".repeat(indent) + trimmed);
-              continue;
-            }
-
-            // Handle package and import statements
-            if (
-              trimmed.startsWith("package ") ||
-              trimmed.startsWith("import ")
-            ) {
-              formattedJava.push(trimmed);
-              continue;
-            }
-
-            // Count closing braces at start
-            const startClosers = (trimmed.match(/^[}]+/g) || [""])[0].length;
-            let currentIndent = Math.max(0, indent - startClosers);
-
-            // Handle case/default labels
-            if (trimmed.match(/^(case\s+.*:|default\s*:)/)) {
-              currentIndent = Math.max(0, indent - 1);
-            }
-
-            // Apply indentation
-            formattedJava.push("    ".repeat(currentIndent) + trimmed);
-
-            // Calculate next line indent
-            const codePart = trimmed.split("//")[0];
-            const opens = (codePart.match(/\{/g) || []).length;
-            const closes = (codePart.match(/\}/g) || []).length;
-            indent += opens - closes;
-            indent = Math.max(indent, 0);
-
-            // Special case handling
-            if (
-              trimmed.match(/^(case\s+.*:|default\s*:)/) &&
-              !trimmed.includes("{")
-            ) {
-              indent++;
-            }
-            if (trimmed === "break;" || trimmed === "return;") {
-              indent = Math.max(0, indent - 1);
-            }
-          }
-
-          setCode(formattedJava.join("\n"));
-          setOutput("âœ“ Code formatted (fallback formatter)");
-          setTimeout(() => setOutput(""), 2000);
-        } catch (fallbackError) {
-          console.error("Fallback formatting error:", fallbackError);
-          setOutput("âœ— Formatting failed. Check your code syntax.");
-          setTimeout(() => setOutput(""), 3000);
-        }
+        console.error("Formatting error:", error);
+        setOutput("✗ Formatting failed. Check your code syntax.");
+        setTimeout(() => setOutput(""), 3000);
       }
       return;
     }
