@@ -208,17 +208,17 @@ const PANEL_BORDER_STYLE = { borderColor: "hsl(var(--border) / 0.3)" };
 const IO_PANEL_CLASSES =
   "flex h-full flex-col bg-white text-slate-950 dark:bg-background dark:text-foreground";
 const IO_HEADER_CLASSES =
-  "flex items-center gap-3 border-b border-slate-200/80 bg-white/90 px-5 py-3 shadow-sm shadow-slate-200/40 backdrop-blur-sm dark:border-border/30 dark:bg-muted/20 dark:shadow-none";
+  "flex items-center gap-3 border-b border-slate-300 bg-white px-5 py-3 shadow-sm shadow-slate-200/60 backdrop-blur-sm dark:border-border/30 dark:bg-muted/20 dark:shadow-none";
 const IO_LABEL_CLASSES =
-  "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-muted-foreground/70";
+  "text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 dark:text-muted-foreground/70";
 const IO_INPUT_ICON_CLASSES =
-  "flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 shadow-sm dark:border-transparent dark:bg-muted dark:text-muted-foreground dark:shadow-none";
+  "flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300 bg-slate-100 text-slate-700 shadow-sm dark:border-transparent dark:bg-muted dark:text-muted-foreground dark:shadow-none";
 const IO_CONSOLE_ICON_CLASSES =
   "flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm dark:border-success/20 dark:bg-success/10 dark:text-success";
 const IO_TEXTAREA_CLASSES =
-  "flex-1 w-full resize-none bg-white px-6 py-4 font-mono text-sm text-slate-900 outline-none placeholder:text-slate-400 selection:bg-emerald-200/60 dark:bg-transparent dark:text-foreground dark:placeholder:text-muted-foreground/50 dark:selection:bg-primary/20";
+  "flex-1 w-full resize-none bg-white px-6 py-4 font-mono text-sm text-slate-950 outline-none placeholder:text-slate-500 selection:bg-emerald-200/60 dark:bg-transparent dark:text-foreground dark:placeholder:text-muted-foreground/50 dark:selection:bg-primary/20";
 const IO_CONSOLE_CLASSES =
-  "flex-1 min-h-0 overflow-auto border-t border-slate-100 bg-slate-50 dark:border-transparent dark:bg-zinc-950";
+  "flex-1 min-h-0 overflow-auto border-t border-slate-200 bg-slate-50 dark:border-transparent dark:bg-zinc-950";
 const ICON_BUTTON_CLASSES =
   "flex items-center justify-center w-10 h-10 rounded-2xl border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:border-primary/30 hover:text-primary transition-all duration-300 shadow-sm";
 const DROPDOWN_ITEM_CLASSES =
@@ -2259,7 +2259,7 @@ export default function Playground() {
   return (
     <div
       ref={playgroundShellRef}
-      className={`${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-full min-h-0"} relative flex flex-col overflow-hidden bg-background`}
+      className={`playground-shell ${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-full min-h-0"} relative flex flex-col overflow-hidden bg-background`}
     >
       {/* Breakpoint & debug CSS */}
       <style>{`
@@ -2277,6 +2277,58 @@ export default function Playground() {
         }
         .monaco-editor .margin {
           cursor: pointer !important;
+        }
+        .light .playground-shell {
+          background: hsl(220 24% 97%);
+          color: hsl(222 44% 11%);
+        }
+        .light .playground-shell .text-muted-foreground,
+        .light .playground-shell .text-muted-foreground\\/40,
+        .light .playground-shell .text-muted-foreground\\/50,
+        .light .playground-shell .text-muted-foreground\\/60,
+        .light .playground-shell .text-muted-foreground\\/70 {
+          color: hsl(220 18% 28%) !important;
+        }
+        .light .playground-shell .text-muted-foreground\\/20,
+        .light .playground-shell .text-muted-foreground\\/30 {
+          color: hsl(220 18% 36%) !important;
+        }
+        .light .playground-shell .text-foreground\\/60,
+        .light .playground-shell .text-foreground\\/70,
+        .light .playground-shell .text-foreground\\/80,
+        .light .playground-shell .text-foreground\\/90 {
+          color: hsl(222 44% 14%) !important;
+        }
+        .light .playground-shell .placeholder\\:text-muted-foreground\\/30::placeholder,
+        .light .playground-shell .placeholder\\:text-muted-foreground\\/45::placeholder,
+        .light .playground-shell .placeholder\\:text-muted-foreground\\/50::placeholder {
+          color: hsl(220 18% 38%) !important;
+        }
+        .light .playground-shell .border-border\\/10,
+        .light .playground-shell .border-border\\/20,
+        .light .playground-shell .border-border\\/30 {
+          border-color: hsl(216 20% 68%) !important;
+        }
+        .light .playground-shell .bg-muted\\/10,
+        .light .playground-shell .bg-muted\\/20,
+        .light .playground-shell .bg-muted\\/30 {
+          background-color: hsl(216 28% 90%) !important;
+        }
+        .light .playground-shell .bg-background\\/50,
+        .light .playground-shell .bg-background\\/70,
+        .light .playground-shell .bg-card\\/50,
+        .light .playground-shell .bg-card\\/85 {
+          background-color: hsl(0 0% 100% / 0.92) !important;
+        }
+        .light .playground-shell .text-amber-400,
+        .light .playground-shell .text-amber-400\\/80 {
+          color: hsl(38 92% 35%) !important;
+        }
+        .light .playground-shell .bg-amber-400\\/10 {
+          background-color: hsl(38 92% 48% / 0.16) !important;
+        }
+        .light .playground-shell .border-amber-400 {
+          border-color: hsl(38 92% 42%) !important;
         }
       `}</style>
 
