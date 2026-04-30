@@ -2001,56 +2001,6 @@ export default function Playground() {
       >
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
-        {settingsMenuType === "language" && (
-          <div className="relative z-10">
-            <button
-              onClick={() => setSettingsCompilerOpen(!settingsCompilerOpen)}
-              className={DROPDOWN_ITEM_CLASSES}
-            >
-            <div
-              className={`${DROPDOWN_ICON_BOX_CLASSES} bg-primary/10 border border-primary/20 text-primary`}
-            >
-              <Settings size={14} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
-                Language
-              </p>
-              <p className="text-[11px] font-bold text-foreground truncate">
-                {selectedLanguage.label}
-              </p>
-            </div>
-            <ChevronDown
-              size={14}
-              className={`text-muted-foreground/70 transition-transform duration-300 ${settingsCompilerOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          {settingsCompilerOpen && (
-            <div className="px-2 pb-2">
-              {availableLanguages.map((c) => (
-                <button
-                  key={c.language}
-                  onClick={() => {
-                    setSelectedLanguage(c);
-                    setCode(DEFAULT_CODE[c.language] || "");
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left rounded-xl transition-all border ${
-                    selectedLanguage.language === c.language
-                      ? "bg-primary/10 border-primary/20 text-primary"
-                      : "hover:bg-muted/50 border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${selectedLanguage.language === c.language ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/40"}`}
-                  />
-                  <span className="text-[11px] font-bold">{c.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        )}
-
         {settingsMenuType === "theme" && (
         <>
         {/* Editor Theme Section */}
@@ -2365,8 +2315,6 @@ export default function Playground() {
               <button
                 onClick={() => {
                   setShowSettingsMenu(!showSettingsMenu);
-                  setSettingsCompilerOpen(true);
-                  setSettingsThemeOpen(false);
                   setSettingsMenuType("language");
                 }}
                 aria-label="Change Language"
@@ -2375,18 +2323,49 @@ export default function Playground() {
                 <span>{selectedLanguage.label}</span>
                 <ChevronDown
                   size={14}
-                  className={`transition-transform duration-200 ${showSettingsMenu && settingsCompilerOpen ? "rotate-180" : ""}`}
+                  className={`transition-transform duration-200 ${showSettingsMenu && settingsMenuType === "language" ? "rotate-180" : ""}`}
                 />
               </button>
             </AppTooltip>
-            {showSettingsMenu && (
+            {showSettingsMenu && settingsMenuType === "language" && (
               <>
                 <div
                   className="fixed inset-0 z-[9998]"
                   onClick={() => setShowSettingsMenu(false)}
-                  style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
                 />
-                <SettingsDropdownContent />
+                <div
+                  className="absolute top-10 left-0 z-[9999] min-w-[200px] rounded-lg border border-border/40 py-1 shadow-lg animate-in fade-in zoom-in-95"
+                  style={{
+                    backgroundColor: "hsl(var(--card))",
+                  }}
+                >
+                  {availableLanguages.map((c) => (
+                    <button
+                      key={c.language}
+                      onClick={() => {
+                        setSelectedLanguage(c);
+                        setCode(DEFAULT_CODE[c.language] || "");
+                        setShowSettingsMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-left text-[13px] transition-colors ${
+                        selectedLanguage.language === c.language
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      <span className="font-bold">{c.label}</span>
+                      <span
+                        className={`text-[11px] font-medium ${
+                          selectedLanguage.language === c.language
+                            ? "text-primary/70"
+                            : "text-muted-foreground/60"
+                        }`}
+                      >
+                        {c.version || ""}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </>
             )}
           </div>
