@@ -659,6 +659,7 @@ export default function Playground() {
   const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [settingsMenuType, setSettingsMenuType] = useState<"language" | "theme">("language");
   const [copied, setCopied] = useState(false);
   const [isFormatted, setIsFormatted] = useState(false);
   const [stdin, setStdin] = useState("");
@@ -1547,16 +1548,21 @@ export default function Playground() {
           plugins: [prettierPluginJava, (prettierPluginJava as any)?.default || {}],
         });
         setCode(formatted);
-        setOutput("✓ Code formatted successfully");
+        toast({
+          title: "Code formatted successfully",
+          description: "Your Java code has been formatted.",
+        });
         setIsFormatted(true);
         setTimeout(() => {
-          setOutput("");
           setIsFormatted(false);
         }, 2000);
       } catch (error) {
         console.error("Formatting error:", error);
-        setOutput("✗ Formatting failed. Check your code syntax.");
-        setTimeout(() => setOutput(""), 3000);
+        toast({
+          title: "Formatting failed",
+          description: "Check your code syntax.",
+          variant: "destructive",
+        });
       }
       return;
     }
@@ -1587,6 +1593,10 @@ export default function Playground() {
         formattedPython.push(spaces + trimmed);
       }
       setCode(formattedPython.join("\n"));
+      toast({
+        title: "Code formatted successfully",
+        description: "Your Python code has been formatted.",
+      });
       return;
     }
 
@@ -1630,11 +1640,19 @@ export default function Playground() {
         indent = Math.max(indent, 0);
       }
       setCode(formattedCpp.join("\n"));
+      toast({
+        title: "Code formatted successfully",
+        description: "Your C++ code has been formatted.",
+      });
       return;
     }
 
     setCode(raw);
-  }, [code, selectedLanguage]);
+    toast({
+        title: "Code formatted successfully",
+        description: "Your code has been formatted.",
+    });
+  }, [code, selectedLanguage, toast]);
 
   const resetCode = useCallback(() => {
     setCode(DEFAULT_CODE[selectedLanguage.language] || "");
@@ -1982,12 +2000,12 @@ export default function Playground() {
       >
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
 
-        {/* Language Section â€” Collapsible */}
-        <div className="relative z-10">
-          <button
-            onClick={() => setSettingsCompilerOpen(!settingsCompilerOpen)}
-            className={DROPDOWN_ITEM_CLASSES}
-          >
+        {settingsMenuType === "language" && (
+          <div className="relative z-10">
+            <button
+              onClick={() => setSettingsCompilerOpen(!settingsCompilerOpen)}
+              className={DROPDOWN_ITEM_CLASSES}
+            >
             <div
               className={`${DROPDOWN_ICON_BOX_CLASSES} bg-primary/10 border border-primary/20 text-primary`}
             >
@@ -2030,15 +2048,15 @@ export default function Playground() {
             </div>
           )}
         </div>
+        )}
 
-        <div className="mx-5 h-px bg-border/10" />
-
-        {/* Editor Theme Section â€” Collapsible */}
-        <div className="relative z-10">
-          <button
-            onClick={() => setSettingsThemeOpen(!settingsThemeOpen)}
-            className={DROPDOWN_ITEM_CLASSES}
-          >
+        {settingsMenuType === "theme" && (
+        <>
+          <div className="relative z-10">
+            <button
+              onClick={() => setSettingsThemeOpen(!settingsThemeOpen)}
+              className={DROPDOWN_ITEM_CLASSES}
+            >
             <div
               className={`${DROPDOWN_ICON_BOX_CLASSES} bg-accent/10 border border-accent/20 text-accent`}
             >
@@ -2252,6 +2270,8 @@ export default function Playground() {
           <RotateCcw size={12} />
           Reset Playground
         </button>
+        </>
+        )}
       </div>
     );
   };
@@ -2352,6 +2372,7 @@ export default function Playground() {
                   setShowSettingsMenu(!showSettingsMenu);
                   setSettingsCompilerOpen(true);
                   setSettingsThemeOpen(false);
+                  setSettingsMenuType("language");
                 }}
                 aria-label="Change Language"
                 className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
@@ -2637,9 +2658,10 @@ export default function Playground() {
                 onClick={() => {
                   setShowSettingsMenu((v) => !v);
                   setSettingsCompilerOpen(false);
-                  setSettingsThemeOpen(false);
+                  setSettingsThemeOpen(true); // Open theme section by default if the user presses Settings
+                  setSettingsMenuType("theme");
                 }}
-                className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && !settingsCompilerOpen ? "text-primary bg-primary/10" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40"}`}
+                className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && settingsMenuType === "theme" ? "text-primary bg-primary/10" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40"}`}
               >
                 <Settings size={16} />
               </button>
