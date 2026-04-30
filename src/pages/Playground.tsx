@@ -1656,12 +1656,22 @@ export default function Playground() {
   }, [code, selectedLanguage, toast]);
 
   const resetCode = useCallback(() => {
-    setCode(DEFAULT_CODE[selectedLanguage.language] || "");
+    let nextCode = DEFAULT_CODE[selectedLanguage.language] || "";
+    if (practiceId && practiceData?.code?.[0]?.content && selectedLanguage.language === "java") {
+      nextCode = practiceData.code[0].content;
+    }
+    
+    setCodeTabs((tabs) =>
+      tabs.map((tab) =>
+        tab.id === activeCodeTabId ? { ...tab, code: nextCode } : tab,
+      ),
+    );
+    
     setOutput("");
     setStdin("");
     setBreakpoints(new Set());
     setIsDebugMode(false);
-  }, [selectedLanguage.language]);
+  }, [selectedLanguage.language, practiceId, practiceData, activeCodeTabId]);
 
   const runCode = useCallback(
     async (debugRun = false) => {
@@ -2631,7 +2641,7 @@ export default function Playground() {
                 onClick={() => setShowSettingsMenu(false)}
                 style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
               />
-              <SettingsDropdownContent />
+              {SettingsDropdownContent()}
             </>
           )}
           </TooltipProvider>
