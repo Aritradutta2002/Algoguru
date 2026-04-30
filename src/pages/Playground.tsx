@@ -1990,233 +1990,205 @@ export default function Playground() {
 
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => {
-    console.log("SettingsDropdownContent rendering");
     return (
-      <div
-        className="fixed left-1/2 -translate-x-1/2 top-24 w-[90vw] max-w-md rounded-[28px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 animate-in fade-in zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
-        style={{
-          backgroundColor: "hsl(var(--card))",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
-
-        {settingsMenuType === "theme" && (
-        <>
-        {/* Editor Theme Section */}
-        <div className="relative z-10 px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
-                Theme
-              </p>
-              <p className="text-[10px] font-bold text-muted-foreground/50">
-                Current: {currentTheme.label}
-              </p>
-            </div>
-            <div className="w-40">
-              <Select
-                value={currentTheme.id}
-                onValueChange={(val) => {
-                  const theme = THEMES.find((t) => t.id === val);
-                  if (theme) setCurrentTheme(theme);
-                }}
-              >
-                <SelectTrigger className="h-8 rounded-xl border border-border/20 bg-muted/20 text-xs font-bold shadow-none !ring-0 !ring-offset-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="z-[10000] border-border/30 bg-card/95 backdrop-blur-xl rounded-xl">
-                  {THEMES.map((theme) => (
-                    <SelectItem
-                      key={theme.id}
-                      value={theme.id}
-                      className="text-[11px] font-bold"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>{theme.icon}</span>
-                        <span>{theme.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-5 h-px bg-border/10" />
-
-        {/* Editor Preferences */}
-        <div className="relative z-10 p-4 space-y-4">
-          <div className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/50">
-            Editor Preferences
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
-                  Font Size
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground/50">
-                  Current: {editorFontSize}px
-                </p>
-              </div>
-              <div className="w-24">
-                <Select
-                  value={editorFontSize.toString()}
-                  onValueChange={(val) => setEditorFontSize(Number(val))}
-                >
-                  <SelectTrigger className="h-8 rounded-xl border border-border/20 bg-muted/20 text-xs font-bold text-center shadow-none !ring-0 !ring-offset-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="z-[10000] border-border/30 bg-card/95 backdrop-blur-xl rounded-xl min-w-[5rem]">
-                    {[10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24].map((size) => (
-                      <SelectItem
-                        key={size}
-                        value={size.toString()}
-                        className="text-[11px] font-bold"
-                      >
-                        {size}px
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
-                  Tab Size
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground/50">
-                  Current: {editorTabSize} spaces
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-1 rounded-xl border border-border/20 bg-muted/20 p-1">
-                {[2, 4, 8].map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setEditorTabSize(size)}
-                    className={`h-8 w-9 rounded-lg text-xs font-black transition-all ${
-                      editorTabSize === size
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setRelativeLineNumbers((value) => !value)}
-              className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border/20 bg-muted/10 px-4 py-3 text-left transition-all hover:bg-muted/30"
-            >
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
-                  Relative Line Numbers
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground/50">
-                  Show distance from current cursor line.
-                </p>
-              </div>
-              <span
-                className={`h-5 w-9 rounded-full p-0.5 transition-all ${
-                  relativeLineNumbers ? "bg-primary" : "bg-muted"
-                }`}
-              >
-                <span
-                  className={`block h-4 w-4 rounded-full bg-background shadow transition-transform ${
-                    relativeLineNumbers ? "translate-x-4" : "translate-x-0"
-                  }`}
-                />
-              </span>
-            </button>
-
-            <button
-              onClick={() => setAskGuruOnSelection((value) => !value)}
-              className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border/20 bg-muted/10 px-4 py-3 text-left transition-all hover:bg-muted/30"
-            >
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
-                  Ask GuruBot on Selection
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground/50">
-                  Show Ask GuruBot popup when highlighting code.
-                </p>
-              </div>
-              <span
-                className={`h-5 w-9 rounded-full p-0.5 transition-all ${
-                  askGuruOnSelection ? "bg-primary" : "bg-muted"
-                }`}
-              >
-                <span
-                  className={`block h-4 w-4 rounded-full bg-background shadow transition-transform ${
-                    askGuruOnSelection ? "translate-x-4" : "translate-x-0"
-                  }`}
-                />
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="mx-5 h-px bg-border/10" />
-
-        {/* Actions */}
-        <div className="relative z-10 p-2 grid grid-cols-2 gap-1">
-          <button
-            onClick={() => {
-              copyCode();
-            }}
-            className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all hover:bg-muted/50 border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground group"
-          >
-            <div
-              className={`${DROPDOWN_ICON_BOX_CLASSES} bg-muted/50 group-hover:bg-card transition-colors`}
-            >
-              {copied ? (
-                <Check size={14} className="text-success" />
-              ) : (
-                <Copy size={14} />
-              )}
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">
-              {copied ? "Copied!" : "Copy"}
-            </span>
-          </button>
-
-          <button
-            onClick={() => {
-              downloadCode();
-              setShowSettingsMenu(false);
-            }}
-            className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all hover:bg-muted/50 border border-transparent hover:border-border/30 text-muted-foreground hover:text-foreground group"
-          >
-            <div
-              className={`${DROPDOWN_ICON_BOX_CLASSES} bg-muted/50 group-hover:bg-card transition-colors`}
-            >
-              <Download size={14} />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">
-              Source
-            </span>
-          </button>
-        </div>
-
-        <button
-          onClick={() => {
-            resetCode();
-            setShowSettingsMenu(false);
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+        <div
+          className="relative w-full max-w-2xl rounded-2xl border border-border/40 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
+          style={{
+            backgroundColor: "hsl(var(--card))",
+            maxHeight: "85vh",
           }}
-          className="relative z-10 w-full flex items-center justify-center gap-2 px-5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10 transition-all border-t border-border/10"
         >
-          <RotateCcw size={12} />
-          Reset Playground
-        </button>
-        </>
-        )}
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border/10 bg-muted/10">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <Settings size={20} className="text-primary" />
+              Settings
+            </h2>
+            <button
+              onClick={() => setShowSettingsMenu(false)}
+              className="p-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="overflow-y-auto px-8 py-6 space-y-8 flex-1">
+            
+            {/* Theme & Fonts Group */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-black uppercase text-muted-foreground/70 tracking-wider">Appearance</h3>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-bold text-foreground">Editor Theme</p>
+                </div>
+                <div className="w-56">
+                  <Select
+                    value={currentTheme.id}
+                    onValueChange={(val) => {
+                      const theme = THEMES.find((t) => t.id === val);
+                      if (theme) setCurrentTheme(theme);
+                    }}
+                  >
+                    <SelectTrigger className="h-10 rounded-lg border-border/40 bg-background text-sm font-semibold shadow-sm focus:ring-primary">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="z-[10000] border-border/40 bg-card rounded-lg shadow-xl">
+                      {THEMES.map((theme) => (
+                        <SelectItem
+                          key={theme.id}
+                          value={theme.id}
+                          className="text-sm font-semibold py-2 cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">{theme.icon}</span>
+                            <span>{theme.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-bold text-foreground">Font Size</p>
+                </div>
+                <div className="w-56">
+                  <Select
+                    value={editorFontSize.toString()}
+                    onValueChange={(val) => setEditorFontSize(Number(val))}
+                  >
+                    <SelectTrigger className="h-10 rounded-lg border-border/40 bg-background text-sm font-semibold shadow-sm focus:ring-primary">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="z-[10000] border-border/40 bg-card rounded-lg shadow-xl max-h-60">
+                      {[10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24].map((size) => (
+                        <SelectItem
+                          key={size}
+                          value={size.toString()}
+                          className="text-sm font-semibold py-2 cursor-pointer"
+                        >
+                          {size}px
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-px bg-border/20" />
+
+            {/* Editor Preferences */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-black uppercase text-muted-foreground/70 tracking-wider">Editor Preferences</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-bold text-foreground">Tab Size</p>
+                  <p className="text-xs text-muted-foreground mt-1">Choose the indent size for tabs</p>
+                </div>
+                <div className="flex bg-muted/30 p-1 rounded-lg border border-border/20">
+                  {[2, 4, 8].map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setEditorTabSize(size)}
+                      className={`w-14 py-1.5 text-sm font-bold rounded-md transition-all ${
+                        editorTabSize === size
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-bold text-foreground">Relative Line Numbers</p>
+                  <p className="text-xs text-muted-foreground mt-1">Show distance from current cursor line</p>
+                </div>
+                <button
+                  onClick={() => setRelativeLineNumbers((value) => !value)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
+                    relativeLineNumbers ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      relativeLineNumbers ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-bold text-foreground">Ask GuruBot on Selection</p>
+                  <p className="text-xs text-muted-foreground mt-1">Show popup to ask AI when code is highlighted</p>
+                </div>
+                <button
+                  onClick={() => setAskGuruOnSelection((value) => !value)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
+                    askGuruOnSelection ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      askGuruOnSelection ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div className="h-px bg-border/20" />
+
+            {/* Actions */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-black uppercase text-muted-foreground/70 tracking-wider">Playground Actions</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button
+                  onClick={() => copyCode()}
+                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-border/30 bg-muted/10 hover:bg-muted/30 transition-all text-sm font-bold text-foreground gap-3 active:scale-95"
+                >
+                  {copied ? <Check size={20} className="text-success" /> : <Copy size={20} className="text-muted-foreground" />}
+                  {copied ? "Copied!" : "Copy Code"}
+                </button>
+
+                <button
+                  onClick={() => {
+                    downloadCode();
+                    setShowSettingsMenu(false);
+                  }}
+                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-border/30 bg-muted/10 hover:bg-muted/30 transition-all text-sm font-bold text-foreground gap-3 active:scale-95"
+                >
+                  <Download size={20} className="text-muted-foreground" />
+                  Download Source
+                </button>
+
+                <button
+                  onClick={() => {
+                    resetCode();
+                    setShowSettingsMenu(false);
+                  }}
+                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-all text-sm font-bold text-destructive gap-3 active:scale-95"
+                >
+                  <RotateCcw size={20} />
+                  Reset Playground
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
     );
   };
@@ -2314,8 +2286,12 @@ export default function Playground() {
             <AppTooltip content="Change Language" side="bottom">
               <button
                 onClick={() => {
-                  setShowSettingsMenu(!showSettingsMenu);
-                  setSettingsMenuType("language");
+                  if (showSettingsMenu && settingsMenuType !== "language") {
+                    setShowSettingsMenu(false);
+                  } else {
+                    setShowSettingsMenu(true);
+                    setSettingsMenuType("language");
+                  }
                 }}
                 aria-label="Change Language"
                 className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
@@ -2334,7 +2310,7 @@ export default function Playground() {
                   onClick={() => setShowSettingsMenu(false)}
                 />
                 <div
-                  className="absolute top-10 left-0 z-[9999] min-w-[200px] rounded-lg border border-border/40 py-1 shadow-lg animate-in fade-in zoom-in-95"
+                  className="absolute top-10 left-0 z-[9999] min-w-[240px] rounded-xl border border-border/40 py-1.5 shadow-2xl animate-in fade-in zoom-in-95"
                   style={{
                     backgroundColor: "hsl(var(--card))",
                   }}
@@ -2347,15 +2323,15 @@ export default function Playground() {
                         setCode(DEFAULT_CODE[c.language] || "");
                         setShowSettingsMenu(false);
                       }}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-left text-[13px] transition-colors ${
+                      className={`w-full flex items-center justify-between px-5 py-2.5 text-left text-sm transition-colors ${
                         selectedLanguage.language === c.language
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-muted/50"
+                          ? "bg-primary/10 text-primary font-bold"
+                          : "text-foreground font-semibold hover:bg-muted/50"
                       }`}
                     >
-                      <span className="font-bold">{c.label}</span>
+                      <span className="">{c.label}</span>
                       <span
-                        className={`text-[11px] font-medium ${
+                        className={`text-xs ml-4 ${
                           selectedLanguage.language === c.language
                             ? "text-primary/70"
                             : "text-muted-foreground/60"
@@ -2630,10 +2606,14 @@ export default function Playground() {
             <TooltipTrigger asChild>
               <button
                 onClick={() => {
-                  setShowSettingsMenu((v) => !v);
-                  setSettingsCompilerOpen(false);
-                  setSettingsThemeOpen(true); // Open theme section by default if the user presses Settings
-                  setSettingsMenuType("theme");
+                  if (showSettingsMenu && settingsMenuType === "theme") {
+                    setShowSettingsMenu(false);
+                  } else {
+                    setShowSettingsMenu(true);
+                    setSettingsCompilerOpen(false);
+                    setSettingsThemeOpen(true);
+                    setSettingsMenuType("theme");
+                  }
                 }}
                 className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && settingsMenuType === "theme" ? "text-primary bg-primary/10" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40"}`}
               >
@@ -2644,6 +2624,16 @@ export default function Playground() {
               <p>Settings</p>
             </TooltipContent>
           </Tooltip>
+          {showSettingsMenu && settingsMenuType === "theme" && (
+            <>
+              <div
+                className="fixed inset-0 z-[9998]"
+                onClick={() => setShowSettingsMenu(false)}
+                style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+              />
+              <SettingsDropdownContent />
+            </>
+          )}
           </TooltipProvider>
         </div>
       </div>
