@@ -882,7 +882,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               }}
               placeholder={
                 debugMode
-                  ? "Ask GuruBot for the next hint or debug step..."
+                  ? "Ask GuruBot for the next hint"
                   : "Message Guru..."
               }
               disabled={loading && !input}
