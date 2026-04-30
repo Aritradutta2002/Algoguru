@@ -44,6 +44,7 @@ import {
 import Editor, { OnMount } from "@monaco-editor/react";
 import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -2052,54 +2053,45 @@ export default function Playground() {
 
         {settingsMenuType === "theme" && (
         <>
-          <div className="relative z-10">
-            <button
-              onClick={() => setSettingsThemeOpen(!settingsThemeOpen)}
-              className={DROPDOWN_ITEM_CLASSES}
-            >
-            <div
-              className={`${DROPDOWN_ICON_BOX_CLASSES} bg-accent/10 border border-accent/20 text-accent`}
-            >
-              <Palette size={14} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+        {/* Editor Theme Section */}
+        <div className="relative z-10 px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
                 Theme
               </p>
-              <p className="text-[11px] font-bold text-foreground truncate">
-                {currentTheme.label}
+              <p className="text-[10px] font-bold text-muted-foreground/50">
+                Current: {currentTheme.label}
               </p>
             </div>
-            <ChevronDown
-              size={14}
-              className={`text-muted-foreground/40 transition-transform duration-300 ${settingsThemeOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-
-          {settingsThemeOpen && (
-            <div className="px-2 pb-3 space-y-1 animate-in slide-in-from-top-2 duration-200">
-              {THEMES.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    setCurrentTheme(t);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left rounded-xl transition-all border ${
-                    currentTheme.id === t.id
-                      ? "bg-accent/10 border-accent/20 text-accent"
-                      : "hover:bg-muted/50 border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${currentTheme.id === t.id ? "bg-accent shadow-[0_0_8px_hsl(var(--accent))]" : "bg-muted-foreground/20"}`}
-                  />
-                  <span className="text-[11px] font-bold flex items-center gap-2">
-                    {t.icon} {t.label}
-                  </span>
-                </button>
-              ))}
+            <div className="w-40">
+              <Select
+                value={currentTheme.id}
+                onValueChange={(val) => {
+                  const theme = THEMES.find((t) => t.id === val);
+                  if (theme) setCurrentTheme(theme);
+                }}
+              >
+                <SelectTrigger className="h-8 rounded-xl border border-border/20 bg-muted/20 text-xs font-bold shadow-none !ring-0 !ring-offset-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="z-[10000] border-border/30 bg-card/95 backdrop-blur-xl rounded-xl">
+                  {THEMES.map((theme) => (
+                    <SelectItem
+                      key={theme.id}
+                      value={theme.id}
+                      className="text-[11px] font-bold"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{theme.icon}</span>
+                        <span>{theme.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+          </div>
         </div>
 
         <div className="mx-5 h-px bg-border/10" />
@@ -2120,23 +2112,26 @@ export default function Playground() {
                   Current: {editorFontSize}px
                 </p>
               </div>
-              <div className="flex items-center gap-1 rounded-xl border border-border/20 bg-muted/20 p-1">
-                <button
-                  onClick={() =>
-                    setEditorFontSize((size) => Math.max(10, size - 1))
-                  }
-                  className="h-8 w-8 rounded-lg text-xs font-black text-muted-foreground hover:bg-muted hover:text-foreground"
+              <div className="w-24">
+                <Select
+                  value={editorFontSize.toString()}
+                  onValueChange={(val) => setEditorFontSize(Number(val))}
                 >
-                  -
-                </button>
-                <button
-                  onClick={() =>
-                    setEditorFontSize((size) => Math.min(24, size + 1))
-                  }
-                  className="h-8 w-8 rounded-lg text-xs font-black text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  +
-                </button>
+                  <SelectTrigger className="h-8 rounded-xl border border-border/20 bg-muted/20 text-xs font-bold text-center shadow-none !ring-0 !ring-offset-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[10000] border-border/30 bg-card/95 backdrop-blur-xl rounded-xl min-w-[5rem]">
+                    {[10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24].map((size) => (
+                      <SelectItem
+                        key={size}
+                        value={size.toString()}
+                        className="text-[11px] font-bold"
+                      >
+                        {size}px
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
