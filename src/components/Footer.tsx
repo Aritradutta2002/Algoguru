@@ -4,7 +4,7 @@ interface FooterProps {
   onSupportClick: () => void;
 }
 
-const PORTFOLIO_URL = "https://portfolio-aritra-pearl.vercel.app/";
+const PORTFOLIO_URL = "https://www.aritrodutta.tech/";
 const GITHUB_URL = "https://github.com/Aritradutta2002";
 const LINKEDIN_URL = "https://www.linkedin.com/in/aritra-dutta-rick20/";
 const TWITTER_URL = "https://x.com/Aritra1Sept";
