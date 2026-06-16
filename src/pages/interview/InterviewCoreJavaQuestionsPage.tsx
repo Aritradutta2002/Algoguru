@@ -1,27 +1,22 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
-  ChevronRight,
   CheckCircle2,
-  Circle,
   StickyNote,
   X,
-  Save,
   Search,
   Coffee,
   BookOpen,
   Check,
-  Loader2,
   FileText,
   Code2,
   Download,
   Trash2,
-  ChevronDown,
-  Shield,
-  Sparkles,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +27,7 @@ import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown } from "@/lib/renderNoteMarkdown";
 import jsPDF from "jspdf";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { useSidebar } from "@/components/ui/sidebar";
 
 type SolutionView = "theory" | "code" | null;
 
@@ -48,12 +44,28 @@ export default function InterviewCoreJavaQuestionsPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [solutionViewMap, setSolutionViewMap] = useState<Record<string, SolutionView>>({});
   const [showOnlyUndone, setShowOnlyUndone] = useState(false);
-  const [topicSidebarOpen, setTopicSidebarOpen] = useState(true);
+  const [topicSidebarOpen, setTopicSidebarOpen] = useState(false);
   const [upsertingId, setUpsertingId] = useState<string | null>(null);
   const [showNotesPanel, setShowNotesPanel] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
+
+  const { setOpen: setGlobalSidebarOpen } = useSidebar();
+  const sidebarWasOpen = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const sidebarEl = document.querySelector('[data-sidebar="sidebar"]');
+    const isExpanded = sidebarEl?.closest('[data-state="expanded"]') !== null;
+    sidebarWasOpen.current = isExpanded;
+    setGlobalSidebarOpen(false);
+
+    return () => {
+      if (sidebarWasOpen.current) {
+        setGlobalSidebarOpen(true);
+      }
+    };
+  }, []);
 
   const requireLogin = useCallback((action: string) => {
     toast({
@@ -224,133 +236,123 @@ export default function InterviewCoreJavaQuestionsPage() {
     doc.save("Core-Java-Notes.pdf");
   };
 
+  const handleTopicClick = (topicId: string) => {
+    setSelectedTopic((prev) => (prev === topicId ? null : topicId));
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
       {/* ── Page Header ─────────────────────────────────────────────── */}
-      <div className="border-b border-border/30 bg-card/50 backdrop-blur-md px-4 md:px-8 py-4 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate(backRoute)}
-                className="group flex items-center justify-center w-9 h-9 rounded-xl border border-border/30 bg-muted/30 transition-all hover:bg-muted"
-              >
-                <ArrowLeft size={16} className="text-muted-foreground group-hover:text-primary transition-transform group-hover:-translate-x-0.5" />
-              </button>
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                  <Coffee size={16} className="text-primary" />
-                </div>
-                <h1 className="text-lg md:text-xl font-bold tracking-tight">
-                  Core Java <span className="text-primary">Q&A</span>
-                </h1>
+      <div className="border-b border-border/30 bg-card/50 backdrop-blur-md px-4 md:px-6 py-3.5 sticky top-0 z-30">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(backRoute)}
+              className="group flex items-center justify-center w-9 h-9 rounded-xl border border-border/30 bg-muted/30 transition-all hover:bg-muted"
+            >
+              <ArrowLeft size={16} className="text-muted-foreground group-hover:text-primary transition-transform group-hover:-translate-x-0.5" />
+            </button>
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+                <Coffee size={16} className="text-primary" />
               </div>
+              <h1 className="text-lg md:text-xl font-bold tracking-tight whitespace-nowrap">
+                Core Java <span className="text-primary">Q&A</span>
+              </h1>
             </div>
+          </div>
 
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Progress pill */}
-              <div className="flex items-center gap-3 px-4 py-2 rounded-xl border border-border/30 bg-muted/20">
-                <CheckCircle2 size={14} className="text-success" />
-                <span className="text-xs font-bold">{doneCount}/{totalQuestions}</span>
-                <div className="w-20 h-1.5 rounded-full bg-muted/50 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPct}%` }}
-                    className="h-full rounded-full bg-success"
-                  />
-                </div>
-                <span className="text-[11px] font-bold text-success">{progressPct}%</span>
-              </div>
-
-              {/* Search */}
-              <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
-                <input
-                  type="text"
-                  placeholder="Search questions…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-3 py-2 text-xs border border-border/30 bg-muted/20 rounded-xl w-44 outline-none focus:border-primary/40 transition-all"
+          <div className="flex items-center gap-2.5 flex-wrap justify-end">
+            {/* Progress pill */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-muted/20 shrink-0">
+              <CheckCircle2 size={14} className="text-success" />
+              <span className="text-xs font-bold">{doneCount}/{totalQuestions}</span>
+              <div className="w-16 h-1.5 rounded-full bg-muted/50 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                  className="h-full rounded-full bg-success"
                 />
               </div>
-
-              {/* Toggles */}
-              <AppTooltip content="Toggle Sidebar">
-                <button
-                  onClick={() => setTopicSidebarOpen(v => !v)}
-                  className={`px-3.5 py-2 rounded-xl flex items-center gap-1.5 text-xs font-semibold border transition-all ${
-                    topicSidebarOpen ? "bg-primary text-primary-foreground border-primary" : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted"
-                  }`}
-                  aria-label="Toggle Sidebar"
-                >
-                  <BookOpen size={13} />
-                  <span className="hidden sm:inline">Topics</span>
-                </button>
-              </AppTooltip>
-
-              <button
-                onClick={() => setShowOnlyUndone(v => !v)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                  showOnlyUndone ? "bg-primary text-primary-foreground border-primary" : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {showOnlyUndone ? "Show All" : "Undone Only"}
-              </button>
-
-              <button
-                onClick={() => setShowNotesPanel(true)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold border border-border/30 bg-muted/20 text-muted-foreground hover:bg-muted flex items-center gap-1.5"
-              >
-                <StickyNote size={13} />
-                Notes ({Object.keys(notesMap).length})
-              </button>
+              <span className="text-[11px] font-bold text-success">{progressPct}%</span>
             </div>
+
+            {/* Search */}
+            <div className="relative hidden sm:block">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+              <input
+                type="text"
+                placeholder="Search questions…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-3 py-2 text-xs border border-border/30 bg-muted/20 rounded-xl w-44 outline-none focus:border-primary/40 transition-all"
+              />
+            </div>
+
+            {/* Undone/Show All Toggle */}
+            <button
+              onClick={() => setShowOnlyUndone(v => !v)}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all shrink-0 ${
+                showOnlyUndone ? "bg-primary text-primary-foreground border-primary" : "bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {showOnlyUndone ? "Show All" : "Undone Only"}
+            </button>
+
+            {/* Notes button */}
+            <button
+              onClick={() => setShowNotesPanel(true)}
+              className="px-3 py-2 rounded-xl text-xs font-semibold border border-border/30 bg-muted/20 text-muted-foreground hover:bg-muted flex items-center gap-1.5 shrink-0"
+            >
+              <StickyNote size={13} />
+              <span className="hidden sm:inline">Notes ({Object.keys(notesMap).length})</span>
+              <span className="sm:hidden">{Object.keys(notesMap).length}</span>
+            </button>
+
+            {/* Global sidebar toggle */}
+            <AppTooltip content="Toggle Global Sidebar">
+              <button
+                onClick={() => setGlobalSidebarOpen((prev) => !prev)}
+                className="px-3 py-2 rounded-xl text-xs font-semibold border border-border/30 bg-muted/20 text-muted-foreground hover:bg-muted flex items-center gap-1.5 shrink-0 transition-all"
+                aria-label="Toggle Global Sidebar"
+              >
+                <PanelLeftOpen size={14} />
+              </button>
+            </AppTooltip>
           </div>
         </div>
       </div>
 
-      {/* ── Layout: Sidebar + Main ───────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row relative">
-        {/* Sidebar */}
-        {topicSidebarOpen && (
-          <aside className="w-full lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-border/30 bg-card/20 lg:sticky top-[65px] lg:h-[calc(100vh-65px)] overflow-y-auto p-4 z-10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Knowledge Areas</p>
-            <div className="space-y-1">
-              {coreJavaInterviewTopics.map(topic => {
-                const topicDone = topic.questions.filter(q => doneMap[q.id]).length;
-                const topicTotal = topic.questions.length;
-                const pct = topicTotal > 0 ? Math.round((topicDone / topicTotal) * 100) : 0;
-                const isActive = selectedTopic === topic.id;
-                return (
-                  <button
-                    key={topic.id}
-                    onClick={() => setSelectedTopic(isActive ? null : topic.id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl transition-all border ${
-                      isActive ? "bg-primary/10 border-primary/20 text-foreground" : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 mb-1.5">
-                      <span className="text-base leading-none">{topic.icon}</span>
-                      <span className="text-[12px] font-semibold truncate flex-1">{topic.title}</span>
-                      <span className="text-[10px] text-muted-foreground/60 shrink-0">{topicDone}/{topicTotal}</span>
-                    </div>
-                    <div className="ml-7 h-[3px] rounded-full bg-muted/60 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, background: pct === 100 ? 'hsl(var(--success))' : 'hsl(var(--primary))' }}
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
+      {/* ── Layout: Main Content + Floating Sidebar ──────────────────── */}
+      <div className="relative w-full">
+        {/* Mobile search */}
+        <div className="sm:hidden px-4 pt-3">
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+            <input
+              type="text"
+              placeholder="Search questions…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-3 py-2.5 text-sm border border-border/30 bg-muted/20 rounded-xl w-full outline-none focus:border-primary/40 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Floating topic sidebar toggle — visible when sidebar is closed */}
+        {!topicSidebarOpen && (
+          <button
+            onClick={() => setTopicSidebarOpen(true)}
+            className="fixed left-0 top-[25%] z-20 px-2 py-4 rounded-r-xl bg-card border border-border/40 border-l-0 shadow-lg hover:bg-muted transition-all group"
+            aria-label="Open Topics"
+          >
+            <BookOpen size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+          </button>
         )}
 
         {/* Main content */}
-        <main className="flex-1 p-4 md:p-8 lg:p-10 relative">
-          <div className="max-w-3xl mx-auto space-y-10">
+        <main className="w-full p-4 md:p-6 lg:p-8">
+          <div className="space-y-10">
 
             {/* Sign-in nudge */}
             {!user && !authLoading && (
@@ -367,7 +369,7 @@ export default function InterviewCoreJavaQuestionsPage() {
             {filteredTopics.map(topic => {
               if (selectedTopic && topic.id !== selectedTopic) return null;
               return (
-                <div key={topic.id} className="space-y-3">
+                <div key={topic.id} className="space-y-4">
                   {/* Topic header */}
                   <div className="flex items-center gap-3 pb-3 border-b border-border/30">
                     <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">{topic.icon}</div>
@@ -377,8 +379,8 @@ export default function InterviewCoreJavaQuestionsPage() {
                     </div>
                   </div>
 
-                  {/* Questions */}
-                  <div className="space-y-2.5">
+                  {/* Questions grid — responsive */}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                     {topic.questions.map((question, idx) => {
                       const isDone = doneMap[question.id];
                       const hasNote = !!notesMap[question.id];
@@ -503,6 +505,71 @@ export default function InterviewCoreJavaQuestionsPage() {
           </div>
         </main>
       </div>
+
+      {/* ── Floating Topic Sidebar Overlay ───────────────────────────── */}
+      <AnimatePresence>
+        {topicSidebarOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              onClick={() => setTopicSidebarOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: -320, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -320, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="fixed left-0 top-0 bottom-0 w-72 z-50 bg-card border-r border-border/50 shadow-2xl flex flex-col"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <BookOpen size={16} className="text-primary" />
+                  <h2 className="text-sm font-bold tracking-tight">Knowledge Areas</h2>
+                </div>
+                <button
+                  onClick={() => setTopicSidebarOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-1.5">
+                {coreJavaInterviewTopics.map(topic => {
+                  const topicDone = topic.questions.filter(q => doneMap[q.id]).length;
+                  const topicTotal = topic.questions.length;
+                  const pct = topicTotal > 0 ? Math.round((topicDone / topicTotal) * 100) : 0;
+                  const isActive = selectedTopic === topic.id;
+                  return (
+                    <button
+                      key={topic.id}
+                      onClick={() => {
+                        handleTopicClick(topic.id);
+                        setTopicSidebarOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-3 rounded-xl transition-all border ${
+                        isActive ? "bg-primary/10 border-primary/20 text-foreground" : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <span className="text-base leading-none">{topic.icon}</span>
+                        <span className="text-[13px] font-semibold truncate flex-1">{topic.title}</span>
+                        <span className="text-[10px] text-muted-foreground/60 shrink-0">{topicDone}/{topicTotal}</span>
+                      </div>
+                      <div className="ml-7 h-[3px] rounded-full bg-muted/60 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%`, background: pct === 100 ? 'hsl(var(--success))' : 'hsl(var(--primary))' }}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── Note Editor Modal ────────────────────────────────────────── */}
       <AnimatePresence>
