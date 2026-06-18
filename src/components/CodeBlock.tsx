@@ -3,6 +3,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check, Code2 } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
+import { AppTooltip } from "@/components/ui/tooltip";
 
 interface CodeBlockProps {
   title?: string;
@@ -56,18 +57,21 @@ export const CodeBlock = memo(function CodeBlock({ title, language = "java", cod
             {language}
           </span>
         </div>
-        <button
-          onClick={handleCopy}
-          className="touch-manipulation flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 min-h-[36px] rounded-lg transition-all duration-200 active:scale-95"
-          style={{
-            background: copied ? "hsl(var(--success)/0.1)" : "hsl(var(--muted))",
-            color: copied ? "hsl(var(--success))" : "hsl(var(--muted-foreground))",
-            border: `1px solid ${copied ? "hsl(var(--success)/0.2)" : "hsl(var(--border))"}`,
-          }}
-        >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? "Copied!" : "Copy"}
-        </button>
+        <AppTooltip content="Copy code" side="top">
+          <button
+            onClick={handleCopy}
+            aria-label="Copy code"
+            className="touch-manipulation flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 min-h-[36px] rounded-lg transition-all duration-200 active:scale-95"
+            style={{
+              background: copied ? "hsl(var(--success)/0.1)" : "hsl(var(--muted))",
+              color: copied ? "hsl(var(--success))" : "hsl(var(--muted-foreground))",
+              border: `1px solid ${copied ? "hsl(var(--success)/0.2)" : "hsl(var(--border))"}`,
+            }}
+          >
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? "Copied!" : "Copy"}
+          </button>
+        </AppTooltip>
       </div>
       <div ref={containerRef} style={{ touchAction: 'pan-x', overflowX: 'auto', minHeight: '150px' }}>
         {isVisible ? (
@@ -78,12 +82,12 @@ export const CodeBlock = memo(function CodeBlock({ title, language = "java", cod
               margin: 0,
               padding: "1.5rem 1.75rem",
               background: "#282a36",
-              fontSize: "0.85rem",
-              lineHeight: "1.75",
+              fontSize: "var(--qa-code-size, 0.875rem)",
+              lineHeight: "var(--qa-code-lh, 1.5)",
               borderRadius: 0,
-              fontFamily: "'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace",
+              fontFamily: "'JetBrains Mono', 'Fira Code', 'Roboto Mono', 'Courier New', monospace",
             }}
-            showLineNumbers
+            showLineNumbers={code.trim().split('\n').length > 10}
             lineNumberStyle={{
               color: "hsl(var(--muted-foreground)/0.25)",
               fontSize: "0.7rem",

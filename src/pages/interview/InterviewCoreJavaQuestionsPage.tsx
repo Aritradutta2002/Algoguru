@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, memo } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,21 +15,211 @@ import {
   Code2,
   Download,
   Trash2,
-  PanelLeftClose,
   PanelLeftOpen,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { coreJavaInterviewTopics } from "@/data/coreJavaInterviewData";
 import { CodeBlock } from "@/components/CodeBlock";
-import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown } from "@/lib/renderNoteMarkdown";
 import jsPDF from "jspdf";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
 
+// Lazy-load the heavy RichTextNoteEditor so it doesn't bloat the initial bundle.
+// It is only needed when the note modal opens.
+const RichTextNoteEditor = lazy(() => import("@/components/RichTextNoteEditor"));
+
 type SolutionView = "theory" | "code" | null;
+
+// ---------------------------------------------------------------------------
+// QuestionCard — memoized to prevent unnecessary re-renders when sibling
+// cards, search input, or note drafts change.
+// ---------------------------------------------------------------------------
+interface QuestionCardProps {
+  question: (typeof coreJavaInterviewTopics)[number]["questions"][number];
+  idx: number;
+  isDone: boolean;
+  hasNote: boolean;
+  activeView: SolutionView;
+  onToggleDone: (id: string) => void;
+  onToggleView: (id: string, view: Exclude<SolutionView, null>) => void;
+  onOpenNote: (id: string) => void;
+}
+
+function _QuestionCard({
+  question,
+  idx,
+  isDone,
+  hasNote,
+  activeView,
+  onToggleDone,
+  onToggleView,
+  onOpenNote,
+}: QuestionCardProps) {
+  return (
+    <div className={`qa-card overflow-hidden ${isDone ? "completed" : ""}`}>
+      {/* Card header */}
+      <div className="p-4 md:p-5">
+        <div className="flex items-start gap-3">
+          {/* Done toggle */}
+          <button
+            onClick={() => onToggleDone(question.id)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onToggleDone(question.id);
+              }
+            }}
+            title={isDone ? "Mark undone" : "Mark as done"}
+            aria-label={isDone ? "Mark question as incomplete" : "Mark question as complete"}
+            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+              isDone
+                ? "bg-success border-success text-white"
+                : "border-border/50 hover:border-success/60"
+            }`}
+          >
+            {isDone && <Check size={10} strokeWidth={3.5} />}
+          </button>
+
+          <div className="flex-1 min-w-0">
+            {/* Meta row */}
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground/50">
+                Q{idx + 1}
+              </span>
+              {isDone && (
+                <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
+                  Done
+                </span>
+              )}
+              {hasNote && (
+                <span className="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full">
+                  Note
+                </span>
+              )}
+            </div>
+
+            {/* Question text */}
+            <h3
+              style={{
+                fontSize: "var(--qa-question-size)",
+                lineHeight: "var(--qa-question-lh)",
+                fontWeight: "var(--qa-question-fw)",
+                letterSpacing: "var(--qa-question-ls)",
+              }}
+              className={`mb-2 ${
+                isDone ? "opacity-40 line-through text-foreground" : "text-foreground"
+              }`}
+            >
+              {question.question}
+            </h3>
+
+            {/* Explanation */}
+            {question.explanation && (
+              <p
+                style={{
+                  fontSize: "var(--qa-explanation-size)",
+                  lineHeight: "var(--qa-explanation-lh)",
+                }}
+                className={`mb-3 ${
+                  isDone ? "opacity-40" : "text-muted-foreground"
+                }`}
+              >
+                {question.explanation}
+              </p>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-border/20">
+              <button
+                onClick={() => onToggleView(question.id, "theory")}
+                aria-expanded={activeView === "theory"}
+                className={activeView === "theory" ? "qa-btn-primary" : "qa-btn-secondary"}
+              >
+                <FileText size={12} />
+                Theory
+              </button>
+
+              {question.code && (
+                <button
+                  onClick={() => onToggleView(question.id, "code")}
+                  aria-expanded={activeView === "code"}
+                  className={activeView === "code" ? "qa-btn-primary" : "qa-btn-secondary"}
+                >
+                  <Code2 size={12} />
+                  Example
+                </button>
+              )}
+
+              <button
+                onClick={() => onOpenNote(question.id)}
+                aria-label={
+                  hasNote ? "Edit note for this question" : "Add note for this question"
+                }
+                className={
+                  hasNote
+                    ? "qa-btn-secondary border-warning/30 text-warning bg-warning/10"
+                    : "qa-btn-secondary"
+                }
+              >
+                <StickyNote size={12} />
+                {hasNote ? "Edit Note" : "Add Note"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Expand panel */}
+      <AnimatePresence>
+        {activeView && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-border/20" />
+            <div className="p-4 md:p-5 space-y-4">
+              {activeView === "theory" && (
+                <div className="qa-expanded-content">
+                  {renderTheoryContent(question.answer)}
+                </div>
+              )}
+              {activeView === "code" && question.code && (
+                <CodeBlock
+                  language={question.codeLanguage || "java"}
+                  code={question.code}
+                  title="Implementation"
+                />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** Custom comparator — only re-render when props that affect the output change. */
+function areQuestionCardsEqual(
+  prev: QuestionCardProps,
+  next: QuestionCardProps,
+): boolean {
+  return (
+    prev.isDone === next.isDone &&
+    prev.hasNote === next.hasNote &&
+    prev.activeView === next.activeView &&
+    prev.question.id === next.question.id &&
+    prev.idx === next.idx
+  );
+}
+
+const QuestionCard = memo(_QuestionCard, areQuestionCardsEqual);
 
 export default function InterviewCoreJavaQuestionsPage() {
   const { language } = useParams<{ language?: string }>();
@@ -43,6 +233,7 @@ export default function InterviewCoreJavaQuestionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [solutionViewMap, setSolutionViewMap] = useState<Record<string, SolutionView>>({});
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showOnlyUndone, setShowOnlyUndone] = useState(false);
   const [topicSidebarOpen, setTopicSidebarOpen] = useState(false);
   const [upsertingId, setUpsertingId] = useState<string | null>(null);
@@ -53,6 +244,24 @@ export default function InterviewCoreJavaQuestionsPage() {
 
   const { setOpen: setGlobalSidebarOpen } = useSidebar();
   const sidebarWasOpen = useRef<boolean | null>(null);
+
+  // Escape key handler for note editor modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && activeNoteId) setActiveNoteId(null);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [activeNoteId]);
+
+  // Escape key handler for notes panel
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showNotesPanel) setShowNotesPanel(false);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showNotesPanel]);
 
   useEffect(() => {
     const sidebarEl = document.querySelector('[data-sidebar="sidebar"]');
@@ -107,6 +316,12 @@ export default function InterviewCoreJavaQuestionsPage() {
 
     loadUserState();
   }, [authLoading, user]);
+
+  // Debounce search input by 300ms before applying to filter
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const upsertUserState = useCallback(async (
     questionId: string,
@@ -191,8 +406,8 @@ export default function InterviewCoreJavaQuestionsPage() {
   const progressPct = totalQuestions > 0 ? Math.round((doneCount / totalQuestions) * 100) : 0;
 
   const filteredTopics = useMemo(() => {
-    if (!searchQuery.trim() && !showOnlyUndone) return coreJavaInterviewTopics;
-    const q = searchQuery.toLowerCase().trim();
+    if (!debouncedSearch.trim() && !showOnlyUndone) return coreJavaInterviewTopics;
+    const q = debouncedSearch.toLowerCase().trim();
     return coreJavaInterviewTopics
       .map((topic) => {
         const filtered = topic.questions.filter((question) => {
@@ -203,7 +418,7 @@ export default function InterviewCoreJavaQuestionsPage() {
         return { ...topic, questions: filtered };
       })
       .filter((t) => t.questions.length > 0);
-  }, [searchQuery, showOnlyUndone, doneMap]);
+  }, [debouncedSearch, showOnlyUndone, doneMap]);
 
   const downloadNotesPDF = () => {
     const doc = new jsPDF();
@@ -264,14 +479,20 @@ export default function InterviewCoreJavaQuestionsPage() {
 
           <div className="flex items-center gap-2.5 flex-wrap justify-end">
             {/* Progress pill */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-muted/20 shrink-0">
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-muted/20 shrink-0"
+              role="status"
+              aria-label={`${doneCount} of ${totalQuestions} questions completed, ${progressPct} percent`}
+            >
               <CheckCircle2 size={14} className="text-success" />
-              <span className="text-xs font-bold">{doneCount}/{totalQuestions}</span>
-              <div className="w-16 h-1.5 rounded-full bg-muted/50 overflow-hidden">
+              <span className="text-xs font-bold" aria-live="polite">{doneCount}/{totalQuestions}</span>
+              <div className="w-16 sm:w-24 h-2 rounded-full bg-muted/50 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPct}%` }}
-                  className="h-full rounded-full bg-success"
+                  transition={{ duration: 0.3 }}
+                  className="h-full rounded-full"
+                  style={{ background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--success)))` }}
                 />
               </div>
               <span className="text-[11px] font-bold text-success">{progressPct}%</span>
@@ -305,8 +526,12 @@ export default function InterviewCoreJavaQuestionsPage() {
               className="px-3 py-2 rounded-xl text-xs font-semibold border border-border/30 bg-muted/20 text-muted-foreground hover:bg-muted flex items-center gap-1.5 shrink-0"
             >
               <StickyNote size={13} />
-              <span className="hidden sm:inline">Notes ({Object.keys(notesMap).length})</span>
-              <span className="sm:hidden">{Object.keys(notesMap).length}</span>
+              <span className="hidden sm:inline">Notes</span>
+              {Object.keys(notesMap).length > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-warning text-warning-foreground text-[10px] font-bold">
+                  {Object.keys(notesMap).length}
+                </span>
+              )}
             </button>
 
             {/* Global sidebar toggle */}
@@ -343,7 +568,7 @@ export default function InterviewCoreJavaQuestionsPage() {
         {!topicSidebarOpen && (
           <button
             onClick={() => setTopicSidebarOpen(true)}
-            className="fixed left-0 top-[25%] z-20 px-2 py-4 rounded-r-xl bg-card border border-border/40 border-l-0 shadow-lg hover:bg-muted transition-all group"
+            className="fixed left-0 top-[25%] z-20 px-2 py-4 min-w-[44px] rounded-r-xl bg-card border border-border/40 border-l-0 shadow-lg hover:bg-muted transition-all group"
             aria-label="Open Topics"
           >
             <BookOpen size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
@@ -351,7 +576,7 @@ export default function InterviewCoreJavaQuestionsPage() {
         )}
 
         {/* Main content */}
-        <main className="w-full p-4 md:p-6 lg:p-8">
+        <main className="w-full p-4 sm:p-6 xl:p-8 max-w-screen-2xl mx-auto">
           <div className="space-y-10">
 
             {/* Sign-in nudge */}
@@ -369,139 +594,44 @@ export default function InterviewCoreJavaQuestionsPage() {
             {filteredTopics.map(topic => {
               if (selectedTopic && topic.id !== selectedTopic) return null;
               return (
-                <div key={topic.id} className="space-y-4">
+                <div key={topic.id} id={`topic-${topic.id}`} className="space-y-4 scroll-mt-20">
                   {/* Topic header */}
                   <div className="flex items-center gap-3 pb-3 border-b border-border/30">
                     <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">{topic.icon}</div>
                     <div>
                       <h2 className="text-base font-bold tracking-tight text-foreground">{topic.title}</h2>
-                      <p className="text-[11px] text-muted-foreground/60">{topic.questions.length} questions</p>
+                      <p className="text-[11px] text-muted-foreground/60" aria-live="polite">{topic.questions.length} questions</p>
                     </div>
                   </div>
 
                   {/* Questions grid — responsive */}
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-                    {topic.questions.map((question, idx) => {
-                      const isDone = doneMap[question.id];
-                      const hasNote = !!notesMap[question.id];
-                      const activeView = solutionViewMap[question.id];
-
-                      return (
-                        <div
-                          key={question.id}
-                          className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                            isDone ? "bg-success/5 border-success/20" : "bg-card border-border/40 hover:border-border/60"
-                          }`}
-                        >
-                          {/* Card header */}
-                          <div className="p-4 md:p-5">
-                            <div className="flex items-start gap-3">
-                              {/* Done toggle */}
-                              <button
-                                onClick={() => toggleDone(question.id)}
-                                title={isDone ? "Mark undone" : "Mark as done"}
-                                className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                                  isDone ? "bg-success border-success text-white" : "border-border/50 hover:border-success/60"
-                                }`}
-                              >
-                                {isDone && <Check size={10} strokeWidth={3.5} />}
-                              </button>
-
-                              <div className="flex-1 min-w-0">
-                                {/* Meta row */}
-                                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground/50">Q{idx + 1}</span>
-                                  {isDone && <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">Done</span>}
-                                  {hasNote && <span className="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full">Note</span>}
-                                </div>
-
-                                {/* Question text */}
-                                <h3 className={`text-[15px] font-semibold leading-snug mb-2 ${isDone ? "opacity-40 line-through" : "text-foreground"}`}>
-                                  {question.question}
-                                </h3>
-
-                                {/* Explanation */}
-                                {question.explanation && (
-                                  <p className={`text-[13px] leading-relaxed mb-3 ${isDone ? "opacity-40" : "text-muted-foreground"}`}>
-                                    {question.explanation}
-                                  </p>
-                                )}
-
-                                {/* Action buttons */}
-                                <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-border/20">
-                                  <button
-                                    onClick={() => toggleSolutionView(question.id, "theory")}
-                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
-                                      activeView === "theory"
-                                        ? "bg-primary text-primary-foreground border-primary"
-                                        : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground"
-                                    }`}
-                                  >
-                                    <FileText size={12} />
-                                    Theory
-                                  </button>
-
-                                  {question.code && (
-                                    <button
-                                      onClick={() => toggleSolutionView(question.id, "code")}
-                                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
-                                        activeView === "code"
-                                          ? "bg-accent text-accent-foreground border-accent"
-                                          : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground"
-                                      }`}
-                                    >
-                                      <Code2 size={12} />
-                                      Example
-                                    </button>
-                                  )}
-
-                                  <button
-                                    onClick={() => openNote(question.id)}
-                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
-                                      hasNote
-                                        ? "text-warning bg-warning/10 border-warning/30"
-                                        : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground"
-                                    }`}
-                                  >
-                                    <StickyNote size={12} />
-                                    {hasNote ? "Edit Note" : "Add Note"}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Expand panel */}
-                          <AnimatePresence>
-                            {activeView && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.2, ease: "easeInOut" }}
-                                className="overflow-hidden"
-                              >
-                                <div className="border-t border-border/20" />
-                                <div className="p-4 md:p-5 space-y-4">
-                                  {activeView === "theory" && (
-                                    <div className="bg-muted/20 rounded-xl p-4 md:p-5 border border-border/20">
-                                      {renderTheoryContent(question.answer)}
-                                    </div>
-                                  )}
-                                  {activeView === "code" && question.code && (
-                                    <CodeBlock language={question.codeLanguage || "java"} code={question.code} title="Implementation" />
-                                  )}
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      );
-                    })}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-6">
+                    {topic.questions.map((question, idx) => (
+                      <QuestionCard
+                        key={question.id}
+                        question={question}
+                        idx={idx}
+                        isDone={!!doneMap[question.id]}
+                        hasNote={!!notesMap[question.id]}
+                        activeView={solutionViewMap[question.id] ?? null}
+                        onToggleDone={toggleDone}
+                        onToggleView={toggleSolutionView}
+                        onOpenNote={openNote}
+                      />
+                    ))}
                   </div>
                 </div>
               );
             })}
+
+            {/* Empty state when no questions match the current filters */}
+            {filteredTopics.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Search size={48} className="text-muted-foreground/30 mb-4" />
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">No questions found</h3>
+                <p className="text-sm text-muted-foreground/60">Try adjusting your search or filters</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -518,7 +648,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               initial={{ x: -320, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -320, opacity: 0 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="fixed left-0 top-0 bottom-0 w-72 z-50 bg-card border-r border-border/50 shadow-2xl flex flex-col"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
@@ -546,9 +676,13 @@ export default function InterviewCoreJavaQuestionsPage() {
                       onClick={() => {
                         handleTopicClick(topic.id);
                         setTopicSidebarOpen(false);
+                        setTimeout(() => {
+                          const el = document.getElementById(`topic-${topic.id}`);
+                          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 350);
                       }}
                       className={`w-full text-left px-3 py-3 rounded-xl transition-all border ${
-                        isActive ? "bg-primary/10 border-primary/20 text-foreground" : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                        isActive ? "bg-primary/10 border-primary/30 border-l-[3px] border-l-primary text-foreground" : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 mb-2">
@@ -556,7 +690,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                         <span className="text-[13px] font-semibold truncate flex-1">{topic.title}</span>
                         <span className="text-[10px] text-muted-foreground/60 shrink-0">{topicDone}/{topicTotal}</span>
                       </div>
-                      <div className="ml-7 h-[3px] rounded-full bg-muted/60 overflow-hidden">
+                      <div className="ml-0 h-[4px] rounded-full bg-muted/60 overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{ width: `${pct}%`, background: pct === 100 ? 'hsl(var(--success))' : 'hsl(var(--primary))' }}
@@ -576,17 +710,65 @@ export default function InterviewCoreJavaQuestionsPage() {
         {activeNoteId && (
           <div className="fixed inset-0 flex items-center justify-center z-[100] p-4">
             <div className="fixed inset-0 bg-black/80 backdrop-blur-xl" onClick={() => setActiveNoteId(null)} />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-2xl bg-card border border-border/50 rounded-3xl overflow-hidden p-8 space-y-5">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="relative w-full max-w-2xl bg-card border border-border/50 rounded-3xl overflow-hidden p-8 space-y-5"
+              role="dialog"
+              aria-labelledby="note-editor-title"
+              aria-modal="true"
+            >
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Study Note</h2>
-                <button onClick={() => setActiveNoteId(null)} className="p-1 rounded-lg hover:bg-muted"><X size={18} /></button>
+                <div>
+                  <h2 id="note-editor-title" className="text-lg font-bold">Study Note</h2>
+                  {activeNoteId && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {coreJavaInterviewTopics.flatMap(t => t.questions).find(q => q.id === activeNoteId)?.question}
+                    </p>
+                  )}
+                </div>
+                <button 
+                  onClick={() => setActiveNoteId(null)} 
+                  aria-label="Close note editor"
+                  className="p-1 rounded-lg hover:bg-muted"
+                >
+                  <X size={18} />
+                </button>
               </div>
               <div className="bg-muted/20 rounded-xl p-4">
-                <RichTextNoteEditor value={noteDraft} onChange={setNoteDraft} rows={10} />
+                {/* Lazy-loaded editor — only fetched when the modal first opens */}
+                <Suspense
+                  fallback={
+                    <div className="h-48 rounded-lg bg-muted/30 animate-pulse flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground/60">Loading editor…</span>
+                    </div>
+                  }
+                >
+                  <RichTextNoteEditor value={noteDraft} onChange={setNoteDraft} rows={10} />
+                </Suspense>
               </div>
               <div className="flex justify-end gap-2">
-                <button onClick={() => setActiveNoteId(null)} className="px-5 py-2.5 rounded-xl border border-border/40 text-sm font-medium text-muted-foreground hover:bg-muted">Cancel</button>
-                <button onClick={saveNote} className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">Save Note</button>
+                <button
+                  onClick={() => setActiveNoteId(null)}
+                  autoFocus
+                  className="px-5 py-2.5 rounded-xl border border-border/40 text-sm font-medium text-muted-foreground hover:bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveNote}
+                  disabled={upsertingId === activeNoteId}
+                  className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 disabled:opacity-70 transition-opacity"
+                >
+                  {upsertingId === activeNoteId ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Saving…
+                    </>
+                  ) : (
+                    "Save Note"
+                  )}
+                </button>
               </div>
             </motion.div>
           </div>
@@ -598,20 +780,53 @@ export default function InterviewCoreJavaQuestionsPage() {
         {showNotesPanel && (
           <div className="fixed inset-0 flex items-center justify-center z-[100] p-4">
             <div className="fixed inset-0 bg-black/80 backdrop-blur-xl" onClick={() => setShowNotesPanel(false)} />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-2xl bg-card border border-border/50 rounded-3xl flex flex-col max-h-[80vh]">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="relative w-full max-w-2xl bg-card border border-border/50 rounded-3xl flex flex-col max-h-[80vh]"
+              role="dialog"
+              aria-labelledby="notes-panel-title"
+              aria-modal="true"
+            >
               <div className="p-6 border-b border-border/30 flex items-center justify-between">
-                <h2 className="text-lg font-bold">My Notes</h2>
+                <h2 id="notes-panel-title" className="text-lg font-bold">My Notes</h2>
                 <div className="flex items-center gap-2">
-                  <button onClick={downloadNotesPDF} className="p-2 rounded-xl border border-border/30 hover:bg-muted"><Download size={16} /></button>
-                  <button onClick={() => setShowNotesPanel(false)} className="p-2 rounded-xl hover:bg-muted"><X size={16} /></button>
+                  <button 
+                    onClick={downloadNotesPDF} 
+                    aria-label="Download notes as PDF"
+                    className="p-2 rounded-xl border border-border/30 hover:bg-muted"
+                  >
+                    <Download size={16} />
+                  </button>
+                  <button 
+                    onClick={() => setShowNotesPanel(false)} 
+                    aria-label="Close notes panel"
+                    className="p-2 rounded-xl hover:bg-muted"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                {Object.keys(notesMap).length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
+                    <StickyNote size={40} className="opacity-30 mb-3" />
+                    <p className="text-sm font-medium">No notes yet</p>
+                    <p className="text-xs opacity-60 mt-1">Add notes to questions as you study</p>
+                  </div>
+                )}
                 {Object.entries(notesMap).map(([id, note]) => (
-                  <div key={id} className="p-4 rounded-xl bg-muted/10 border border-border/30">
+                  <div key={id} className="p-4 rounded-xl bg-card border border-border/40 shadow-sm">
                     <div className="flex justify-between items-start mb-2 gap-3">
                       <p className="font-semibold text-sm leading-snug">{coreJavaInterviewTopics.flatMap(t => t.questions).find(q => q.id === id)?.question || id}</p>
-                      <button onClick={() => deleteNoteFromPanel(id)} className="text-destructive hover:text-destructive/80 shrink-0"><Trash2 size={14} /></button>
+                      <button 
+                        onClick={() => deleteNoteFromPanel(id)} 
+                        title="Delete note" 
+                        aria-label={`Delete note for ${coreJavaInterviewTopics.flatMap(t => t.questions).find(q => q.id === id)?.question || id}`}
+                        className="text-destructive hover:text-destructive/80 shrink-0"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                     <div className="text-xs text-muted-foreground prose prose-invert" dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(note) }} />
                   </div>
