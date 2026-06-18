@@ -571,7 +571,7 @@ export default function InterviewCoreJavaQuestionsPage() {
           <motion.div
             className="absolute left-0 top-0 bottom-0 bg-primary"
             initial={{ width: 0 }}
-            animate={{ width: \`\${progressPct}%\` }}
+            animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
@@ -658,7 +658,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{
-                          width: \`\${pct}%\`,
+                          width: `${pct}%`,
                           background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))",
                         }}
                       />
@@ -722,7 +722,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               {filteredTopics.map((topic) => {
                 if (selectedTopic && topic.id !== selectedTopic) return null;
                 return (
-                  <div key={topic.id} id={\`topic-\${topic.id}\`} className="space-y-5 scroll-mt-24">
+                  <div key={topic.id} id={`topic-${topic.id}`} className="space-y-5 scroll-mt-24">
                     {/* Topic header */}
                     <div className="flex items-center gap-4 pb-4 border-b border-border/40">
                       <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl shrink-0">
@@ -838,7 +838,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{
-                            width: \`\${pct}%\`,
+                            width: `${pct}%`,
                             background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))",
                           }}
                         />
