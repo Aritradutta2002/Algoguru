@@ -3,17 +3,21 @@ import { AppTooltip } from './ui/tooltip';
 import { cn } from '@/lib/utils';
 import { ChevronDown, Loader2 } from 'lucide-react';
 
+type HeatmapMode = "website" | "leetcode" | "codechef";
+
 interface ActivityHeatmapProps {
+  websiteCalendar?: Record<string, number>; // YYYY-MM-DD -> count (Website / Sheet mode)
   leetcodeCalendar?: Record<string, number>; // timestamp -> count (LeetCode mode)
   codechefCalendar?: Record<string, number>; // YYYY-MM-DD -> count (CodeChef mode)
-  dataMode: "leetcode" | "codechef";
-  onModeChange: (mode: "leetcode" | "codechef") => void;
+  dataMode: HeatmapMode;
+  onModeChange: (mode: HeatmapMode) => void;
   isLoading?: boolean;
 }
 
 type YearOption = "Last 12 months" | number;
 
 export function ActivityHeatmap({ 
+  websiteCalendar = {}, 
   leetcodeCalendar = {}, 
   codechefCalendar = {}, 
   dataMode, 
@@ -68,8 +72,9 @@ export function ActivityHeatmap({
         totalSubs += count; 
       });
     } else {
-      // CodeChef mode (assuming YYYY-MM-DD or standard mapping)
-      Object.entries(codechefCalendar).forEach(([dateStr, count]) => {
+      // Website (sheet) and CodeChef modes both use a YYYY-MM-DD -> count mapping.
+      const sourceCalendar = dataMode === "website" ? websiteCalendar : codechefCalendar;
+      Object.entries(sourceCalendar).forEach(([dateStr, count]) => {
         const d = new Date(dateStr);
         if (!isNaN(d.getTime())) {
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -143,7 +148,7 @@ export function ActivityHeatmap({
       totalSubmissions: rangeSubs,
       monthLabels: mLabels 
     };
-  }, [leetcodeCalendar, codechefCalendar, dataMode, selectedYear]);
+  }, [websiteCalendar, leetcodeCalendar, codechefCalendar, dataMode, selectedYear]);
 
   return (
     <div className="w-full flex flex-col font-sans h-full">
@@ -185,6 +190,15 @@ export function ActivityHeatmap({
           
           {/* Toggle */}
           <div className="flex bg-[#262626] rounded-full p-0.5 border border-white/5">
+            <button 
+              onClick={() => onModeChange("website")}
+              className={cn(
+                "text-[10px] font-bold px-3 py-1 rounded-full transition-all",
+                dataMode === "website" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/80"
+              )}
+            >
+              Website
+            </button>
             <button 
               onClick={() => onModeChange("leetcode")}
               className={cn(

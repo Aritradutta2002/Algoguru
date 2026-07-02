@@ -5,6 +5,20 @@ import { toast } from "@/hooks/use-toast";
 import { Camera, Save, Loader2, Github, Linkedin, Globe, Briefcase, Edit2, Share2, GraduationCap } from "lucide-react";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { cn } from "@/lib/utils";
+import { practiceData } from "@/data/practiceData";
+
+// Build a lookup of problem_id -> difficulty from the static practice sheet.
+const PROBLEM_DIFFICULTY_MAP: Record<string, "Easy" | "Medium" | "Hard"> = (() => {
+  const map: Record<string, "Easy" | "Medium" | "Hard"> = {};
+  practiceData.forEach((topic) => {
+    topic.subtopics.forEach((sub) => {
+      sub.problems.forEach((prob) => {
+        map[prob.id] = prob.difficulty;
+      });
+    });
+  });
+  return map;
+})();
 
 interface LeetcodeData {
   totalSolved: number;
@@ -227,12 +241,9 @@ export default function Profile() {
     try {
       const { data, error } = await supabase
         .from('practice_problem_user_state')
-        .select(`
-          completed_at,
-          practice_problems ( difficulty )
-        `)
+        .select('problem_id, is_completed, updated_at, created_at')
         .eq('user_id', user.id)
-        .eq('status', 'COMPLETED');
+        .eq('is_completed', true);
 
       if (error) throw error;
 
@@ -240,14 +251,20 @@ export default function Profile() {
       const calendar: Record<string, number> = {};
 
       data?.forEach((row: any) => {
-        if (row.practice_problems?.difficulty === 'Easy') easy++;
-        else if (row.practice_problems?.difficulty === 'Medium') medium++;
-        else if (row.practice_problems?.difficulty === 'Hard') hard++;
+        const difficulty = PROBLEM_DIFFICULTY_MAP[row.problem_id];
+        if (difficulty === 'Easy') easy++;
+        else if (difficulty === 'Medium') medium++;
+        else if (difficulty === 'Hard') hard++;
 
-        if (row.completed_at) {
-          const date = new Date(row.completed_at);
-          const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-          calendar[dateStr] = (calendar[dateStr] || 0) + 1;
+        // No dedicated completed_at column exists; use updated_at (falls back to created_at)
+        // as the best proxy for when the problem was marked complete.
+        const completedAt = row.updated_at || row.created_at;
+        if (completedAt) {
+          const date = new Date(completedAt);
+          if (!isNaN(date.getTime())) {
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            calendar[dateStr] = (calendar[dateStr] || 0) + 1;
+          }
         }
       });
 
@@ -631,55 +648,53 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="flex-1 flex items-center justify-between gap-4">
-                      <>
-                        <div className="relative w-28 h-28 shrink-0">
-                          <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                            <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
-                            
-                            <circle cx="56" cy="56" r="48" fill="none" stroke="#22c55e" strokeWidth="6" 
-                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentEasySolved / currentTotalQuestions))} className="transition-all duration-1000" />
-                            <circle cx="56" cy="56" r="48" fill="none" stroke="#eab308" strokeWidth="6" 
-                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentMediumSolved / currentTotalQuestions))} className="transition-all duration-1000 -rotate-[36deg] origin-center" />
-                            <circle cx="56" cy="56" r="48" fill="none" stroke="#ef4444" strokeWidth="6" 
-                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentHardSolved / currentTotalQuestions))} className="transition-all duration-1000 rotate-[108deg] origin-center" />
-                          </svg>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-2xl font-bold text-white">{currentTotalSolved}</span>
-                            <span className="text-[10px] font-medium text-white/40">{dataMode === 'codechef' ? 'Rating' : 'Solved'}</span>
-                          </div>
-                        </div>
+                    <div className="relative w-28 h-28 shrink-0">
+                      <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
+                        
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#22c55e" strokeWidth="6" 
+                          strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentEasySolved / currentTotalQuestions))} className="transition-all duration-1000" />
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#eab308" strokeWidth="6" 
+                          strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentMediumSolved / currentTotalQuestions))} className="transition-all duration-1000 -rotate-[36deg] origin-center" />
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#ef4444" strokeWidth="6" 
+                          strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentHardSolved / currentTotalQuestions))} className="transition-all duration-1000 rotate-[108deg] origin-center" />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-2xl font-bold text-white">{currentTotalSolved}</span>
+                        <span className="text-[10px] font-medium text-white/40">{dataMode === 'codechef' ? 'Rating' : 'Solved'}</span>
+                      </div>
+                    </div>
 
-                        {dataMode !== "codechef" && (
-                          <div className="flex flex-col gap-3 flex-1">
-                            <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
-                              <span className="text-xs text-[#22c55e] font-medium">Easy</span>
-                              <span className="text-sm font-bold text-white">{currentEasySolved}</span>
-                            </div>
-                            <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
-                              <span className="text-xs text-[#eab308] font-medium">Medium</span>
-                              <span className="text-sm font-bold text-white">{currentMediumSolved}</span>
-                            </div>
-                            <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
-                              <span className="text-xs text-[#ef4444] font-medium">Hard</span>
-                              <span className="text-sm font-bold text-white">{currentHardSolved}</span>
-                            </div>
-                          </div>
-                        )}
-                      </>
+                    {dataMode !== "codechef" && (
+                      <div className="flex flex-col gap-3 flex-1">
+                        <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
+                          <span className="text-xs text-[#22c55e] font-medium">Easy</span>
+                          <span className="text-sm font-bold text-white">{currentEasySolved}</span>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
+                          <span className="text-xs text-[#eab308] font-medium">Medium</span>
+                          <span className="text-sm font-bold text-white">{currentMediumSolved}</span>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
+                          <span className="text-xs text-[#ef4444] font-medium">Hard</span>
+                          <span className="text-sm font-bold text-white">{currentHardSolved}</span>
+                        </div>
+                      </div>
+                    )}
+
                     {dataMode === "codechef" && (
                       <div className="flex w-full justify-between px-4 text-sm">
-                          <div className="flex flex-col items-center">
-                            <span className="font-semibold text-[#eab308]">{codechefData?.stars || "N/A"}</span>
-                            <span className="text-white/40 text-xs">Stars</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="font-semibold text-white">{codechefData?.globalRank || "-"}</span>
-                            <span className="text-white/40 text-xs">Global Rank</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="font-semibold text-white">{codechefData?.countryRank || "-"}</span>
-                            <span className="text-white/40 text-xs">Country Rank</span>
-                          </div>
+                        <div className="flex flex-col items-center">
+                          <span className="font-semibold text-[#eab308]">{codechefData?.stars || "N/A"}</span>
+                          <span className="text-white/40 text-xs">Stars</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="font-semibold text-white">{codechefData?.globalRank || "-"}</span>
+                          <span className="text-white/40 text-xs">Global Rank</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="font-semibold text-white">{codechefData?.countryRank || "-"}</span>
+                          <span className="text-white/40 text-xs">Country Rank</span>
                         </div>
                       </div>
                     )}

@@ -8,10 +8,13 @@ export interface UserProfile {
   avatar_url: string | null;
   bio?: string | null;
   role_title?: string | null;
+  university?: string | null;
   github_url?: string | null;
   linkedin_url?: string | null;
   website?: string | null;
   twitter_url?: string | null;
+  leetcode_username?: string | null;
+  codechef_username?: string | null;
 }
 
 interface AuthContextType {
