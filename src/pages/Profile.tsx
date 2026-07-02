@@ -36,8 +36,8 @@ interface CodechefData {
   currentRating: number;
   highestRating: number;
   stars: string;
-  globalRank: number;
-  countryRank: number;
+  globalRank: string | number;
+  countryRank: string | number;
   heatMap: { date: string, value: number }[];
 }
 
@@ -167,22 +167,29 @@ export default function Profile() {
   const fetchLeetcodeStats = async (username: string) => {
     setIsLeetcodeLoading(true);
     try {
-      const [statsRes, calendarRes] = await Promise.all([
-        fetch(`https://alfa-leetcode-api.onrender.com/${username}`),
+      // The `/solved` endpoint returns the actual solved counts; the base profile
+      // endpoint does NOT. `/calendar` returns the submission heatmap.
+      const [solvedRes, calendarRes] = await Promise.all([
+        fetch(`https://alfa-leetcode-api.onrender.com/${username}/solved`),
         fetch(`https://alfa-leetcode-api.onrender.com/${username}/calendar`)
       ]);
 
-      if (!statsRes.ok || !calendarRes.ok) {
+      if (!solvedRes.ok) {
         throw new Error("Failed to fetch LeetCode data");
       }
 
-      const statsData = await statsRes.json();
-      const calendarData = await calendarRes.json();
+      const solvedData = await solvedRes.json();
+      const calendarData = calendarRes.ok ? await calendarRes.json() : {};
 
-      if (statsData.errors) {
-        toast({ title: "LeetCode fetch failed", description: "Invalid username", variant: "destructive" });
+      if (solvedData.errors || solvedData.solvedProblem === undefined) {
+        toast({ title: "LeetCode fetch failed", description: "Invalid username or no data available", variant: "destructive" });
         return;
       }
+
+      // Total questions available on LeetCode (used as the ring denominator).
+      const allCount = Array.isArray(solvedData.allQuestionsCount)
+        ? solvedData.allQuestionsCount.find((q: any) => q.difficulty === "All")?.count
+        : undefined;
 
       let parsedCalendar = {};
       try {
@@ -196,7 +203,14 @@ export default function Profile() {
       }
 
       setLeetcodeData({
-        ...statsData,
+        totalSolved: solvedData.solvedProblem ?? 0,
+        totalQuestions: allCount ?? 3000,
+        easySolved: solvedData.easySolved ?? 0,
+        totalEasy: 0,
+        mediumSolved: solvedData.mediumSolved ?? 0,
+        totalMedium: 0,
+        hardSolved: solvedData.hardSolved ?? 0,
+        totalHard: 0,
         submissionCalendar: parsedCalendar
       });
     } catch (err) {
@@ -209,16 +223,38 @@ export default function Profile() {
   const fetchCodechefStats = async (username: string) => {
     setIsCodechefLoading(true);
     try {
-      const res = await fetch(`https://codechef-api.vercel.app/handle/${username}`);
-      if (res.status === 402 || res.status === 503) {
-        throw new Error("API is currently unavailable (Payment Required)");
+      // The old codechef-api.vercel.app endpoint is permanently disabled (HTTP 402).
+      // competeapi provides a working CodeChef profile endpoint.
+      const res = await fetch(`https://competeapi.vercel.app/user/codechef/${username}/`);
+      if (!res.ok) {
+        throw new Error("CodeChef API is currently unavailable");
       }
       const data = await res.json();
-      if (data.success) {
-        setCodechefData(data);
-      } else {
-        toast({ title: "CodeChef fetch failed", description: "Invalid username", variant: "destructive" });
+
+      if (!data || data.rating_number === undefined || data.rating_number === null) {
+        toast({ title: "CodeChef fetch failed", description: "Invalid handle or no data available", variant: "destructive" });
+        return;
       }
+
+      // Ranks can come back as whitespace-padded strings (e.g. "Inactive"); clean them.
+      const cleanRank = (val: unknown): string | number => {
+        if (typeof val === "number") return val;
+        const trimmed = String(val ?? "").trim();
+        return trimmed.length > 0 ? trimmed : "-";
+      };
+
+      const heatMap = Array.isArray(data.heatMap)
+        ? data.heatMap.map((item: any) => ({ date: item.date, value: item.value ?? 0 }))
+        : [];
+
+      setCodechefData({
+        currentRating: data.rating_number ?? 0,
+        highestRating: data.max_rank ?? 0,
+        stars: data.rating ?? "N/A",
+        globalRank: cleanRank(data.global_rank),
+        countryRank: cleanRank(data.country_rank),
+        heatMap,
+      });
     } catch (err: any) {
       const message = err.message || "Failed to connect to CodeChef API";
       toast({ title: "CodeChef API Error", description: message, variant: "destructive" });
@@ -608,14 +644,14 @@ export default function Profile() {
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
-                <div className="flex justify-between items-center w-full mb-8">
-                  <h3 className="text-sm font-semibold">Stats</h3>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full gap-3 mb-8">
+                  <h3 className="text-sm font-semibold shrink-0">Stats</h3>
                   
-                  <div className="flex bg-black/40 rounded-lg p-1 max-w-[320px]">
+                  <div className="flex w-full sm:w-auto bg-black/40 rounded-lg p-1">
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
-                        "flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all whitespace-nowrap",
+                        "flex-1 sm:flex-initial px-2.5 py-2 text-[11px] font-medium rounded-md transition-all whitespace-nowrap",
                         dataMode === "website" ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:text-white"
                       )}
                     >
@@ -624,7 +660,7 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all",
+                        "flex-1 sm:flex-initial px-2.5 py-2 text-[11px] font-medium rounded-md transition-all whitespace-nowrap",
                         dataMode === "leetcode" ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm" : "text-white/60 hover:text-white"
                       )}
                     >
@@ -633,7 +669,7 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all",
+                        "flex-1 sm:flex-initial px-2.5 py-2 text-[11px] font-medium rounded-md transition-all whitespace-nowrap",
                         dataMode === "codechef" ? "bg-[#5B4638]/60 text-white shadow-sm" : "text-white/60 hover:text-white"
                       )}
                     >
