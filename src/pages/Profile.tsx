@@ -48,7 +48,7 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Platform State
-  const [dataMode, setDataMode] = useState<"leetcode" | "codechef">("leetcode");
+  const [dataMode, setDataMode] = useState<"website" | "leetcode" | "codechef">("website");
   
   const [leetcodeData, setLeetcodeData] = useState<LeetcodeData | null>(null);
   const [isLeetcodeLoading, setIsLeetcodeLoading] = useState(false);
@@ -56,6 +56,7 @@ export default function Profile() {
   const [promptUsername, setPromptUsername] = useState("");
 
   const [codechefData, setCodechefData] = useState<CodechefData | null>(null);
+  const [websiteData, setWebsiteData] = useState<any>(null);
   const [isCodechefLoading, setIsCodechefLoading] = useState(false);
   const [showCodechefPrompt, setShowCodechefPrompt] = useState(false);
   const [codechefPromptUsername, setCodechefPromptUsername] = useState("");
@@ -152,7 +153,6 @@ export default function Profile() {
   const fetchLeetcodeStats = async (username: string) => {
     setIsLeetcodeLoading(true);
     try {
-      // The alfa API requires two separate calls to get stats and the calendar
       const [statsRes, calendarRes] = await Promise.all([
         fetch(`https://alfa-leetcode-api.onrender.com/${username}`),
         fetch(`https://alfa-leetcode-api.onrender.com/${username}/calendar`)
@@ -167,11 +167,9 @@ export default function Profile() {
 
       if (statsData.errors) {
         toast({ title: "LeetCode fetch failed", description: "Invalid username", variant: "destructive" });
-        setDataMode("leetcode");
         return;
       }
 
-      // Merge and parse the stringified calendar
       let parsedCalendar = {};
       try {
         if (calendarData.submissionCalendar && typeof calendarData.submissionCalendar === 'string') {
@@ -187,11 +185,8 @@ export default function Profile() {
         ...statsData,
         submissionCalendar: parsedCalendar
       });
-      setDataMode("leetcode");
-
     } catch (err) {
       toast({ title: "LeetCode API Error", description: "The API is currently unavailable. Try again later.", variant: "destructive" });
-      setDataMode("leetcode"); // default fallback
     } finally {
       setIsLeetcodeLoading(false);
     }
@@ -207,43 +202,72 @@ export default function Profile() {
       const data = await res.json();
       if (data.success) {
         setCodechefData(data);
-        setDataMode("codechef");
       } else {
         toast({ title: "CodeChef fetch failed", description: "Invalid username", variant: "destructive" });
-        setDataMode("leetcode"); // revert
       }
     } catch (err: any) {
       const message = err.message || "Failed to connect to CodeChef API";
       toast({ title: "CodeChef API Error", description: message, variant: "destructive" });
-      setDataMode("leetcode"); // revert
     } finally {
       setIsCodechefLoading(false);
     }
   };
 
-  const handleModeToggle = (mode: "leetcode" | "codechef") => {
-    if (mode === "leetcode") {
-      if (leetcodeUsername) {
-        if (!leetcodeData) {
-          fetchLeetcodeStats(leetcodeUsername);
-        } else {
-          setDataMode("leetcode");
-        }
-      } else {
-        setShowLeetcodePrompt(true);
-      }
-    } else {
-      if (codechefUsername) {
-        if (!codechefData) {
-          fetchCodechefStats(codechefUsername);
-        } else {
-          setDataMode("codechef");
-        }
-      } else {
-        setShowCodechefPrompt(true);
-      }
+  const handleModeToggle = (mode: "website" | "leetcode" | "codechef") => {
+    setDataMode(mode);
+    if (mode === "leetcode" && !leetcodeData && profile?.leetcode_username) {
+      fetchLeetcodeStats(profile.leetcode_username);
+    } else if (mode === "codechef" && !codechefData && profile?.codechef_username) {
+      fetchCodechefStats(profile.codechef_username);
     }
   };
+
+  const fetchWebsiteStats = async () => {
+    if (!user?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('practice_problem_user_state')
+        .select(`
+          completed_at,
+          practice_problems ( difficulty )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'COMPLETED');
+
+      if (error) throw error;
+
+      let easy = 0, medium = 0, hard = 0;
+      const calendar: Record<string, number> = {};
+
+      data?.forEach((row: any) => {
+        if (row.practice_problems?.difficulty === 'Easy') easy++;
+        else if (row.practice_problems?.difficulty === 'Medium') medium++;
+        else if (row.practice_problems?.difficulty === 'Hard') hard++;
+
+        if (row.completed_at) {
+          const date = new Date(row.completed_at);
+          const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          calendar[dateStr] = (calendar[dateStr] || 0) + 1;
+        }
+      });
+
+      setWebsiteData({
+        totalSolved: easy + medium + hard,
+        easySolved: easy,
+        mediumSolved: medium,
+        hardSolved: hard,
+        submissionCalendar: calendar
+      });
+    } catch (err) {
+      console.error("Failed to fetch website stats:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchWebsiteStats();
+    }
+  }, [user?.id]);
 
   const saveLeetcodePrompt = async () => {
     if (!promptUsername.trim() || !user) return;
@@ -283,7 +307,6 @@ export default function Profile() {
     fetchCodechefStats(codechefPromptUsername);
   };
 
-  // Convert Codechef heatmap to standard dictionary
   const codechefCalendar = useMemo(() => {
     const cal: Record<string, number> = {};
     if (codechefData?.heatMap) {
@@ -294,10 +317,15 @@ export default function Profile() {
     return cal;
   }, [codechefData]);
 
+  const currentTotalSolved = dataMode === 'leetcode' ? (leetcodeData?.totalSolved || 0) : dataMode === 'website' ? (websiteData?.totalSolved || 0) : (codechefData?.currentRating || 0);
+  const currentTotalQuestions = dataMode === 'leetcode' ? (leetcodeData?.totalQuestions || 1) : (websiteData?.totalSolved || 1);
+  const currentEasySolved = dataMode === 'leetcode' ? (leetcodeData?.easySolved || 0) : (websiteData?.easySolved || 0);
+  const currentMediumSolved = dataMode === 'leetcode' ? (leetcodeData?.mediumSolved || 0) : (websiteData?.mediumSolved || 0);
+  const currentHardSolved = dataMode === 'leetcode' ? (leetcodeData?.hardSolved || 0) : (websiteData?.hardSolved || 0);
+
   return (
     <div className="flex-1 min-h-screen bg-[#111111] text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700 relative">
       
-      {/* Leetcode Prompt Modal */}
       {showLeetcodePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
@@ -330,7 +358,6 @@ export default function Profile() {
         </div>
       )}
 
-      {/* CodeChef Prompt Modal */}
       {showCodechefPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
@@ -363,10 +390,8 @@ export default function Profile() {
         </div>
       )}
       
-      {/* Left Sidebar (Profile Info) */}
       <div className="w-full lg:w-[320px] shrink-0 space-y-6">
         <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col">
-          {/* Avatar & Name */}
           <div className="flex items-center gap-4 mb-6">
             <div className="relative group">
               {resolvedAvatar ? (
@@ -403,7 +428,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button 
               onClick={() => setIsEditing(!isEditing)}
@@ -418,7 +442,6 @@ export default function Profile() {
             </button>
           </div>
 
-          {/* Basic Info */}
           <div className="space-y-4 text-xs font-medium text-white/70">
             <h3 className="text-sm font-bold text-white mb-2">Basic Information</h3>
             {roleTitle && (
@@ -461,7 +484,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Right Content */}
       <div className="flex-1 min-w-0 space-y-6">
         {isEditing ? (
           <div className="bg-[#1C1C1C] rounded-2xl p-6 md:p-10 border border-white/5 shadow-2xl space-y-8 animate-in fade-in zoom-in-95">
@@ -567,29 +589,35 @@ export default function Profile() {
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
-            {/* Top Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* DSA Progress (Leetcode or CodeChef) */}
               <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
                 <div className="flex justify-between items-center w-full mb-8">
                   <h3 className="text-sm font-semibold">Stats</h3>
                   
-                  {/* LeetCode / CodeChef Toggle */}
-                  <div className="flex bg-[#262626] rounded-full p-0.5 border border-white/5">
-                    <button 
+                  <div className="flex bg-black/40 rounded-lg p-1 max-w-[320px]">
+                    <button
+                      onClick={() => handleModeToggle("website")}
+                      className={cn(
+                        "flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all whitespace-nowrap",
+                        dataMode === "website" ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:text-white"
+                      )}
+                    >
+                      Website
+                    </button>
+                    <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "text-[10px] font-bold px-3 py-1 rounded-full transition-all",
-                        dataMode === "leetcode" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/80"
+                        "flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all",
+                        dataMode === "leetcode" ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm" : "text-white/60 hover:text-white"
                       )}
                     >
                       LeetCode
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "text-[10px] font-bold px-3 py-1 rounded-full transition-all",
-                        dataMode === "codechef" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/80"
+                        "flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all",
+                        dataMode === "codechef" ? "bg-[#5B4638]/60 text-white shadow-sm" : "text-white/60 hover:text-white"
                       )}
                     >
                       CodeChef
@@ -603,60 +631,43 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="flex-1 flex items-center justify-between gap-4">
-                    {dataMode === "leetcode" ? (
                       <>
-                        {/* Circle Chart */}
                         <div className="relative w-28 h-28 shrink-0">
                           <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                            {/* Background Rings */}
                             <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
                             
-                            {/* Fake Easy/Med/Hard Segments */}
                             <circle cx="56" cy="56" r="48" fill="none" stroke="#22c55e" strokeWidth="6" 
-                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (leetcodeData?.totalQuestions ? (leetcodeData?.easySolved || 0)/leetcodeData.totalQuestions : 0))} className="transition-all duration-1000" />
+                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentEasySolved / currentTotalQuestions))} className="transition-all duration-1000" />
                             <circle cx="56" cy="56" r="48" fill="none" stroke="#eab308" strokeWidth="6" 
-                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (leetcodeData?.totalQuestions ? (leetcodeData?.mediumSolved || 0)/leetcodeData.totalQuestions : 0))} className="transition-all duration-1000 -rotate-[36deg] origin-center" />
+                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentMediumSolved / currentTotalQuestions))} className="transition-all duration-1000 -rotate-[36deg] origin-center" />
                             <circle cx="56" cy="56" r="48" fill="none" stroke="#ef4444" strokeWidth="6" 
-                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (leetcodeData?.totalQuestions ? (leetcodeData?.hardSolved || 0)/leetcodeData.totalQuestions : 0))} className="transition-all duration-1000 rotate-[108deg] origin-center" />
+                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentHardSolved / currentTotalQuestions))} className="transition-all duration-1000 rotate-[108deg] origin-center" />
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-2xl font-bold text-white">{leetcodeData?.totalSolved || 0}</span>
-                            <span className="text-[10px] font-medium text-white/40">{leetcodeData?.totalQuestions || 0}</span>
+                            <span className="text-2xl font-bold text-white">{currentTotalSolved}</span>
+                            <span className="text-[10px] font-medium text-white/40">{dataMode === 'codechef' ? 'Rating' : 'Solved'}</span>
                           </div>
                         </div>
-                        
-                        {/* Legend */}
-                        <div className="flex-1 space-y-3 pl-2">
-                          <div className="flex justify-between items-center text-xs">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-[#22c55e]" />
-                              <span className="text-white/60">Easy</span>
+
+                        {dataMode !== "codechef" && (
+                          <div className="flex flex-col gap-3 flex-1">
+                            <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
+                              <span className="text-xs text-[#22c55e] font-medium">Easy</span>
+                              <span className="text-sm font-bold text-white">{currentEasySolved}</span>
                             </div>
-                            <span className="font-semibold text-white/90">{leetcodeData?.easySolved || 0}<span className="text-white/30 ml-1">/{leetcodeData?.totalEasy || 0}</span></span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-[#eab308]" />
-                              <span className="text-white/60">Medium</span>
+                            <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
+                              <span className="text-xs text-[#eab308] font-medium">Medium</span>
+                              <span className="text-sm font-bold text-white">{currentMediumSolved}</span>
                             </div>
-                            <span className="font-semibold text-white/90">{leetcodeData?.mediumSolved || 0}<span className="text-white/30 ml-1">/{leetcodeData?.totalMedium || 0}</span></span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-[#ef4444]" />
-                              <span className="text-white/60">Hard</span>
+                            <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
+                              <span className="text-xs text-[#ef4444] font-medium">Hard</span>
+                              <span className="text-sm font-bold text-white">{currentHardSolved}</span>
                             </div>
-                            <span className="font-semibold text-white/90">{leetcodeData?.hardSolved || 0}<span className="text-white/30 ml-1">/{leetcodeData?.totalHard || 0}</span></span>
                           </div>
-                        </div>
+                        )}
                       </>
-                    ) : (
-                      <div className="flex flex-col items-center w-full space-y-6">
-                        <div className="text-center">
-                          <span className="text-3xl font-bold text-white">{codechefData?.currentRating || 0}</span>
-                          <p className="text-xs text-white/40 uppercase tracking-widest mt-1">Current Rating</p>
-                        </div>
-                        <div className="flex w-full justify-between px-4 text-sm">
+                    {dataMode === "codechef" && (
+                      <div className="flex w-full justify-between px-4 text-sm">
                           <div className="flex flex-col items-center">
                             <span className="font-semibold text-[#eab308]">{codechefData?.stars || "N/A"}</span>
                             <span className="text-white/40 text-xs">Stars</span>
@@ -704,11 +715,12 @@ export default function Profile() {
             {/* Heatmap Area */}
             <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl w-full overflow-hidden">
               <ActivityHeatmap 
+                websiteCalendar={websiteData?.submissionCalendar || {}}
                 leetcodeCalendar={leetcodeData?.submissionCalendar || {}}
                 codechefCalendar={codechefCalendar}
                 dataMode={dataMode}
                 onModeChange={handleModeToggle}
-                isLoading={(isLeetcodeLoading && dataMode === "leetcode") || (isCodechefLoading && dataMode === "codechef")}
+                isLoading={(isLeetcodeLoading && dataMode === "leetcode") || (isCodechefLoading && dataMode === "codechef") || (!websiteData && dataMode === "website")}
               />
             </div>
 
