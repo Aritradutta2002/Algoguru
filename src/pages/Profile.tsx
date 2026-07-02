@@ -152,17 +152,46 @@ export default function Profile() {
   const fetchLeetcodeStats = async (username: string) => {
     setIsLeetcodeLoading(true);
     try {
-      const res = await fetch(`https://leetcode-stats-api.herokuapp.com/${username}`);
-      const data = await res.json();
-      if (data.status === "success") {
-        setLeetcodeData(data);
-        setDataMode("leetcode");
-      } else {
-        toast({ title: "LeetCode fetch failed", description: data.message || "Invalid username", variant: "destructive" });
-        setDataMode("leetcode"); // default fallback
+      // The alfa API requires two separate calls to get stats and the calendar
+      const [statsRes, calendarRes] = await Promise.all([
+        fetch(`https://alfa-leetcode-api.onrender.com/${username}`),
+        fetch(`https://alfa-leetcode-api.onrender.com/${username}/calendar`)
+      ]);
+
+      if (!statsRes.ok || !calendarRes.ok) {
+        throw new Error("Failed to fetch LeetCode data");
       }
+
+      const statsData = await statsRes.json();
+      const calendarData = await calendarRes.json();
+
+      if (statsData.errors) {
+        toast({ title: "LeetCode fetch failed", description: "Invalid username", variant: "destructive" });
+        setDataMode("leetcode");
+        return;
+      }
+
+      // Merge and parse the stringified calendar
+      let parsedCalendar = {};
+      try {
+        if (calendarData.submissionCalendar && typeof calendarData.submissionCalendar === 'string') {
+          parsedCalendar = JSON.parse(calendarData.submissionCalendar);
+        } else if (calendarData.submissionCalendar) {
+          parsedCalendar = calendarData.submissionCalendar;
+        }
+      } catch (e) {
+        console.error("Failed to parse LeetCode calendar");
+      }
+
+      setLeetcodeData({
+        ...statsData,
+        submissionCalendar: parsedCalendar
+      });
+      setDataMode("leetcode");
+
     } catch (err) {
-      toast({ title: "LeetCode API Error", description: "Failed to connect to LeetCode", variant: "destructive" });
+      toast({ title: "LeetCode API Error", description: "The API is currently unavailable. Try again later.", variant: "destructive" });
+      setDataMode("leetcode"); // default fallback
     } finally {
       setIsLeetcodeLoading(false);
     }
@@ -172,6 +201,9 @@ export default function Profile() {
     setIsCodechefLoading(true);
     try {
       const res = await fetch(`https://codechef-api.vercel.app/handle/${username}`);
+      if (res.status === 402 || res.status === 503) {
+        throw new Error("API is currently unavailable (Payment Required)");
+      }
       const data = await res.json();
       if (data.success) {
         setCodechefData(data);
@@ -180,8 +212,9 @@ export default function Profile() {
         toast({ title: "CodeChef fetch failed", description: "Invalid username", variant: "destructive" });
         setDataMode("leetcode"); // revert
       }
-    } catch (err) {
-      toast({ title: "CodeChef API Error", description: "Failed to connect to CodeChef API", variant: "destructive" });
+    } catch (err: any) {
+      const message = err.message || "Failed to connect to CodeChef API";
+      toast({ title: "CodeChef API Error", description: message, variant: "destructive" });
       setDataMode("leetcode"); // revert
     } finally {
       setIsCodechefLoading(false);
