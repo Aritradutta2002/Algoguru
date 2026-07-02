@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Camera, Save, Loader2, User, Github, Linkedin, Globe, Briefcase, FileText, CheckCircle2 } from "lucide-react";
+import { Camera, Save, Loader2, User, Github, Linkedin, Globe, Briefcase, FileText, CheckCircle2, Edit2, Share2, MapPin, GraduationCap } from "lucide-react";
 import { practiceContentMap } from "@/data/practiceContent";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 
 export default function Profile() {
   const { user, profile, resolvedAvatar, refreshProfile } = useAuth();
+  
+  const [isEditing, setIsEditing] = useState(false);
   
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -150,8 +152,6 @@ export default function Profile() {
     if (!user) return;
     setSaving(true);
     
-    // We update the table. Note: If the columns don't exist yet, this will fail.
-    // The user needs to run the SQL migration.
     const { error } = await supabase
       .from("profiles")
       .update({ 
@@ -161,7 +161,7 @@ export default function Profile() {
         github_url: githubUrl,
         linkedin_url: linkedinUrl,
         website: website
-      } as any) // Type asserted as any to prevent TS errors before types are regenerated
+      } as any)
       .eq("user_id", user.id);
 
     if (error) {
@@ -169,269 +169,312 @@ export default function Profile() {
     } else {
       await refreshProfile();
       toast({ title: "Profile saved!" });
+      setIsEditing(false);
     }
     setSaving(false);
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700 pb-20">
+    <div className="flex-1 min-h-screen bg-[#111111] text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700">
       
-      {/* Header Section */}
-      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-5xl mx-auto relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-
-        <div className="relative z-10 text-center md:text-left flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* Avatar Area */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-125 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            {resolvedAvatar ? (
-              <img
-                src={resolvedAvatar}
-                alt="Avatar"
-                className="relative w-32 h-32 md:w-40 md:h-40 rounded-[40px] object-cover border-4 border-background shadow-2xl transition-transform duration-500 group-hover:scale-105"
-                style={{ aspectRatio: '1/1' }}
+      {/* Left Sidebar (Profile Info) */}
+      <div className="w-full lg:w-[320px] shrink-0 space-y-6">
+        <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col">
+          {/* Avatar & Name */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative group">
+              {resolvedAvatar ? (
+                <img
+                  src={resolvedAvatar}
+                  alt="Avatar"
+                  className="w-16 h-16 rounded-xl object-cover border border-white/10"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold bg-primary/20 text-primary border border-primary/20">
+                  {displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "?"}
+                </div>
+              )}
+              {isEditing && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute -bottom-2 -right-2 w-7 h-7 rounded-lg bg-foreground text-background flex items-center justify-center border-2 border-background shadow-xl hover:scale-110 active:scale-95 disabled:opacity-50 z-10"
+                >
+                  {uploading ? <Loader2 className="animate-spin w-3 h-3" /> : <Camera className="w-3 h-3" />}
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
               />
-            ) : (
-              <div
-                className="relative w-32 h-32 md:w-40 md:h-40 rounded-[40px] flex items-center justify-center text-5xl font-black border-4 border-background bg-primary/10 text-primary shadow-2xl"
-              >
-                {displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "?"}
-              </div>
-            )}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="absolute -bottom-2 -right-2 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-foreground text-background flex items-center justify-center border-4 border-background shadow-xl transition-all hover:scale-110 active:scale-95 disabled:opacity-50 z-10 cursor-pointer"
+            </div>
+            <div>
+              <h1 className="text-lg font-bold leading-tight">{displayName || "Add your name"}</h1>
+              <p className="text-xs text-primary/80 font-medium">{user?.email?.split('@')[0] || "username"}</p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            <button 
+              onClick={() => setIsEditing(!isEditing)}
+              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs font-semibold"
             >
-              {uploading ? <Loader2 className="animate-spin" size={24} /> : <Camera size={24} />}
+              <Edit2 size={14} />
+              {isEditing ? "Cancel" : "Edit Profile"}
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarUpload}
-            />
+            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs font-semibold">
+              <Share2 size={14} />
+              Share
+            </button>
           </div>
 
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-4">
-              <User size={12} className="text-primary" />
-              <span className="text-muted-foreground">My Profile</span>
+          {/* Basic Info */}
+          <div className="space-y-4 text-xs font-medium text-white/70">
+            <h3 className="text-sm font-bold text-white mb-2">Basic Information</h3>
+            {roleTitle && (
+              <div className="flex items-center gap-3">
+                <Briefcase size={16} className="text-white/40" />
+                <span>{roleTitle}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <GraduationCap size={16} className="text-white/40" />
+              <span>Academy of Technology</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-2">
-              {displayName || "Add your name"}
-            </h1>
-            <p className="text-base md:text-xl font-medium text-muted-foreground mb-4 max-w-xl">
-              {roleTitle || "Update your profile to stand out"}
-            </p>
+            {website && (
+              <div className="flex items-center gap-3">
+                <Globe size={16} className="text-white/40" />
+                <a href={website} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors truncate">
+                  {website.replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            )}
+            {githubUrl && (
+              <div className="flex items-center gap-3">
+                <Github size={16} className="text-white/40" />
+                <a href={githubUrl} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors truncate">
+                  {githubUrl.split('/').pop() || "GitHub"}
+                </a>
+              </div>
+            )}
+            {linkedinUrl && (
+              <div className="flex items-center gap-3">
+                <Linkedin size={16} className="text-white/40" />
+                <a href={linkedinUrl} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors truncate">
+                  {linkedinUrl.split('/in/').pop() || "LinkedIn"}
+                </a>
+              </div>
+            )}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Main Content */}
-      <section className="px-4 md:px-10 lg:px-16 max-w-5xl mx-auto w-full relative z-20 space-y-8">
-        
-        {/* LeetCode-style Progress & Activity Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
-          
-          {/* DSA Progress Circular / Bars Stats */}
-          <div className="bg-card border rounded-[24px] p-6 shadow-xl shadow-primary/5 flex flex-col items-center">
-            <h3 className="text-sm font-black uppercase tracking-widest self-start mb-6 text-foreground/80">Solved Problems</h3>
+      {/* Right Content */}
+      <div className="flex-1 min-w-0 space-y-6">
+        {isEditing ? (
+          <div className="bg-[#1C1C1C] rounded-2xl p-6 md:p-10 border border-white/5 shadow-2xl space-y-8 animate-in fade-in zoom-in-95">
+            <h2 className="text-xl font-bold">Edit Profile</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Display Name</label>
+                <input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Role / Title</label>
+                <input
+                  value={roleTitle}
+                  onChange={(e) => setRoleTitle(e.target.value)}
+                  placeholder="Software Engineer"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
+            </div>
             
-            {statsLoading ? (
-              <div className="flex items-center justify-center h-48 w-full">
-                <Loader2 className="animate-spin text-muted-foreground" size={24} />
-              </div>
-            ) : (
-              <>
-                <div className="relative w-40 h-40 flex flex-col items-center justify-center mb-8">
-                  {/* Outer Circle (Background) */}
-                  <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                    <circle cx="80" cy="80" r="72" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" className="opacity-30" />
-                    {/* Progress Arc */}
-                    <circle 
-                      cx="80" cy="80" r="72" fill="none" stroke="hsl(var(--primary))" strokeWidth="8" 
-                      strokeDasharray="452.38" 
-                      strokeDashoffset={452.38 - (452.38 * (totalDsaProblems > 0 ? dsaCompletedCount / totalDsaProblems : 0))}
-                      strokeLinecap="round"
-                      className="transition-all duration-1000 ease-out"
-                    />
-                  </svg>
-                  <div className="text-center z-10 flex flex-col items-center">
-                    <span className="text-4xl font-black tracking-tighter text-foreground">{dsaCompletedCount}</span>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Solved</span>
-                  </div>
-                </div>
-
-                <div className="w-full space-y-4">
-                  {/* Easy */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-end text-xs">
-                      <span className="font-bold text-success/80">Easy</span>
-                      <span className="font-bold text-foreground">
-                        {easyCount} <span className="text-muted-foreground">/ {totalEasy}</span>
-                      </span>
-                    </div>
-                    <div className="w-full bg-success/10 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-success h-full rounded-full transition-all duration-1000" style={{ width: `${totalEasy > 0 ? (easyCount / totalEasy) * 100 : 0}%` }} />
-                    </div>
-                  </div>
-
-                  {/* Medium */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-end text-xs">
-                      <span className="font-bold text-warning/80">Medium</span>
-                      <span className="font-bold text-foreground">
-                        {mediumCount} <span className="text-muted-foreground">/ {totalMedium}</span>
-                      </span>
-                    </div>
-                    <div className="w-full bg-warning/10 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-warning h-full rounded-full transition-all duration-1000" style={{ width: `${totalMedium > 0 ? (mediumCount / totalMedium) * 100 : 0}%` }} />
-                    </div>
-                  </div>
-
-                  {/* Hard */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-end text-xs">
-                      <span className="font-bold text-destructive/80">Hard</span>
-                      <span className="font-bold text-foreground">
-                        {hardCount} <span className="text-muted-foreground">/ {totalHard}</span>
-                      </span>
-                    </div>
-                    <div className="w-full bg-destructive/10 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-destructive h-full rounded-full transition-all duration-1000" style={{ width: `${totalHard > 0 ? (hardCount / totalHard) * 100 : 0}%` }} />
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-          
-          {/* Heatmap Area */}
-          <div className="bg-card border rounded-[24px] p-6 shadow-xl shadow-primary/5 flex flex-col h-full">
-            {statsLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 className="animate-spin text-muted-foreground" size={24} />
-              </div>
-            ) : (
-              <ActivityHeatmap completedDates={completedDates} />
-            )}
-          </div>
-        </div>
-
-        {/* Profile Settings Card */}
-        <div className="bg-card border rounded-[24px] p-6 md:p-10 shadow-xl shadow-primary/5 space-y-10">
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Display Name */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                <User size={14} className="text-primary" />
-                Display Name
-              </label>
-              <input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="John Doe"
-                className="w-full px-5 py-4 rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none transition-all focus:border-primary/50 focus:bg-muted/30 focus:ring-4 focus:ring-primary/5 placeholder:text-muted-foreground/30"
+              <label className="text-xs font-bold text-white/50 uppercase tracking-wider">About Me (Bio)</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell us about yourself..."
+                className="w-full px-4 py-3 min-h-[100px] rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all resize-y"
               />
             </div>
-
-            {/* Role Title */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                <Briefcase size={14} className="text-primary" />
-                Role / Title
-              </label>
-              <input
-                value={roleTitle}
-                onChange={(e) => setRoleTitle(e.target.value)}
-                placeholder="Frontend Developer"
-                className="w-full px-5 py-4 rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none transition-all focus:border-primary/50 focus:bg-muted/30 focus:ring-4 focus:ring-primary/5 placeholder:text-muted-foreground/30"
-              />
-            </div>
-          </div>
-
-          {/* Bio */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-              <FileText size={14} className="text-primary" />
-              About Me (Bio)
-            </label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell us a little bit about yourself, your skills, and what you're learning..."
-              className="w-full px-5 py-4 min-h-[120px] rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none transition-all focus:border-primary/50 focus:bg-muted/30 focus:ring-4 focus:ring-primary/5 placeholder:text-muted-foreground/30 resize-y"
-            />
-          </div>
-
-          {/* Social Links */}
-          <div className="pt-6 border-t border-border/50">
-            <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-              Social Links
-            </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                  <Github size={14} className="text-primary" />
-                  GitHub URL
-                </label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">GitHub</label>
                 <input
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/..."
-                  className="w-full px-5 py-4 rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none transition-all focus:border-primary/50 focus:bg-muted/30 focus:ring-4 focus:ring-primary/5 placeholder:text-muted-foreground/30"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
-
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                  <Linkedin size={14} className="text-primary" />
-                  LinkedIn URL
-                </label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">LinkedIn</label>
                 <input
                   value={linkedinUrl}
                   onChange={(e) => setLinkedinUrl(e.target.value)}
                   placeholder="https://linkedin.com/in/..."
-                  className="w-full px-5 py-4 rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none transition-all focus:border-primary/50 focus:bg-muted/30 focus:ring-4 focus:ring-primary/5 placeholder:text-muted-foreground/30"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
-
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                  <Globe size={14} className="text-primary" />
-                  Website
-                </label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Website</label>
                 <input
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
-                  placeholder="https://yourdomain.com"
-                  className="w-full px-5 py-4 rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none transition-all focus:border-primary/50 focus:bg-muted/30 focus:ring-4 focus:ring-primary/5 placeholder:text-muted-foreground/30"
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
             </div>
-          </div>
 
-          <div className="pt-10 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-[11px] font-bold text-muted-foreground/70 tracking-wide">
-              Logged in as: <span className="text-foreground">{user?.email}</span>
+            <div className="pt-6 flex justify-end">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                Save Changes
+              </button>
             </div>
-            
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center justify-center gap-3 w-full md:w-auto px-10 py-4 rounded-[20px] text-sm font-black uppercase tracking-widest bg-primary text-primary-foreground transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-              Save Profile
-            </button>
           </div>
+        ) : (
+          <div className="space-y-6 animate-in fade-in zoom-in-95">
+            {/* Top Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* DSA Progress */}
+              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
+                <div className="flex justify-between items-center w-full mb-8">
+                  <h3 className="text-sm font-semibold">DSA Progress</h3>
+                </div>
 
-        </div>
-      </section>
+                {statsLoading ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <Loader2 className="animate-spin text-white/20" />
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-between gap-4">
+                    {/* Circle Chart */}
+                    <div className="relative w-28 h-28 shrink-0">
+                      <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                        {/* Background Rings */}
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
+                        
+                        {/* Fake Easy/Med/Hard Segments (Visual representation for LeetCode style) */}
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#22c55e" strokeWidth="6" strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * 0.1)} className="transition-all duration-1000" />
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#eab308" strokeWidth="6" strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * 0.4)} strokeDasharray="301.59" className="transition-all duration-1000 -rotate-[36deg] origin-center" />
+                        <circle cx="56" cy="56" r="48" fill="none" stroke="#ef4444" strokeWidth="6" strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * 0.2)} strokeDasharray="301.59" className="transition-all duration-1000 rotate-[108deg] origin-center" />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-2xl font-bold text-white">{dsaCompletedCount}</span>
+                        <span className="text-[10px] font-medium text-white/40">{totalDsaProblems}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="flex-1 space-y-3 pl-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-[#22c55e]" />
+                          <span className="text-white/60">Easy</span>
+                        </div>
+                        <span className="font-semibold text-white/90">{easyCount}<span className="text-white/30 ml-1">/{totalEasy}</span></span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-[#eab308]" />
+                          <span className="text-white/60">Medium</span>
+                        </div>
+                        <span className="font-semibold text-white/90">{mediumCount}<span className="text-white/30 ml-1">/{totalMedium}</span></span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-[#ef4444]" />
+                          <span className="text-white/60">Hard</span>
+                        </div>
+                        <span className="font-semibold text-white/90">{hardCount}<span className="text-white/30 ml-1">/{totalHard}</span></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Subject Progress */}
+              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
+                <h3 className="text-sm font-semibold mb-auto">Subject Progress</h3>
+                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
+                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
+                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                  </div>
+                  <p className="text-xs text-white/40">Edit profile to show subject progress</p>
+                </div>
+              </div>
+
+              {/* Skills */}
+              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
+                <h3 className="text-sm font-semibold mb-auto">Skills</h3>
+                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
+                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
+                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                  </div>
+                  <p className="text-xs text-white/40">Edit Profile to add skills</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Heatmap Area */}
+            <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl w-full overflow-hidden">
+              {statsLoading ? (
+                <div className="flex items-center justify-center h-48 w-full">
+                  <Loader2 className="animate-spin text-white/20" />
+                </div>
+              ) : (
+                <ActivityHeatmap completedDates={completedDates} />
+              )}
+            </div>
+
+            {/* Bottom Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Coding Profiles */}
+              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col min-h-[200px]">
+                <h3 className="text-sm font-semibold mb-auto">Coding Profiles</h3>
+                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
+                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
+                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contests */}
+              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col min-h-[200px]">
+                <h3 className="text-sm font-semibold mb-auto">Contests</h3>
+                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
+                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
+                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+      </div>
     </div>
   );
 }
