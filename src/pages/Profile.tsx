@@ -642,17 +642,17 @@ export default function Profile() {
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full gap-3 mb-8">
-                  <h3 className="text-sm font-semibold shrink-0">Stats</h3>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start w-full gap-2 mb-6">
+                  <h3 className="text-sm font-semibold shrink-0 pt-1">Stats</h3>
                   
-                  <div className="flex w-full sm:w-auto bg-black/40 rounded-lg p-1">
+                  <div className="flex flex-wrap gap-1 bg-black/40 rounded-lg p-1 w-full sm:w-auto">
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
-                        "flex-1 sm:flex-initial px-2.5 py-2 text-[11px] font-medium rounded-md transition-all whitespace-nowrap",
-                        dataMode === "website" ? "bg-white/10 text-white shadow-sm" : "text-white/60 hover:text-white"
+                        "flex-1 sm:flex-none min-w-0 px-2 py-1.5 text-[10px] md:text-[11px] font-medium rounded-md transition-all text-center",
+                        dataMode === "website" ? "bg-white/10 text-white shadow-sm" : "text-white/50 hover:text-white/80"
                       )}
                     >
                       Website
@@ -660,8 +660,8 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "flex-1 sm:flex-initial px-2.5 py-2 text-[11px] font-medium rounded-md transition-all whitespace-nowrap",
-                        dataMode === "leetcode" ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm" : "text-white/60 hover:text-white"
+                        "flex-1 sm:flex-none min-w-0 px-2 py-1.5 text-[10px] md:text-[11px] font-medium rounded-md transition-all text-center",
+                        dataMode === "leetcode" ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm" : "text-white/50 hover:text-white/80"
                       )}
                     >
                       LeetCode
@@ -669,8 +669,8 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "flex-1 sm:flex-initial px-2.5 py-2 text-[11px] font-medium rounded-md transition-all whitespace-nowrap",
-                        dataMode === "codechef" ? "bg-[#5B4638]/60 text-white shadow-sm" : "text-white/60 hover:text-white"
+                        "flex-1 sm:flex-none min-w-0 px-2 py-1.5 text-[10px] md:text-[11px] font-medium rounded-md transition-all text-center",
+                        dataMode === "codechef" ? "bg-[#5B4638]/60 text-white shadow-sm" : "text-white/50 hover:text-white/80"
                       )}
                     >
                       CodeChef
@@ -683,8 +683,8 @@ export default function Profile() {
                     <Loader2 className="animate-spin text-white/20" />
                   </div>
                 ) : (
-                  <div className="flex-1 flex items-center justify-between gap-4">
-                    <div className="relative w-28 h-28 shrink-0">
+                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="relative w-28 h-28 shrink-0 self-center sm:self-auto">
                       <svg className="absolute inset-0 w-full h-full transform -rotate-90">
                         <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
                         
@@ -701,19 +701,18 @@ export default function Profile() {
                       </div>
                     </div>
 
-                    {dataMode !== "codechef" && (
-                      <div className="flex flex-col gap-3 flex-1">
-                        <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
-                          <span className="text-xs text-[#22c55e] font-medium">Easy</span>
-                          <span className="text-sm font-bold text-white">{currentEasySolved}</span>
+                    {dataMode !== "codechef" && (                        <div className="flex flex-row sm:flex-col gap-2 flex-1 w-full sm:w-auto">
+                        <div className="flex-1 sm:w-full bg-white/5 rounded-lg p-2 flex sm:p-2.5 sm:flex-row items-center justify-between gap-1.5 border border-white/5">
+                          <span className="text-[10px] sm:text-xs text-[#22c55e] font-medium">Easy</span>
+                          <span className="text-xs sm:text-sm font-bold text-white">{currentEasySolved}</span>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
-                          <span className="text-xs text-[#eab308] font-medium">Medium</span>
-                          <span className="text-sm font-bold text-white">{currentMediumSolved}</span>
+                        <div className="flex flex-1 sm:w-full items-center justify-between gap-1.5 bg-white/5 rounded-lg p-2 sm:p-2.5 border border-white/5">
+                          <span className="text-[10px] sm:text-xs text-[#eab308] font-medium">Medium</span>
+                          <span className="text-xs sm:text-sm font-bold text-white">{currentMediumSolved}</span>
                         </div>
-                        <div className="bg-white/5 rounded-lg p-2.5 flex items-center justify-between border border-white/5">
-                          <span className="text-xs text-[#ef4444] font-medium">Hard</span>
-                          <span className="text-sm font-bold text-white">{currentHardSolved}</span>
+                        <div className="flex flex-1 sm:w-full items-center justify-between gap-1.5 bg-white/5 rounded-lg p-2 sm:p-2.5 border border-white/5">
+                          <span className="text-[10px] sm:text-xs text-[#ef4444] font-medium">Hard</span>
+                          <span className="text-xs sm:text-sm font-bold text-white">{currentHardSolved}</span>
                         </div>
                       </div>
                     )}
