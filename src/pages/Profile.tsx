@@ -1,10 +1,31 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Camera, Save, Loader2, User, Github, Linkedin, Globe, Briefcase, FileText, CheckCircle2, Edit2, Share2, MapPin, GraduationCap } from "lucide-react";
-import { practiceContentMap } from "@/data/practiceContent";
+import { Camera, Save, Loader2, Github, Linkedin, Globe, Briefcase, Edit2, Share2, GraduationCap } from "lucide-react";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
+import { cn } from "@/lib/utils";
+
+interface LeetcodeData {
+  totalSolved: number;
+  totalQuestions: number;
+  easySolved: number;
+  totalEasy: number;
+  mediumSolved: number;
+  totalMedium: number;
+  hardSolved: number;
+  totalHard: number;
+  submissionCalendar: Record<string, number>;
+}
+
+interface CodechefData {
+  currentRating: number;
+  highestRating: number;
+  stars: string;
+  globalRank: number;
+  countryRank: number;
+  heatMap: { date: string, value: number }[];
+}
 
 export default function Profile() {
   const { user, profile, resolvedAvatar, refreshProfile } = useAuth();
@@ -14,105 +35,51 @@ export default function Profile() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
+  const [university, setUniversity] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [website, setWebsite] = useState("");
+  
+  const [leetcodeUsername, setLeetcodeUsername] = useState("");
+  const [codechefUsername, setCodechefUsername] = useState("");
   
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Progress & Activity State
-  const [completedDates, setCompletedDates] = useState<string[]>([]);
-  const [dsaCompletedCount, setDsaCompletedCount] = useState(0);
-  const [statsLoading, setStatsLoading] = useState(true);
+  // Platform State
+  const [dataMode, setDataMode] = useState<"leetcode" | "codechef">("leetcode");
   
-  // Difficulty Breakdown State
-  const [easyCount, setEasyCount] = useState(0);
-  const [mediumCount, setMediumCount] = useState(0);
-  const [hardCount, setHardCount] = useState(0);
+  const [leetcodeData, setLeetcodeData] = useState<LeetcodeData | null>(null);
+  const [isLeetcodeLoading, setIsLeetcodeLoading] = useState(false);
+  const [showLeetcodePrompt, setShowLeetcodePrompt] = useState(false);
+  const [promptUsername, setPromptUsername] = useState("");
 
-  const { totalDsaProblems, totalEasy, totalMedium, totalHard, problemDifficultyMap } = useMemo(() => {
-    const allProblems = Object.values(practiceContentMap).flat().filter(s => !/^(Easy|Medium|Hard) Problems$/i.test(s.title));
-    
-    let tEasy = 0;
-    let tMedium = 0;
-    let tHard = 0;
-    const diffMap = new Map<string, string>();
-    
-    allProblems.forEach(p => {
-      diffMap.set(p.id, p.difficulty);
-      if (p.difficulty === "Easy") tEasy++;
-      else if (p.difficulty === "Medium") tMedium++;
-      else if (p.difficulty === "Hard") tHard++;
-    });
-    
-    return { 
-      totalDsaProblems: allProblems.length, 
-      totalEasy: tEasy, 
-      totalMedium: tMedium, 
-      totalHard: tHard, 
-      problemDifficultyMap: diffMap 
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    async function fetchStats() {
-      try {
-        const { data: practiceData } = await supabase
-          .from("practice_problem_user_state")
-          .select("problem_id, updated_at")
-          .eq("user_id", user.id)
-          .eq("is_completed", true);
-          
-        const { data: javaData } = await supabase
-          .from("core_java_user_state")
-          .select("question_id, updated_at")
-          .eq("user_id", user.id)
-          .eq("is_completed", true);
-          
-        const pData = practiceData || [];
-        const jData = javaData || [];
-        
-        setDsaCompletedCount(pData.length);
-        
-        let cEasy = 0;
-        let cMedium = 0;
-        let cHard = 0;
-        
-        pData.forEach(item => {
-          const diff = problemDifficultyMap.get(item.problem_id);
-          if (diff === "Easy") cEasy++;
-          else if (diff === "Medium") cMedium++;
-          else if (diff === "Hard") cHard++;
-        });
-        
-        setEasyCount(cEasy);
-        setMediumCount(cMedium);
-        setHardCount(cHard);
-        
-        const allDates = [...pData, ...jData].map(item => item.updated_at);
-        setCompletedDates(allDates);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setStatsLoading(false);
-      }
-    }
-    fetchStats();
-  }, [user, problemDifficultyMap]);
+  const [codechefData, setCodechefData] = useState<CodechefData | null>(null);
+  const [isCodechefLoading, setIsCodechefLoading] = useState(false);
+  const [showCodechefPrompt, setShowCodechefPrompt] = useState(false);
+  const [codechefPromptUsername, setCodechefPromptUsername] = useState("");
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
       setBio(profile.bio || "");
       setRoleTitle(profile.role_title || "");
+      setUniversity(profile.university || "");
       setGithubUrl(profile.github_url || "");
       setLinkedinUrl(profile.linkedin_url || "");
       setWebsite(profile.website || "");
+      setLeetcodeUsername(profile.leetcode_username || "");
+      setCodechefUsername(profile.codechef_username || "");
     }
   }, [profile]);
+
+  // Initial load for LeetCode if available
+  useEffect(() => {
+    if (profile?.leetcode_username && !leetcodeData && !isLeetcodeLoading) {
+      fetchLeetcodeStats(profile.leetcode_username);
+    }
+  }, [profile?.leetcode_username]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,7 +92,12 @@ export default function Profile() {
 
     setUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `${user.id}/avatar.${ext}`;
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+
+    // Delete old avatar if it exists
+    if (profile?.avatar_url) {
+      await supabase.storage.from("avatars").remove([profile.avatar_url]);
+    }
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -158,9 +130,12 @@ export default function Profile() {
         display_name: displayName,
         bio: bio,
         role_title: roleTitle,
+        university: university,
         github_url: githubUrl,
         linkedin_url: linkedinUrl,
-        website: website
+        website: website,
+        leetcode_username: leetcodeUsername,
+        codechef_username: codechefUsername
       } as any)
       .eq("user_id", user.id);
 
@@ -174,8 +149,186 @@ export default function Profile() {
     setSaving(false);
   };
 
+  const fetchLeetcodeStats = async (username: string) => {
+    setIsLeetcodeLoading(true);
+    try {
+      const res = await fetch(`https://leetcode-stats-api.herokuapp.com/${username}`);
+      const data = await res.json();
+      if (data.status === "success") {
+        setLeetcodeData(data);
+        setDataMode("leetcode");
+      } else {
+        toast({ title: "LeetCode fetch failed", description: data.message || "Invalid username", variant: "destructive" });
+        setDataMode("leetcode"); // default fallback
+      }
+    } catch (err) {
+      toast({ title: "LeetCode API Error", description: "Failed to connect to LeetCode", variant: "destructive" });
+    } finally {
+      setIsLeetcodeLoading(false);
+    }
+  };
+
+  const fetchCodechefStats = async (username: string) => {
+    setIsCodechefLoading(true);
+    try {
+      const res = await fetch(`https://codechef-api.vercel.app/handle/${username}`);
+      const data = await res.json();
+      if (data.success) {
+        setCodechefData(data);
+        setDataMode("codechef");
+      } else {
+        toast({ title: "CodeChef fetch failed", description: "Invalid username", variant: "destructive" });
+        setDataMode("leetcode"); // revert
+      }
+    } catch (err) {
+      toast({ title: "CodeChef API Error", description: "Failed to connect to CodeChef API", variant: "destructive" });
+      setDataMode("leetcode"); // revert
+    } finally {
+      setIsCodechefLoading(false);
+    }
+  };
+
+  const handleModeToggle = (mode: "leetcode" | "codechef") => {
+    if (mode === "leetcode") {
+      if (leetcodeUsername) {
+        if (!leetcodeData) {
+          fetchLeetcodeStats(leetcodeUsername);
+        } else {
+          setDataMode("leetcode");
+        }
+      } else {
+        setShowLeetcodePrompt(true);
+      }
+    } else {
+      if (codechefUsername) {
+        if (!codechefData) {
+          fetchCodechefStats(codechefUsername);
+        } else {
+          setDataMode("codechef");
+        }
+      } else {
+        setShowCodechefPrompt(true);
+      }
+    }
+  };
+
+  const saveLeetcodePrompt = async () => {
+    if (!promptUsername.trim() || !user) return;
+    setIsLeetcodeLoading(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ leetcode_username: promptUsername } as any)
+      .eq("user_id", user.id);
+      
+    if (error) {
+      toast({ title: "Error", description: "Failed to save username to DB", variant: "destructive" });
+      setIsLeetcodeLoading(false);
+      return;
+    }
+    setLeetcodeUsername(promptUsername);
+    await refreshProfile();
+    setShowLeetcodePrompt(false);
+    fetchLeetcodeStats(promptUsername);
+  };
+
+  const saveCodechefPrompt = async () => {
+    if (!codechefPromptUsername.trim() || !user) return;
+    setIsCodechefLoading(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ codechef_username: codechefPromptUsername } as any)
+      .eq("user_id", user.id);
+      
+    if (error) {
+      toast({ title: "Error", description: "Failed to save username to DB", variant: "destructive" });
+      setIsCodechefLoading(false);
+      return;
+    }
+    setCodechefUsername(codechefPromptUsername);
+    await refreshProfile();
+    setShowCodechefPrompt(false);
+    fetchCodechefStats(codechefPromptUsername);
+  };
+
+  // Convert Codechef heatmap to standard dictionary
+  const codechefCalendar = useMemo(() => {
+    const cal: Record<string, number> = {};
+    if (codechefData?.heatMap) {
+      codechefData.heatMap.forEach(item => {
+        cal[item.date] = item.value;
+      });
+    }
+    return cal;
+  }, [codechefData]);
+
   return (
-    <div className="flex-1 min-h-screen bg-[#111111] text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700">
+    <div className="flex-1 min-h-screen bg-[#111111] text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700 relative">
+      
+      {/* Leetcode Prompt Modal */}
+      {showLeetcodePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
+            <h3 className="text-lg font-bold text-white">Link LeetCode Account</h3>
+            <p className="text-sm text-white/50">Enter your LeetCode username to sync your progress and heatmap.</p>
+            <input 
+              value={promptUsername}
+              onChange={e => setPromptUsername(e.target.value)}
+              placeholder="e.g. aritr_dutta"
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-primary/50"
+              autoFocus
+            />
+            <div className="flex justify-end gap-3 pt-2">
+              <button 
+                onClick={() => setShowLeetcodePrompt(false)}
+                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/5 text-white/70"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={saveLeetcodePrompt}
+                disabled={isLeetcodeLoading || !promptUsername.trim()}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center gap-2 disabled:opacity-50"
+              >
+                {isLeetcodeLoading && <Loader2 size={14} className="animate-spin" />}
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CodeChef Prompt Modal */}
+      {showCodechefPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
+            <h3 className="text-lg font-bold text-white">Link CodeChef Account</h3>
+            <p className="text-sm text-white/50">Enter your CodeChef handle to sync your stats.</p>
+            <input 
+              value={codechefPromptUsername}
+              onChange={e => setCodechefPromptUsername(e.target.value)}
+              placeholder="e.g. codechef_user"
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-primary/50"
+              autoFocus
+            />
+            <div className="flex justify-end gap-3 pt-2">
+              <button 
+                onClick={() => setShowCodechefPrompt(false)}
+                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/5 text-white/70"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={saveCodechefPrompt}
+                disabled={isCodechefLoading || !codechefPromptUsername.trim()}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center gap-2 disabled:opacity-50"
+              >
+                {isCodechefLoading && <Loader2 size={14} className="animate-spin" />}
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Left Sidebar (Profile Info) */}
       <div className="w-full lg:w-[320px] shrink-0 space-y-6">
@@ -241,10 +394,12 @@ export default function Profile() {
                 <span>{roleTitle}</span>
               </div>
             )}
-            <div className="flex items-center gap-3">
-              <GraduationCap size={16} className="text-white/40" />
-              <span>Academy of Technology</span>
-            </div>
+            {university && (
+              <div className="flex items-center gap-3">
+                <GraduationCap size={16} className="text-white/40" />
+                <span>{university}</span>
+              </div>
+            )}
             {website && (
               <div className="flex items-center gap-3">
                 <Globe size={16} className="text-white/40" />
@@ -297,6 +452,15 @@ export default function Profile() {
                   className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Education / University</label>
+                <input
+                  value={university}
+                  onChange={(e) => setUniversity(e.target.value)}
+                  placeholder="E.g. Academy of Technology"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -309,7 +473,25 @@ export default function Profile() {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">LeetCode Username</label>
+                <input
+                  value={leetcodeUsername}
+                  onChange={(e) => setLeetcodeUsername(e.target.value)}
+                  placeholder="e.g. aritr_dutta"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">CodeChef Handle</label>
+                <input
+                  value={codechefUsername}
+                  onChange={(e) => setCodechefUsername(e.target.value)}
+                  placeholder="e.g. codechef_user"
+                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-white/50 uppercase tracking-wider">GitHub</label>
                 <input
@@ -328,7 +510,7 @@ export default function Profile() {
                   className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 lg:col-span-2">
                 <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Website</label>
                 <input
                   value={website}
@@ -354,59 +536,109 @@ export default function Profile() {
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             {/* Top Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* DSA Progress */}
+              {/* DSA Progress (Leetcode or CodeChef) */}
               <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
                 <div className="flex justify-between items-center w-full mb-8">
-                  <h3 className="text-sm font-semibold">DSA Progress</h3>
+                  <h3 className="text-sm font-semibold">Stats</h3>
+                  
+                  {/* LeetCode / CodeChef Toggle */}
+                  <div className="flex bg-[#262626] rounded-full p-0.5 border border-white/5">
+                    <button 
+                      onClick={() => handleModeToggle("leetcode")}
+                      className={cn(
+                        "text-[10px] font-bold px-3 py-1 rounded-full transition-all",
+                        dataMode === "leetcode" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/80"
+                      )}
+                    >
+                      LeetCode
+                    </button>
+                    <button 
+                      onClick={() => handleModeToggle("codechef")}
+                      className={cn(
+                        "text-[10px] font-bold px-3 py-1 rounded-full transition-all",
+                        dataMode === "codechef" ? "bg-white/10 text-white" : "text-white/40 hover:text-white/80"
+                      )}
+                    >
+                      CodeChef
+                    </button>
+                  </div>
                 </div>
 
-                {statsLoading ? (
+                {(isLeetcodeLoading && dataMode === "leetcode") || (isCodechefLoading && dataMode === "codechef") ? (
                   <div className="flex-1 flex items-center justify-center">
                     <Loader2 className="animate-spin text-white/20" />
                   </div>
                 ) : (
                   <div className="flex-1 flex items-center justify-between gap-4">
-                    {/* Circle Chart */}
-                    <div className="relative w-28 h-28 shrink-0">
-                      <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                        {/* Background Rings */}
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
+                    {dataMode === "leetcode" ? (
+                      <>
+                        {/* Circle Chart */}
+                        <div className="relative w-28 h-28 shrink-0">
+                          <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                            {/* Background Rings */}
+                            <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
+                            
+                            {/* Fake Easy/Med/Hard Segments */}
+                            <circle cx="56" cy="56" r="48" fill="none" stroke="#22c55e" strokeWidth="6" 
+                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (leetcodeData?.totalQuestions ? (leetcodeData?.easySolved || 0)/leetcodeData.totalQuestions : 0))} className="transition-all duration-1000" />
+                            <circle cx="56" cy="56" r="48" fill="none" stroke="#eab308" strokeWidth="6" 
+                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (leetcodeData?.totalQuestions ? (leetcodeData?.mediumSolved || 0)/leetcodeData.totalQuestions : 0))} className="transition-all duration-1000 -rotate-[36deg] origin-center" />
+                            <circle cx="56" cy="56" r="48" fill="none" stroke="#ef4444" strokeWidth="6" 
+                              strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (leetcodeData?.totalQuestions ? (leetcodeData?.hardSolved || 0)/leetcodeData.totalQuestions : 0))} className="transition-all duration-1000 rotate-[108deg] origin-center" />
+                          </svg>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-2xl font-bold text-white">{leetcodeData?.totalSolved || 0}</span>
+                            <span className="text-[10px] font-medium text-white/40">{leetcodeData?.totalQuestions || 0}</span>
+                          </div>
+                        </div>
                         
-                        {/* Fake Easy/Med/Hard Segments (Visual representation for LeetCode style) */}
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#22c55e" strokeWidth="6" strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * 0.1)} className="transition-all duration-1000" />
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#eab308" strokeWidth="6" strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * 0.4)} strokeDasharray="301.59" className="transition-all duration-1000 -rotate-[36deg] origin-center" />
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#ef4444" strokeWidth="6" strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * 0.2)} strokeDasharray="301.59" className="transition-all duration-1000 rotate-[108deg] origin-center" />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-bold text-white">{dsaCompletedCount}</span>
-                        <span className="text-[10px] font-medium text-white/40">{totalDsaProblems}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Legend */}
-                    <div className="flex-1 space-y-3 pl-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#22c55e]" />
-                          <span className="text-white/60">Easy</span>
+                        {/* Legend */}
+                        <div className="flex-1 space-y-3 pl-2">
+                          <div className="flex justify-between items-center text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-[#22c55e]" />
+                              <span className="text-white/60">Easy</span>
+                            </div>
+                            <span className="font-semibold text-white/90">{leetcodeData?.easySolved || 0}<span className="text-white/30 ml-1">/{leetcodeData?.totalEasy || 0}</span></span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-[#eab308]" />
+                              <span className="text-white/60">Medium</span>
+                            </div>
+                            <span className="font-semibold text-white/90">{leetcodeData?.mediumSolved || 0}<span className="text-white/30 ml-1">/{leetcodeData?.totalMedium || 0}</span></span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-[#ef4444]" />
+                              <span className="text-white/60">Hard</span>
+                            </div>
+                            <span className="font-semibold text-white/90">{leetcodeData?.hardSolved || 0}<span className="text-white/30 ml-1">/{leetcodeData?.totalHard || 0}</span></span>
+                          </div>
                         </div>
-                        <span className="font-semibold text-white/90">{easyCount}<span className="text-white/30 ml-1">/{totalEasy}</span></span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#eab308]" />
-                          <span className="text-white/60">Medium</span>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center w-full space-y-6">
+                        <div className="text-center">
+                          <span className="text-3xl font-bold text-white">{codechefData?.currentRating || 0}</span>
+                          <p className="text-xs text-white/40 uppercase tracking-widest mt-1">Current Rating</p>
                         </div>
-                        <span className="font-semibold text-white/90">{mediumCount}<span className="text-white/30 ml-1">/{totalMedium}</span></span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-[#ef4444]" />
-                          <span className="text-white/60">Hard</span>
+                        <div className="flex w-full justify-between px-4 text-sm">
+                          <div className="flex flex-col items-center">
+                            <span className="font-semibold text-[#eab308]">{codechefData?.stars || "N/A"}</span>
+                            <span className="text-white/40 text-xs">Stars</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span className="font-semibold text-white">{codechefData?.globalRank || "-"}</span>
+                            <span className="text-white/40 text-xs">Global Rank</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span className="font-semibold text-white">{codechefData?.countryRank || "-"}</span>
+                            <span className="text-white/40 text-xs">Country Rank</span>
+                          </div>
                         </div>
-                        <span className="font-semibold text-white/90">{hardCount}<span className="text-white/30 ml-1">/{totalHard}</span></span>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -438,13 +670,13 @@ export default function Profile() {
 
             {/* Heatmap Area */}
             <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl w-full overflow-hidden">
-              {statsLoading ? (
-                <div className="flex items-center justify-center h-48 w-full">
-                  <Loader2 className="animate-spin text-white/20" />
-                </div>
-              ) : (
-                <ActivityHeatmap completedDates={completedDates} />
-              )}
+              <ActivityHeatmap 
+                leetcodeCalendar={leetcodeData?.submissionCalendar || {}}
+                codechefCalendar={codechefCalendar}
+                dataMode={dataMode}
+                onModeChange={handleModeToggle}
+                isLoading={(isLeetcodeLoading && dataMode === "leetcode") || (isCodechefLoading && dataMode === "codechef")}
+              />
             </div>
 
             {/* Bottom Cards Row */}
