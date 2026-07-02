@@ -112,25 +112,11 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentMode, setMode, modes } = useMode();
-  const { user, signOut } = useAuth();
+  const { user, profile, resolvedAvatar, signOut } = useAuth();
   const currentPath = location.pathname;
   const currentHash = location.hash.replace("#", "");
 
-  const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null }>({ display_name: null, avatar_url: null });
-  const [resolvedAvatar, setResolvedAvatar] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("profiles").select("display_name, avatar_url").eq("user_id", user.id).single().then(async ({ data }) => {
-      if (data) {
-        setProfile(data);
-        const url = await getAvatarUrl(data.avatar_url);
-        setResolvedAvatar(url);
-      }
-    });
-  }, [user]);
-
-  const userName = profile.display_name || user?.email?.split("@")[0] || "User";
+  const userName = profile?.display_name || user?.email?.split("@")[0] || "User";
   const avatarUrl = resolvedAvatar;
 
   const activeTopics = currentMode.id === "ds" ? topics : currentMode.id === "lang" ? javaTopics : practiceTopics;

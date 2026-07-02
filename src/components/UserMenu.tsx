@@ -15,31 +15,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function UserMenu() {
-  const { user, signOut } = useAuth();
+  const { user, profile, resolvedAvatar, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null }>({ display_name: null, avatar_url: null });
-  const [resolvedAvatar, setResolvedAvatar] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("profiles")
-      .select("display_name, avatar_url")
-      .eq("user_id", user.id)
-      .single()
-      .then(async ({ data }) => {
-        if (data) {
-          setProfile(data);
-          const url = await getAvatarUrl(data.avatar_url);
-          setResolvedAvatar(url);
-        }
-      });
-  }, [user]);
 
   if (!user) return null;
 
-  const name = profile.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+  const name = profile?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
   const avatar = resolvedAvatar;
   const initial = (name[0] || "U").toUpperCase();
 
