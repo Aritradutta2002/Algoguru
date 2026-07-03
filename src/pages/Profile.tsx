@@ -296,28 +296,32 @@ export default function Profile() {
         ),
       );
 
-      const yearlyCalendarResults = await Promise.allSettled(
-        yearsToFetch.map(async (year) => {
+      // Fetch each year's calendar with a small delay to avoid rate limits
+      const yearlyCalendars: Array<Record<string, number>> = [];
+      for (let i = 0; i < yearsToFetch.length; i++) {
+        const year = yearsToFetch[i];
+        try {
           const res = await fetch(
             `https://alfa-leetcode-api.onrender.com/${username}/calendar?year=${year}`,
           );
-          if (!res.ok) return {};
-          const yearData = await res.json();
-          return parseLeetcodeCalendarPayload(yearData).calendar;
-        }),
-      );
-
-      const yearlyCalendars = yearlyCalendarResults
-        .filter(
-          (result): result is PromiseFulfilledResult<Record<string, number>> =>
-            result.status === "fulfilled",
-        )
-        .map((result) => result.value);
-
-      let parsedCalendar = mergeLeetcodeCalendars(yearlyCalendars);
-      if (Object.keys(parsedCalendar).length === 0) {
-        parsedCalendar = baseCalendar.calendar;
+          if (res.ok) {
+            const yearData = await res.json();
+            const parsedYearCalendar = parseLeetcodeCalendarPayload(yearData);
+            yearlyCalendars.push(parsedYearCalendar.calendar);
+          }
+        } catch (e) {
+          console.warn(`Failed to fetch LeetCode calendar for year ${year}`, e);
+        }
+        // Add a small delay between API calls to avoid hitting rate limits
+        if (i < yearsToFetch.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
       }
+
+      let parsedCalendar = mergeLeetcodeCalendars([
+        baseCalendar.calendar,
+        ...yearlyCalendars
+      ]);
 
       let activeYears =
         baseCalendar.activeYears.length > 0
@@ -362,15 +366,6 @@ export default function Profile() {
           title: "LeetCode calendar unavailable",
           description:
             "Solved counts imported, but LeetCode did not return calendar activity.",
-        });
-      } else if (
-        baseCalendar.activeYears.length > 0 &&
-        yearlyCalendars.length === 0
-      ) {
-        toast({
-          title: "LeetCode calendar partially imported",
-          description:
-            "Solved counts imported, but older yearly activity could not be fetched right now.",
         });
       }
 
