@@ -981,16 +981,16 @@ export default function Profile() {
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
-              <div className="bg-card text-card-foreground rounded-3xl p-8 border border-border/40 shadow-2xl flex flex-col relative min-h-[280px] xl:col-span-2 2xl:col-span-1 overflow-hidden group">
+              <div className="bg-card text-card-foreground rounded-3xl p-6 md:p-8 border border-border/40 shadow-2xl flex flex-col relative min-h-[260px] xl:col-span-2 2xl:col-span-1 overflow-hidden group">
                 {/* Background Gradient Ornament */}
-                <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 blur-3xl transition-all duration-700 group-hover:from-blue-500/15 group-hover:to-purple-500/15" />
+                <div className="absolute -top-32 -right-32 w-72 h-72 rounded-full bg-gradient-to-br from-primary/10 via-blue-500/5 to-purple-500/10 blur-3xl transition-all duration-700 group-hover:from-primary/15 group-hover:to-purple-500/15" />
                 
-                <div className="flex flex-col gap-6 w-full mb-8 relative z-10">
+                <div className="flex flex-col gap-5 w-full mb-6 relative z-10">
                   <div className="min-w-0">
-                    <h3 className="text-lg font-extrabold leading-tight tracking-tight">
+                    <h3 className="text-lg md:text-xl font-bold leading-tight tracking-tight">
                       Progress Overview
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-1.5 max-w-[240px]">
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1.5 max-w-[300px]">
                       Monitor your coding journey across different platforms
                     </p>
                   </div>
@@ -1000,44 +1000,38 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
-                        "min-w-0 whitespace-nowrap px-3 py-2.5 text-[11px] md:text-sm font-semibold rounded-xl transition-all duration-300 text-center flex flex-col items-center justify-center gap-1",
+                        "min-w-0 whitespace-nowrap px-2.5 py-3 text-xs md:text-sm font-semibold rounded-xl transition-all duration-300 text-center flex flex-col items-center justify-center gap-1.5",
                         dataMode === "website"
-                          ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 scale-105"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/80 dark:text-white/50 dark:hover:text-white/90",
+                          ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/70 dark:text-white/50 dark:hover:text-white/90",
                       )}
                     >
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Globe className="w-4 h-4" />
-                      </div>
-                      Website
+                      <Globe className="w-4 h-4 md:w-5 md:h-5" />
+                      <span>Website</span>
                     </button>
                     <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "min-w-0 whitespace-nowrap px-3 py-2.5 text-[11px] md:text-sm font-semibold rounded-xl transition-all duration-300 text-center flex flex-col items-center justify-center gap-1",
+                        "min-w-0 whitespace-nowrap px-2.5 py-3 text-xs md:text-sm font-semibold rounded-xl transition-all duration-300 text-center flex flex-col items-center justify-center gap-1.5",
                         dataMode === "leetcode"
-                          ? "bg-gradient-to-br from-[#FFA116] to-[#E67E22] text-white shadow-lg shadow-[#FFA116]/25 scale-105"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/80 dark:text-white/50 dark:hover:text-white/90",
+                          ? "bg-gradient-to-br from-[#FFA116] to-[#E67E22] text-white shadow-lg shadow-[#FFA116]/20"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/70 dark:text-white/50 dark:hover:text-white/90",
                       )}
                     >
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Code2 className="w-4 h-4" />
-                      </div>
-                      LeetCode
+                      <Code2 className="w-4 h-4 md:w-5 md:h-5" />
+                      <span>LeetCode</span>
                     </button>
                     <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "min-w-0 whitespace-nowrap px-3 py-2.5 text-[11px] md:text-sm font-semibold rounded-xl transition-all duration-300 text-center flex flex-col items-center justify-center gap-1",
+                        "min-w-0 whitespace-nowrap px-2.5 py-3 text-xs md:text-sm font-semibold rounded-xl transition-all duration-300 text-center flex flex-col items-center justify-center gap-1.5",
                         dataMode === "codechef"
-                          ? "bg-gradient-to-br from-[#5B4638] to-[#8B5A2B] text-white shadow-lg shadow-[#5B4638]/25 scale-105"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/80 dark:text-white/50 dark:hover:text-white/90",
+                          ? "bg-gradient-to-br from-[#5B4638] to-[#8B5A2B] text-white shadow-lg shadow-[#5B4638]/20"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/70 dark:text-white/50 dark:hover:text-white/90",
                       )}
                     >
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <Trophy className="w-4 h-4" />
-                      </div>
-                      CodeChef
+                      <Trophy className="w-4 h-4 md:w-5 md:h-5" />
+                      <span>CodeChef</span>
                     </button>
                   </div>
                 </div>
@@ -1050,17 +1044,17 @@ export default function Profile() {
                         <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
                         <Loader2 className="animate-spin text-primary relative" size={32} />
                       </div>
-                      <span className="text-xs font-semibold tracking-wide text-muted-foreground">
+                      <span className="text-xs md:text-sm font-semibold tracking-wide text-muted-foreground">
                         Loading activity...
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col lg:flex-row flex-wrap items-center justify-center gap-8 lg:gap-10 relative z-10">
+                  <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-6 md:gap-8 lg:gap-10 relative z-10">
                     {/* Enhanced Circular Progress Indicator */}
-                    <div className="relative w-40 h-40 md:w-44 md:h-44 shrink-0 self-center sm:self-auto group/circle">
+                    <div className="relative w-36 h-36 md:w-40 lg:w-44 shrink-0 self-center">
                       {/* Outer Glow Ring */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-blue-500/10 to-purple-500/20 blur-lg opacity-75 animate-pulse" />
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-blue-500/10 to-purple-500/20 blur-lg opacity-60 animate-pulse" />
                       
                       <svg
                         viewBox="0 0 120 120"
@@ -1070,10 +1064,10 @@ export default function Profile() {
                         <circle
                           cx="60"
                           cy="60"
-                          r="52"
+                          r="50"
                           fill="none"
-                          className="stroke-muted/40 dark:stroke-[#2A2A2A]/60"
-                          strokeWidth="8"
+                          className="stroke-muted/30 dark:stroke-[#2A2A2A]/40"
+                          strokeWidth="7"
                         />
 
                         {/* Progress Segments */}
@@ -1087,12 +1081,12 @@ export default function Profile() {
                                 key={segment.key}
                                 cx="60"
                                 cy="60"
-                                r="52"
+                                r="50"
                                 fill="none"
                                 stroke={segment.stroke}
                                 strokeLinecap="round"
                                 strokeWidth={
-                                  hoveredDifficulty === segment.key ? 10 : 7
+                                  hoveredDifficulty === segment.key ? 9 : 6
                                 }
                                 strokeDasharray={segment.dasharray}
                                 strokeDashoffset={segment.dashoffset}
@@ -1100,19 +1094,16 @@ export default function Profile() {
                                   "transition-all duration-500 ease-out",
                                   isHighlighted ? "opacity-100" : "opacity-25",
                                 )}
-                                style={{
-                                  filter: isHighlighted ? `drop-shadow(0 0 4px ${segment.stroke})` : "none"
-                                }}
                               />
                             );
                           })}
                       </svg>
                       
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/80 backdrop-blur-sm rounded-full border border-border/30 shadow-inner">
-                        <span className="text-3xl md:text-4xl font-extrabold text-foreground dark:text-white tracking-tight leading-none">
+                        <span className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-foreground dark:text-white tracking-tight leading-none">
                           {currentTotalSolved}
                         </span>
-                        <span className="text-xs md:text-sm font-medium text-muted-foreground mt-1.5 uppercase tracking-wider">
+                        <span className="text-[11px] md:text-xs lg:text-sm font-medium text-muted-foreground mt-1.5 uppercase tracking-wider">
                           {dataMode === "codechef" ? "Rating" : "Solved"}
                         </span>
                       </div>
@@ -1121,7 +1112,7 @@ export default function Profile() {
                     {/* Enhanced Difficulty/Stats Cards */}
                     {dataMode !== "codechef" && (
                       <div
-                        className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 w-full min-w-[230px]"
+                        className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 w-full min-w-[210px] max-w-[420px]"
                         onMouseLeave={() => setHoveredDifficulty(null)}
                       >
                         {statsSegments.map((segment) => {
@@ -1138,17 +1129,17 @@ export default function Profile() {
                               onFocus={() => setHoveredDifficulty(segment.key)}
                               onBlur={() => setHoveredDifficulty(null)}
                               className={cn(
-                                "rounded-2xl p-4 flex flex-col items-center justify-center gap-2 border bg-gradient-to-br from-background/80 to-muted/60 dark:from-white/5 dark:to-white/2 border-border/50 dark:border-white/10 min-w-0 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                "rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-1.5 border bg-gradient-to-br from-background/70 to-muted/50 dark:from-white/5 dark:to-white/15 border-border/40 dark:border-white/10 min-w-0 transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                                 segment.hoverClass,
-                                isActive ? "opacity-100 scale-[1.02]" : "opacity-60",
+                                isActive ? "opacity-100" : "opacity-60",
                               )}
                             >
-                              <span className="text-lg font-extrabold text-foreground dark:text-white tabular-nums">
+                              <span className="text-xl md:text-2xl font-extrabold text-foreground dark:text-white tabular-nums">
                                 {segment.value}
                               </span>
                               <span
                                 className={cn(
-                                  "text-[11px] font-semibold uppercase tracking-wider",
+                                  "text-[10px] md:text-[11px] font-semibold uppercase tracking-wider",
                                   segment.textClass,
                                 )}
                               >
@@ -1161,28 +1152,28 @@ export default function Profile() {
                     )}
 
                     {dataMode === "codechef" && (
-                      <div className="grid grid-cols-3 gap-3 w-full flex-1">
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-gradient-to-br from-[#eab308]/10 to-[#ca8a04]/20 px-4 py-4 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                          <span className="text-xl font-extrabold text-[#eab308] tabular-nums">
+                      <div className="grid grid-cols-3 gap-2 md:gap-3 w-full min-w-[210px] max-w-[420px] flex-1">
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-gradient-to-br from-[#eab308]/10 to-[#ca8a04]/20 px-3 md:px-4 py-3 md:py-4 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                          <span className="text-lg md:text-xl font-extrabold text-[#eab308] tabular-nums">
                             {codechefData?.stars || "N/A"}
                           </span>
-                          <span className="text-muted-foreground text-[11px] uppercase tracking-wider font-semibold">
+                          <span className="text-muted-foreground text-[10px] md:text-[11px] uppercase tracking-wider font-semibold">
                             Stars
                           </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-gradient-to-br from-blue-500/10 to-indigo-500/20 px-4 py-4 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                          <span className="text-xl font-extrabold text-foreground dark:text-white tabular-nums">
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-gradient-to-br from-blue-500/10 to-indigo-500/20 px-3 md:px-4 py-3 md:py-4 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                          <span className="text-lg md:text-xl font-extrabold text-foreground dark:text-white tabular-nums">
                             {codechefData?.globalRank || "-"}
                           </span>
-                          <span className="text-muted-foreground text-[11px] uppercase tracking-wider font-semibold">
+                          <span className="text-muted-foreground text-[10px] md:text-[11px] uppercase tracking-wider font-semibold">
                             Global Rank
                           </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-gradient-to-br from-emerald-500/10 to-green-500/20 px-4 py-4 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                          <span className="text-xl font-extrabold text-foreground dark:text-white tabular-nums">
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-gradient-to-br from-emerald-500/10 to-green-500/20 px-3 md:px-4 py-3 md:py-4 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                          <span className="text-lg md:text-xl font-extrabold text-foreground dark:text-white tabular-nums">
                             {codechefData?.countryRank || "-"}
                           </span>
-                          <span className="text-muted-foreground text-[11px] uppercase tracking-wider font-semibold">
+                          <span className="text-muted-foreground text-[10px] md:text-[11px] uppercase tracking-wider font-semibold">
                             Country Rank
                           </span>
                         </div>
