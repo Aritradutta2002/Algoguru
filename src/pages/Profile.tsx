@@ -42,7 +42,61 @@ interface LeetcodeData {
   hardSolved: number;
   totalHard: number;
   submissionCalendar: Record<string, number>;
+  activeYears: number[];
 }
+
+const parseLeetcodeCalendarPayload = (
+  payload: any,
+): { calendar: Record<string, number>; activeYears: number[] } => {
+  const calendarSource =
+    payload?.data?.matchedUser?.userCalendar ??
+    payload?.matchedUser?.userCalendar ??
+    payload;
+
+  const rawCalendar =
+    calendarSource?.submissionCalendar ?? payload?.submissionCalendar;
+
+  let parsedCalendar: Record<string, unknown> = {};
+  try {
+    if (typeof rawCalendar === "string") {
+      parsedCalendar = JSON.parse(rawCalendar);
+    } else if (rawCalendar && typeof rawCalendar === "object") {
+      parsedCalendar = rawCalendar;
+    }
+  } catch (e) {
+    console.error("Failed to parse LeetCode calendar", e);
+  }
+
+  const calendar = Object.entries(parsedCalendar).reduce<Record<string, number>>(
+    (acc, [dateKey, value]) => {
+      const count = Number(value);
+      if (dateKey && Number.isFinite(count) && count > 0) {
+        acc[dateKey] = (acc[dateKey] || 0) + count;
+      }
+      return acc;
+    },
+    {},
+  );
+
+  const activeYears = Array.isArray(calendarSource?.activeYears)
+    ? calendarSource.activeYears
+        .map((year: unknown) => Number(year))
+        .filter((year: number) => Number.isInteger(year))
+    : [];
+
+  return { calendar, activeYears };
+};
+
+const mergeLeetcodeCalendars = (
+  calendars: Array<Record<string, number>>,
+): Record<string, number> => {
+  return calendars.reduce<Record<string, number>>((acc, calendar) => {
+    Object.entries(calendar).forEach(([dateKey, count]) => {
+      acc[dateKey] = (acc[dateKey] || 0) + count;
+    });
+    return acc;
+  }, {});
+};
 
 interface CodechefData {
   currentRating: number;
@@ -222,18 +276,95 @@ export default function Profile() {
             ?.count
         : undefined;
 
-      let parsedCalendar = {};
-      try {
-        if (
-          calendarData.submissionCalendar &&
-          typeof calendarData.submissionCalendar === "string"
-        ) {
-          parsedCalendar = JSON.parse(calendarData.submissionCalendar);
-        } else if (calendarData.submissionCalendar) {
-          parsedCalendar = calendarData.submissionCalendar;
+      const baseCalendar = parseLeetcodeCalendarPayload(calendarData);
+      const currentYear = new Date().getFullYear();
+      const yearsToFetch = Array.from(
+        new Set(
+          (baseCalendar.activeYears.length > 0
+            ? baseCalendar.activeYears
+            : [currentYear, currentYear - 1, currentYear - 2]
+          ).filter((year) => year <= currentYear),
+        ),
+      );
+
+      const yearlyCalendarResults = await Promise.allSettled(
+        yearsToFetch.map(async (year) => {
+          const res = await fetch(
+            `https://alfa-leetcode-api.onrender.com/${username}/calendar?year=${year}`,
+          );
+          if (!res.ok) return {};
+          const yearData = await res.json();
+          return parseLeetcodeCalendarPayload(yearData).calendar;
+        }),
+      );
+
+      const yearlyCalendars = yearlyCalendarResults
+        .filter(
+          (
+            result,
+          ): result is PromiseFulfilledResult<Record<string, number>> =>
+            result.status === "fulfilled",
+        )
+        .map((result) => result.value);
+
+      let parsedCalendar = mergeLeetcodeCalendars(yearlyCalendars);
+      if (Object.keys(parsedCalendar).length === 0) {
+        parsedCalendar = baseCalendar.calendar;
+      }
+
+      const activeYears =
+        baseCalendar.activeYears.length > 0
+          ? baseCalendar.activeYears
+          : Array.from(
+              new Set(
+                Object.keys(parsedCalendar)
+                  .map((dateKey) => {
+                    const timestamp = Number(dateKey);
+                    if (Number.isFinite(timestamp)) {
+                      return new Date(timestamp * 1000).getUTCFullYear();
+                    }
+                    const parsedDate = new Date(dateKey);
+                    return Number.isNaN(parsedDate.getTime())
+                      ? null
+                      : parsedDate.getFullYear();
+                  })
+                  .filter((year): year is number => year !== null),
+              ),
+            );
+
+      if (Object.keys(parsedCalendar).length === 0) {
+        toast({
+          title: "LeetCode calendar unavailable",
+          description:
+            "Solved counts imported, but LeetCode did not return calendar activity.",
+        });
+      } else if (
+        baseCalendar.activeYears.length > 0 &&
+        yearlyCalendars.length === 0
+      ) {
+        toast({
+          title: "LeetCode calendar partially imported",
+          description:
+            "Solved counts imported, but older yearly activity could not be fetched right now.",
+        });
+      }
+
+      if (calendarRes.ok && baseCalendar.activeYears.length === 0) {
+        const legacyCalendarYears = Object.keys(baseCalendar.calendar)
+          .map((dateKey) => {
+            const timestamp = Number(dateKey);
+            if (Number.isFinite(timestamp)) {
+              return new Date(timestamp * 1000).getUTCFullYear();
+            }
+            const parsedDate = new Date(dateKey);
+            return Number.isNaN(parsedDate.getTime())
+              ? null
+              : parsedDate.getFullYear();
+          })
+          .filter((year): year is number => year !== null);
+        if (legacyCalendarYears.length > 0) {
+          activeYears.push(...legacyCalendarYears);
         }
-      } catch (e) {
-        console.error("Failed to parse LeetCode calendar");
       }
 
       setLeetcodeData({
@@ -246,6 +377,7 @@ export default function Profile() {
         hardSolved: solvedData.hardSolved ?? 0,
         totalHard: 0,
         submissionCalendar: parsedCalendar,
+        activeYears: Array.from(new Set(activeYears)).sort((a, b) => b - a),
       });
     } catch (err) {
       toast({
@@ -1007,6 +1139,7 @@ export default function Profile() {
               <ActivityHeatmap
                 websiteCalendar={websiteData?.submissionCalendar || {}}
                 leetcodeCalendar={leetcodeData?.submissionCalendar || {}}
+                leetcodeActiveYears={leetcodeData?.activeYears || []}
                 codechefCalendar={codechefCalendar}
                 dataMode={dataMode}
                 onModeChange={handleModeToggle}

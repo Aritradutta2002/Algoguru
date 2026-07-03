@@ -15,6 +15,7 @@ type HeatmapMode = "website" | "leetcode" | "codechef";
 interface ActivityHeatmapProps {
   websiteCalendar?: Record<string, number>;
   leetcodeCalendar?: Record<string, number>;
+  leetcodeActiveYears?: number[];
   codechefCalendar?: Record<string, number>;
   dataMode: HeatmapMode;
   onModeChange: (mode: HeatmapMode) => void;
@@ -27,6 +28,32 @@ const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
 const CELL_SIZE = 14;
 const CELL_GAP = 3;
 const DAY_LABEL_WIDTH = 32;
+
+const dateKeyFromDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+const dateKeyFromUtcTimestamp = (timestampSeconds: number) => {
+  const date = new Date(timestampSeconds * 1000);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+};
+
+const normalizeCalendarDateKey = (dateKey: string) => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+    return dateKey;
+  }
+
+  const timestamp = Number(dateKey);
+  if (Number.isFinite(timestamp)) {
+    return dateKeyFromUtcTimestamp(timestamp);
+  }
+
+  const parsedDate = new Date(dateKey);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return dateKeyFromDate(parsedDate);
+};
 
 const MODE_INTENSITY_COLORS: Record<HeatmapMode, string[]> = {
   website: [
@@ -85,6 +112,7 @@ const MODE_RING_COLORS: Record<HeatmapMode, string[]> = {
 export function ActivityHeatmap({
   websiteCalendar = {},
   leetcodeCalendar = {},
+  leetcodeActiveYears = [],
   codechefCalendar = {},
   dataMode,
   onModeChange,
@@ -122,12 +150,23 @@ export function ActivityHeatmap({
   }, []);
 
   const currentYear = new Date().getFullYear();
-  const yearOptions: YearOption[] = [
-    "Last 12 months",
-    currentYear,
-    currentYear - 1,
-    currentYear - 2,
-  ];
+  const yearOptions: YearOption[] = useMemo(() => {
+    const years =
+      dataMode === "leetcode" && leetcodeActiveYears.length > 0
+        ? leetcodeActiveYears
+        : [currentYear, currentYear - 1, currentYear - 2];
+
+    return [
+      "Last 12 months",
+      ...Array.from(
+        new Set(
+          years
+            .map((year) => Number(year))
+            .filter((year) => Number.isInteger(year) && year <= currentYear),
+        ),
+      ).sort((a, b) => b - a),
+    ];
+  }, [currentYear, dataMode, leetcodeActiveYears]);
 
   const modeConfig = useMemo(
     () => ({
@@ -190,20 +229,22 @@ export function ActivityHeatmap({
 
     if (dataMode === "leetcode") {
       Object.entries(leetcodeCalendar).forEach(([timestamp, count]) => {
-        const d = new Date(parseInt(timestamp) * 1000);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-        activityMap[key] = (activityMap[key] || 0) + count;
-        totalSubs += count;
+        const key = normalizeCalendarDateKey(timestamp);
+        const entryCount = Number(count);
+        if (key && Number.isFinite(entryCount)) {
+          activityMap[key] = (activityMap[key] || 0) + entryCount;
+          totalSubs += entryCount;
+        }
       });
     } else {
       const sourceCalendar =
         dataMode === "website" ? websiteCalendar : codechefCalendar;
       Object.entries(sourceCalendar).forEach(([dateStr, count]) => {
-        const d = new Date(dateStr);
-        if (!isNaN(d.getTime())) {
-          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          activityMap[key] = (activityMap[key] || 0) + count;
-          totalSubs += count;
+        const key = normalizeCalendarDateKey(dateStr);
+        const entryCount = Number(count);
+        if (key && Number.isFinite(entryCount)) {
+          activityMap[key] = (activityMap[key] || 0) + entryCount;
+          totalSubs += entryCount;
         }
       });
     }
@@ -226,7 +267,7 @@ export function ActivityHeatmap({
       current.setDate(startDate.getDate() + i);
 
       const isFuture = current > today;
-      const key = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`;
+      const key = dateKeyFromDate(current);
       const count = activityMap[key] || 0;
 
       if (count > maxCnt) maxCnt = count;
