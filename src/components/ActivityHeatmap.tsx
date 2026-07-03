@@ -370,14 +370,14 @@ export function ActivityHeatmap({
       {/* ── Header ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+          <div className="p-2 rounded-xl bg-muted/60 border border-border/50 dark:bg-white/[0.04] dark:border-white/[0.06]">
             <Activity size={16} className={cn(activeModeColor, "opacity-80")} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white/90 tracking-tight">
+            <h3 className="text-sm font-bold text-foreground tracking-tight">
               Contribution Activity
             </h3>
-            <p className="text-[11px] font-medium text-white/40 mt-0.5">
+            <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
               {totalSubmissions.toLocaleString()}{" "}
               {totalSubmissions === 1 ? "submission" : "submissions"} in{" "}
               {selectedYear === "Last 12 months"
@@ -392,7 +392,7 @@ export function ActivityHeatmap({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex w-full sm:w-auto items-center justify-center gap-2 text-[11px] font-semibold text-white/60 bg-white/[0.04] border border-white/[0.08] px-3 py-2 rounded-xl hover:bg-white/[0.08] hover:text-white/80 transition-all duration-200 active:scale-95"
+              className="flex w-full sm:w-auto items-center justify-center gap-2 text-[11px] font-semibold text-muted-foreground bg-muted/60 border border-border/50 px-3 py-2 rounded-xl hover:bg-muted hover:text-foreground transition-all duration-200 active:scale-95 dark:text-white/60 dark:bg-white/[0.04] dark:border-white/[0.08] dark:hover:bg-white/[0.08] dark:hover:text-white/80"
             >
               {selectedYear === "Last 12 months" ? "12 months" : selectedYear}
               <ChevronDown
@@ -405,8 +405,8 @@ export function ActivityHeatmap({
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 bg-[#1a1a1a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-white/30 border-b border-white/[0.06]">
+              <div className="absolute top-full right-0 mt-2 w-44 bg-popover text-popover-foreground border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 dark:bg-[#1a1a1a] dark:border-white/[0.08]">
+                <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border/60 dark:text-white/30 dark:border-white/[0.06]">
                   Select Range
                 </div>
                 {yearOptions.map((year) => (
@@ -417,10 +417,10 @@ export function ActivityHeatmap({
                       setIsDropdownOpen(false);
                     }}
                     className={cn(
-                      "w-full text-left px-4 py-3 text-[12px] font-semibold transition-all duration-150 hover:bg-white/[0.06] active:scale-[0.98]",
+                      "w-full text-left px-4 py-3 text-[12px] font-semibold transition-all duration-150 hover:bg-muted active:scale-[0.98] dark:hover:bg-white/[0.06]",
                       selectedYear === year
-                        ? "text-white bg-white/[0.04]"
-                        : "text-white/50 hover:text-white/80",
+                        ? "text-foreground bg-muted/70 dark:text-white dark:bg-white/[0.04]"
+                        : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
                     )}
                   >
                     {year === "Last 12 months" ? "Last 12 months" : year}
@@ -436,7 +436,7 @@ export function ActivityHeatmap({
           </div>
 
           {/* Mode Toggle */}
-          <div className="grid grid-cols-3 bg-white/[0.03] rounded-2xl p-0.5 border border-white/[0.06] shadow-inner">
+          <div className="grid grid-cols-3 bg-muted/60 rounded-2xl p-0.5 border border-border/50 shadow-inner dark:bg-white/[0.03] dark:border-white/[0.06]">
             {(Object.keys(modeConfig) as HeatmapMode[]).map((mode) => {
               const cfg = modeConfig[mode];
               const isActive = dataMode === mode;
@@ -448,7 +448,7 @@ export function ActivityHeatmap({
                     "min-w-0 text-[10px] font-bold px-2.5 sm:px-3.5 py-2 rounded-xl transition-all duration-300 tracking-wider uppercase",
                     isActive
                       ? `${cfg.activeBg} ${cfg.color} shadow-sm`
-                      : "text-white/35 hover:text-white/70",
+                      : "text-muted-foreground hover:text-foreground dark:text-white/35 dark:hover:text-white/70",
                   )}
                 >
                   {cfg.label}
@@ -462,11 +462,11 @@ export function ActivityHeatmap({
       {/* ── Heatmap Grid ── */}
       <div
         ref={containerRef}
-        className="relative overflow-x-auto overflow-y-hidden rounded-2xl border border-white/[0.06] bg-[#141414] p-4 shadow-inner scrollbar-thin scrollbar-thumb-white/[0.08] scrollbar-track-transparent"
+        className="relative overflow-x-auto overflow-y-hidden rounded-2xl border border-border/50 bg-muted/25 p-4 shadow-inner scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent dark:border-white/[0.06] dark:bg-[#141414] dark:scrollbar-thumb-white/[0.08]"
         style={{ minHeight: `${cellSize * 7 + cellGap * 8 + 56}px` }}
       >
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0d0d0d]/70 backdrop-blur-[2px] rounded-2xl">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/75 backdrop-blur-[2px] rounded-2xl dark:bg-[#0d0d0d]/70">
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
                 <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full animate-pulse" />
@@ -475,7 +475,7 @@ export function ActivityHeatmap({
                   size={24}
                 />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Loading activity...
               </span>
             </div>
@@ -502,7 +502,7 @@ export function ActivityHeatmap({
                   return (
                     <div
                       key={i}
-                      className="absolute text-[10px] font-semibold text-white/45 tracking-wide"
+                      className="absolute text-[10px] font-semibold text-muted-foreground tracking-wide"
                       style={{
                         left: `${left}px`,
                         transform: "translateX(-50%)",
@@ -526,7 +526,7 @@ export function ActivityHeatmap({
               {DAY_LABELS.map((label, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-end pr-2 text-[10px] font-medium text-white/28"
+                  className="flex items-center justify-end pr-2 text-[10px] font-medium text-muted-foreground/70"
                   style={{ height: `${cellSize}px` }}
                 >
                   {label}
@@ -545,8 +545,8 @@ export function ActivityHeatmap({
                 }}
               >
                 <div className="flex flex-col items-center gap-2 text-center">
-                  <BarChart3 size={20} className="text-white/[0.08]" />
-                  <span className="text-[11px] font-medium text-white/[0.15]">
+                  <BarChart3 size={20} className="text-muted-foreground/40" />
+                  <span className="text-[11px] font-medium text-muted-foreground">
                     No activity recorded in this period
                   </span>
                 </div>
@@ -662,42 +662,44 @@ export function ActivityHeatmap({
       </div>
 
       {/* ── Footer / Stats + Legend ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-5 pt-4 border-t border-white/[0.06]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-5 pt-4 border-t border-border/50 dark:border-white/[0.06]">
         {/* Stats */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
             <div className="flex items-center gap-1.5">
               <div className={cn("w-2 h-2 rounded-full", activeDotColor)} />
-              <span className="text-[11px] font-semibold text-white/90">
+              <span className="text-[11px] font-semibold text-foreground dark:text-white/90">
                 {activeDays}
               </span>
             </div>
-            <span className="text-[10px] font-medium text-white/40">
+            <span className="text-[10px] font-medium text-muted-foreground">
               active days
             </span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-semibold text-[#FFA116]/90">
                 {maxStreak}
               </span>
             </div>
-            <span className="text-[10px] font-medium text-white/40">
+            <span className="text-[10px] font-medium text-muted-foreground">
               longest streak
             </span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold text-white/90">
+              <span className="text-[11px] font-semibold text-foreground dark:text-white/90">
                 {totalSubmissions.toLocaleString()}
               </span>
             </div>
-            <span className="text-[10px] font-medium text-white/40">total</span>
+            <span className="text-[10px] font-medium text-muted-foreground">
+              total
+            </span>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-2.5 text-[10px] font-medium text-white/40">
+        <div className="flex items-center gap-2.5 text-[10px] font-medium text-muted-foreground">
           <span>Less</span>
           <div className="flex items-center gap-[2px]">
             {intensityColors.map((colorClass, idx) => (

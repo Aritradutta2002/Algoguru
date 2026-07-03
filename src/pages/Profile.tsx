@@ -67,16 +67,15 @@ const parseLeetcodeCalendarPayload = (
     console.error("Failed to parse LeetCode calendar", e);
   }
 
-  const calendar = Object.entries(parsedCalendar).reduce<Record<string, number>>(
-    (acc, [dateKey, value]) => {
-      const count = Number(value);
-      if (dateKey && Number.isFinite(count) && count > 0) {
-        acc[dateKey] = (acc[dateKey] || 0) + count;
-      }
-      return acc;
-    },
-    {},
-  );
+  const calendar = Object.entries(parsedCalendar).reduce<
+    Record<string, number>
+  >((acc, [dateKey, value]) => {
+    const count = Number(value);
+    if (dateKey && Number.isFinite(count) && count > 0) {
+      acc[dateKey] = (acc[dateKey] || 0) + count;
+    }
+    return acc;
+  }, {});
 
   const activeYears = Array.isArray(calendarSource?.activeYears)
     ? calendarSource.activeYears
@@ -107,10 +106,14 @@ interface CodechefData {
   heatMap: { date: string; value: number }[];
 }
 
+type DifficultyKey = "easy" | "medium" | "hard";
+
 export default function Profile() {
   const { user, profile, resolvedAvatar, refreshProfile } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [hoveredDifficulty, setHoveredDifficulty] =
+    useState<DifficultyKey | null>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -300,9 +303,7 @@ export default function Profile() {
 
       const yearlyCalendars = yearlyCalendarResults
         .filter(
-          (
-            result,
-          ): result is PromiseFulfilledResult<Record<string, number>> =>
+          (result): result is PromiseFulfilledResult<Record<string, number>> =>
             result.status === "fulfilled",
         )
         .map((result) => result.value);
@@ -577,10 +578,6 @@ export default function Profile() {
       : dataMode === "website"
         ? websiteData?.totalSolved || 0
         : codechefData?.currentRating || 0;
-  const currentTotalQuestions =
-    dataMode === "leetcode"
-      ? leetcodeData?.totalQuestions || 1
-      : websiteData?.totalSolved || 1;
   const currentEasySolved =
     dataMode === "leetcode"
       ? leetcodeData?.easySolved || 0
@@ -594,28 +591,88 @@ export default function Profile() {
       ? leetcodeData?.hardSolved || 0
       : websiteData?.hardSolved || 0;
 
+  const statsSegments = useMemo(() => {
+    const circumference = 301.59;
+    const gap = 5;
+    const values: Array<{
+      key: DifficultyKey;
+      label: string;
+      value: number;
+      stroke: string;
+      textClass: string;
+      hoverClass: string;
+    }> = [
+      {
+        key: "easy",
+        label: "Easy",
+        value: currentEasySolved,
+        stroke: "#22c55e",
+        textClass: "text-[#16a34a] dark:text-[#22c55e]",
+        hoverClass:
+          "hover:border-[#22c55e]/50 hover:bg-[#22c55e]/10 hover:shadow-[#22c55e]/10",
+      },
+      {
+        key: "medium",
+        label: "Medium",
+        value: currentMediumSolved,
+        stroke: "#eab308",
+        textClass: "text-[#ca8a04] dark:text-[#eab308]",
+        hoverClass:
+          "hover:border-[#eab308]/50 hover:bg-[#eab308]/10 hover:shadow-[#eab308]/10",
+      },
+      {
+        key: "hard",
+        label: "Hard",
+        value: currentHardSolved,
+        stroke: "#ef4444",
+        textClass: "text-[#dc2626] dark:text-[#ef4444]",
+        hoverClass:
+          "hover:border-[#ef4444]/50 hover:bg-[#ef4444]/10 hover:shadow-[#ef4444]/10",
+      },
+    ];
+
+    const total = values.reduce((sum, segment) => sum + segment.value, 0);
+    let offset = 0;
+
+    return values.map((segment) => {
+      const rawLength = total > 0 ? (circumference * segment.value) / total : 0;
+      const visibleLength = Math.max(
+        0,
+        rawLength - (segment.value > 0 ? gap : 0),
+      );
+      const result = {
+        ...segment,
+        dasharray: `${visibleLength} ${circumference - visibleLength}`,
+        dashoffset: -offset,
+        circumference,
+      };
+      offset += rawLength;
+      return result;
+    });
+  }, [currentEasySolved, currentMediumSolved, currentHardSolved]);
+
   return (
-    <div className="flex-1 min-h-screen bg-[#111111] text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700 relative">
+    <div className="flex-1 min-h-screen bg-background text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700 relative">
       {showLeetcodePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
-            <h3 className="text-lg font-bold text-white">
+          <div className="bg-card text-card-foreground border border-border/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
+            <h3 className="text-lg font-bold text-foreground">
               Link LeetCode Account
             </h3>
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-muted-foreground">
               Enter your LeetCode username to sync your progress and heatmap.
             </p>
             <input
               value={promptUsername}
               onChange={(e) => setPromptUsername(e.target.value)}
               placeholder="e.g. aritr_dutta"
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-primary/50"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm text-foreground outline-none focus:border-primary/50"
               autoFocus
             />
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowLeetcodePrompt(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/5 text-white/70"
+                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
               >
                 Cancel
               </button>
@@ -636,24 +693,24 @@ export default function Profile() {
 
       {showCodechefPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
-            <h3 className="text-lg font-bold text-white">
+          <div className="bg-card text-card-foreground border border-border/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
+            <h3 className="text-lg font-bold text-foreground">
               Link CodeChef Account
             </h3>
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-muted-foreground">
               Enter your CodeChef handle to sync your stats.
             </p>
             <input
               value={codechefPromptUsername}
               onChange={(e) => setCodechefPromptUsername(e.target.value)}
               placeholder="e.g. codechef_user"
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-primary/50"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm text-foreground outline-none focus:border-primary/50"
               autoFocus
             />
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowCodechefPrompt(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/5 text-white/70"
+                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
               >
                 Cancel
               </button>
@@ -673,7 +730,7 @@ export default function Profile() {
       )}
 
       <div className="w-full lg:w-[320px] shrink-0 space-y-6">
-        <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col">
+        <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative group">
               {resolvedAvatar ? (
@@ -723,36 +780,36 @@ export default function Profile() {
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs font-semibold"
+              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 transition-colors text-xs font-semibold"
             >
               <Edit2 size={14} />
               {isEditing ? "Cancel" : "Edit Profile"}
             </button>
-            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs font-semibold">
+            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 transition-colors text-xs font-semibold">
               <Share2 size={14} />
               Share
             </button>
           </div>
 
-          <div className="space-y-4 text-xs font-medium text-white/70">
-            <h3 className="text-sm font-bold text-white mb-2">
+          <div className="space-y-4 text-xs font-medium text-muted-foreground">
+            <h3 className="text-sm font-bold text-foreground mb-2">
               Basic Information
             </h3>
             {roleTitle && (
               <div className="flex items-center gap-3">
-                <Briefcase size={16} className="text-white/40" />
+                <Briefcase size={16} className="text-muted-foreground/60" />
                 <span>{roleTitle}</span>
               </div>
             )}
             {university && (
               <div className="flex items-center gap-3">
-                <GraduationCap size={16} className="text-white/40" />
+                <GraduationCap size={16} className="text-muted-foreground/60" />
                 <span>{university}</span>
               </div>
             )}
             {website && (
               <div className="flex items-center gap-3">
-                <Globe size={16} className="text-white/40" />
+                <Globe size={16} className="text-muted-foreground/60" />
                 <a
                   href={website}
                   target="_blank"
@@ -765,7 +822,7 @@ export default function Profile() {
             )}
             {githubUrl && (
               <div className="flex items-center gap-3">
-                <Github size={16} className="text-white/40" />
+                <Github size={16} className="text-muted-foreground/60" />
                 <a
                   href={githubUrl}
                   target="_blank"
@@ -778,7 +835,7 @@ export default function Profile() {
             )}
             {linkedinUrl && (
               <div className="flex items-center gap-3">
-                <Linkedin size={16} className="text-white/40" />
+                <Linkedin size={16} className="text-muted-foreground/60" />
                 <a
                   href={linkedinUrl}
                   target="_blank"
@@ -795,110 +852,110 @@ export default function Profile() {
 
       <div className="flex-1 min-w-0 space-y-6">
         {isEditing ? (
-          <div className="bg-[#1C1C1C] rounded-2xl p-6 md:p-10 border border-white/5 shadow-2xl space-y-8 animate-in fade-in zoom-in-95">
+          <div className="bg-card text-card-foreground rounded-2xl p-6 md:p-10 border border-border/40 shadow-xl space-y-8 animate-in fade-in zoom-in-95">
             <h2 className="text-xl font-bold">Edit Profile</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Display Name
                 </label>
                 <input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="John Doe"
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Role / Title
                 </label>
                 <input
                   value={roleTitle}
                   onChange={(e) => setRoleTitle(e.target.value)}
                   placeholder="Software Engineer"
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Education / University
                 </label>
                 <input
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
                   placeholder="E.g. Academy of Technology"
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 About Me (Bio)
               </label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Tell us about yourself..."
-                className="w-full px-4 py-3 min-h-[100px] rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all resize-y"
+                className="w-full px-4 py-3 min-h-[100px] rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all resize-y"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   LeetCode Username
                 </label>
                 <input
                   value={leetcodeUsername}
                   onChange={(e) => setLeetcodeUsername(e.target.value)}
                   placeholder="e.g. aritr_dutta"
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   CodeChef Handle
                 </label>
                 <input
                   value={codechefUsername}
                   onChange={(e) => setCodechefUsername(e.target.value)}
                   placeholder="e.g. codechef_user"
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   GitHub
                 </label>
                 <input
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/..."
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   LinkedIn
                 </label>
                 <input
                   value={linkedinUrl}
                   onChange={(e) => setLinkedinUrl(e.target.value)}
                   placeholder="https://linkedin.com/in/..."
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
               <div className="space-y-2 lg:col-span-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Website
                 </label>
                 <input
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
                 />
               </div>
             </div>
@@ -921,25 +978,25 @@ export default function Profile() {
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
-              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px] xl:col-span-2 2xl:col-span-1">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[240px] xl:col-span-2 2xl:col-span-1">
                 <div className="flex flex-col gap-4 w-full mb-6">
                   <div className="min-w-0">
                     <h3 className="text-sm font-semibold shrink-0 pt-1">
                       Stats
                     </h3>
-                    <p className="text-[10px] leading-4 text-white/30 mt-1 max-w-[180px]">
+                    <p className="text-[10px] leading-4 text-muted-foreground mt-1 max-w-[180px]">
                       Track solved problems across platforms
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1 bg-black/40 rounded-xl p-1 w-full min-w-0">
+                  <div className="grid grid-cols-3 gap-1 bg-muted/60 dark:bg-black/40 rounded-xl p-1 w-full min-w-0">
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
                         "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
                         dataMode === "website"
-                          ? "bg-white/10 text-white shadow-sm"
-                          : "text-white/50 hover:text-white/80",
+                          ? "bg-card text-foreground shadow-sm dark:bg-white/10 dark:text-white"
+                          : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
                       )}
                     >
                       Website
@@ -950,7 +1007,7 @@ export default function Profile() {
                         "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
                         dataMode === "leetcode"
                           ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm"
-                          : "text-white/50 hover:text-white/80",
+                          : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
                       )}
                     >
                       LeetCode
@@ -960,8 +1017,8 @@ export default function Profile() {
                       className={cn(
                         "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
                         dataMode === "codechef"
-                          ? "bg-[#5B4638]/60 text-white shadow-sm"
-                          : "text-white/50 hover:text-white/80",
+                          ? "bg-[#5B4638]/20 text-foreground shadow-sm dark:bg-[#5B4638]/60 dark:text-white"
+                          : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
                       )}
                     >
                       CodeChef
@@ -972,7 +1029,7 @@ export default function Profile() {
                 {(isLeetcodeLoading && dataMode === "leetcode") ||
                 (isCodechefLoading && dataMode === "codechef") ? (
                   <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="animate-spin text-white/20" />
+                    <Loader2 className="animate-spin text-muted-foreground/50" />
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-wrap items-center justify-center gap-5 lg:gap-6">
@@ -986,114 +1043,111 @@ export default function Profile() {
                           cy="56"
                           r="48"
                           fill="none"
-                          stroke="#2A2A2A"
-                          strokeWidth="6"
+                          className="stroke-muted dark:stroke-[#2A2A2A]"
+                          strokeWidth="7"
                         />
 
-                        <circle
-                          cx="56"
-                          cy="56"
-                          r="48"
-                          fill="none"
-                          stroke="#22c55e"
-                          strokeWidth="6"
-                          strokeDasharray="301.59"
-                          strokeDashoffset={
-                            301.59 -
-                            301.59 * (currentEasySolved / currentTotalQuestions)
-                          }
-                          className="transition-all duration-1000"
-                        />
-                        <circle
-                          cx="56"
-                          cy="56"
-                          r="48"
-                          fill="none"
-                          stroke="#eab308"
-                          strokeWidth="6"
-                          strokeDasharray="301.59"
-                          strokeDashoffset={
-                            301.59 -
-                            301.59 *
-                              (currentMediumSolved / currentTotalQuestions)
-                          }
-                          className="transition-all duration-1000 -rotate-[36deg] origin-center"
-                        />
-                        <circle
-                          cx="56"
-                          cy="56"
-                          r="48"
-                          fill="none"
-                          stroke="#ef4444"
-                          strokeWidth="6"
-                          strokeDasharray="301.59"
-                          strokeDashoffset={
-                            301.59 -
-                            301.59 * (currentHardSolved / currentTotalQuestions)
-                          }
-                          className="transition-all duration-1000 rotate-[108deg] origin-center"
-                        />
+                        {dataMode !== "codechef" &&
+                          statsSegments.map((segment) => {
+                            const isHighlighted =
+                              !hoveredDifficulty ||
+                              hoveredDifficulty === segment.key;
+                            return (
+                              <circle
+                                key={segment.key}
+                                cx="56"
+                                cy="56"
+                                r="48"
+                                fill="none"
+                                stroke={segment.stroke}
+                                strokeLinecap="round"
+                                strokeWidth={
+                                  hoveredDifficulty === segment.key ? 8 : 6
+                                }
+                                strokeDasharray={segment.dasharray}
+                                strokeDashoffset={segment.dashoffset}
+                                className={cn(
+                                  "transition-all duration-300",
+                                  isHighlighted ? "opacity-100" : "opacity-25",
+                                )}
+                              />
+                            );
+                          })}
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-bold text-white">
+                        <span className="text-2xl font-bold text-foreground dark:text-white">
                           {currentTotalSolved}
                         </span>
-                        <span className="text-[10px] font-medium text-white/40">
+                        <span className="text-[10px] font-medium text-muted-foreground">
                           {dataMode === "codechef" ? "Rating" : "Solved"}
                         </span>
                       </div>
                     </div>
 
                     {dataMode !== "codechef" && (
-                      <div className="flex flex-wrap gap-2 flex-1 w-full min-w-[210px]">
-                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-[92px] flex-1">
-                          <span className="text-[10px] sm:text-xs text-[#22c55e] font-medium truncate">
-                            Easy
-                          </span>
-                          <span className="text-xs sm:text-sm font-bold text-white tabular-nums">
-                            {currentEasySolved}
-                          </span>
-                        </div>
-                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-[92px] flex-1">
-                          <span className="text-[10px] sm:text-xs text-[#eab308] font-medium truncate">
-                            Medium
-                          </span>
-                          <span className="text-xs sm:text-sm font-bold text-white tabular-nums">
-                            {currentMediumSolved}
-                          </span>
-                        </div>
-                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-[92px] flex-1">
-                          <span className="text-[10px] sm:text-xs text-[#ef4444] font-medium truncate">
-                            Hard
-                          </span>
-                          <span className="text-xs sm:text-sm font-bold text-white tabular-nums">
-                            {currentHardSolved}
-                          </span>
-                        </div>
+                      <div
+                        className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1 w-full min-w-[210px]"
+                        onMouseLeave={() => setHoveredDifficulty(null)}
+                      >
+                        {statsSegments.map((segment) => {
+                          const isActive =
+                            !hoveredDifficulty ||
+                            hoveredDifficulty === segment.key;
+                          return (
+                            <button
+                              key={segment.key}
+                              type="button"
+                              onMouseEnter={() =>
+                                setHoveredDifficulty(segment.key)
+                              }
+                              onFocus={() => setHoveredDifficulty(segment.key)}
+                              onBlur={() => setHoveredDifficulty(null)}
+                              className={cn(
+                                "rounded-xl p-3 flex items-center justify-between gap-2 border bg-muted/45 dark:bg-white/5 border-border/45 dark:border-white/5 min-w-0 transition-all duration-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                                segment.hoverClass,
+                                isActive ? "opacity-100" : "opacity-45",
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "text-[10px] sm:text-xs font-semibold truncate",
+                                  segment.textClass,
+                                )}
+                              >
+                                {segment.label}
+                              </span>
+                              <span className="text-xs sm:text-sm font-bold text-foreground dark:text-white tabular-nums">
+                                {segment.value}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
 
                     {dataMode === "codechef" && (
                       <div className="flex flex-wrap w-full gap-2 text-sm">
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-white/5 px-3 py-3 min-w-[100px] flex-1">
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-border/45 dark:border-white/5 bg-muted/45 dark:bg-white/5 px-3 py-3 min-w-[100px] flex-1">
                           <span className="font-semibold text-[#eab308] tabular-nums">
                             {codechefData?.stars || "N/A"}
                           </span>
-                          <span className="text-white/40 text-xs">Stars</span>
+                          <span className="text-muted-foreground text-xs">
+                            Stars
+                          </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-white/5 px-3 py-3 min-w-[100px] flex-1">
-                          <span className="font-semibold text-white tabular-nums">
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-border/45 dark:border-white/5 bg-muted/45 dark:bg-white/5 px-3 py-3 min-w-[100px] flex-1">
+                          <span className="font-semibold text-foreground dark:text-white tabular-nums">
                             {codechefData?.globalRank || "-"}
                           </span>
-                          <span className="text-white/40 text-xs">
+                          <span className="text-muted-foreground text-xs">
                             Global Rank
                           </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-white/5 px-3 py-3 min-w-[100px] flex-1">
-                          <span className="font-semibold text-white tabular-nums">
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-border/45 dark:border-white/5 bg-muted/45 dark:bg-white/5 px-3 py-3 min-w-[100px] flex-1">
+                          <span className="font-semibold text-foreground dark:text-white tabular-nums">
                             {codechefData?.countryRank || "-"}
                           </span>
-                          <span className="text-white/40 text-xs">
+                          <span className="text-muted-foreground text-xs">
                             Country Rank
                           </span>
                         </div>
@@ -1104,30 +1158,30 @@ export default function Profile() {
               </div>
 
               {/* Subject Progress */}
-              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[240px]">
                 <h3 className="text-sm font-semibold mb-auto">
                   Subject Progress
                 </h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
-                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
-                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
+                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
+                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
                   </div>
-                  <p className="text-xs text-white/40">
+                  <p className="text-xs text-muted-foreground">
                     Edit profile to show subject progress
                   </p>
                 </div>
               </div>
 
               {/* Skills */}
-              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[240px]">
                 <h3 className="text-sm font-semibold mb-auto">Skills</h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
-                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
-                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
+                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
+                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
                   </div>
-                  <p className="text-xs text-white/40">
+                  <p className="text-xs text-muted-foreground">
                     Edit Profile to add skills
                   </p>
                 </div>
@@ -1135,7 +1189,7 @@ export default function Profile() {
             </div>
 
             {/* Heatmap Area */}
-            <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl w-full overflow-hidden">
+            <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl w-full overflow-hidden">
               <ActivityHeatmap
                 websiteCalendar={websiteData?.submissionCalendar || {}}
                 leetcodeCalendar={leetcodeData?.submissionCalendar || {}}
@@ -1154,25 +1208,25 @@ export default function Profile() {
             {/* Bottom Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coding Profiles */}
-              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col min-h-[200px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col min-h-[200px]">
                 <h3 className="text-sm font-semibold mb-auto">
                   Coding Profiles
                 </h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
-                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
-                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
+                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
+                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
                   </div>
                 </div>
               </div>
 
               {/* Contests */}
-              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col min-h-[200px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col min-h-[200px]">
                 <h3 className="text-sm font-semibold mb-auto">Contests</h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
-                  <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
-                    <div className="w-6 h-1 bg-white/20 rounded-full" />
+                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
+                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
+                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
+                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
                   </div>
                 </div>
               </div>
