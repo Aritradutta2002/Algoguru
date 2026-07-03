@@ -52,7 +52,7 @@ const ResizableHandle = React.forwardRef<
         "pointer-events-none z-10 flex items-center justify-center",
         "transition-all duration-200",
         // Horizontal pill
-        "h-10 w-[4px] rounded-full bg-border group-hover/handle:bg-primary group-hover/handle:shadow-[0_0_8px_hsl(var(--primary)/0.6)] group-[data-resize-handle-state=drag]/handle:bg-primary",
+        "h-10 w-[4px] rounded-full bg-border group-hover/handle:bg-primary group-hover/handle:shadow-[0_0_8px_hsl(var(--primary)/0.6)] group-data-[resize-handle-state=drag]/handle:bg-primary",
         // Vertical pill
         "data-[panel-group-direction=vertical]:w-10 data-[panel-group-direction=vertical]:h-[4px]",
       )}

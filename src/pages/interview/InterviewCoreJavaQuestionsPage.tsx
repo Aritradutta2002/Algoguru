@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense, memo } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,7 +28,7 @@ import jsPDF from "jspdf";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
 
-const RichTextNoteEditor = lazy(() => import("@/components/RichTextNoteEditor"));
+import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 
 type SolutionView = "theory" | "code" | null;
 
