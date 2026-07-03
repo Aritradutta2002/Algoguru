@@ -2,23 +2,35 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Camera, Save, Loader2, Github, Linkedin, Globe, Briefcase, Edit2, Share2, GraduationCap } from "lucide-react";
+import {
+  Camera,
+  Save,
+  Loader2,
+  Github,
+  Linkedin,
+  Globe,
+  Briefcase,
+  Edit2,
+  Share2,
+  GraduationCap,
+} from "lucide-react";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { cn } from "@/lib/utils";
 import { practiceData } from "@/data/practiceData";
 
 // Build a lookup of problem_id -> difficulty from the static practice sheet.
-const PROBLEM_DIFFICULTY_MAP: Record<string, "Easy" | "Medium" | "Hard"> = (() => {
-  const map: Record<string, "Easy" | "Medium" | "Hard"> = {};
-  practiceData.forEach((topic) => {
-    topic.subtopics.forEach((sub) => {
-      sub.problems.forEach((prob) => {
-        map[prob.id] = prob.difficulty;
+const PROBLEM_DIFFICULTY_MAP: Record<string, "Easy" | "Medium" | "Hard"> =
+  (() => {
+    const map: Record<string, "Easy" | "Medium" | "Hard"> = {};
+    practiceData.forEach((topic) => {
+      topic.subtopics.forEach((sub) => {
+        sub.problems.forEach((prob) => {
+          map[prob.id] = prob.difficulty;
+        });
       });
     });
-  });
-  return map;
-})();
+    return map;
+  })();
 
 interface LeetcodeData {
   totalSolved: number;
@@ -38,14 +50,14 @@ interface CodechefData {
   stars: string;
   globalRank: string | number;
   countryRank: string | number;
-  heatMap: { date: string, value: number }[];
+  heatMap: { date: string; value: number }[];
 }
 
 export default function Profile() {
   const { user, profile, resolvedAvatar, refreshProfile } = useAuth();
-  
+
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
@@ -53,17 +65,19 @@ export default function Profile() {
   const [githubUrl, setGithubUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [website, setWebsite] = useState("");
-  
+
   const [leetcodeUsername, setLeetcodeUsername] = useState("");
   const [codechefUsername, setCodechefUsername] = useState("");
-  
+
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Platform State
-  const [dataMode, setDataMode] = useState<"website" | "leetcode" | "codechef">("website");
-  
+  const [dataMode, setDataMode] = useState<"website" | "leetcode" | "codechef">(
+    "website",
+  );
+
   const [leetcodeData, setLeetcodeData] = useState<LeetcodeData | null>(null);
   const [isLeetcodeLoading, setIsLeetcodeLoading] = useState(false);
   const [showLeetcodePrompt, setShowLeetcodePrompt] = useState(false);
@@ -101,7 +115,11 @@ export default function Profile() {
     if (!file || !user) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 2MB allowed", variant: "destructive" });
+      toast({
+        title: "File too large",
+        description: "Max 2MB allowed",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -119,7 +137,11 @@ export default function Profile() {
       .upload(path, file, { upsert: true });
 
     if (uploadError) {
-      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+      toast({
+        title: "Upload failed",
+        description: uploadError.message,
+        variant: "destructive",
+      });
       setUploading(false);
       return;
     }
@@ -130,7 +152,7 @@ export default function Profile() {
       .eq("user_id", user.id);
 
     await refreshProfile();
-    
+
     setUploading(false);
     toast({ title: "Avatar updated!" });
   };
@@ -138,10 +160,10 @@ export default function Profile() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    
+
     const { error } = await supabase
       .from("profiles")
-      .update({ 
+      .update({
         display_name: displayName,
         bio: bio,
         role_title: roleTitle,
@@ -150,12 +172,16 @@ export default function Profile() {
         linkedin_url: linkedinUrl,
         website: website,
         leetcode_username: leetcodeUsername,
-        codechef_username: codechefUsername
+        codechef_username: codechefUsername,
       } as any)
       .eq("user_id", user.id);
 
     if (error) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      toast({
+        title: "Save failed",
+        description: error.message,
+        variant: "destructive",
+      });
     } else {
       await refreshProfile();
       toast({ title: "Profile saved!" });
@@ -171,7 +197,7 @@ export default function Profile() {
       // endpoint does NOT. `/calendar` returns the submission heatmap.
       const [solvedRes, calendarRes] = await Promise.all([
         fetch(`https://alfa-leetcode-api.onrender.com/${username}/solved`),
-        fetch(`https://alfa-leetcode-api.onrender.com/${username}/calendar`)
+        fetch(`https://alfa-leetcode-api.onrender.com/${username}/calendar`),
       ]);
 
       if (!solvedRes.ok) {
@@ -182,18 +208,26 @@ export default function Profile() {
       const calendarData = calendarRes.ok ? await calendarRes.json() : {};
 
       if (solvedData.errors || solvedData.solvedProblem === undefined) {
-        toast({ title: "LeetCode fetch failed", description: "Invalid username or no data available", variant: "destructive" });
+        toast({
+          title: "LeetCode fetch failed",
+          description: "Invalid username or no data available",
+          variant: "destructive",
+        });
         return;
       }
 
       // Total questions available on LeetCode (used as the ring denominator).
       const allCount = Array.isArray(solvedData.allQuestionsCount)
-        ? solvedData.allQuestionsCount.find((q: any) => q.difficulty === "All")?.count
+        ? solvedData.allQuestionsCount.find((q: any) => q.difficulty === "All")
+            ?.count
         : undefined;
 
       let parsedCalendar = {};
       try {
-        if (calendarData.submissionCalendar && typeof calendarData.submissionCalendar === 'string') {
+        if (
+          calendarData.submissionCalendar &&
+          typeof calendarData.submissionCalendar === "string"
+        ) {
           parsedCalendar = JSON.parse(calendarData.submissionCalendar);
         } else if (calendarData.submissionCalendar) {
           parsedCalendar = calendarData.submissionCalendar;
@@ -211,10 +245,14 @@ export default function Profile() {
         totalMedium: 0,
         hardSolved: solvedData.hardSolved ?? 0,
         totalHard: 0,
-        submissionCalendar: parsedCalendar
+        submissionCalendar: parsedCalendar,
       });
     } catch (err) {
-      toast({ title: "LeetCode API Error", description: "The API is currently unavailable. Try again later.", variant: "destructive" });
+      toast({
+        title: "LeetCode API Error",
+        description: "The API is currently unavailable. Try again later.",
+        variant: "destructive",
+      });
     } finally {
       setIsLeetcodeLoading(false);
     }
@@ -225,14 +263,24 @@ export default function Profile() {
     try {
       // The old codechef-api.vercel.app endpoint is permanently disabled (HTTP 402).
       // competeapi provides a working CodeChef profile endpoint.
-      const res = await fetch(`https://competeapi.vercel.app/user/codechef/${username}/`);
+      const res = await fetch(
+        `https://competeapi.vercel.app/user/codechef/${username}/`,
+      );
       if (!res.ok) {
         throw new Error("CodeChef API is currently unavailable");
       }
       const data = await res.json();
 
-      if (!data || data.rating_number === undefined || data.rating_number === null) {
-        toast({ title: "CodeChef fetch failed", description: "Invalid handle or no data available", variant: "destructive" });
+      if (
+        !data ||
+        data.rating_number === undefined ||
+        data.rating_number === null
+      ) {
+        toast({
+          title: "CodeChef fetch failed",
+          description: "Invalid handle or no data available",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -244,7 +292,10 @@ export default function Profile() {
       };
 
       const heatMap = Array.isArray(data.heatMap)
-        ? data.heatMap.map((item: any) => ({ date: item.date, value: item.value ?? 0 }))
+        ? data.heatMap.map((item: any) => ({
+            date: item.date,
+            value: item.value ?? 0,
+          }))
         : [];
 
       setCodechefData({
@@ -257,7 +308,11 @@ export default function Profile() {
       });
     } catch (err: any) {
       const message = err.message || "Failed to connect to CodeChef API";
-      toast({ title: "CodeChef API Error", description: message, variant: "destructive" });
+      toast({
+        title: "CodeChef API Error",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsCodechefLoading(false);
     }
@@ -267,7 +322,11 @@ export default function Profile() {
     setDataMode(mode);
     if (mode === "leetcode" && !leetcodeData && profile?.leetcode_username) {
       fetchLeetcodeStats(profile.leetcode_username);
-    } else if (mode === "codechef" && !codechefData && profile?.codechef_username) {
+    } else if (
+      mode === "codechef" &&
+      !codechefData &&
+      profile?.codechef_username
+    ) {
       fetchCodechefStats(profile.codechef_username);
     }
   };
@@ -276,21 +335,23 @@ export default function Profile() {
     if (!user?.id) return;
     try {
       const { data, error } = await supabase
-        .from('practice_problem_user_state')
-        .select('problem_id, is_completed, updated_at, created_at')
-        .eq('user_id', user.id)
-        .eq('is_completed', true);
+        .from("practice_problem_user_state")
+        .select("problem_id, is_completed, updated_at, created_at")
+        .eq("user_id", user.id)
+        .eq("is_completed", true);
 
       if (error) throw error;
 
-      let easy = 0, medium = 0, hard = 0;
+      let easy = 0,
+        medium = 0,
+        hard = 0;
       const calendar: Record<string, number> = {};
 
       data?.forEach((row: any) => {
         const difficulty = PROBLEM_DIFFICULTY_MAP[row.problem_id];
-        if (difficulty === 'Easy') easy++;
-        else if (difficulty === 'Medium') medium++;
-        else if (difficulty === 'Hard') hard++;
+        if (difficulty === "Easy") easy++;
+        else if (difficulty === "Medium") medium++;
+        else if (difficulty === "Hard") hard++;
 
         // No dedicated completed_at column exists; use updated_at (falls back to created_at)
         // as the best proxy for when the problem was marked complete.
@@ -298,7 +359,7 @@ export default function Profile() {
         if (completedAt) {
           const date = new Date(completedAt);
           if (!isNaN(date.getTime())) {
-            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
             calendar[dateStr] = (calendar[dateStr] || 0) + 1;
           }
         }
@@ -309,7 +370,7 @@ export default function Profile() {
         easySolved: easy,
         mediumSolved: medium,
         hardSolved: hard,
-        submissionCalendar: calendar
+        submissionCalendar: calendar,
       });
     } catch (err) {
       console.error("Failed to fetch website stats:", err);
@@ -329,9 +390,13 @@ export default function Profile() {
       .from("profiles")
       .update({ leetcode_username: promptUsername } as any)
       .eq("user_id", user.id);
-      
+
     if (error) {
-      toast({ title: "Error", description: "Failed to save username to DB", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to save username to DB",
+        variant: "destructive",
+      });
       setIsLeetcodeLoading(false);
       return;
     }
@@ -348,9 +413,13 @@ export default function Profile() {
       .from("profiles")
       .update({ codechef_username: codechefPromptUsername } as any)
       .eq("user_id", user.id);
-      
+
     if (error) {
-      toast({ title: "Error", description: "Failed to save username to DB", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to save username to DB",
+        variant: "destructive",
+      });
       setIsCodechefLoading(false);
       return;
     }
@@ -363,47 +432,69 @@ export default function Profile() {
   const codechefCalendar = useMemo(() => {
     const cal: Record<string, number> = {};
     if (codechefData?.heatMap) {
-      codechefData.heatMap.forEach(item => {
+      codechefData.heatMap.forEach((item) => {
         cal[item.date] = item.value;
       });
     }
     return cal;
   }, [codechefData]);
 
-  const currentTotalSolved = dataMode === 'leetcode' ? (leetcodeData?.totalSolved || 0) : dataMode === 'website' ? (websiteData?.totalSolved || 0) : (codechefData?.currentRating || 0);
-  const currentTotalQuestions = dataMode === 'leetcode' ? (leetcodeData?.totalQuestions || 1) : (websiteData?.totalSolved || 1);
-  const currentEasySolved = dataMode === 'leetcode' ? (leetcodeData?.easySolved || 0) : (websiteData?.easySolved || 0);
-  const currentMediumSolved = dataMode === 'leetcode' ? (leetcodeData?.mediumSolved || 0) : (websiteData?.mediumSolved || 0);
-  const currentHardSolved = dataMode === 'leetcode' ? (leetcodeData?.hardSolved || 0) : (websiteData?.hardSolved || 0);
+  const currentTotalSolved =
+    dataMode === "leetcode"
+      ? leetcodeData?.totalSolved || 0
+      : dataMode === "website"
+        ? websiteData?.totalSolved || 0
+        : codechefData?.currentRating || 0;
+  const currentTotalQuestions =
+    dataMode === "leetcode"
+      ? leetcodeData?.totalQuestions || 1
+      : websiteData?.totalSolved || 1;
+  const currentEasySolved =
+    dataMode === "leetcode"
+      ? leetcodeData?.easySolved || 0
+      : websiteData?.easySolved || 0;
+  const currentMediumSolved =
+    dataMode === "leetcode"
+      ? leetcodeData?.mediumSolved || 0
+      : websiteData?.mediumSolved || 0;
+  const currentHardSolved =
+    dataMode === "leetcode"
+      ? leetcodeData?.hardSolved || 0
+      : websiteData?.hardSolved || 0;
 
   return (
     <div className="flex-1 min-h-screen bg-[#111111] text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700 relative">
-      
       {showLeetcodePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
-            <h3 className="text-lg font-bold text-white">Link LeetCode Account</h3>
-            <p className="text-sm text-white/50">Enter your LeetCode username to sync your progress and heatmap.</p>
-            <input 
+            <h3 className="text-lg font-bold text-white">
+              Link LeetCode Account
+            </h3>
+            <p className="text-sm text-white/50">
+              Enter your LeetCode username to sync your progress and heatmap.
+            </p>
+            <input
               value={promptUsername}
-              onChange={e => setPromptUsername(e.target.value)}
+              onChange={(e) => setPromptUsername(e.target.value)}
               placeholder="e.g. aritr_dutta"
               className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-primary/50"
               autoFocus
             />
             <div className="flex justify-end gap-3 pt-2">
-              <button 
+              <button
                 onClick={() => setShowLeetcodePrompt(false)}
                 className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/5 text-white/70"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={saveLeetcodePrompt}
                 disabled={isLeetcodeLoading || !promptUsername.trim()}
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center gap-2 disabled:opacity-50"
               >
-                {isLeetcodeLoading && <Loader2 size={14} className="animate-spin" />}
+                {isLeetcodeLoading && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
                 Connect
               </button>
             </div>
@@ -414,35 +505,41 @@ export default function Profile() {
       {showCodechefPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-[#1C1C1C] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
-            <h3 className="text-lg font-bold text-white">Link CodeChef Account</h3>
-            <p className="text-sm text-white/50">Enter your CodeChef handle to sync your stats.</p>
-            <input 
+            <h3 className="text-lg font-bold text-white">
+              Link CodeChef Account
+            </h3>
+            <p className="text-sm text-white/50">
+              Enter your CodeChef handle to sync your stats.
+            </p>
+            <input
               value={codechefPromptUsername}
-              onChange={e => setCodechefPromptUsername(e.target.value)}
+              onChange={(e) => setCodechefPromptUsername(e.target.value)}
               placeholder="e.g. codechef_user"
               className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-primary/50"
               autoFocus
             />
             <div className="flex justify-end gap-3 pt-2">
-              <button 
+              <button
                 onClick={() => setShowCodechefPrompt(false)}
                 className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/5 text-white/70"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={saveCodechefPrompt}
                 disabled={isCodechefLoading || !codechefPromptUsername.trim()}
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center gap-2 disabled:opacity-50"
               >
-                {isCodechefLoading && <Loader2 size={14} className="animate-spin" />}
+                {isCodechefLoading && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
                 Connect
               </button>
             </div>
           </div>
         </div>
       )}
-      
+
       <div className="w-full lg:w-[320px] shrink-0 space-y-6">
         <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col">
           <div className="flex items-center gap-4 mb-6">
@@ -455,7 +552,9 @@ export default function Profile() {
                 />
               ) : (
                 <div className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold bg-primary/20 text-primary border border-primary/20">
-                  {displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "?"}
+                  {displayName?.[0]?.toUpperCase() ||
+                    user?.email?.[0]?.toUpperCase() ||
+                    "?"}
                 </div>
               )}
               {isEditing && (
@@ -464,7 +563,11 @@ export default function Profile() {
                   disabled={uploading}
                   className="absolute -bottom-2 -right-2 w-7 h-7 rounded-lg bg-foreground text-background flex items-center justify-center border-2 border-background shadow-xl hover:scale-110 active:scale-95 disabled:opacity-50 z-10"
                 >
-                  {uploading ? <Loader2 className="animate-spin w-3 h-3" /> : <Camera className="w-3 h-3" />}
+                  {uploading ? (
+                    <Loader2 className="animate-spin w-3 h-3" />
+                  ) : (
+                    <Camera className="w-3 h-3" />
+                  )}
                 </button>
               )}
               <input
@@ -476,13 +579,17 @@ export default function Profile() {
               />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight">{displayName || "Add your name"}</h1>
-              <p className="text-xs text-primary/80 font-medium">{user?.email?.split('@')[0] || "username"}</p>
+              <h1 className="text-lg font-bold leading-tight">
+                {displayName || "Add your name"}
+              </h1>
+              <p className="text-xs text-primary/80 font-medium">
+                {user?.email?.split("@")[0] || "username"}
+              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-8">
-            <button 
+            <button
               onClick={() => setIsEditing(!isEditing)}
               className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs font-semibold"
             >
@@ -496,7 +603,9 @@ export default function Profile() {
           </div>
 
           <div className="space-y-4 text-xs font-medium text-white/70">
-            <h3 className="text-sm font-bold text-white mb-2">Basic Information</h3>
+            <h3 className="text-sm font-bold text-white mb-2">
+              Basic Information
+            </h3>
             {roleTitle && (
               <div className="flex items-center gap-3">
                 <Briefcase size={16} className="text-white/40" />
@@ -512,24 +621,39 @@ export default function Profile() {
             {website && (
               <div className="flex items-center gap-3">
                 <Globe size={16} className="text-white/40" />
-                <a href={website} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors truncate">
-                  {website.replace(/^https?:\/\//, '')}
+                <a
+                  href={website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-primary transition-colors truncate"
+                >
+                  {website.replace(/^https?:\/\//, "")}
                 </a>
               </div>
             )}
             {githubUrl && (
               <div className="flex items-center gap-3">
                 <Github size={16} className="text-white/40" />
-                <a href={githubUrl} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors truncate">
-                  {githubUrl.split('/').pop() || "GitHub"}
+                <a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-primary transition-colors truncate"
+                >
+                  {githubUrl.split("/").pop() || "GitHub"}
                 </a>
               </div>
             )}
             {linkedinUrl && (
               <div className="flex items-center gap-3">
                 <Linkedin size={16} className="text-white/40" />
-                <a href={linkedinUrl} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors truncate">
-                  {linkedinUrl.split('/in/').pop() || "LinkedIn"}
+                <a
+                  href={linkedinUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-primary transition-colors truncate"
+                >
+                  {linkedinUrl.split("/in/").pop() || "LinkedIn"}
                 </a>
               </div>
             )}
@@ -543,7 +667,9 @@ export default function Profile() {
             <h2 className="text-xl font-bold">Edit Profile</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Display Name</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  Display Name
+                </label>
                 <input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
@@ -552,7 +678,9 @@ export default function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Role / Title</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  Role / Title
+                </label>
                 <input
                   value={roleTitle}
                   onChange={(e) => setRoleTitle(e.target.value)}
@@ -561,7 +689,9 @@ export default function Profile() {
                 />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Education / University</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  Education / University
+                </label>
                 <input
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
@@ -570,9 +700,11 @@ export default function Profile() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
-              <label className="text-xs font-bold text-white/50 uppercase tracking-wider">About Me (Bio)</label>
+              <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                About Me (Bio)
+              </label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
@@ -580,10 +712,12 @@ export default function Profile() {
                 className="w-full px-4 py-3 min-h-[100px] rounded-xl bg-black/40 border border-white/10 text-sm font-medium outline-none focus:border-primary/50 transition-all resize-y"
               />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">LeetCode Username</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  LeetCode Username
+                </label>
                 <input
                   value={leetcodeUsername}
                   onChange={(e) => setLeetcodeUsername(e.target.value)}
@@ -592,7 +726,9 @@ export default function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">CodeChef Handle</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  CodeChef Handle
+                </label>
                 <input
                   value={codechefUsername}
                   onChange={(e) => setCodechefUsername(e.target.value)}
@@ -601,7 +737,9 @@ export default function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">GitHub</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  GitHub
+                </label>
                 <input
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
@@ -610,7 +748,9 @@ export default function Profile() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">LinkedIn</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  LinkedIn
+                </label>
                 <input
                   value={linkedinUrl}
                   onChange={(e) => setLinkedinUrl(e.target.value)}
@@ -619,7 +759,9 @@ export default function Profile() {
                 />
               </div>
               <div className="space-y-2 lg:col-span-2">
-                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">Website</label>
+                <label className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                  Website
+                </label>
                 <input
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
@@ -635,27 +777,37 @@ export default function Profile() {
                 disabled={saving}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                {saving ? (
+                  <Loader2 className="animate-spin w-4 h-4" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
                 Save Changes
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
-                <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start w-full mb-6">
-                  <div>
-                    <h3 className="text-sm font-semibold shrink-0 pt-1">Stats</h3>
-                    <p className="text-[10px] text-white/30 mt-1">Track solved problems across platforms</p>
+            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
+              <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px] xl:col-span-2 2xl:col-span-1">
+                <div className="flex flex-col gap-4 w-full mb-6">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold shrink-0 pt-1">
+                      Stats
+                    </h3>
+                    <p className="text-[10px] leading-4 text-white/30 mt-1 max-w-[180px]">
+                      Track solved problems across platforms
+                    </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1 bg-black/40 rounded-xl p-1 w-full sm:w-[280px]">
+                  <div className="grid grid-cols-3 gap-1 bg-black/40 rounded-xl p-1 w-full min-w-0">
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
-                        "whitespace-nowrap px-2.5 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
-                        dataMode === "website" ? "bg-white/10 text-white shadow-sm" : "text-white/50 hover:text-white/80"
+                        "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
+                        dataMode === "website"
+                          ? "bg-white/10 text-white shadow-sm"
+                          : "text-white/50 hover:text-white/80",
                       )}
                     >
                       Website
@@ -663,8 +815,10 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "whitespace-nowrap px-2.5 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
-                        dataMode === "leetcode" ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm" : "text-white/50 hover:text-white/80"
+                        "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
+                        dataMode === "leetcode"
+                          ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm"
+                          : "text-white/50 hover:text-white/80",
                       )}
                     >
                       LeetCode
@@ -672,8 +826,10 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "whitespace-nowrap px-2.5 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
-                        dataMode === "codechef" ? "bg-[#5B4638]/60 text-white shadow-sm" : "text-white/50 hover:text-white/80"
+                        "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
+                        dataMode === "codechef"
+                          ? "bg-[#5B4638]/60 text-white shadow-sm"
+                          : "text-white/50 hover:text-white/80",
                       )}
                     >
                       CodeChef
@@ -681,59 +837,133 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {(isLeetcodeLoading && dataMode === "leetcode") || (isCodechefLoading && dataMode === "codechef") ? (
+                {(isLeetcodeLoading && dataMode === "leetcode") ||
+                (isCodechefLoading && dataMode === "codechef") ? (
                   <div className="flex-1 flex items-center justify-center">
                     <Loader2 className="animate-spin text-white/20" />
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-5 lg:gap-6">
+                  <div className="flex-1 flex flex-wrap items-center justify-center gap-5 lg:gap-6">
                     <div className="relative w-32 h-32 shrink-0 self-center sm:self-auto">
-                      <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#2A2A2A" strokeWidth="6" />
-                        
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#22c55e" strokeWidth="6" 
-                          strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentEasySolved / currentTotalQuestions))} className="transition-all duration-1000" />
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#eab308" strokeWidth="6" 
-                          strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentMediumSolved / currentTotalQuestions))} className="transition-all duration-1000 -rotate-[36deg] origin-center" />
-                        <circle cx="56" cy="56" r="48" fill="none" stroke="#ef4444" strokeWidth="6" 
-                          strokeDasharray="301.59" strokeDashoffset={301.59 - (301.59 * (currentHardSolved / currentTotalQuestions))} className="transition-all duration-1000 rotate-[108deg] origin-center" />
+                      <svg
+                        viewBox="0 0 112 112"
+                        className="absolute inset-0 w-full h-full transform -rotate-90"
+                      >
+                        <circle
+                          cx="56"
+                          cy="56"
+                          r="48"
+                          fill="none"
+                          stroke="#2A2A2A"
+                          strokeWidth="6"
+                        />
+
+                        <circle
+                          cx="56"
+                          cy="56"
+                          r="48"
+                          fill="none"
+                          stroke="#22c55e"
+                          strokeWidth="6"
+                          strokeDasharray="301.59"
+                          strokeDashoffset={
+                            301.59 -
+                            301.59 * (currentEasySolved / currentTotalQuestions)
+                          }
+                          className="transition-all duration-1000"
+                        />
+                        <circle
+                          cx="56"
+                          cy="56"
+                          r="48"
+                          fill="none"
+                          stroke="#eab308"
+                          strokeWidth="6"
+                          strokeDasharray="301.59"
+                          strokeDashoffset={
+                            301.59 -
+                            301.59 *
+                              (currentMediumSolved / currentTotalQuestions)
+                          }
+                          className="transition-all duration-1000 -rotate-[36deg] origin-center"
+                        />
+                        <circle
+                          cx="56"
+                          cy="56"
+                          r="48"
+                          fill="none"
+                          stroke="#ef4444"
+                          strokeWidth="6"
+                          strokeDasharray="301.59"
+                          strokeDashoffset={
+                            301.59 -
+                            301.59 * (currentHardSolved / currentTotalQuestions)
+                          }
+                          className="transition-all duration-1000 rotate-[108deg] origin-center"
+                        />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-bold text-white">{currentTotalSolved}</span>
-                        <span className="text-[10px] font-medium text-white/40">{dataMode === 'codechef' ? 'Rating' : 'Solved'}</span>
+                        <span className="text-2xl font-bold text-white">
+                          {currentTotalSolved}
+                        </span>
+                        <span className="text-[10px] font-medium text-white/40">
+                          {dataMode === "codechef" ? "Rating" : "Solved"}
+                        </span>
                       </div>
                     </div>
 
                     {dataMode !== "codechef" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1 w-full sm:w-auto">
-                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-0">
-                          <span className="text-[10px] sm:text-xs text-[#22c55e] font-medium">Easy</span>
-                          <span className="text-xs sm:text-sm font-bold text-white">{currentEasySolved}</span>
+                      <div className="flex flex-wrap gap-2 flex-1 w-full min-w-[210px]">
+                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-[92px] flex-1">
+                          <span className="text-[10px] sm:text-xs text-[#22c55e] font-medium truncate">
+                            Easy
+                          </span>
+                          <span className="text-xs sm:text-sm font-bold text-white tabular-nums">
+                            {currentEasySolved}
+                          </span>
                         </div>
-                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-0">
-                          <span className="text-[10px] sm:text-xs text-[#eab308] font-medium">Medium</span>
-                          <span className="text-xs sm:text-sm font-bold text-white">{currentMediumSolved}</span>
+                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-[92px] flex-1">
+                          <span className="text-[10px] sm:text-xs text-[#eab308] font-medium truncate">
+                            Medium
+                          </span>
+                          <span className="text-xs sm:text-sm font-bold text-white tabular-nums">
+                            {currentMediumSolved}
+                          </span>
                         </div>
-                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-0">
-                          <span className="text-[10px] sm:text-xs text-[#ef4444] font-medium">Hard</span>
-                          <span className="text-xs sm:text-sm font-bold text-white">{currentHardSolved}</span>
+                        <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between gap-2 border border-white/5 min-w-[92px] flex-1">
+                          <span className="text-[10px] sm:text-xs text-[#ef4444] font-medium truncate">
+                            Hard
+                          </span>
+                          <span className="text-xs sm:text-sm font-bold text-white tabular-nums">
+                            {currentHardSolved}
+                          </span>
                         </div>
                       </div>
                     )}
 
                     {dataMode === "codechef" && (
-                      <div className="flex w-full justify-between px-4 text-sm">
-                        <div className="flex flex-col items-center">
-                          <span className="font-semibold text-[#eab308]">{codechefData?.stars || "N/A"}</span>
+                      <div className="flex flex-wrap w-full gap-2 text-sm">
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-white/5 px-3 py-3 min-w-[100px] flex-1">
+                          <span className="font-semibold text-[#eab308] tabular-nums">
+                            {codechefData?.stars || "N/A"}
+                          </span>
                           <span className="text-white/40 text-xs">Stars</span>
                         </div>
-                        <div className="flex flex-col items-center">
-                          <span className="font-semibold text-white">{codechefData?.globalRank || "-"}</span>
-                          <span className="text-white/40 text-xs">Global Rank</span>
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-white/5 px-3 py-3 min-w-[100px] flex-1">
+                          <span className="font-semibold text-white tabular-nums">
+                            {codechefData?.globalRank || "-"}
+                          </span>
+                          <span className="text-white/40 text-xs">
+                            Global Rank
+                          </span>
                         </div>
-                        <div className="flex flex-col items-center">
-                          <span className="font-semibold text-white">{codechefData?.countryRank || "-"}</span>
-                          <span className="text-white/40 text-xs">Country Rank</span>
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-white/5 px-3 py-3 min-w-[100px] flex-1">
+                          <span className="font-semibold text-white tabular-nums">
+                            {codechefData?.countryRank || "-"}
+                          </span>
+                          <span className="text-white/40 text-xs">
+                            Country Rank
+                          </span>
                         </div>
                       </div>
                     )}
@@ -743,13 +973,17 @@ export default function Profile() {
 
               {/* Subject Progress */}
               <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[240px]">
-                <h3 className="text-sm font-semibold mb-auto">Subject Progress</h3>
+                <h3 className="text-sm font-semibold mb-auto">
+                  Subject Progress
+                </h3>
                 <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
                   <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
                     <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
                     <div className="w-6 h-1 bg-white/20 rounded-full" />
                   </div>
-                  <p className="text-xs text-white/40">Edit profile to show subject progress</p>
+                  <p className="text-xs text-white/40">
+                    Edit profile to show subject progress
+                  </p>
                 </div>
               </div>
 
@@ -761,20 +995,26 @@ export default function Profile() {
                     <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
                     <div className="w-6 h-1 bg-white/20 rounded-full" />
                   </div>
-                  <p className="text-xs text-white/40">Edit Profile to add skills</p>
+                  <p className="text-xs text-white/40">
+                    Edit Profile to add skills
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Heatmap Area */}
             <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl w-full overflow-hidden">
-              <ActivityHeatmap 
+              <ActivityHeatmap
                 websiteCalendar={websiteData?.submissionCalendar || {}}
                 leetcodeCalendar={leetcodeData?.submissionCalendar || {}}
                 codechefCalendar={codechefCalendar}
                 dataMode={dataMode}
                 onModeChange={handleModeToggle}
-                isLoading={(isLeetcodeLoading && dataMode === "leetcode") || (isCodechefLoading && dataMode === "codechef") || (!websiteData && dataMode === "website")}
+                isLoading={
+                  (isLeetcodeLoading && dataMode === "leetcode") ||
+                  (isCodechefLoading && dataMode === "codechef") ||
+                  (!websiteData && dataMode === "website")
+                }
               />
             </div>
 
@@ -782,7 +1022,9 @@ export default function Profile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coding Profiles */}
               <div className="bg-[#1C1C1C] rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col min-h-[200px]">
-                <h3 className="text-sm font-semibold mb-auto">Coding Profiles</h3>
+                <h3 className="text-sm font-semibold mb-auto">
+                  Coding Profiles
+                </h3>
                 <div className="flex flex-col items-center justify-center flex-1 text-white/20 mt-4">
                   <div className="w-16 h-12 border-2 border-white/20 rounded-lg flex items-center justify-center mb-4 relative">
                     <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-white/20 rounded-t-sm" />
@@ -802,7 +1044,6 @@ export default function Profile() {
                 </div>
               </div>
             </div>
-
           </div>
         )}
       </div>
