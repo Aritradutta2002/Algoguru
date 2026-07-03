@@ -86,54 +86,15 @@ const parseLeetcodeCalendarPayload = (
   return { calendar, activeYears };
 };
 
-// LeetCode's official GraphQL endpoint. The previous third-party wrapper
-// (alfa-leetcode-api.onrender.com) is no longer reliable.
-const LEETCODE_GRAPHQL_ENDPOINT = "https://leetcode.com/graphql";
-
-const USER_PROFILE_QUERY = `
-  query userProfile($username: String!) {
-    matchedUser(username: $username) {
-      username
-      submitStats: submitStatsGlobal {
-        acSubmissionNum { difficulty count submissions }
-        totalSubmissionNum { difficulty count submissions }
-      }
-      userCalendar {
-        activeYears
-        streak
-        totalActiveDays
-        submissionCalendar
-      }
-    }
-  }
-`;
-
-const ALL_QUESTIONS_COUNT_QUERY = `
-  query allQuestionsCount {
-    allQuestionsCount { difficulty count }
-  }
-`;
-
-const fetchLeetcodeGraphQL = async (
-  query: string,
-  variables: Record<string, unknown> = {},
-) => {
-  const res = await fetch(LEETCODE_GRAPHQL_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Referer: "https://leetcode.com",
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) {
-    throw new Error(`LeetCode API request failed (${res.status})`);
-  }
-  const json = await res.json();
-  if (json.errors?.length) {
-    throw new Error(json.errors[0]?.message || "LeetCode API error");
-  }
-  return json.data;
+const mergeLeetcodeCalendars = (
+  calendars: Array<Record<string, number>>,
+): Record<string, number> => {
+  return calendars.reduce<Record<string, number>>((acc, calendar) => {
+    Object.entries(calendar).forEach(([dateKey, count]) => {
+      acc[dateKey] = (acc[dateKey] || 0) + count;
+    });
+    return acc;
+  }, {});
 };
 
 interface CodechefData {
@@ -289,16 +250,21 @@ export default function Profile() {
   const fetchLeetcodeStats = async (username: string) => {
     setIsLeetcodeLoading(true);
     try {
-      // Use LeetCode's official GraphQL endpoint directly. The previous
-      // third-party wrapper (alfa-leetcode-api.onrender.com) is no longer
-      // reliable, but the official /graphql endpoint is stable and CORS-enabled.
-      const [userPayload, questionsPayload] = await Promise.all([
-        fetchLeetcodeGraphQL(USER_PROFILE_QUERY, { username }),
-        fetchLeetcodeGraphQL(ALL_QUESTIONS_COUNT_QUERY),
+      // The /solved endpoint returns the actual solved counts; the base profile
+      // endpoint does NOT. /calendar returns the submission heatmap.
+      const [solvedRes, calendarRes] = await Promise.all([
+        fetch(`https://alfa-leetcode-api.onrender.com/${username}/solved`),
+        fetch(`https://alfa-leetcode-api.onrender.com/${username}/calendar`),
       ]);
 
-      const matchedUser = userPayload?.matchedUser;
-      if (!matchedUser) {
+      if (!solvedRes.ok) {
+        throw new Error("Failed to fetch LeetCode data");
+      }
+
+      const solvedData = await solvedRes.json();
+      const calendarData = calendarRes.ok ? await calendarRes.json() : {};
+
+      if (solvedData.errors || solvedData.solvedProblem === undefined) {
         toast({
           title: "LeetCode fetch failed",
           description: "Invalid username or no data available",
@@ -307,27 +273,9 @@ export default function Profile() {
         return;
       }
 
-      const acStats: Array<{ difficulty: string; count: number }> =
-        matchedUser.submitStats?.acSubmissionNum ?? [];
-      const findAc = (difficulty: string) =>
-        acStats.find((s) => s.difficulty === difficulty)?.count ?? 0;
-
-      const solvedProblem = findAc("All");
-      const easySolved = findAc("Easy");
-      const mediumSolved = findAc("Medium");
-      const hardSolved = findAc("Hard");
-
-      if (!solvedProblem) {
-        toast({
-          title: "LeetCode fetch failed",
-          description: "Invalid username or no data available",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      // Total questions available on LeetCode (used as the ring denominator).
       const allQuestionsCount: Array<{ difficulty: string; count: number }> =
-        questionsPayload?.allQuestionsCount ?? [];
+        solvedData.totalSubmissionNum ?? [];
       const allCount = allQuestionsCount.find((q) => q.difficulty === "All")
         ?.count;
       const totalEasy =
@@ -337,12 +285,77 @@ export default function Profile() {
       const totalHard =
         allQuestionsCount.find((q) => q.difficulty === "Hard")?.count ?? 0;
 
-      // userCalendar.submissionCalendar already contains all years of activity,
-      // and activeYears is provided directly by LeetCode — no need to fetch
-      // year-by-year like the previous wrapper required.
-      const baseCalendar = parseLeetcodeCalendarPayload(userPayload);
-      const parsedCalendar = baseCalendar.calendar;
-      const activeYears = baseCalendar.activeYears;
+      const baseCalendar = parseLeetcodeCalendarPayload(calendarData);
+      const currentYear = new Date().getFullYear();
+      const yearsToFetch = Array.from(
+        new Set(
+          (baseCalendar.activeYears.length > 0
+            ? baseCalendar.activeYears
+            : [currentYear, currentYear - 1, currentYear - 2]
+          ).filter((year) => year <= currentYear),
+        ),
+      );
+
+      const yearlyCalendarResults = await Promise.allSettled(
+        yearsToFetch.map(async (year) => {
+          const res = await fetch(
+            `https://alfa-leetcode-api.onrender.com/${username}/calendar?year=${year}`,
+          );
+          if (!res.ok) return {};
+          const yearData = await res.json();
+          return parseLeetcodeCalendarPayload(yearData).calendar;
+        }),
+      );
+
+      const yearlyCalendars = yearlyCalendarResults
+        .filter(
+          (result): result is PromiseFulfilledResult<Record<string, number>> =>
+            result.status === "fulfilled",
+        )
+        .map((result) => result.value);
+
+      let parsedCalendar = mergeLeetcodeCalendars(yearlyCalendars);
+      if (Object.keys(parsedCalendar).length === 0) {
+        parsedCalendar = baseCalendar.calendar;
+      }
+
+      let activeYears =
+        baseCalendar.activeYears.length > 0
+          ? baseCalendar.activeYears
+          : Array.from(
+              new Set(
+                Object.keys(parsedCalendar)
+                  .map((dateKey) => {
+                    const timestamp = Number(dateKey);
+                    if (Number.isFinite(timestamp)) {
+                      return new Date(timestamp * 1000).getUTCFullYear();
+                    }
+                    const parsedDate = new Date(dateKey);
+                    return Number.isNaN(parsedDate.getTime())
+                      ? null
+                      : parsedDate.getFullYear();
+                  })
+                  .filter((year): year is number => year !== null),
+              ),
+            );
+
+      if (calendarRes.ok && baseCalendar.activeYears.length === 0) {
+        const legacyCalendarYears = Object.keys(baseCalendar.calendar)
+          .map((dateKey) => {
+            const timestamp = Number(dateKey);
+            if (Number.isFinite(timestamp)) {
+              return new Date(timestamp * 1000).getUTCFullYear();
+            }
+            const parsedDate = new Date(dateKey);
+            return Number.isNaN(parsedDate.getTime())
+              ? null
+              : parsedDate.getFullYear();
+          })
+          .filter((year): year is number => year !== null);
+        if (legacyCalendarYears.length > 0) {
+          activeYears.push(...legacyCalendarYears);
+        }
+      }
 
       if (Object.keys(parsedCalendar).length === 0) {
         toast({
@@ -350,16 +363,25 @@ export default function Profile() {
           description:
             "Solved counts imported, but LeetCode did not return calendar activity.",
         });
+      } else if (
+        baseCalendar.activeYears.length > 0 &&
+        yearlyCalendars.length === 0
+      ) {
+        toast({
+          title: "LeetCode calendar partially imported",
+          description:
+            "Solved counts imported, but older yearly activity could not be fetched right now.",
+        });
       }
 
       setLeetcodeData({
-        totalSolved: solvedProblem,
+        totalSolved: solvedData.solvedProblem ?? 0,
         totalQuestions: allCount ?? 3000,
-        easySolved,
+        easySolved: solvedData.easySolved ?? 0,
         totalEasy,
-        mediumSolved,
+        mediumSolved: solvedData.mediumSolved ?? 0,
         totalMedium,
-        hardSolved,
+        hardSolved: solvedData.hardSolved ?? 0,
         totalHard,
         submissionCalendar: parsedCalendar,
         activeYears: Array.from(new Set(activeYears)).sort((a, b) => b - a),
