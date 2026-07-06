@@ -39,6 +39,7 @@ import { advancedMathContent } from "@/data/advancedMathContent";
 import { advancedTopicsContent } from "@/data/advancedTopicsContent";
 import { javaContentMap } from "@/data/javaContent";
 import { practiceContentMap } from "@/data/practiceContent";
+import { systemDesignTopics } from "@/data/systemDesignInterviewData";
 import type { ContentSection } from "@/data/recursionContent";
 
 const dsContentMap: Record<string, ContentSection[]> = {
@@ -168,6 +169,22 @@ export function AppSidebar() {
           parent: topic.title,
           subtopicCount: 0,
           difficulty: section.difficulty,
+        });
+      });
+    });
+
+    // Index System Design interview questions
+    systemDesignTopics.forEach((topic) => {
+      topic.questions.forEach((question) => {
+        items.push({
+          id: question.id,
+          title: question.question,
+          icon: topic.icon,
+          type: "content",
+          path: `/interview/java/system-design#${question.id}`,
+          parent: `System Design — ${topic.title}`,
+          subtopicCount: 0,
+          difficulty: undefined,
         });
       });
     });

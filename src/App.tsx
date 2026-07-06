@@ -61,6 +61,7 @@ import { stackQueueContent } from "@/data/stackQueueContent";
 import { arraysContent } from "@/data/arraysContent";
 import { javaContentMap } from "@/data/javaContent";
 import { practiceContentMap } from "@/data/practiceContent";
+import { systemDesignTopics } from "@/data/systemDesignInterviewData";
 
 const allTopics = [...topics, ...javaTopics, ...practiceTopics];
 
@@ -116,6 +117,21 @@ const allSearchItems = (() => {
         }
       });
     }
+  });
+
+  // Add System Design interview questions to global search
+  systemDesignTopics.forEach((topic) => {
+    topic.questions.forEach((question) => {
+      items.push({
+        id: question.id,
+        title: question.question,
+        icon: topic.icon,
+        type: "subtopic",
+        path: `/interview/java/system-design#${question.id}`,
+        parent: `System Design — ${topic.title}`,
+        subtopicCount: 0,
+      });
+    });
   });
 
   return items;
