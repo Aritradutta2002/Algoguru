@@ -993,8 +993,8 @@ export default function Profile() {
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
               <div className="bg-[#1C1C1C] text-white rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1 overflow-hidden">
-                <div className="flex flex-row items-center gap-6 w-full mb-8 relative z-10">
-                  <h3 className="text-[16px] font-bold tracking-wide text-white/90 shrink-0">
+                <div className="flex flex-row items-center justify-between w-full mb-8 relative z-10">
+                  <h3 className="text-[15px] font-semibold tracking-wide text-white/90 shrink-0">
                     DSA Progress
                   </h3>
 
@@ -1002,18 +1002,18 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
-                        "whitespace-nowrap px-4 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
+                        "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "website"
                           ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
                           : "text-white/40 hover:text-white/80 border border-transparent",
                       )}
                     >
-                      Algoguru
+                      Website
                     </button>
                     <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "whitespace-nowrap px-4 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
+                        "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "leetcode"
                           ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
                           : "text-white/40 hover:text-white/80 border border-transparent",
@@ -1024,7 +1024,7 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "whitespace-nowrap px-4 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
+                        "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "codechef"
                           ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
                           : "text-white/40 hover:text-white/80 border border-transparent",
@@ -1043,7 +1043,7 @@ export default function Profile() {
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center gap-10 mt-2 relative z-10">
                     {/* Donut Chart */}
-                    <div className="relative w-48 h-48 sm:w-56 sm:h-56 shrink-0 flex items-center justify-center">
+                    <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
                       <svg
                         viewBox="0 0 128 128"
                         className="absolute inset-0 w-full h-full transform -rotate-90 overflow-visible"
@@ -1066,7 +1066,7 @@ export default function Profile() {
                                   fill="none"
                                   stroke={segment.trackStroke}
                                   strokeLinecap="round"
-                                  strokeWidth="10"
+                                  strokeWidth="6"
                                   strokeDasharray={segment.trackDasharray}
                                   strokeDashoffset={segment.trackDashoffset}
                                 />
@@ -1078,7 +1078,7 @@ export default function Profile() {
                                     fill="none"
                                     stroke={segment.stroke}
                                     strokeLinecap="round"
-                                    strokeWidth="10"
+                                    strokeWidth="6"
                                     strokeDasharray={segment.progressDasharray}
                                     strokeDashoffset={segment.progressDashoffset}
                                     filter={isHighlighted ? "url(#glow)" : "none"}
@@ -1090,19 +1090,19 @@ export default function Profile() {
                           })}
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-[32px] sm:text-[40px] font-bold text-white tracking-tight leading-none mb-1.5">
+                        <span className="text-[28px] font-semibold text-white tracking-tight leading-none mb-1">
                           {currentTotalSolved}
                         </span>
                         {dataMode !== "codechef" && (
                            <>
-                             <div className="w-10 h-[1.5px] bg-white/20 my-1" />
-                             <span className="text-[14px] sm:text-[15px] font-semibold text-white/50 tracking-wider">
+                             <div className="w-8 h-[1px] bg-white/20 my-1" />
+                             <span className="text-[12px] font-medium text-white/50 tracking-wider">
                                {currentTotalQuestions}
                              </span>
                            </>
                         )}
                         {dataMode === "codechef" && (
-                          <span className="text-[12px] font-medium text-white/50 uppercase tracking-widest mt-1">
+                          <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest mt-1">
                             Rating
                           </span>
                         )}
