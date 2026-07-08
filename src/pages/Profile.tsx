@@ -1008,7 +1008,7 @@ export default function Profile() {
                           : "text-white/40 hover:text-white/80 border border-transparent",
                       )}
                     >
-                      Website
+                      Algoguru
                     </button>
                     <button
                       onClick={() => handleModeToggle("leetcode")}
