@@ -1042,8 +1042,8 @@ export default function Profile() {
                     <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
                       <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-background/50 to-muted/20 shadow-inner" />
                       <svg
-                        viewBox="0 0 112 112"
-                        className="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-[0_0_8px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.05)]"
+                        viewBox="0 0 128 128"
+                        className="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-[0_0_8px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.05)] overflow-visible"
                       >
                         <defs>
                           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -1052,8 +1052,8 @@ export default function Profile() {
                           </filter>
                         </defs>
                         <circle
-                          cx="56"
-                          cy="56"
+                          cx="64"
+                          cy="64"
                           r="48"
                           fill="none"
                           className="stroke-muted/30 dark:stroke-white/5"
@@ -1067,8 +1067,8 @@ export default function Profile() {
                             return (
                               <circle
                                 key={segment.key}
-                                cx="56"
-                                cy="56"
+                                cx="64"
+                                cy="64"
                                 r="48"
                                 fill="none"
                                 stroke={segment.stroke}
