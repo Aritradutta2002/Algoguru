@@ -993,8 +993,8 @@ export default function Profile() {
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
               <div className="bg-[#1C1C1C] text-white rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1 overflow-hidden">
-                <div className="flex flex-row items-center justify-between w-full mb-8 relative z-10">
-                  <h3 className="text-[15px] font-semibold tracking-wide text-white/90 shrink-0">
+                <div className="flex flex-col items-start gap-4 w-full mb-8 relative z-10">
+                  <h3 className="text-[16px] font-bold tracking-wide text-white/90 shrink-0">
                     DSA Progress
                   </h3>
 
