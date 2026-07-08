@@ -73,7 +73,7 @@ const _QuestionCard = ({
       )}
       
       {/* Card header */}
-      <div className="p-5 md:p-6">
+      <div className="p-5 md:p-7">
         <div className="flex items-start gap-4">
           {/* Done toggle */}
           <button
@@ -108,7 +108,7 @@ const _QuestionCard = ({
 
             {/* Question text */}
             <h3
-              className={`text-[17px] font-[650] leading-[1.65] mb-2.5 ${
+              className={`text-[20px] font-[700] leading-[1.55] mb-3 ${
                 isDone ? "opacity-40 line-through text-foreground" : "text-foreground"
               }`}
             >
@@ -118,8 +118,8 @@ const _QuestionCard = ({
             {/* Explanation */}
             {question.explanation && (
               <p
-                className={`text-[14px] leading-[1.75] mb-4 ${
-                  isDone ? "opacity-40" : "text-muted-foreground/80"
+                className={`text-[16px] leading-[1.8] mb-5 ${
+                  isDone ? "opacity-40" : "text-muted-foreground"
                 }`}
               >
                 {question.explanation}
@@ -127,17 +127,17 @@ const _QuestionCard = ({
             )}
 
             {/* Action buttons */}
-            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border/20">
+            <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-border/20">
               <button
                 onClick={() => onToggleView(question.id, "theory")}
                 aria-expanded={activeView === "theory"}
-                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-medium transition-all ${
+                className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
                   activeView === "theory"
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                     : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <FileText size={14} />
+                <FileText size={15} />
                 Theory
               </button>
 
@@ -145,13 +145,13 @@ const _QuestionCard = ({
                 <button
                   onClick={() => onToggleView(question.id, "code")}
                   aria-expanded={activeView === "code"}
-                  className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-medium transition-all ${
+                  className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
                     activeView === "code"
                       ? "bg-accent text-accent-foreground shadow-md shadow-accent/20"
                       : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <Code2 size={14} />
+                  <Code2 size={15} />
                   Example
                 </button>
               )}
@@ -159,13 +159,13 @@ const _QuestionCard = ({
               <button
                 onClick={() => onOpenNote(question.id)}
                 aria-label={hasNote ? "Edit note for this question" : "Add note for this question"}
-                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-medium transition-all ${
+                className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
                   hasNote
                     ? "bg-warning/15 text-warning hover:bg-warning/25"
                     : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <StickyNote size={14} />
+                <StickyNote size={15} />
                 {hasNote ? "Edit Note" : "Add Note"}
               </button>
             </div>
@@ -184,9 +184,9 @@ const _QuestionCard = ({
             className="overflow-hidden"
           >
             <div className="border-t border-border/20" />
-            <div className="p-5 md:p-6 space-y-4">
+            <div className="p-5 md:p-7 space-y-4">
               {activeView === "theory" && (
-                <div className="bg-muted/30 rounded-xl p-5 md:p-6 border border-border/20 shadow-inner">
+                <div className="bg-muted/30 rounded-xl p-6 md:p-8 border border-border/20 shadow-inner">
                   {renderTheoryContent(question.answer)}
                 </div>
               )}
@@ -482,7 +482,7 @@ export default function InterviewCoreJavaQuestionsPage() {
   // Render
   // -------------------------------------------------------------------------
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
       
       {/* ── Page Header ─────────────────────────────────────────────── */}
       <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
@@ -604,10 +604,10 @@ export default function InterviewCoreJavaQuestionsPage() {
       </div>
 
       {/* ── Main Layout (Sidebar + Content) ──────────────────────────── */}
-      <div className="flex-1 overflow-hidden flex relative">
+      <div className="flex-1 flex relative" style={{ minHeight: 0 }}>
         
         {/* Permanent Desktop Sidebar */}
-        <aside className="hidden lg:flex w-[280px] xl:w-[320px] shrink-0 border-r border-border/40 bg-card/30 flex-col overflow-y-auto">
+        <aside className="hidden lg:flex w-[260px] xl:w-[300px] shrink-0 border-r border-border/40 bg-card/30 flex-col overflow-y-auto sticky top-0 self-start" style={{ maxHeight: 'calc(100vh - 56px)' }}>
           <div className="p-5 pb-3">
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-4 flex items-center justify-between">
               <span>Topics</span>
@@ -672,9 +672,9 @@ export default function InterviewCoreJavaQuestionsPage() {
 
         {/* Scrollable Content Area */}
         <main className="flex-1 overflow-y-auto scroll-smooth">
-          <div className="max-w-[800px] mx-auto p-4 md:p-6 lg:p-10 pb-32">
+          <div className="w-full px-4 md:px-8 lg:px-10 xl:px-14 py-6 pb-24">
             
-            <div className="space-y-12">
+            <div className="space-y-10">
               {/* Sign-in nudge */}
               {!user && !authLoading && (
                 <div className="p-5 rounded-2xl border border-warning/30 bg-warning/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -724,15 +724,15 @@ export default function InterviewCoreJavaQuestionsPage() {
                 return (
                   <div key={topic.id} id={`topic-${topic.id}`} className="space-y-5 scroll-mt-24">
                     {/* Topic header */}
-                    <div className="flex items-center gap-4 pb-4 border-b border-border/40">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl shrink-0">
+                    <div className="flex items-center gap-4 pb-5 border-b-2 border-border/30">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl shrink-0">
                         {topic.icon}
                       </div>
-                      <div>
-                        <h2 className="text-[20px] font-bold tracking-tight text-foreground leading-tight">
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-[22px] font-bold tracking-tight text-foreground leading-tight">
                           {topic.title}
                         </h2>
-                        <p className="text-[13px] text-muted-foreground/70 mt-0.5">
+                        <p className="text-[14px] text-muted-foreground mt-0.5">
                           {topic.questions.length} questions
                         </p>
                       </div>
@@ -1082,7 +1082,7 @@ function renderTheoryContent(answer: string): ReactNode {
   if (!answer) return null;
   const sections = answer.split("\n\n").filter(Boolean);
   return (
-    <div className="space-y-5 font-sans">
+    <div className="space-y-6 font-sans">
       {sections.map((section, idx) => {
         const lines = section.split("\n").filter(Boolean);
         const isBullet = lines.every((l) => l.trim().startsWith("- "));
@@ -1095,9 +1095,9 @@ function renderTheoryContent(answer: string): ReactNode {
 
         if (isHeading) {
           return (
-            <div key={idx} className="flex items-center gap-2.5 pt-2">
-              <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
-              <h4 className="text-[15.5px] font-bold text-foreground tracking-tight">
+            <div key={idx} className="flex items-center gap-3 pt-3">
+              <span className="w-1 h-6 rounded-full bg-primary shrink-0" />
+              <h4 className="text-[18px] font-bold text-foreground tracking-tight">
                 {lines[0].replace(/^#{1,3}\s*/, "").replace(/:$/, "")}
               </h4>
             </div>
@@ -1105,10 +1105,10 @@ function renderTheoryContent(answer: string): ReactNode {
         }
         if (isBullet) {
           return (
-            <ul key={idx} className="space-y-2.5">
+            <ul key={idx} className="space-y-3">
               {lines.map((l, i) => (
-                <li key={i} className="flex items-start gap-3 text-[14.5px] leading-[1.8] text-foreground/85">
-                  <span className="mt-[9px] w-1.5 h-1.5 rounded-full bg-primary/70 shrink-0" />
+                <li key={i} className="flex items-start gap-3.5 text-[16px] leading-[1.85] text-foreground/90">
+                  <span className="mt-[10px] w-2 h-2 rounded-full bg-primary/70 shrink-0" />
                   <span>{parseInline(l.replace(/^- /, ""))}</span>
                 </li>
               ))}
@@ -1117,22 +1117,22 @@ function renderTheoryContent(answer: string): ReactNode {
         }
         if (isNumbered) {
           return (
-            <ol key={idx} className="space-y-3">
+            <ol key={idx} className="space-y-3.5">
               {lines.map((l, i) => (
-                <li key={i} className="flex items-start gap-3.5 text-[14.5px] leading-[1.8]">
-                  <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold flex items-center justify-center mt-[3px]">
+                <li key={i} className="flex items-start gap-4 text-[16px] leading-[1.85]">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-[12px] font-bold flex items-center justify-center mt-[2px]">
                     {i + 1}
                   </span>
-                  <span className="text-foreground/85">{parseInline(l.replace(/^\d+\.\s*/, ""))}</span>
+                  <span className="text-foreground/90">{parseInline(l.replace(/^\d+\.\s*/, ""))}</span>
                 </li>
               ))}
             </ol>
           );
         }
         return (
-          <div key={idx} className="space-y-2.5">
+          <div key={idx} className="space-y-3">
             {lines.map((l, i) => (
-              <p key={i} className="text-[14.5px] leading-[1.85] text-foreground/85 max-w-[80ch]">
+              <p key={i} className="text-[16px] leading-[1.9] text-foreground/90">
                 {parseInline(l)}
               </p>
             ))}

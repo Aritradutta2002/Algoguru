@@ -47,7 +47,7 @@ interface QuestionCardProps {
 function renderTheoryContent(text: string) {
   const lines = text.split("\n").filter((l) => l.trim() !== "");
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {lines.map((line, i) => {
         const parts: React.ReactNode[] = [];
         const regex = /(\*\*(.+?)\*\*)/g;
@@ -62,9 +62,9 @@ function renderTheoryContent(text: string) {
         if (last < line.length) parts.push(line.slice(last));
         const content = parts.length ? parts : line;
         if (line.startsWith("**") && line.endsWith("**") && line.indexOf("**", 2) === line.length - 2) {
-          return <p key={i} className="text-sm font-bold text-primary mt-4 mb-1">{line.replace(/\*\*/g, "")}</p>;
+          return <p key={i} className="text-[17px] font-bold text-primary mt-5 mb-2">{line.replace(/\*\*/g, "")}</p>;
         }
-        return <p key={i} className="text-sm leading-relaxed text-foreground/85">{content}</p>;
+        return <p key={i} className="text-[16px] leading-[1.9] text-foreground/90">{content}</p>;
       })}
     </div>
   );
@@ -83,7 +83,7 @@ const _QuestionCard = ({
       {activeView && !isDone && (
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl" />
       )}
-      <div className="p-5 md:p-6">
+      <div className="p-5 md:p-7">
         <div className="flex items-start gap-4">
           <button
             onClick={() => onToggleDone(question.id)}
@@ -104,58 +104,58 @@ const _QuestionCard = ({
               {hasNote && <span className="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full">Note Added</span>}
               {question.diagram && <span className="text-[10px] font-bold text-info bg-info/10 px-2 py-0.5 rounded-full">Visual</span>}
             </div>
-            <h3 className={`text-[17px] font-[650] leading-[1.65] mb-2.5 ${isDone ? "opacity-40 line-through text-foreground" : "text-foreground"}`}>
+            <h3 className={`text-[20px] font-[700] leading-[1.55] mb-3 ${isDone ? "opacity-40 line-through text-foreground" : "text-foreground"}`}>
               {question.question}
             </h3>
             {question.explanation && (
-              <p className={`text-[14px] leading-[1.75] mb-4 ${isDone ? "opacity-40" : "text-muted-foreground/80"}`}>
+              <p className={`text-[16px] leading-[1.8] mb-5 ${isDone ? "opacity-40" : "text-muted-foreground"}`}>
                 {question.explanation}
               </p>
             )}
-            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border/20">
+            <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-border/20">
               <button
                 onClick={() => onToggleView(question.id, "theory")}
                 aria-expanded={activeView === "theory"}
-                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-medium transition-all ${
+                className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
                   activeView === "theory" ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                     : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <FileText size={14} /> Theory
+                <FileText size={15} /> Theory
               </button>
               {question.diagram && (
                 <button
                   onClick={() => onToggleView(question.id, "visual")}
                   aria-expanded={activeView === "visual"}
-                  className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-medium transition-all ${
+                  className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
                     activeView === "visual" ? "bg-info text-white shadow-md shadow-info/20"
                       : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <BarChart2 size={14} /> Visual
+                  <BarChart2 size={15} /> Visual
                 </button>
               )}
               {question.code && (
                 <button
                   onClick={() => onToggleView(question.id, "code")}
                   aria-expanded={activeView === "code"}
-                  className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-medium transition-all ${
+                  className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
                     activeView === "code" ? "bg-accent text-accent-foreground shadow-md shadow-accent/20"
                       : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <Code2 size={14} /> Code
+                  <Code2 size={15} /> Code
                 </button>
               )}
               <button
                 onClick={() => onOpenNote(question.id)}
                 aria-label={hasNote ? "Edit note" : "Add note"}
-                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-medium transition-all ${
+                className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
                   hasNote ? "bg-warning/15 text-warning hover:bg-warning/25"
                     : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <StickyNote size={14} /> {hasNote ? "Edit Note" : "Add Note"}
+                <StickyNote size={15} /> {hasNote ? "Edit Note" : "Add Note"}
               </button>
             </div>
           </div>
@@ -171,9 +171,9 @@ const _QuestionCard = ({
             className="overflow-hidden"
           >
             <div className="border-t border-border/20" />
-            <div className="p-5 md:p-6 space-y-4">
+            <div className="p-5 md:p-7 space-y-4">
               {activeView === "theory" && (
-                <div className="bg-muted/30 rounded-xl p-5 md:p-6 border border-border/20 shadow-inner">
+                <div className="bg-muted/30 rounded-xl p-6 md:p-8 border border-border/20 shadow-inner">
                   {renderTheoryContent(question.answer)}
                 </div>
               )}
@@ -416,7 +416,7 @@ export default function InterviewSystemDesignPage() {
 
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
 
       {/* ── Header ── */}
       <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
@@ -536,10 +536,10 @@ export default function InterviewSystemDesignPage() {
       </div>
 
       {/* ── Main Layout ── */}
-      <div className="flex-1 overflow-hidden flex relative">
+      <div className="flex-1 flex relative" style={{ minHeight: 0 }}>
 
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex w-[280px] xl:w-[320px] shrink-0 border-r border-border/40 bg-card/30 flex-col overflow-y-auto">
+        <aside className="hidden lg:flex w-[260px] xl:w-[300px] shrink-0 border-r border-border/40 bg-card/30 flex-col overflow-y-auto sticky top-0 self-start" style={{ maxHeight: 'calc(100vh - 56px)' }}>
           <div className="p-5 pb-3">
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-4 flex items-center justify-between">
               <span>Topics</span>
@@ -642,8 +642,8 @@ export default function InterviewSystemDesignPage() {
 
         {/* ── Scrollable content ── */}
         <main className="flex-1 overflow-y-auto scroll-smooth">
-          <div className="max-w-[800px] mx-auto p-4 md:p-6 lg:p-10 pb-32">
-            <div className="space-y-12">
+          <div className="w-full px-4 md:px-8 lg:px-10 xl:px-14 py-6 pb-24">
+            <div className="space-y-10">
 
               {/* Sign-in nudge */}
               {!user && !authLoading && (
@@ -686,18 +686,18 @@ export default function InterviewSystemDesignPage() {
                 return (
                   <div key={topic.id} id={`topic-${topic.id}`} className="space-y-5 scroll-mt-24">
                     {/* Topic header */}
-                    <div className="flex items-center gap-4 pb-4 border-b border-border/30">
-                      <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl shrink-0">
+                    <div className="flex items-center gap-4 pb-5 border-b-2 border-border/30">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl shrink-0">
                         {topic.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-black tracking-tight">{topic.title}</h2>
-                        <p className="text-[12px] text-muted-foreground/60 font-medium">
+                        <h2 className="text-[22px] font-black tracking-tight">{topic.title}</h2>
+                        <p className="text-[14px] text-muted-foreground font-medium">
                           {topicDone}/{topic.questions.length} completed
                         </p>
                       </div>
                       <div className="hidden sm:flex items-center gap-2">
-                        <div className="w-24 h-[3px] rounded-full bg-muted/40 overflow-hidden">
+                        <div className="w-32 h-[4px] rounded-full bg-muted/40 overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
