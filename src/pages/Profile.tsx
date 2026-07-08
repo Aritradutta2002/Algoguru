@@ -601,6 +601,7 @@ export default function Profile() {
       value: number;
       stroke: string;
       textClass: string;
+      bgClass: string;
       hoverClass: string;
     }> = [
       {
@@ -609,8 +610,9 @@ export default function Profile() {
         value: currentEasySolved,
         stroke: "#22c55e",
         textClass: "text-[#16a34a] dark:text-[#22c55e]",
+        bgClass: "bg-[#22c55e]",
         hoverClass:
-          "hover:border-[#22c55e]/50 hover:bg-[#22c55e]/10 hover:shadow-[#22c55e]/10",
+          "border-[#22c55e]/30 hover:border-[#22c55e]/80 hover:shadow-[0_0_20px_rgba(34,197,94,0.15)]",
       },
       {
         key: "medium",
@@ -618,8 +620,9 @@ export default function Profile() {
         value: currentMediumSolved,
         stroke: "#eab308",
         textClass: "text-[#ca8a04] dark:text-[#eab308]",
+        bgClass: "bg-[#eab308]",
         hoverClass:
-          "hover:border-[#eab308]/50 hover:bg-[#eab308]/10 hover:shadow-[#eab308]/10",
+          "border-[#eab308]/30 hover:border-[#eab308]/80 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)]",
       },
       {
         key: "hard",
@@ -627,8 +630,9 @@ export default function Profile() {
         value: currentHardSolved,
         stroke: "#ef4444",
         textClass: "text-[#dc2626] dark:text-[#ef4444]",
+        bgClass: "bg-[#ef4444]",
         hoverClass:
-          "hover:border-[#ef4444]/50 hover:bg-[#ef4444]/10 hover:shadow-[#ef4444]/10",
+          "border-[#ef4444]/30 hover:border-[#ef4444]/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]",
       },
     ];
 
@@ -990,14 +994,14 @@ export default function Profile() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1 bg-muted/60 dark:bg-black/40 rounded-xl p-1 w-full min-w-0">
+                  <div className="flex p-1 bg-muted/40 dark:bg-black/30 rounded-xl w-full min-w-0 border border-border/40 shadow-inner">
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
-                        "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
+                        "flex-1 min-w-0 whitespace-nowrap px-2 py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all text-center",
                         dataMode === "website"
-                          ? "bg-card text-foreground shadow-sm dark:bg-white/10 dark:text-white"
-                          : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
+                          ? "bg-background text-foreground shadow-sm dark:bg-white/10 dark:text-white"
+                          : "text-muted-foreground hover:text-foreground dark:text-white/40 dark:hover:text-white/80",
                       )}
                     >
                       Website
@@ -1005,10 +1009,10 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
+                        "flex-1 min-w-0 whitespace-nowrap px-2 py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all text-center",
                         dataMode === "leetcode"
-                          ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm"
-                          : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
+                          ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm dark:bg-[#FFA116]/15 dark:text-[#FFA116]"
+                          : "text-muted-foreground hover:text-foreground dark:text-white/40 dark:hover:text-white/80",
                       )}
                     >
                       LeetCode
@@ -1016,10 +1020,10 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "min-w-0 whitespace-nowrap px-2 py-2 text-[10px] md:text-[11px] font-medium rounded-lg transition-all text-center",
+                        "flex-1 min-w-0 whitespace-nowrap px-2 py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all text-center",
                         dataMode === "codechef"
-                          ? "bg-[#5B4638]/20 text-foreground shadow-sm dark:bg-[#5B4638]/60 dark:text-white"
-                          : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
+                          ? "bg-[#5B4638]/20 text-[#8B5A2B] shadow-sm dark:bg-[#5B4638]/60 dark:text-white"
+                          : "text-muted-foreground hover:text-foreground dark:text-white/40 dark:hover:text-white/80",
                       )}
                     >
                       CodeChef
@@ -1030,24 +1034,31 @@ export default function Profile() {
                 {(isLeetcodeLoading && dataMode === "leetcode") ||
                 (isCodechefLoading && dataMode === "codechef") ? (
                   <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="animate-spin text-muted-foreground/50" />
+                    <Loader2 className="animate-spin text-muted-foreground/50 w-8 h-8" />
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-wrap items-center justify-center gap-5 lg:gap-6">
-                    <div className="relative w-32 h-32 shrink-0 self-center sm:self-auto">
+                  <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-6 mt-4">
+                    {/* Donut Chart */}
+                    <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-background/50 to-muted/20 shadow-inner" />
                       <svg
                         viewBox="0 0 112 112"
-                        className="absolute inset-0 w-full h-full transform -rotate-90"
+                        className="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-[0_0_8px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.05)]"
                       >
+                        <defs>
+                          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="2.5" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                          </filter>
+                        </defs>
                         <circle
                           cx="56"
                           cy="56"
                           r="48"
                           fill="none"
-                          className="stroke-muted dark:stroke-[#2A2A2A]"
-                          strokeWidth="7"
+                          className="stroke-muted/30 dark:stroke-white/5"
+                          strokeWidth="8"
                         />
-
                         {dataMode !== "codechef" &&
                           statsSegments.map((segment) => {
                             const isHighlighted =
@@ -1063,31 +1074,33 @@ export default function Profile() {
                                 stroke={segment.stroke}
                                 strokeLinecap="round"
                                 strokeWidth={
-                                  hoveredDifficulty === segment.key ? 8 : 6
+                                  hoveredDifficulty === segment.key ? 10 : 8
                                 }
                                 strokeDasharray={segment.dasharray}
                                 strokeDashoffset={segment.dashoffset}
+                                filter={isHighlighted ? "url(#glow)" : "none"}
                                 className={cn(
-                                  "transition-all duration-300",
-                                  isHighlighted ? "opacity-100" : "opacity-25",
+                                  "transition-all duration-500 ease-out",
+                                  isHighlighted ? "opacity-100" : "opacity-20",
                                 )}
                               />
                             );
                           })}
                       </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-bold text-foreground dark:text-white">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground dark:text-white drop-shadow-sm">
                           {currentTotalSolved}
                         </span>
-                        <span className="text-[10px] font-medium text-muted-foreground">
+                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-0.5">
                           {dataMode === "codechef" ? "Rating" : "Solved"}
                         </span>
                       </div>
                     </div>
 
+                    {/* Stats Cards */}
                     {dataMode !== "codechef" && (
                       <div
-                        className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1 w-full min-w-[210px]"
+                        className="flex flex-row gap-2 sm:gap-3 flex-1 w-full justify-between"
                         onMouseLeave={() => setHoveredDifficulty(null)}
                       >
                         {statsSegments.map((segment) => {
@@ -1104,20 +1117,21 @@ export default function Profile() {
                               onFocus={() => setHoveredDifficulty(segment.key)}
                               onBlur={() => setHoveredDifficulty(null)}
                               className={cn(
-                                "rounded-xl p-3 flex items-center justify-between gap-2 border bg-muted/45 dark:bg-white/5 border-border/45 dark:border-white/5 min-w-0 transition-all duration-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                                "relative flex flex-col items-center justify-center rounded-2xl p-3 border min-w-0 flex-1 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 overflow-hidden bg-background/50 backdrop-blur-sm",
                                 segment.hoverClass,
-                                isActive ? "opacity-100" : "opacity-45",
+                                isActive ? "opacity-100 scale-100" : "opacity-50 scale-95",
                               )}
                             >
+                              <div className={cn("absolute inset-0 opacity-[0.05] transition-opacity", segment.bgClass, isActive && "opacity-[0.12]")} />
                               <span
                                 className={cn(
-                                  "text-[10px] sm:text-xs font-semibold truncate",
+                                  "text-[10px] sm:text-xs font-bold uppercase tracking-wider relative z-10 mb-1",
                                   segment.textClass,
                                 )}
                               >
                                 {segment.label}
                               </span>
-                              <span className="text-xs sm:text-sm font-bold text-foreground dark:text-white tabular-nums">
+                              <span className="text-xl sm:text-2xl font-black text-foreground dark:text-white relative z-10">
                                 {segment.value}
                               </span>
                             </button>
@@ -1127,28 +1141,31 @@ export default function Profile() {
                     )}
 
                     {dataMode === "codechef" && (
-                      <div className="flex flex-wrap w-full gap-2 text-sm">
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-border/45 dark:border-white/5 bg-muted/45 dark:bg-white/5 px-3 py-3 min-w-[100px] flex-1">
-                          <span className="font-semibold text-[#eab308] tabular-nums">
+                      <div className="flex flex-row flex-wrap w-full gap-3 text-sm">
+                        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-border/40 bg-background/50 backdrop-blur-sm px-3 py-4 min-w-0 flex-1 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                          <div className="absolute inset-0 bg-[#eab308] opacity-[0.05]" />
+                          <span className="text-xl sm:text-2xl font-black text-[#eab308] relative z-10 mb-1">
                             {codechefData?.stars || "N/A"}
                           </span>
-                          <span className="text-muted-foreground text-xs">
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground relative z-10">
                             Stars
                           </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-border/45 dark:border-white/5 bg-muted/45 dark:bg-white/5 px-3 py-3 min-w-[100px] flex-1">
-                          <span className="font-semibold text-foreground dark:text-white tabular-nums">
+                        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-border/40 bg-background/50 backdrop-blur-sm px-3 py-4 min-w-0 flex-1 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                          <div className="absolute inset-0 bg-primary opacity-[0.05]" />
+                          <span className="text-xl sm:text-2xl font-black text-foreground dark:text-white relative z-10 mb-1 truncate w-full text-center">
                             {codechefData?.globalRank || "-"}
                           </span>
-                          <span className="text-muted-foreground text-xs">
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground relative z-10">
                             Global Rank
                           </span>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-border/45 dark:border-white/5 bg-muted/45 dark:bg-white/5 px-3 py-3 min-w-[100px] flex-1">
-                          <span className="font-semibold text-foreground dark:text-white tabular-nums">
+                        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-border/40 bg-background/50 backdrop-blur-sm px-3 py-4 min-w-0 flex-1 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                          <div className="absolute inset-0 bg-primary opacity-[0.05]" />
+                          <span className="text-xl sm:text-2xl font-black text-foreground dark:text-white relative z-10 mb-1 truncate w-full text-center">
                             {codechefData?.countryRank || "-"}
                           </span>
-                          <span className="text-muted-foreground text-xs">
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground relative z-10">
                             Country Rank
                           </span>
                         </div>
