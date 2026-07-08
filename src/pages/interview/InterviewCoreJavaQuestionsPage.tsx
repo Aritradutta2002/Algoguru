@@ -29,6 +29,7 @@ import { AppTooltip } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
 
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
+import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
 
 type SolutionView = "theory" | "code" | null;
 
@@ -852,83 +853,21 @@ export default function InterviewCoreJavaQuestionsPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Note Editor Modal ────────────────────────────────────────── */}
+      {/* ── Draggable Note Editor (floating, same-page) ──────────────── */}
       <AnimatePresence>
         {activeNoteId && (
-          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4 sm:p-6">
-            <div
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm"
-              onClick={() => setActiveNoteId(null)}
-              aria-hidden="true"
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 10 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative w-full max-w-2xl bg-card border border-border/60 shadow-2xl rounded-[24px] overflow-hidden flex flex-col max-h-[90vh]"
-              role="dialog"
-              aria-labelledby="note-editor-title"
-              aria-modal="true"
-            >
-              <div className="p-6 border-b border-border/30 shrink-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 id="note-editor-title" className="text-lg font-bold">
-                      Study Note
-                    </h2>
-                    <p className="text-[13px] text-muted-foreground mt-1.5 leading-snug line-clamp-2">
-                      {coreJavaInterviewTopics.flatMap((t) => t.questions).find((q) => q.id === activeNoteId)?.question}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setActiveNoteId(null)}
-                    className="p-2 rounded-full hover:bg-muted/80 transition-colors bg-muted/40 shrink-0"
-                    aria-label="Close"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-6 overflow-y-auto">
-                <div className="bg-muted/20 rounded-2xl p-2 border border-border/30">
-                  <Suspense
-                    fallback={
-                      <div className="h-64 rounded-xl bg-muted/30 animate-pulse flex items-center justify-center">
-                        <span className="text-sm font-medium text-muted-foreground">Loading editor…</span>
-                      </div>
-                    }
-                  >
-                    <RichTextNoteEditor value={noteDraft} onChange={setNoteDraft} rows={12} />
-                  </Suspense>
-                </div>
-              </div>
-
-              <div className="p-6 pt-2 border-t border-border/30 shrink-0 flex items-center justify-end gap-3 bg-muted/10">
-                <button
-                  onClick={() => setActiveNoteId(null)}
-                  className="px-6 py-2.5 rounded-full text-[14px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveNote}
-                  disabled={upsertingId === activeNoteId}
-                  className="px-8 py-2.5 rounded-full bg-primary text-primary-foreground text-[14px] font-bold shadow-md shadow-primary/20 flex items-center gap-2 hover:bg-primary/90 transition-all disabled:opacity-70"
-                >
-                  {upsertingId === activeNoteId ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Saving…
-                    </>
-                  ) : (
-                    "Save Note"
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </div>
+          <DraggableNoteEditor
+            questionTitle={
+              coreJavaInterviewTopics
+                .flatMap((t) => t.questions)
+                .find((q) => q.id === activeNoteId)?.question ?? "Note"
+            }
+            value={noteDraft}
+            onChange={setNoteDraft}
+            onClose={() => setActiveNoteId(null)}
+            onSave={saveNote}
+            isSaving={upsertingId === activeNoteId}
+          />
         )}
       </AnimatePresence>
 

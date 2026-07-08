@@ -29,6 +29,7 @@ import jsPDF from "jspdf";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
+import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
 
 type SolutionView = "theory" | "code" | "visual" | null;
 
@@ -734,50 +735,19 @@ export default function InterviewSystemDesignPage() {
         </main>
       </div>
 
-      {/* ── Note Editor Modal ── */}
+      {/* ── Draggable Note Editor (floating, same-page) ──────────────── */}
       <AnimatePresence>
         {activeNoteId && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-6"
-            style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
-            onClick={() => setActiveNoteId(null)}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-2xl bg-card rounded-3xl border border-border/50 shadow-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
-                <div>
-                  <h3 className="font-bold text-base">Add Note</h3>
-                  <p className="text-[12px] text-muted-foreground/60 mt-0.5 line-clamp-1">
-                    {allQuestions.find((q) => q.id === activeNoteId)?.question}
-                  </p>
-                </div>
-                <button onClick={() => setActiveNoteId(null)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="p-6">
-                <RichTextNoteEditor value={noteDraft} onChange={setNoteDraft} placeholder="Write your notes, key insights, or personal mnemonics…" />
-              </div>
-              <div className="flex items-center justify-end gap-3 px-6 pb-5">
-                <button onClick={() => setActiveNoteId(null)} className="px-5 py-2 rounded-full text-sm font-semibold border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted transition-colors">
-                  Cancel
-                </button>
-                <button
-                  onClick={saveNote}
-                  disabled={!!upsertingId}
-                  className="px-5 py-2 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-60"
-                >
-                  {upsertingId ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Save Note
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+          <DraggableNoteEditor
+            questionTitle={
+              allQuestions.find((q) => q.id === activeNoteId)?.question ?? "Note"
+            }
+            value={noteDraft}
+            onChange={setNoteDraft}
+            onClose={() => setActiveNoteId(null)}
+            onSave={saveNote}
+            isSaving={!!upsertingId}
+          />
         )}
       </AnimatePresence>
 
