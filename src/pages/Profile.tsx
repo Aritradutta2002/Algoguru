@@ -32,6 +32,11 @@ const PROBLEM_DIFFICULTY_MAP: Record<string, "Easy" | "Medium" | "Hard"> =
     return map;
   })();
 
+const TOTAL_WEBSITE_EASY = Object.values(PROBLEM_DIFFICULTY_MAP).filter((d) => d === "Easy").length;
+const TOTAL_WEBSITE_MEDIUM = Object.values(PROBLEM_DIFFICULTY_MAP).filter((d) => d === "Medium").length;
+const TOTAL_WEBSITE_HARD = Object.values(PROBLEM_DIFFICULTY_MAP).filter((d) => d === "Hard").length;
+const TOTAL_WEBSITE_QUESTIONS = TOTAL_WEBSITE_EASY + TOTAL_WEBSITE_MEDIUM + TOTAL_WEBSITE_HARD;
+
 interface LeetcodeData {
   totalSolved: number;
   totalQuestions: number;
@@ -592,69 +597,73 @@ export default function Profile() {
       ? leetcodeData?.hardSolved || 0
       : websiteData?.hardSolved || 0;
 
+  const currentTotalQuestions =
+    dataMode === "leetcode"
+      ? (leetcodeData?.totalQuestions || 3000)
+      : (dataMode === "website" ? TOTAL_WEBSITE_QUESTIONS : 0);
+
   const statsSegments = useMemo(() => {
     const circumference = 301.59;
-    const gap = 5;
-    const values: Array<{
-      key: DifficultyKey;
-      label: string;
-      value: number;
-      stroke: string;
-      textClass: string;
-      bgClass: string;
-      hoverClass: string;
-    }> = [
+    const gap = 8;
+    
+    const currentEasyTotal = dataMode === "leetcode" ? (leetcodeData?.totalEasy || 1) : TOTAL_WEBSITE_EASY;
+    const currentMediumTotal = dataMode === "leetcode" ? (leetcodeData?.totalMedium || 1) : TOTAL_WEBSITE_MEDIUM;
+    const currentHardTotal = dataMode === "leetcode" ? (leetcodeData?.totalHard || 1) : TOTAL_WEBSITE_HARD;
+    const totalDivisor = currentEasyTotal + currentMediumTotal + currentHardTotal || 1;
+
+    const values = [
       {
         key: "easy",
         label: "Easy",
         value: currentEasySolved,
-        stroke: "#22c55e",
-        textClass: "text-[#16a34a] dark:text-[#22c55e]",
-        bgClass: "bg-[#22c55e]",
-        hoverClass:
-          "border-[#22c55e]/30 hover:border-[#22c55e]/80 hover:shadow-[0_0_20px_rgba(34,197,94,0.15)]",
+        total: currentEasyTotal,
+        stroke: "#00b8a3",
+        trackStroke: "#00b8a333",
       },
       {
         key: "medium",
         label: "Medium",
         value: currentMediumSolved,
-        stroke: "#eab308",
-        textClass: "text-[#ca8a04] dark:text-[#eab308]",
-        bgClass: "bg-[#eab308]",
-        hoverClass:
-          "border-[#eab308]/30 hover:border-[#eab308]/80 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)]",
+        total: currentMediumTotal,
+        stroke: "#ffc01e",
+        trackStroke: "#ffc01e33",
       },
       {
         key: "hard",
         label: "Hard",
         value: currentHardSolved,
-        stroke: "#ef4444",
-        textClass: "text-[#dc2626] dark:text-[#ef4444]",
-        bgClass: "bg-[#ef4444]",
-        hoverClass:
-          "border-[#ef4444]/30 hover:border-[#ef4444]/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.15)]",
+        total: currentHardTotal,
+        stroke: "#ef4743",
+        trackStroke: "#ef474333",
       },
     ];
 
-    const total = values.reduce((sum, segment) => sum + segment.value, 0);
     let offset = 0;
 
     return values.map((segment) => {
-      const rawLength = total > 0 ? (circumference * segment.value) / total : 0;
-      const visibleLength = Math.max(
-        0,
-        rawLength - (segment.value > 0 ? gap : 0),
-      );
-      const result = {
+      // Background track logic
+      const trackRawLength = (circumference * segment.total) / totalDivisor;
+      const trackVisibleLength = Math.max(0, trackRawLength - gap);
+      const trackDasharray = `${trackVisibleLength} ${circumference - trackVisibleLength}`;
+      const trackDashoffset = -offset;
+
+      // Progress logic
+      const progressRawLength = (circumference * segment.value) / totalDivisor;
+      const progressVisibleLength = Math.min(progressRawLength, trackVisibleLength);
+      const progressDasharray = `${progressVisibleLength} ${circumference - progressVisibleLength}`;
+      const progressDashoffset = -offset;
+
+      offset += trackRawLength;
+
+      return {
         ...segment,
-        dasharray: `${visibleLength} ${circumference - visibleLength}`,
-        dashoffset: -offset,
-        circumference,
+        trackDasharray,
+        trackDashoffset,
+        progressDasharray,
+        progressDashoffset,
       };
-      offset += rawLength;
-      return result;
     });
-  }, [currentEasySolved, currentMediumSolved, currentHardSolved]);
+  }, [currentEasySolved, currentMediumSolved, currentHardSolved, dataMode, leetcodeData]);
 
   return (
     <div className="flex-1 min-h-screen bg-background text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700 relative">
@@ -983,25 +992,20 @@ export default function Profile() {
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[240px] xl:col-span-2 2xl:col-span-1">
-                <div className="flex flex-col gap-4 w-full mb-6">
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-semibold shrink-0 pt-1">
-                      Stats
-                    </h3>
-                    <p className="text-[10px] leading-4 text-muted-foreground mt-1 max-w-[180px]">
-                      Track solved problems across platforms
-                    </p>
-                  </div>
+              <div className="bg-[#1C1C1C] text-white rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1 overflow-hidden">
+                <div className="flex flex-row items-center justify-between w-full mb-8 relative z-10">
+                  <h3 className="text-[15px] font-semibold tracking-wide text-white/90 shrink-0">
+                    DSA Progress
+                  </h3>
 
-                  <div className="flex p-1 bg-muted/40 dark:bg-black/30 rounded-xl w-full min-w-0 border border-border/40 shadow-inner">
+                  <div className="flex p-1 bg-[#252525] rounded-full min-w-0 border border-white/5 shadow-inner">
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
-                        "flex-1 min-w-0 whitespace-nowrap px-2 py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all text-center",
+                        "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "website"
-                          ? "bg-background text-foreground shadow-sm dark:bg-white/10 dark:text-white"
-                          : "text-muted-foreground hover:text-foreground dark:text-white/40 dark:hover:text-white/80",
+                          ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
+                          : "text-white/40 hover:text-white/80 border border-transparent",
                       )}
                     >
                       Website
@@ -1009,10 +1013,10 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("leetcode")}
                       className={cn(
-                        "flex-1 min-w-0 whitespace-nowrap px-2 py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all text-center",
+                        "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "leetcode"
-                          ? "bg-[#FFA116]/20 text-[#FFA116] shadow-sm dark:bg-[#FFA116]/15 dark:text-[#FFA116]"
-                          : "text-muted-foreground hover:text-foreground dark:text-white/40 dark:hover:text-white/80",
+                          ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
+                          : "text-white/40 hover:text-white/80 border border-transparent",
                       )}
                     >
                       LeetCode
@@ -1020,10 +1024,10 @@ export default function Profile() {
                     <button
                       onClick={() => handleModeToggle("codechef")}
                       className={cn(
-                        "flex-1 min-w-0 whitespace-nowrap px-2 py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all text-center",
+                        "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "codechef"
-                          ? "bg-[#5B4638]/20 text-[#8B5A2B] shadow-sm dark:bg-[#5B4638]/60 dark:text-white"
-                          : "text-muted-foreground hover:text-foreground dark:text-white/40 dark:hover:text-white/80",
+                          ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
+                          : "text-white/40 hover:text-white/80 border border-transparent",
                       )}
                     >
                       CodeChef
@@ -1033,141 +1037,124 @@ export default function Profile() {
 
                 {(isLeetcodeLoading && dataMode === "leetcode") ||
                 (isCodechefLoading && dataMode === "codechef") ? (
-                  <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="animate-spin text-muted-foreground/50 w-8 h-8" />
+                  <div className="flex-1 flex items-center justify-center relative z-10">
+                    <Loader2 className="animate-spin text-white/40 w-8 h-8" />
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-6 mt-4">
+                  <div className="flex-1 flex flex-col items-center justify-center gap-10 mt-2 relative z-10">
                     {/* Donut Chart */}
-                    <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-background/50 to-muted/20 shadow-inner" />
+                    <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
                       <svg
                         viewBox="0 0 128 128"
-                        className="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-[0_0_8px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.05)] overflow-visible"
+                        className="absolute inset-0 w-full h-full transform -rotate-90 overflow-visible"
                       >
                         <defs>
                           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="2.5" result="blur" />
+                            <feGaussianBlur stdDeviation="3" result="blur" />
                             <feComposite in="SourceGraphic" in2="blur" operator="over" />
                           </filter>
                         </defs>
-                        <circle
-                          cx="64"
-                          cy="64"
-                          r="48"
-                          fill="none"
-                          className="stroke-muted/30 dark:stroke-white/5"
-                          strokeWidth="8"
-                        />
                         {dataMode !== "codechef" &&
                           statsSegments.map((segment) => {
-                            const isHighlighted =
-                              !hoveredDifficulty ||
-                              hoveredDifficulty === segment.key;
+                            const isHighlighted = !hoveredDifficulty || hoveredDifficulty === segment.key;
                             return (
-                              <circle
-                                key={segment.key}
-                                cx="64"
-                                cy="64"
-                                r="48"
-                                fill="none"
-                                stroke={segment.stroke}
-                                strokeLinecap="round"
-                                strokeWidth={
-                                  hoveredDifficulty === segment.key ? 10 : 8
-                                }
-                                strokeDasharray={segment.dasharray}
-                                strokeDashoffset={segment.dashoffset}
-                                filter={isHighlighted ? "url(#glow)" : "none"}
-                                className={cn(
-                                  "transition-all duration-500 ease-out",
-                                  isHighlighted ? "opacity-100" : "opacity-20",
+                              <g key={segment.key} className={cn("transition-opacity duration-300", isHighlighted ? "opacity-100" : "opacity-30")}>
+                                <circle
+                                  cx="64"
+                                  cy="64"
+                                  r="48"
+                                  fill="none"
+                                  stroke={segment.trackStroke}
+                                  strokeLinecap="round"
+                                  strokeWidth="6"
+                                  strokeDasharray={segment.trackDasharray}
+                                  strokeDashoffset={segment.trackDashoffset}
+                                />
+                                {segment.value > 0 && (
+                                  <circle
+                                    cx="64"
+                                    cy="64"
+                                    r="48"
+                                    fill="none"
+                                    stroke={segment.stroke}
+                                    strokeLinecap="round"
+                                    strokeWidth="6"
+                                    strokeDasharray={segment.progressDasharray}
+                                    strokeDashoffset={segment.progressDashoffset}
+                                    filter={isHighlighted ? "url(#glow)" : "none"}
+                                    className="transition-all duration-1000 ease-out"
+                                  />
                                 )}
-                              />
+                              </g>
                             );
                           })}
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-3xl sm:text-4xl font-black tracking-tight text-foreground dark:text-white drop-shadow-sm">
+                        <span className="text-[28px] font-semibold text-white tracking-tight leading-none mb-1">
                           {currentTotalSolved}
                         </span>
-                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-0.5">
-                          {dataMode === "codechef" ? "Rating" : "Solved"}
-                        </span>
+                        {dataMode !== "codechef" && (
+                           <>
+                             <div className="w-8 h-[1px] bg-white/20 my-1" />
+                             <span className="text-[12px] font-medium text-white/50 tracking-wider">
+                               {currentTotalQuestions}
+                             </span>
+                           </>
+                        )}
+                        {dataMode === "codechef" && (
+                          <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest mt-1">
+                            Rating
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Stats Cards */}
+                    {/* Stats Inline Row */}
                     {dataMode !== "codechef" && (
                       <div
-                        className="flex flex-row gap-2 sm:gap-3 flex-1 w-full justify-between"
+                        className="flex flex-row flex-wrap items-center justify-center gap-x-8 gap-y-4 w-full"
                         onMouseLeave={() => setHoveredDifficulty(null)}
                       >
                         {statsSegments.map((segment) => {
-                          const isActive =
-                            !hoveredDifficulty ||
-                            hoveredDifficulty === segment.key;
+                          const isActive = !hoveredDifficulty || hoveredDifficulty === segment.key;
                           return (
-                            <button
+                            <div
                               key={segment.key}
-                              type="button"
-                              onMouseEnter={() =>
-                                setHoveredDifficulty(segment.key)
-                              }
-                              onFocus={() => setHoveredDifficulty(segment.key)}
-                              onBlur={() => setHoveredDifficulty(null)}
+                              onMouseEnter={() => setHoveredDifficulty(segment.key)}
                               className={cn(
-                                "relative flex flex-col items-center justify-center rounded-2xl p-3 border min-w-0 flex-1 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 overflow-hidden bg-background/50 backdrop-blur-sm",
-                                segment.hoverClass,
-                                isActive ? "opacity-100 scale-100" : "opacity-50 scale-95",
+                                "flex items-center gap-2 cursor-pointer transition-opacity duration-300",
+                                isActive ? "opacity-100" : "opacity-40"
                               )}
                             >
-                              <div className={cn("absolute inset-0 opacity-[0.05] transition-opacity", segment.bgClass, isActive && "opacity-[0.12]")} />
-                              <span
-                                className={cn(
-                                  "text-[10px] sm:text-xs font-bold uppercase tracking-wider relative z-10 mb-1",
-                                  segment.textClass,
-                                )}
-                              >
+                              <div className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: segment.stroke, color: segment.stroke }} />
+                              <span className="text-xs text-white/60 font-medium">
                                 {segment.label}
                               </span>
-                              <span className="text-xl sm:text-2xl font-black text-foreground dark:text-white relative z-10">
-                                {segment.value}
+                              <span className="text-xs text-white/90 font-semibold">
+                                {segment.value}<span className="text-white/30">/{segment.total}</span>
                               </span>
-                            </button>
+                            </div>
                           );
                         })}
                       </div>
                     )}
 
                     {dataMode === "codechef" && (
-                      <div className="flex flex-row flex-wrap w-full gap-3 text-sm">
-                        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-border/40 bg-background/50 backdrop-blur-sm px-3 py-4 min-w-0 flex-1 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                          <div className="absolute inset-0 bg-[#eab308] opacity-[0.05]" />
-                          <span className="text-xl sm:text-2xl font-black text-[#eab308] relative z-10 mb-1">
-                            {codechefData?.stars || "N/A"}
-                          </span>
-                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground relative z-10">
-                            Stars
-                          </span>
+                      <div className="flex flex-row flex-wrap justify-center w-full gap-8 mt-2">
+                        <div className="flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-[#eab308]" />
+                           <span className="text-xs text-white/60 font-medium">Stars</span>
+                           <span className="text-xs text-[#eab308] font-semibold">{codechefData?.stars || "N/A"}</span>
                         </div>
-                        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-border/40 bg-background/50 backdrop-blur-sm px-3 py-4 min-w-0 flex-1 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                          <div className="absolute inset-0 bg-primary opacity-[0.05]" />
-                          <span className="text-xl sm:text-2xl font-black text-foreground dark:text-white relative z-10 mb-1 truncate w-full text-center">
-                            {codechefData?.globalRank || "-"}
-                          </span>
-                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground relative z-10">
-                            Global Rank
-                          </span>
+                        <div className="flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-white/40" />
+                           <span className="text-xs text-white/60 font-medium">Global</span>
+                           <span className="text-xs text-white/90 font-semibold">{codechefData?.globalRank || "-"}</span>
                         </div>
-                        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-border/40 bg-background/50 backdrop-blur-sm px-3 py-4 min-w-0 flex-1 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                          <div className="absolute inset-0 bg-primary opacity-[0.05]" />
-                          <span className="text-xl sm:text-2xl font-black text-foreground dark:text-white relative z-10 mb-1 truncate w-full text-center">
-                            {codechefData?.countryRank || "-"}
-                          </span>
-                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground relative z-10">
-                            Country Rank
-                          </span>
+                        <div className="flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-white/40" />
+                           <span className="text-xs text-white/60 font-medium">Country</span>
+                           <span className="text-xs text-white/90 font-semibold">{codechefData?.countryRank || "-"}</span>
                         </div>
                       </div>
                     )}
