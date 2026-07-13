@@ -22,6 +22,9 @@ import {
   Cpu,
   Database,
   Gauge,
+  Play,
+  Terminal,
+  GitBranch,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,26 +98,30 @@ function getTagIcon(tag: string): string {
 
 const FloatingShapes = () => (
   <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    {/* Aurora blobs */}
     <div
-      className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/10 blur-[120px] animate-pulse"
+      className="absolute -top-40 -left-32 w-[34rem] h-[34rem] rounded-full bg-primary/15 blur-[140px] animate-pulse"
       style={{ animationDelay: "0s" }}
     />
     <div
-      className="absolute top-1/3 -right-24 w-[32rem] h-[32rem] rounded-full bg-primary/5 blur-[140px] animate-pulse"
-      style={{ animationDelay: "2s" }}
+      className="absolute top-1/4 -right-40 w-[40rem] h-[40rem] rounded-full bg-fuchsia-500/10 blur-[160px] animate-pulse"
+      style={{ animationDelay: "2.5s" }}
     />
     <div
-      className="absolute bottom-0 left-1/4 w-[24rem] h-[24rem] rounded-full bg-primary/5 blur-[120px] animate-pulse"
-      style={{ animationDelay: "4s" }}
+      className="absolute bottom-0 left-1/3 w-[28rem] h-[28rem] rounded-full bg-cyan-500/10 blur-[140px] animate-pulse"
+      style={{ animationDelay: "5s" }}
     />
+    {/* Dot grid */}
     <div
-      className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06]"
+      className="absolute inset-0 opacity-[0.05] dark:opacity-[0.08]"
       style={{
         backgroundImage:
-          "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
-        backgroundSize: "48px 48px",
+          "radial-gradient(currentColor 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
       }}
     />
+    {/* Top glow line */}
+    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
   </div>
 );
 
@@ -208,99 +215,107 @@ export default function PracticeSolution() {
             <span className="text-primary">Solution</span>
           </nav>
 
-          {/* Title block */}
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-4 max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-[10px] font-bold uppercase tracking-widest text-primary">
-                <BookOpen size={12} />
-                Problem Breakdown
-              </div>
+          {/* Hero glass card */}
+          <div className="relative rounded-3xl border border-border/60 bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-xl overflow-hidden p-6 md:p-10 shadow-2xl shadow-primary/5">
+            {/* corner accents */}
+            <div className="absolute top-0 left-0 w-24 h-24 border-t-2 border-l-2 border-primary/30 rounded-tl-3xl" />
+            <div className="absolute bottom-0 right-0 w-24 h-24 border-b-2 border-r-2 border-primary/20 rounded-br-3xl" />
+            {/* sheen */}
+            <div className="absolute -top-1/2 left-1/4 w-1/2 h-full bg-gradient-to-b from-primary/10 to-transparent rotate-12 pointer-events-none" />
 
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-[1.05] bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                {solution.title}
-              </h1>
+            <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-5 max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-[10px] font-bold uppercase tracking-widest text-primary">
+                  <Sparkles size={12} />
+                  Problem Breakdown
+                </div>
 
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                {solution.description}
-              </p>
+                <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-[1.05] bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
+                  {solution.title}
+                </h1>
 
-              {/* Meta row */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Badge
-                  variant="outline"
-                  className={`gap-1.5 px-3 py-1 text-[11px] font-bold uppercase ${difficultyClasses(solution.difficulty)}`}
-                >
-                  {difficultyDot(solution.difficulty)}
-                  {solution.difficulty}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="gap-1.5 px-3 py-1 text-[11px] font-bold uppercase border-border/70 bg-card/60 backdrop-blur-sm"
-                >
-                  <Timer size={11} /> {solution.timeComplexity}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="gap-1.5 px-3 py-1 text-[11px] font-bold uppercase border-border/70 bg-card/60 backdrop-blur-sm"
-                >
-                  <Database size={11} /> {solution.spaceComplexity}
-                </Badge>
-                {!curatedSolution && (
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  {solution.description}
+                </p>
+
+                {/* Meta row */}
+                <div className="flex flex-wrap items-center gap-2.5">
                   <Badge
                     variant="outline"
-                    className="px-3 py-1 text-[11px] font-bold uppercase border-orange-400/40 bg-orange-400/10 text-orange-600 dark:text-orange-300"
+                    className={`gap-1.5 px-3 py-1 text-[11px] font-bold uppercase ${difficultyClasses(solution.difficulty)}`}
                   >
-                    Auto-generated
+                    {difficultyDot(solution.difficulty)}
+                    {solution.difficulty}
                   </Badge>
+                  <Badge
+                    variant="outline"
+                    className="gap-1.5 px-3 py-1 text-[11px] font-bold uppercase border-border/70 bg-card/60 backdrop-blur-sm"
+                  >
+                    <Timer size={11} /> {solution.timeComplexity}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="gap-1.5 px-3 py-1 text-[11px] font-bold uppercase border-border/70 bg-card/60 backdrop-blur-sm"
+                  >
+                    <Database size={11} /> {solution.spaceComplexity}
+                  </Badge>
+                  {!curatedSolution && (
+                    <Badge
+                      variant="outline"
+                      className="px-3 py-1 text-[11px] font-bold uppercase border-orange-400/40 bg-orange-400/10 text-orange-600 dark:text-orange-300"
+                    >
+                      Auto-generated
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Companies */}
+                {solution.companies.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    <Trophy size={13} className="text-primary" />
+                    <span>Asked at</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {solution.companies.map((company) => (
+                        <span
+                          key={company}
+                          className="px-2.5 py-0.5 rounded-md border border-border/50 bg-muted/40 text-[10px] font-semibold"
+                        >
+                          {company}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* Companies */}
-              {solution.companies.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  <Trophy size={13} className="text-primary" />
-                  <span>Asked at</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {solution.companies.map((company) => (
-                      <span
-                        key={company}
-                        className="px-2.5 py-0.5 rounded-md border border-border/50 bg-muted/40 text-[10px] font-semibold"
-                      >
-                        {company}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end lg:w-auto">
-              <Link
-                to="/practice"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border"
-              >
-                <ArrowLeft size={14} />
-                Back
-              </Link>
-              <a
-                href={solution.leetcodeLink}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border group"
-              >
-                <Github size={14} className="transition-transform group-hover:scale-110" />
-                LeetCode
-              </a>
-              <a
-                href={solution.gfgLink}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border group"
-              >
-                <ExternalLink size={13} className="transition-transform group-hover:scale-110" />
-                GeeksforGeeks
-              </a>
+              {/* Action buttons */}
+              <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end lg:w-auto">
+                <Link
+                  to="/practice"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border"
+                >
+                  <ArrowLeft size={14} />
+                  Back
+                </Link>
+                <a
+                  href={solution.leetcodeLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border group"
+                >
+                  <Github size={14} className="transition-transform group-hover:scale-110" />
+                  LeetCode
+                </a>
+                <a
+                  href={solution.gfgLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border group"
+                >
+                  <ExternalLink size={13} className="transition-transform group-hover:scale-110" />
+                  GeeksforGeeks
+                </a>
+              </div>
             </div>
           </div>
         </motion.header>
@@ -530,37 +545,50 @@ export default function PracticeSolution() {
           >
             <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/60 backdrop-blur-sm overflow-hidden">
               {/* Editor header */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/50 bg-muted/20">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/50 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-rose-500/70" />
-                    <span className="w-3 h-3 rounded-full bg-amber-500/70" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-500/70" />
+                    <span className="w-3 h-3 rounded-full bg-rose-500/80 shadow-sm shadow-rose-500/40" />
+                    <span className="w-3 h-3 rounded-full bg-amber-500/80 shadow-sm shadow-amber-500/40" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500/80 shadow-sm shadow-emerald-500/40" />
                   </div>
+                  <div className="h-4 w-px bg-border/60" />
+                  <Terminal size={13} className="text-muted-foreground" />
                   <span className="font-mono text-xs font-medium text-muted-foreground">
-                    {solution.title} · {activeLang.label}
+                    {solution.title.toLowerCase().replace(/\s+/g, "-")}.{activeTab === "cpp" ? "cpp" : activeTab === "python" ? "py" : "java"}
                   </span>
                 </div>
-                <button
-                  onClick={() => handleCopy(getCodeForTab(activeTab), activeTab)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                    copied === activeTab
-                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                      : "bg-muted/40 text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {copied === activeTab ? (
-                    <>
-                      <Check size={12} />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={12} />
-                      Copy
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={solution.leetcodeLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                  >
+                    <Play size={12} />
+                    Run
+                  </a>
+                  <button
+                    onClick={() => handleCopy(getCodeForTab(activeTab), activeTab)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                      copied === activeTab
+                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                        : "bg-muted/40 text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    {copied === activeTab ? (
+                      <>
+                        <Check size={12} />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} />
+                        Copy
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Code body */}
@@ -593,7 +621,7 @@ export default function PracticeSolution() {
             <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/60 backdrop-blur-sm">
               <CardHeader className="p-6 pb-3">
                 <CardTitle className="text-lg font-black uppercase tracking-wide flex items-center gap-2">
-                  <Hash size={18} className="text-primary" />
+                  <GitBranch size={18} className="text-primary" />
                   Related Topics
                 </CardTitle>
                 <CardDescription className="text-xs font-medium">
@@ -606,10 +634,11 @@ export default function PracticeSolution() {
                     <Link
                       key={tag}
                       to={`/practice?tag=${tag.toLowerCase().replace(/\s+/g, "-")}`}
-                      className="group p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 transition-all flex items-center gap-3"
+                      className="group relative p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-primary/5 hover:border-primary/40 transition-all flex items-center gap-3 overflow-hidden"
                     >
-                      <span className="text-xl">{getTagIcon(tag)}</span>
-                      <div className="flex-1">
+                      <div className="absolute -right-6 -top-6 w-16 h-16 rounded-full bg-primary/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <span className="relative text-xl">{getTagIcon(tag)}</span>
+                      <div className="relative flex-1">
                         <div className="font-bold text-sm uppercase tracking-wide text-primary">
                           {tag}
                         </div>
@@ -619,7 +648,7 @@ export default function PracticeSolution() {
                       </div>
                       <ArrowRight
                         size={14}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-primary"
+                        className="relative opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-primary"
                       />
                     </Link>
                   ))}
@@ -650,13 +679,14 @@ function ComplexityCard({
   tone: "blue" | "green" | "amber" | "red" | "purple";
   delay: number;
 }) {
-  const tones: Record<string, string> = {
-    blue: "from-blue-500/15 to-blue-500/5 text-blue-500 border-blue-500/20",
-    green: "from-emerald-500/15 to-emerald-500/5 text-emerald-500 border-emerald-500/20",
-    amber: "from-amber-500/15 to-amber-500/5 text-amber-500 border-amber-500/20",
-    red: "from-rose-500/15 to-rose-500/5 text-rose-500 border-rose-500/20",
-    purple: "from-purple-500/15 to-purple-500/5 text-purple-500 border-purple-500/20",
+  const tones: Record<string, { grad: string; ring: string; glow: string; text: string }> = {
+    blue: { grad: "from-blue-500/20 via-blue-500/5 to-transparent", ring: "border-blue-500/30", glow: "group-hover:shadow-blue-500/20", text: "text-blue-500" },
+    green: { grad: "from-emerald-500/20 via-emerald-500/5 to-transparent", ring: "border-emerald-500/30", glow: "group-hover:shadow-emerald-500/20", text: "text-emerald-500" },
+    amber: { grad: "from-amber-500/20 via-amber-500/5 to-transparent", ring: "border-amber-500/30", glow: "group-hover:shadow-amber-500/20", text: "text-amber-500" },
+    red: { grad: "from-rose-500/20 via-rose-500/5 to-transparent", ring: "border-rose-500/30", glow: "group-hover:shadow-rose-500/20", text: "text-rose-500" },
+    purple: { grad: "from-purple-500/20 via-purple-500/5 to-transparent", ring: "border-purple-500/30", glow: "group-hover:shadow-purple-500/20", text: "text-purple-500" },
   };
+  const t = tones[tone];
 
   return (
     <motion.div
@@ -664,11 +694,12 @@ function ComplexityCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
     >
-      <Card className="relative h-full rounded-2xl border bg-card/70 backdrop-blur-sm overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-        <div className={`absolute inset-0 bg-gradient-to-br ${tones[tone]} opacity-60`} />
+      <Card className={`group relative h-full rounded-2xl border ${t.ring} bg-card/70 backdrop-blur-sm overflow-hidden hover:shadow-xl ${t.glow} transition-all duration-300 hover:-translate-y-1`}>
+        <div className={`absolute inset-0 bg-gradient-to-br ${t.grad}`} />
+        <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-40 bg-current" style={{ color: "currentColor" }} />
         <div className="relative p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center bg-background/60 border ${tones[tone]}`}>
+          <div className="flex items-center justify-between">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-background/70 border ${t.ring} ${t.text}`}>
               {icon}
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
