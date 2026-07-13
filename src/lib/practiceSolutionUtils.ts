@@ -1,6 +1,7 @@
 import { practiceData, Problem, SubTopic, Topic } from "@/data/practiceData";
 import { practiceContentMap } from "@/data/practiceContent";
 import { ContentSection } from "@/data/recursionContent";
+import { getSolutionByProblemId, ProblemSolution } from "@/data/practiceSolutions";
 
 export type SolutionComplexity = {
   worst: string;
@@ -175,13 +176,16 @@ export function getPracticeSolutionDetail(problemId: string): PracticeSolutionDe
   const match = allProblems.find((entry) => entry.problem.id === problemId);
   if (!match) return null;
 
+  // Check for curated solution first
+  const curatedSolution = getSolutionByProblemId(problemId);
+  
   const section = findBestContentSection(match.problem.title);
-  const description = extractDescription(section, match.problem.title);
-  const approach = extractApproach(section);
-  const javaCode = extractJavaCode(section, match.problem.title);
+  const description = curatedSolution?.description ?? extractDescription(section, match.problem.title);
+  const approach = curatedSolution?.approach ?? extractApproach(section);
+  const javaCode = curatedSolution?.solutions.java ?? extractJavaCode(section, match.problem.title);
 
-  const time = section?.timeComplexity ?? "Not specified";
-  const space = section?.spaceComplexity ?? "Not specified";
+  const time = curatedSolution?.timeComplexity ?? section?.timeComplexity ?? "Not specified";
+  const space = curatedSolution?.spaceComplexity ?? section?.spaceComplexity ?? "Not specified";
 
   return {
     ...match,
@@ -194,8 +198,8 @@ export function getPracticeSolutionDetail(problemId: string): PracticeSolutionDe
       space,
     },
     javaCode,
-    cppCode: buildCppCode(match.problem.title, approach, javaCode),
-    pythonCode: buildPythonCode(match.problem.title, approach, javaCode),
-    hasCuratedMatch: Boolean(section),
+    cppCode: curatedSolution?.solutions.cpp ?? buildCppCode(match.problem.title, approach, javaCode),
+    pythonCode: curatedSolution?.solutions.python ?? buildPythonCode(match.problem.title, approach, javaCode),
+    hasCuratedMatch: Boolean(curatedSolution),
   };
 }
