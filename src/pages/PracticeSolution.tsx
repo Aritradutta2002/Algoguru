@@ -1,48 +1,131 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronRight, ExternalLink, NotebookPen, Sparkles, Timer, Copy, Check, BookOpen, Zap, Trophy, Github, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
+  ExternalLink,
+  Sparkles,
+  Timer,
+  Copy,
+  Check,
+  BookOpen,
+  Zap,
+  Trophy,
+  Github,
+  Star,
+  Code2,
+  Hash,
+  Layers,
+  Lightbulb,
+  Target,
+  Cpu,
+  Database,
+  Gauge,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodeBlock } from "@/components/CodeBlock";
 import { getPracticeSolutionDetail } from "@/lib/practiceSolutionUtils";
-import { getSolutionByProblemId, ProblemSolution } from "@/data/practiceSolutions";
+import { getSolutionByProblemId } from "@/data/practiceSolutions";
 import { motion, AnimatePresence } from "framer-motion";
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
 function difficultyClasses(difficulty: string): string {
   switch (difficulty) {
     case "Easy":
-      return "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30";
+      return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30";
     case "Medium":
-      return "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30";
+      return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30";
     case "Hard":
-      return "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30";
+      return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30";
     default:
       return "";
   }
 }
 
-function difficultyIcon(difficulty: string) {
-  switch (difficulty) {
-    case "Easy": return <span className="text-green-500">●</span>;
-    case "Medium": return <span className="text-yellow-500">●</span>;
-    case "Hard": return <span className="text-red-500">●</span>;
-    default: return <span>●</span>;
-  }
+function difficultyDot(difficulty: string) {
+  const color =
+    difficulty === "Easy"
+      ? "bg-emerald-500"
+      : difficulty === "Medium"
+        ? "bg-amber-500"
+        : "bg-rose-500";
+  return <span className={`inline-block w-2 h-2 rounded-full ${color}`} />;
 }
 
+const LANGUAGES = [
+  { id: "java", label: "Java", icon: "☕", accent: "from-orange-500 to-red-500" },
+  { id: "cpp", label: "C++", icon: "⚡", accent: "from-blue-500 to-indigo-500" },
+  { id: "python", label: "Python", icon: "🐍", accent: "from-yellow-400 to-emerald-500" },
+] as const;
+
+type LangId = (typeof LANGUAGES)[number]["id"];
+
+function getTagIcon(tag: string): string {
+  const icons: Record<string, string> = {
+    Array: "📊",
+    "Hash Table": "🔑",
+    String: "📝",
+    "Two Pointers": "↔️",
+    "Sliding Window": "🪟",
+    Sorting: "🔄",
+    Stack: "📚",
+    "Monotonic Stack": "📈",
+    "Linked List": "🔗",
+    "Dynamic Programming": "🎯",
+    Greedy: "⚡",
+    "Binary Search": "🔍",
+    Tree: "🌳",
+    Graph: "🕸️",
+    Heap: "🏔️",
+    Design: "🎨",
+    Matrix: "⬜",
+    "Bit Manipulation": "🔢",
+  };
+  return icons[tag] || "📌";
+}
+
+/* ------------------------------------------------------------------ */
+/* Decorative background                                              */
+/* ------------------------------------------------------------------ */
+
 const FloatingShapes = () => (
-  <>
-    <div className="absolute top-10 left-5 w-72 h-72 bg-primary/10 blur-3xl rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
-    <div className="absolute top-20 right-10 w-96 h-96 bg-primary/5 blur-3xl rounded-full animate-pulse" style={{ animationDelay: "2s" }} />
-    <div className="absolute bottom-20 left-1/4 w-64 h-64 bg-primary/5 blur-3xl rounded-full animate-pulse" style={{ animationDelay: "4s" }} />
-  </>
+  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div
+      className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/10 blur-[120px] animate-pulse"
+      style={{ animationDelay: "0s" }}
+    />
+    <div
+      className="absolute top-1/3 -right-24 w-[32rem] h-[32rem] rounded-full bg-primary/5 blur-[140px] animate-pulse"
+      style={{ animationDelay: "2s" }}
+    />
+    <div
+      className="absolute bottom-0 left-1/4 w-[24rem] h-[24rem] rounded-full bg-primary/5 blur-[120px] animate-pulse"
+      style={{ animationDelay: "4s" }}
+    />
+    <div
+      className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06]"
+      style={{
+        backgroundImage:
+          "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+        backgroundSize: "48px 48px",
+      }}
+    />
+  </div>
 );
+
+/* ------------------------------------------------------------------ */
+/* Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function PracticeSolution() {
   const { problemId } = useParams<{ problemId: string }>();
   const pageRootRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<"java" | "cpp" | "python">("java");
+  const [activeTab, setActiveTab] = useState<LangId>("java");
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,10 +141,9 @@ export default function PracticeSolution() {
 
   const detail = getPracticeSolutionDetail(problemId);
   const curatedSolution = getSolutionByProblemId(problemId);
-  
+
   if (!detail) return <Navigate to="/practice" replace />;
 
-  // Use curated solution if available, otherwise fall back to auto-generated
   const solution = curatedSolution || {
     problemId: detail.problem.id,
     title: detail.problem.title,
@@ -73,12 +155,12 @@ export default function PracticeSolution() {
     solutions: {
       java: detail.javaCode,
       cpp: detail.cppCode,
-      python: detail.pythonCode
+      python: detail.pythonCode,
     },
     leetcodeLink: detail.problem.leetcodeLink,
     gfgLink: detail.problem.gfgLink,
     companies: detail.problem.companies,
-    tags: []
+    tags: [] as string[],
   };
 
   const handleCopy = async (code: string, lang: string) => {
@@ -87,96 +169,125 @@ export default function PracticeSolution() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const getCodeForTab = (tab: string) => {
-    switch (tab) {
-      case "java": return solution.solutions.java;
-      case "cpp": return solution.solutions.cpp;
-      case "python": return solution.solutions.python;
-      default: return solution.solutions.java;
-    }
-  };
+  const getCodeForTab = (tab: string) =>
+    tab === "cpp"
+      ? solution.solutions.cpp
+      : tab === "python"
+        ? solution.solutions.python
+        : solution.solutions.java;
 
-  const getLanguageLabel = (tab: string) => {
-    switch (tab) {
-      case "java": return "Java";
-      case "cpp": return "C++";
-      case "python": return "Python";
-      default: return "Java";
-    }
-  };
-
-  const getLanguageIcon = (tab: string) => {
-    switch (tab) {
-      case "java": return "☕";
-      case "cpp": return "⚡";
-      case "python": return "🐍";
-      default: return "☕";
-    }
-  };
+  const activeLang = LANGUAGES.find((l) => l.id === activeTab)!;
 
   return (
-    <div ref={pageRootRef} className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
+    <div
+      ref={pageRootRef}
+      className="relative min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground"
+    >
       <FloatingShapes />
-      
-      {/* Hero Section */}
-      <section className="px-4 md:px-10 lg:px-16 py-10 md:py-14 max-w-7xl mx-auto relative overflow-hidden z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-8 md:py-12 space-y-10">
+        {/* ---------------------------------------------------------- */}
+        {/* Hero                                                       */}
+        {/* ---------------------------------------------------------- */}
+        <motion.header
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className="space-y-6"
         >
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex-wrap">
-            <Link to="/" className="hover:text-primary transition-colors flex items-center gap-1">
-              <span className="text-[10px]">🏠</span> Home
+          <nav className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Link to="/" className="hover:text-primary transition-colors">
+              Home
             </Link>
-            <ChevronRight size={10} className="opacity-50" />
-            <Link to="/practice" className="hover:text-primary transition-colors">Practice</Link>
-            <ChevronRight size={10} className="opacity-50" />
-            <span className="text-primary font-black">Solution</span>
-          </div>
+            <ChevronRight size={12} className="opacity-40" />
+            <Link to="/practice" className="hover:text-primary transition-colors">
+              Practice
+            </Link>
+            <ChevronRight size={12} className="opacity-40" />
+            <span className="text-primary">Solution</span>
+          </nav>
 
-          {/* Category Badge */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border bg-gradient-to-r from-primary/10 to-primary/5 text-[10px] font-bold uppercase tracking-widest"
-          >
-            <BookOpen size={14} className="text-primary" />
-            <span className="text-muted-foreground">Problem Breakdown</span>
-          </motion.div>
+          {/* Title block */}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-4 max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-[10px] font-bold uppercase tracking-widest text-primary">
+                <BookOpen size={12} />
+                Problem Breakdown
+              </div>
 
-          {/* Title & Description */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
-          >
-            <div className="space-y-3 max-w-4xl">
-              <h1 className="text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter leading-tight bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-[1.05] bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
                 {solution.title}
               </h1>
-              <p className="text-sm md:text-base font-medium text-muted-foreground leading-relaxed max-w-3xl">
+
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                 {solution.description}
               </p>
+
+              {/* Meta row */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Badge
+                  variant="outline"
+                  className={`gap-1.5 px-3 py-1 text-[11px] font-bold uppercase ${difficultyClasses(solution.difficulty)}`}
+                >
+                  {difficultyDot(solution.difficulty)}
+                  {solution.difficulty}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="gap-1.5 px-3 py-1 text-[11px] font-bold uppercase border-border/70 bg-card/60 backdrop-blur-sm"
+                >
+                  <Timer size={11} /> {solution.timeComplexity}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="gap-1.5 px-3 py-1 text-[11px] font-bold uppercase border-border/70 bg-card/60 backdrop-blur-sm"
+                >
+                  <Database size={11} /> {solution.spaceComplexity}
+                </Badge>
+                {!curatedSolution && (
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-1 text-[11px] font-bold uppercase border-orange-400/40 bg-orange-400/10 text-orange-600 dark:text-orange-300"
+                  >
+                    Auto-generated
+                  </Badge>
+                )}
+              </div>
+
+              {/* Companies */}
+              {solution.companies.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  <Trophy size={13} className="text-primary" />
+                  <span>Asked at</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {solution.companies.map((company) => (
+                      <span
+                        key={company}
+                        className="px-2.5 py-0.5 rounded-md border border-border/50 bg-muted/40 text-[10px] font-semibold"
+                      >
+                        {company}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap md:justify-end">
+            {/* Action buttons */}
+            <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end lg:w-auto">
               <Link
                 to="/practice"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-card/80 backdrop-blur-sm text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-foreground border-border/50"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border"
               >
                 <ArrowLeft size={14} />
-                Back to Practice
+                Back
               </Link>
               <a
                 href={solution.leetcodeLink}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-card/80 backdrop-blur-sm text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-foreground border-border/50 group"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border group"
               >
                 <Github size={14} className="transition-transform group-hover:scale-110" />
                 LeetCode
@@ -185,243 +296,213 @@ export default function PracticeSolution() {
                 href={solution.gfgLink}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-card/80 backdrop-blur-sm text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-foreground border-border/50 group"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-border group"
               >
-                <ExternalLink size={12} className="transition-transform group-hover:scale-110" />
+                <ExternalLink size={13} className="transition-transform group-hover:scale-110" />
                 GeeksforGeeks
               </a>
             </div>
-          </motion.div>
+          </div>
+        </motion.header>
 
-          {/* Meta Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.4 }}
-            className="flex items-center gap-2 flex-wrap"
-          >
-            <Badge 
-              variant="outline" 
-              className={`text-[10px] font-black uppercase border gap-1.5 flex items-center ${difficultyClasses(solution.difficulty)}`}
-            >
-              {difficultyIcon(solution.difficulty)}
-              {solution.difficulty}
-            </Badge>
-            <Badge variant="outline" className="text-[10px] font-bold uppercase border-border/70 bg-card/80 backdrop-blur-sm">
-              <Zap size={10} className="mr-1" /> {solution.timeComplexity}
-            </Badge>
-            <Badge variant="outline" className="text-[10px] font-bold uppercase border-border/70 bg-card/80 backdrop-blur-sm">
-              <span className="mr-1">💾</span> {solution.spaceComplexity}
-            </Badge>
-            {!curatedSolution && (
-              <Badge variant="outline" className="text-[10px] font-bold uppercase border-orange-400/40 bg-orange-400/10 text-orange-700 dark:text-orange-300">
-                Auto-generated
-              </Badge>
-            )}
-          </motion.div>
-
-          {/* Companies */}
-          {solution.companies.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-              className="flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
-            >
-              <Trophy size={12} className="text-primary" />
-              <span>Asked at:</span>
-              {solution.companies.map((company, i) => (
-                <Badge key={company} variant="secondary" className="text-[9px] font-medium h-5 px-2.5 border-border/50 bg-muted/50 hover:bg-muted transition-colors">
-                  {company}
-                </Badge>
-              ))}
-            </motion.div>
-          )}
-        </motion.div>
-      </section>
-
-      {/* Complexity Cards */}
-      <section className="px-4 md:px-10 lg:px-16 pb-8 max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          <ComplexityCard 
-            icon={<Timer size={16} />} 
-            label="Time Complexity" 
+        {/* ---------------------------------------------------------- */}
+        {/* Complexity cards                                          */}
+        {/* ---------------------------------------------------------- */}
+        <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <ComplexityCard
+            icon={<Timer size={18} />}
+            label="Time"
             value={solution.timeComplexity}
-            color="blue"
+            tone="blue"
             delay={0}
           />
-          <ComplexityCard 
-            icon={<span className="text-[14px]">💾</span>} 
-            label="Space Complexity" 
+          <ComplexityCard
+            icon={<Database size={18} />}
+            label="Space"
             value={solution.spaceComplexity}
-            color="green"
-            delay={0.1}
+            tone="green"
+            delay={0.08}
           />
-          <ComplexityCard 
-            icon={<Zap size={16} />} 
-            label="Difficulty" 
+          <ComplexityCard
+            icon={<Gauge size={18} />}
+            label="Difficulty"
             value={solution.difficulty}
-            color={solution.difficulty === "Easy" ? "green" : solution.difficulty === "Medium" ? "yellow" : "red"}
-            delay={0.2}
+            tone={solution.difficulty === "Easy" ? "green" : solution.difficulty === "Medium" ? "amber" : "red"}
+            delay={0.16}
           />
-          <ComplexityCard 
-            icon={<Star size={16} />} 
-            label="Optimal Approach" 
+          <ComplexityCard
+            icon={<Star size={18} />}
+            label="Optimal"
             value="Yes"
-            color="purple"
-            delay={0.3}
+            tone="purple"
+            delay={0.24}
           />
-        </motion.div>
-      </section>
+        </section>
 
-      {/* Main Content */}
-      <section className="px-4 md:px-10 lg:px-16 pb-14 md:pb-20 max-w-7xl mx-auto space-y-8">
-        {/* Approach Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="lg:grid lg:grid-cols-5 lg:gap-6"
-        >
-          <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/80 backdrop-blur-sm lg:col-span-2 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/20" />
-            <CardHeader className="space-y-3 p-6 pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Sparkles size={24} className="text-primary" />
+        {/* ---------------------------------------------------------- */}
+        {/* Approach + Insights                                       */}
+        {/* ---------------------------------------------------------- */}
+        <section className="grid gap-6 lg:grid-cols-5">
+          {/* Approach */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="lg:col-span-2"
+          >
+            <Card className="relative h-full rounded-2xl border bg-gradient-to-br from-card to-card/60 backdrop-blur-sm overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary via-primary/40 to-transparent" />
+              <CardHeader className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Sparkles size={22} className="text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-black uppercase tracking-wide">
+                      Approach
+                    </CardTitle>
+                    <CardDescription className="text-xs font-medium">
+                      Step-by-step strategy
+                    </CardDescription>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-xl font-black uppercase tracking-wide">Solution Approach</CardTitle>
-                  <CardDescription className="text-sm font-medium">Step-by-step strategy for the optimal solution</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6 pb-6">
-              <ol className="space-y-4">
-                {solution.approach.map((step, index) => (
-                  <motion.li
-                    key={`${solution.problemId}-approach-${index}`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.7 + index * 0.1, duration: 0.4 }}
-                    className="flex gap-4 group relative"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 pt-1">
-                      <p className="text-foreground/90 leading-relaxed text-base">{step}</p>
-                    </div>
-                  </motion.li>
-                ))}
-              </ol>
-            </CardContent>
-          </Card>
-
-          {/* Key Insights Card */}
-          <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/80 backdrop-blur-sm lg:col-span-3 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500" />
-            <CardHeader className="space-y-3 p-6 pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <Zap size={24} className="text-green-500" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl font-black uppercase tracking-wide">Key Insights</CardTitle>
-                  <CardDescription className="text-sm font-medium">Critical observations for solving this problem</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6 pb-6">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <InsightCard 
-                  icon="🎯" 
-                  title="Pattern Recognition" 
-                  desc="Identify the core algorithmic pattern (two pointers, sliding window, DP, etc.)" 
-                />
-                <InsightCard 
-                  icon="⚡" 
-                  title="Optimal Complexity" 
-                  desc={`Achieves ${solution.timeComplexity} time and ${solution.spaceComplexity} space`} 
-                />
-                <InsightCard 
-                  icon="🔄" 
-                  title="Edge Cases" 
-                  desc="Handle empty arrays, single elements, all same values, and boundary conditions" 
-                />
-                <InsightCard 
-                  icon="💡" 
-                  title="Space Optimization" 
-                  desc="In-place modifications where possible to achieve O(1) extra space" 
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Code Solutions Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="lg:grid lg:grid-cols-5 lg:gap-6"
-        >
-          {/* Language Tabs Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="rounded-2xl border bg-gradient-to-b from-card to-card/80 backdrop-blur-sm sticky top-24 h-fit">
-              <CardHeader className="p-6 pb-3">
-                <CardTitle className="text-lg font-black uppercase tracking-wide flex items-center gap-2">
-                  <span className="text-[16px]">💻</span>
-                  Solutions
-                </CardTitle>
-                <CardDescription className="text-xs font-medium">Switch between languages</CardDescription>
               </CardHeader>
               <CardContent className="p-6 pt-0">
-                <div className="space-y-2" role="tablist">
-                  {(["java", "cpp", "python"] as const).map((lang) => (
+                <ol className="relative space-y-5 before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-px before:bg-border/60">
+                  {solution.approach.map((step, index) => (
+                    <motion.li
+                      key={`${solution.problemId}-step-${index}`}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + index * 0.08, duration: 0.35 }}
+                      className="relative flex gap-4"
+                    >
+                      <div className="z-10 flex-shrink-0 w-8 h-8 rounded-full bg-background border-2 border-primary/40 flex items-center justify-center text-primary font-bold text-xs">
+                        {index + 1}
+                      </div>
+                      <p className="pt-1 text-sm leading-relaxed text-foreground/90">{step}</p>
+                    </motion.li>
+                  ))}
+                </ol>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Insights */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="lg:col-span-3"
+          >
+            <Card className="relative h-full rounded-2xl border bg-gradient-to-br from-card to-card/60 backdrop-blur-sm overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 via-emerald-500/40 to-transparent" />
+              <CardHeader className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                    <Lightbulb size={22} className="text-emerald-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-black uppercase tracking-wide">
+                      Key Insights
+                    </CardTitle>
+                    <CardDescription className="text-xs font-medium">
+                      Critical observations
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <InsightCard
+                    icon={<Target size={16} />}
+                    title="Pattern"
+                    desc="Identify the core algorithmic pattern (two pointers, sliding window, DP, etc.)"
+                  />
+                  <InsightCard
+                    icon={<Zap size={16} />}
+                    title="Complexity"
+                    desc={`Achieves ${solution.timeComplexity} time and ${solution.spaceComplexity} space`}
+                  />
+                  <InsightCard
+                    icon={<Layers size={16} />}
+                    title="Edge Cases"
+                    desc="Handle empty inputs, single elements, duplicates, and boundary conditions"
+                  />
+                  <InsightCard
+                    icon={<Cpu size={16} />}
+                    title="Optimization"
+                    desc="In-place modifications where possible to reduce extra space usage"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </section>
+
+        {/* ---------------------------------------------------------- */}
+        {/* Code solutions                                            */}
+        {/* ---------------------------------------------------------- */}
+        <section className="grid gap-6 lg:grid-cols-5">
+          {/* Language sidebar */}
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="lg:col-span-1"
+          >
+            <Card className="rounded-2xl border bg-gradient-to-b from-card to-card/60 backdrop-blur-sm lg:sticky lg:top-24">
+              <CardHeader className="p-5 pb-3">
+                <CardTitle className="text-base font-black uppercase tracking-wide flex items-center gap-2">
+                  <Code2 size={18} className="text-primary" />
+                  Languages
+                </CardTitle>
+                <CardDescription className="text-xs">Pick a solution</CardDescription>
+              </CardHeader>
+              <CardContent className="p-5 pt-0 space-y-2">
+                {LANGUAGES.map((lang) => {
+                  const isActive = activeTab === lang.id;
+                  return (
                     <button
-                      key={lang}
-                      role="tab"
-                      aria-selected={activeTab === lang}
-                      onClick={() => setActiveTab(lang)}
-                      className={`w-full text-left p-4 rounded-xl transition-all duration-300 flex items-center gap-3 group ${
-                        activeTab === lang
-                          ? "bg-primary/10 border-primary/30 text-primary shadow-lg shadow-primary/10"
-                          : "bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-border"
+                      key={lang.id}
+                      onClick={() => setActiveTab(lang.id)}
+                      className={`w-full text-left p-3.5 rounded-xl transition-all duration-300 flex items-center gap-3 border ${
+                        isActive
+                          ? "bg-primary/10 border-primary/40 shadow-lg shadow-primary/10"
+                          : "bg-muted/20 border-border/40 hover:bg-muted/40 hover:border-border"
                       }`}
                     >
-                      <span className="text-2xl">{getLanguageIcon(lang)}</span>
-                      <span className="font-bold uppercase tracking-wider text-sm">{getLanguageLabel(lang)}</span>
-                      {activeTab === lang && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
+                      <span
+                        className={`w-9 h-9 rounded-lg bg-gradient-to-br ${lang.accent} flex items-center justify-center text-lg shadow-sm`}
+                      >
+                        {lang.icon}
+                      </span>
+                      <span className="font-bold uppercase tracking-wider text-sm">
+                        {lang.label}
+                      </span>
+                      {isActive && (
+                        <motion.span
+                          layoutId="lang-dot"
                           className="ml-auto w-2 h-2 rounded-full bg-primary"
                         />
                       )}
                     </button>
-                  ))}
-                </div>
-                
-                {/* Quick Actions */}
-                <div className="mt-6 pt-6 border-t border-border/50 space-y-2">
+                  );
+                })}
+
+                <div className="mt-5 pt-5 border-t border-border/40 space-y-2">
                   <button
                     onClick={() => handleCopy(getCodeForTab(activeTab), activeTab)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-muted/50 border border-border/50 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-muted/40 border border-border/50 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
                   >
                     {copied === activeTab ? (
                       <>
-                        <Check size={16} className="text-green-500" />
+                        <Check size={14} className="text-emerald-500" />
                         Copied!
                       </>
                     ) : (
                       <>
-                        <Copy size={16} />
+                        <Copy size={14} />
                         Copy Code
                       </>
                     )}
@@ -430,179 +511,193 @@ export default function PracticeSolution() {
                     href={solution.leetcodeLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border/50 bg-muted/30 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border/50 bg-muted/20 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
                   >
-                    <ExternalLink size={16} />
+                    <ExternalLink size={14} />
                     View on LeetCode
                   </a>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
-          {/* Code Display Area */}
-          <div className="lg:col-span-4">
-            <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/80 backdrop-blur-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-primary/5 via-transparent to-transparent px-6 py-4 border-b border-border/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-500/70" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-                      <div className="w-3 h-3 rounded-full bg-green-500/70" />
-                    </div>
-                    <span className="font-mono text-sm font-medium text-muted-foreground">{solution.title} - {getLanguageLabel(activeTab)}</span>
+          {/* Code display */}
+          <motion.div
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.55, duration: 0.5 }}
+            className="lg:col-span-4"
+          >
+            <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/60 backdrop-blur-sm overflow-hidden">
+              {/* Editor header */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/50 bg-muted/20">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-rose-500/70" />
+                    <span className="w-3 h-3 rounded-full bg-amber-500/70" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500/70" />
                   </div>
-                  <button
-                    onClick={() => handleCopy(getCodeForTab(activeTab), activeTab)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      copied === activeTab
-                        ? "bg-green-500/10 text-green-500 border-green-500/20"
-                        : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    {copied === activeTab ? (
-                      <>
-                        <Check size={12} className="text-green-500" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={12} />
-                        Copy
-                      </>
-                    )}
-                  </button>
+                  <span className="font-mono text-xs font-medium text-muted-foreground">
+                    {solution.title} · {activeLang.label}
+                  </span>
                 </div>
+                <button
+                  onClick={() => handleCopy(getCodeForTab(activeTab), activeTab)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                    copied === activeTab
+                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                      : "bg-muted/40 text-muted-foreground border-border/50 hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {copied === activeTab ? (
+                    <>
+                      <Check size={12} />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={12} />
+                      Copy
+                    </>
+                  )}
+                </button>
               </div>
-              <div className="p-6 min-h-[400px]">
+
+              {/* Code body */}
+              <div className="p-5 min-h-[420px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                    className="relative"
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
                   >
-                    <CodeBlock 
-                      title="" 
-                      language={activeTab} 
-                      code={getCodeForTab(activeTab)} 
-                    />
+                    <CodeBlock title="" language={activeTab} code={getCodeForTab(activeTab)} />
                   </motion.div>
                 </AnimatePresence>
               </div>
             </Card>
-          </div>
-        </motion.div>
+          </motion.div>
+        </section>
 
-        {/* Related Problems */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
-        >
-          <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/80 backdrop-blur-sm">
-            <CardHeader className="p-6 pb-3">
-              <CardTitle className="text-xl font-black uppercase tracking-wide flex items-center gap-2">
-                <BookOpen size={24} className="text-primary" />
-                Related Problems
-              </CardTitle>
-              <CardDescription className="text-sm font-medium">Practice similar problems to master this pattern</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 pt-0">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {solution.tags.slice(0, 6).map((tag, i) => (
-                  <Link
-                    key={tag}
-                    to={`/practice?tag=${tag.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="p-4 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted hover:border-primary/30 transition-all group"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
+        {/* ---------------------------------------------------------- */}
+        {/* Tags / Related                                            */}
+        {/* ---------------------------------------------------------- */}
+        {solution.tags.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65, duration: 0.5 }}
+          >
+            <Card className="rounded-2xl border bg-gradient-to-br from-card to-card/60 backdrop-blur-sm">
+              <CardHeader className="p-6 pb-3">
+                <CardTitle className="text-lg font-black uppercase tracking-wide flex items-center gap-2">
+                  <Hash size={18} className="text-primary" />
+                  Related Topics
+                </CardTitle>
+                <CardDescription className="text-xs font-medium">
+                  Practice similar problems to master this pattern
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {solution.tags.slice(0, 6).map((tag) => (
+                    <Link
+                      key={tag}
+                      to={`/practice?tag=${tag.toLowerCase().replace(/\s+/g, "-")}`}
+                      className="group p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 transition-all flex items-center gap-3"
+                    >
                       <span className="text-xl">{getTagIcon(tag)}</span>
-                      <span className="font-bold text-sm uppercase tracking-wide text-primary">{tag}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Explore {tag} problems</p>
-                    <ArrowLeft size={14} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-primary" />
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </section>
+                      <div className="flex-1">
+                        <div className="font-bold text-sm uppercase tracking-wide text-primary">
+                          {tag}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          Explore {tag} problems
+                        </div>
+                      </div>
+                      <ArrowRight
+                        size={14}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-primary"
+                      />
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.section>
+        )}
+      </div>
     </div>
   );
 }
 
-// Helper Components
-function ComplexityCard({ icon, label, value, color, delay }: { 
-  icon: React.ReactNode; 
-  label: string; 
-  value: string; 
-  color: string; 
+/* ------------------------------------------------------------------ */
+/* Sub-components                                                     */
+/* ------------------------------------------------------------------ */
+
+function ComplexityCard({
+  icon,
+  label,
+  value,
+  tone,
+  delay,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  tone: "blue" | "green" | "amber" | "red" | "purple";
   delay: number;
 }) {
-  const colorClasses = {
-    blue: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    green: "bg-green-500/10 text-green-500 border-green-500/20",
-    yellow: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    red: "bg-red-500/10 text-red-500 border-red-500/20",
-    purple: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  const tones: Record<string, string> = {
+    blue: "from-blue-500/15 to-blue-500/5 text-blue-500 border-blue-500/20",
+    green: "from-emerald-500/15 to-emerald-500/5 text-emerald-500 border-emerald-500/20",
+    amber: "from-amber-500/15 to-amber-500/5 text-amber-500 border-amber-500/20",
+    red: "from-rose-500/15 to-rose-500/5 text-rose-500 border-rose-500/20",
+    purple: "from-purple-500/15 to-purple-500/5 text-purple-500 border-purple-500/20",
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 + delay, duration: 0.4 }}
+      transition={{ delay, duration: 0.4 }}
     >
-      <Card className="rounded-2xl border bg-card/80 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 h-full">
-        <CardHeader className="pb-2">
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${colorClasses[color as keyof typeof colorClasses] || colorClasses.blue} w-fit`}>
-            {icon}
-            <CardDescription className="text-[10px] font-black uppercase tracking-widest">{label}</CardDescription>
+      <Card className="relative h-full rounded-2xl border bg-card/70 backdrop-blur-sm overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+        <div className={`absolute inset-0 bg-gradient-to-br ${tones[tone]} opacity-60`} />
+        <div className="relative p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center bg-background/60 border ${tones[tone]}`}>
+              {icon}
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              {label}
+            </span>
           </div>
-        </CardHeader>
-        <CardContent className="text-2xl md:text-3xl font-extrabold font-mono">
-          {value}
-        </CardContent>
+          <div className="text-xl md:text-2xl font-extrabold font-mono">{value}</div>
+        </div>
       </Card>
     </motion.div>
   );
 }
 
-function InsightCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+function InsightCard({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
   return (
-    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/20 hover:bg-muted/50 transition-all">
-      <div className="text-2xl mb-2">{icon}</div>
-      <h4 className="font-bold text-sm uppercase tracking-wide mb-1">{title}</h4>
+    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 hover:border-primary/20 hover:bg-muted/40 transition-all">
+      <div className="flex items-center gap-2 mb-2 text-primary">
+        {icon}
+        <h4 className="font-bold text-xs uppercase tracking-wide">{title}</h4>
+      </div>
       <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
     </div>
   );
-}
-
-function getTagIcon(tag: string): string {
-  const icons: Record<string, string> = {
-    "Array": "📊",
-    "Hash Table": "🔑",
-    "String": "📝",
-    "Two Pointers": "↔️",
-    "Sliding Window": "🪟",
-    "Sorting": "🔄",
-    "Stack": "📚",
-    "Monotonic Stack": "📈",
-    "Linked List": "🔗",
-    "Dynamic Programming": "🎯",
-    "Greedy": "⚡",
-    "Binary Search": "🔍",
-    "Tree": "🌳",
-    "Graph": "🕸️",
-    "Heap": "🏔️",
-    "Design": "🎨",
-    "Matrix": "⬜",
-    "Bit Manipulation": "🔢",
-  };
-  return icons[tag] || "📌";
 }
