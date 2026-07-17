@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
+import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
 import { AppTooltip } from "@/components/ui/tooltip";
 
 type CelebrationParticle = {
@@ -51,7 +52,7 @@ export default function Practice() {
   const [savingNotesFor, setSavingNotesFor] = useState<Record<string, boolean>>({});
   const [savedNotesFor, setSavedNotesFor] = useState<Record<string, boolean>>({});
   const [openSubtopicId, setOpenSubtopicId] = useState<string | null>(null);
-  const [activeNotesProblem, setActiveNotesProblem] = useState<{ id: string; title: string } | null>(null);
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [celebrationBursts, setCelebrationBursts] = useState<CelebrationBurst[]>([]);
   const celebrationIdRef = useRef(0);
@@ -275,10 +276,10 @@ export default function Practice() {
     }, 1300);
   };
 
-  const openNotesPopup = (id: string, title: string) => {
+  const openNotesPopup = (id: string, _title: string) => {
     setNoteDraft(notesByProblem[id] ?? "");
     setSavedNotesFor((prev) => ({ ...prev, [id]: false }));
-    setActiveNotesProblem({ id, title });
+    setActiveNoteId(id);
   };
 
   const getDifficultyColor = (diff: string) => {
@@ -554,73 +555,20 @@ export default function Practice() {
       </div>
 
       <AnimatePresence>
-        {activeNotesProblem && (
-          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4">
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-xl" onClick={() => setActiveNotesProblem(null)} />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-2xl bg-card border border-border/50 rounded-[40px] overflow-hidden p-8 md:p-10 space-y-6"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0 space-y-1">
-                  <h2 className="text-2xl font-black uppercase">Study Note</h2>
-                  <p className="truncate text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
-                    {activeNotesProblem.title}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveNotesProblem(null)}
-                  className="p-3 rounded-2xl bg-muted/30 hover:bg-muted text-muted-foreground transition-all"
-                  aria-label="Close notes"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="bg-muted/20 rounded-[24px] p-4">
-                <RichTextNoteEditor
-                  value={noteDraft}
-                  onChange={(value) => {
-                    setNoteDraft(value);
-                    setSavedNotesFor((prev) => ({ ...prev, [activeNotesProblem.id]: false }));
-                  }}
-                  placeholder="Add your personal notes for this problem..."
-                  rows={10}
-                  autoFocus
-                />
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setActiveNotesProblem(null)}
-                  className="px-6 py-3 rounded-xl uppercase font-black text-[10px]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void saveNotes(activeNotesProblem.id, noteDraft)}
-                  disabled={savingNotesFor[activeNotesProblem.id] ?? false}
-                  className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-primary text-primary-foreground uppercase font-black text-[10px] disabled:opacity-60"
-                >
-                  {(savingNotesFor[activeNotesProblem.id] ?? false)
-                    ? <Loader2 size={14} className="animate-spin" />
-                    : (savedNotesFor[activeNotesProblem.id] ?? false)
-                      ? <CheckCircle2 size={14} />
-                      : <Save size={14} />}
-                  {(savingNotesFor[activeNotesProblem.id] ?? false)
-                    ? "Saving..."
-                    : (savedNotesFor[activeNotesProblem.id] ?? false)
-                      ? "Saved"
-                      : "Save Note"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
+        {activeNoteId && (
+          <DraggableNoteEditor
+            questionTitle={
+              practiceData
+                .flatMap((t) => t.subtopics)
+                .flatMap((s) => s.problems)
+                .find((p) => p.id === activeNoteId)?.title ?? "Note"
+            }
+            value={noteDraft}
+            onChange={setNoteDraft}
+            onClose={() => setActiveNoteId(null)}
+            onSave={() => void saveNotes(activeNoteId, noteDraft)}
+            isSaving={savingNotesFor[activeNoteId] ?? false}
+          />
         )}
       </AnimatePresence>
     </div>
