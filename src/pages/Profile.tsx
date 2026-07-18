@@ -1021,7 +1021,7 @@ export default function Profile() {
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
-              <div ref={dsaCardRef} className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1 overflow-hidden">
+              <div ref={dsaCardRef} className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1">
                 <div className="flex flex-col items-start gap-4 w-full mb-8 relative z-10">
                   <h3 className="text-[16px] font-bold tracking-wide text-foreground/90 shrink-0">
                     DSA Progress
@@ -1029,7 +1029,7 @@ export default function Profile() {
 
                   {/* ── Adaptive toggle: inline pills when wide, dropdown when narrow ── */}
                   {isNarrowDsa ? (
-                    <div className="relative w-full" ref={dsaDropdownRef}>
+                    <div className="relative w-full z-20" ref={dsaDropdownRef}>
                       <button
                         onClick={() => setDsaDropdownOpen((p) => !p)}
                         className="flex items-center justify-between w-full px-3 py-2 bg-muted rounded-xl border border-border/50 shadow-inner text-[12px] font-semibold text-foreground transition-all hover:bg-muted/80"
