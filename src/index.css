@@ -5,15 +5,15 @@
 @tailwind utilities;
 @layer base {
   :root {
-    /* ── Day Mode: Warm Cream & Coral ── */
-    --background: 40 55% 93%;
-    --foreground: 25 40% 12%;
+    /* ── Day Mode: Neutral Light ── */
+    --background: 210 20% 98%; /* #f9fafb */
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 38 60% 97%;
-    --card-foreground: 25 40% 12%;
+    --card: 0 0% 100%; /* white */
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 38 60% 97%;
-    --popover-foreground: 25 40% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
     --primary: 18 78% 58%;
     --primary-foreground: 25 40% 12%; /* changed to dark for better visibility on orange primary */
@@ -22,7 +22,7 @@
     --secondary-foreground: 25 40% 18%;
 
     --muted: 36 42% 87%;
-    --muted-foreground: 28 25% 42%;
+    --muted-foreground: 215 16% 47%;
 
     --accent: 43 95% 55%;
     --accent-foreground: 25 40% 12%;
@@ -36,12 +36,12 @@
 
     --radius: 0.375rem;
 
-    --sidebar-background: 36 48% 90%;
-    --sidebar-foreground: 25 40% 18%;
+    --sidebar-background: 210 20% 96%;
+    --sidebar-foreground: 222.2 84% 4.9%;
     --sidebar-primary: 18 78% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 28 30% 68%;
-    --sidebar-accent-foreground: 25 40% 12%;
+    --sidebar-accent: 210 20% 90%;
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
     --sidebar-border: 28 30% 60%;
     --sidebar-ring: 18 78% 58%;
 
@@ -52,22 +52,22 @@
     --info: 210 80% 52%;
     --heap: 320 65% 52%;
 
-    --code-bg: 38 55% 96%;
-    --code-border: 28 30% 65%;
-    --code-header: 36 42% 90%;
+    --code-bg: 210 20% 96%;
+    --code-border: 210 20% 88%;
+    --code-header: 210 20% 92%;
 
     --gradient-primary: hsl(18 78% 58%);
     --gradient-accent: hsl(43 95% 55%);
     --gradient-hero: transparent;
-    --gradient-card: hsl(38 60% 97%);
-    --gradient-sidebar: hsl(36 48% 90%);
+    --gradient-card: hsl(0 0% 100%);
+    --gradient-sidebar: hsl(210 20% 96%);
 
-    --reading-surface: 42 60% 98%;
-    --reading-foreground: 24 45% 9%;
-    --reading-heading: 24 45% 9%;
-    --reading-body: 24 45% 18%;
+    --reading-surface: 0 0% 100%;
+    --reading-foreground: 222.2 84% 4.9%;
+    --reading-heading: 222.2 84% 4.9%;
+    --reading-body: 222.2 84% 4.9%;
     --reading-highlight: 18 78% 58%;
-    --reading-muted: 28 22% 32%;
+    --reading-muted: 215 16% 47%;
     --reading-border: 30 28% 66%;
 
     --shadow-glow: none;

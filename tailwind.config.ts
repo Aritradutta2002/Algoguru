@@ -17,6 +17,18 @@ export default {
         display: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
       },
       colors: {
+        category: {
+          dsa: "#F4A396",
+          interview: "#9BE2C3",
+          core: "#A8A4F5",
+          system: "#99C2F8",
+          playlist: "#FCBA7C",
+        },
+        accentLine: {
+          system: "#10B981",
+          playlist: "#F87171",
+          core: "#A855F7",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

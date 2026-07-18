@@ -8,58 +8,68 @@ import {
 const SECTIONS = [
   {
     id: "java",
-    title: "Core Java",
-    subtitle: "From basics to JVM",
-    desc: "Complete Java from fundamentals through advanced topics like Multithreading, Streams, and internal JVM architecture.",
+    title: "Core CS Subjects",
+    subtitle: "From basics to OS",
+    desc: "Complete CS from fundamentals through advanced topics like OS, DBMS, Networks, and Multithreading.",
     icon: <Coffee size={24} />,
-    color: "hsl(var(--primary))",
-    tag: "Language",
+    color: "#A8A4F5",
+    tag: "Core CS",
+    pillClass: "bg-category-core text-gray-900 border-transparent",
+    accentClass: "border-accentLine-core group-hover:text-accentLine-core",
     route: "/java-basics",
     stats: "9 Full Modules",
   },
   {
     id: "interview",
-    title: "Data Structure",
+    title: "DSA Sheets",
     subtitle: "Land FAANG roles",
     desc: "Curated top-company DSA questions, system design patterns, and behavioral frameworks to crush technical interviews.",
     icon: <Target size={24} />,
-    color: "hsl(var(--accent))",
-      tag: "Most Popular",
-      route: "/arrays",
+    color: "#F4A396",
+    tag: "DSA Sheets",
+    pillClass: "bg-category-dsa text-gray-900 border-transparent",
+    accentClass: "border-[#F4A396] group-hover:text-category-dsa",
+    route: "/arrays",
     stats: "500+ Questions",
   },
   {
     id: "codechef",
-    title: "Practice",
-    subtitle: "DSA Pattern Sheet",
+    title: "DSA Playlist",
+    subtitle: "Pattern-based mastery",
     desc: "A curated collection of essential coding interview problems categorized by sub-patterns and topics.",
-    icon: <Trophy size={24} />,
-    color: "hsl(var(--info))",
-    tag: "Advanced",
+    icon: <Code2 size={24} />,
+    color: "#FCBA7C",
+    tag: "Playlist",
+    pillClass: "bg-category-playlist text-gray-900 border-transparent",
+    accentClass: "border-accentLine-playlist group-hover:text-accentLine-playlist",
     route: "/practice",
     stats: "Pattern Wise Problems",
   },
   {
     id: "leetcode",
-    title: "Solutions",
-    subtitle: "Pattern-based mastery",
-    desc: "Learn the 15 core algorithmic patterns to solve any LeetCode problem without pure memorization.",
-    icon: <Code2 size={24} />,
-    color: "hsl(var(--destructive))",
-    tag: "Trending",
+    title: "System Design",
+    subtitle: "Scale to millions",
+    desc: "Learn system design patterns to build scalable architectures and crush your interviews.",
+    icon: <BrainCircuit size={24} />,
+    color: "#99C2F8",
+    tag: "System Design",
+    pillClass: "bg-category-system text-gray-900 border-transparent",
+    accentClass: "border-accentLine-system group-hover:text-accentLine-system",
     route: "/practice-arrays",
-    stats: "300+ Problems",
+    stats: "4 Learning Paths",
   },
   {
     id: "interview-prep",
-    title: "Interview",
+    title: "Interview Experience",
     subtitle: "Guided preparation",
-    desc: "Choose your language and follow a structured interview roadmap across DSA, core concepts, system design, and SQL.",
-    icon: <BrainCircuit size={24} />,
-    color: "hsl(var(--primary))",
-    tag: "Interview Prep",
+    desc: "Real insights from candidates who recently interviewed at top tech companies. Learn what to expect.",
+    icon: <Trophy size={24} />,
+    color: "#9BE2C3",
+    tag: "Experiences",
+    pillClass: "bg-category-interview text-gray-900 border-transparent",
+    accentClass: "border-[#9BE2C3] group-hover:text-category-interview",
     route: "/interview",
-    stats: "4 Learning Paths",
+    stats: "Real Stories",
   },
 ];
 
@@ -129,7 +139,7 @@ export default function Index() {
                 onClick={() => {
                   document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
+                className="bg-[#F3F4F6] text-[#111827] px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg transition-all hover:bg-[#E5E7EB]"
               >
                 Start Learning
               </motion.button>
@@ -205,14 +215,14 @@ export default function Index() {
                   >
                     {sec.icon}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted border text-muted-foreground">
+                  <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${sec.pillClass || "bg-muted text-muted-foreground"}`}>
                     {sec.tag}
                   </span>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1">
-                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">
+                  <h3 className={`text-xl md:text-2xl font-black uppercase tracking-tight mb-3 transition-colors ${sec.accentClass ? `border-l-4 pl-3 ${sec.accentClass}` : 'group-hover:text-primary'}`}>
                     {sec.title}
                   </h3>
                   <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
