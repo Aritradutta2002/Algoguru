@@ -134,6 +134,7 @@ export default function Profile() {
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const dsaCardRef = useRef<HTMLDivElement>(null);
   const [isNarrowDsa, setIsNarrowDsa] = useState(false);
 
