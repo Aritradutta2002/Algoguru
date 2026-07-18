@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { coreJavaInterviewTopics } from "@/data/coreJavaInterviewData";
 import { practiceData } from "@/data/practiceData";
+import { systemDesignTopics } from "@/data/systemDesignInterviewData";
 import { toast } from "@/hooks/use-toast";
 import {
   Loader2,
@@ -28,7 +29,7 @@ import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppTooltip } from "@/components/ui/tooltip";
 
-type NoteSource = "core-java" | "practice";
+type NoteSource = "core-java" | "practice" | "system-design";
 
 interface NoteEntry {
   source: NoteSource;
@@ -52,7 +53,7 @@ const parseNoteKey = (key: string): { source: NoteSource; questionId: string } |
   if (parts.length < 2) return null;
   const source = parts[0];
   const questionId = parts.slice(1).join(":");
-  if ((source !== "core-java" && source !== "practice") || !questionId) return null;
+  if ((source !== "core-java" && source !== "practice" && source !== "system-design") || !questionId) return null;
   return { source, questionId };
 };
 
@@ -120,6 +121,20 @@ export default function NotesDashboard() {
     return map;
   }, []);
 
+  const systemDesignQuestionsById = useMemo(() => {
+    const map = new Map<string, { question: string; topicId: string; topicTitle: string }>();
+    for (const topic of systemDesignTopics) {
+      for (const question of topic.questions) {
+        map.set(question.id, {
+          question: question.question,
+          topicId: topic.id,
+          topicTitle: topic.title,
+        });
+      }
+    }
+    return map;
+  }, []);
+
   const getNoteMeta = useCallback(
     (entry: NoteEntry) => {
       if (entry.source === "practice") {
@@ -135,6 +150,18 @@ export default function NotesDashboard() {
         };
       }
 
+      if (entry.source === "system-design") {
+        const sd = systemDesignQuestionsById.get(entry.questionId);
+        return {
+          title: sd?.question ?? entry.questionId,
+          topic: sd?.topicTitle ?? "System Design",
+          topicTag: sd?.topicTitle ?? "System Design",
+          sourceLabel: "System Design",
+          contextPath: "/interview/java/system-design",
+          contextCta: "View Context",
+        };
+      }
+
       const core = coreQuestionsById.get(entry.questionId);
       return {
         title: core?.question ?? entry.questionId,
@@ -145,7 +172,7 @@ export default function NotesDashboard() {
         contextCta: "View Context",
       };
     },
-    [coreQuestionsById, practiceProblemsById]
+    [coreQuestionsById, practiceProblemsById, systemDesignQuestionsById]
   );
 
   // Load notes from Supabase
@@ -158,7 +185,7 @@ export default function NotesDashboard() {
 
     setNotesLoading(true);
 
-    const [coreResult, practiceResult] = await Promise.all([
+    const [coreResult, practiceResult, systemDesignResult] = await Promise.all([
       supabase
         .from("core_java_user_state")
         .select("question_id, notes, is_completed, updated_at")
@@ -166,6 +193,10 @@ export default function NotesDashboard() {
       supabase
         .from("practice_problem_user_state")
         .select("problem_id, notes, is_completed, updated_at")
+        .eq("user_id", user.id),
+      supabase
+        .from("system_design_user_state")
+        .select("question_id, notes, is_completed, updated_at")
         .eq("user_id", user.id),
     ]);
 
@@ -175,11 +206,14 @@ export default function NotesDashboard() {
     if (practiceResult.error) {
       toast({ title: "Load failed", description: practiceResult.error.message, variant: "destructive" });
     }
+    if (systemDesignResult.error) {
+      toast({ title: "Load failed", description: systemDesignResult.error.message, variant: "destructive" });
+    }
 
     const coreEntries: NoteEntry[] = (coreResult.data ?? [])
       .filter((row) => row.notes && row.notes.trim())
       .map((row) => ({
-        source: "core-java",
+        source: "core-java" as NoteSource,
         questionId: row.question_id,
         notes: row.notes,
         isCompleted: row.is_completed,
@@ -189,15 +223,25 @@ export default function NotesDashboard() {
     const practiceEntries: NoteEntry[] = (practiceResult.data ?? [])
       .filter((row) => row.notes && row.notes.trim())
       .map((row) => ({
-        source: "practice",
+        source: "practice" as NoteSource,
         questionId: row.problem_id,
         notes: row.notes,
         isCompleted: row.is_completed,
         updatedAt: row.updated_at,
       }));
 
+    const systemDesignEntries: NoteEntry[] = (systemDesignResult.data ?? [])
+      .filter((row) => row.notes && row.notes.trim())
+      .map((row) => ({
+        source: "system-design" as NoteSource,
+        questionId: row.question_id,
+        notes: row.notes,
+        isCompleted: row.is_completed,
+        updatedAt: row.updated_at,
+      }));
+
     setNotesData(
-      [...coreEntries, ...practiceEntries].sort(
+      [...coreEntries, ...practiceEntries, ...systemDesignEntries].sort(
         (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       )
     );
@@ -237,6 +281,18 @@ export default function NotesDashboard() {
           loadNotes();
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "system_design_user_state",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          loadNotes();
+        }
+      )
       .subscribe();
 
     return () => {
@@ -249,7 +305,12 @@ export default function NotesDashboard() {
     const noteId = makeNoteKey(entry.source, entry.questionId);
     setDeletingId(noteId);
 
-    const table = entry.source === "practice" ? "practice_problem_user_state" : "core_java_user_state";
+    const table =
+      entry.source === "practice"
+        ? "practice_problem_user_state"
+        : entry.source === "system-design"
+          ? "system_design_user_state"
+          : "core_java_user_state";
     const idColumn = entry.source === "practice" ? "problem_id" : "question_id";
 
     const { error } = await supabase
@@ -300,7 +361,12 @@ export default function NotesDashboard() {
     const trimmed = noteDraft.trim();
     setSavingNoteId(activeNoteId);
 
-    const table = parsed.source === "practice" ? "practice_problem_user_state" : "core_java_user_state";
+    const table =
+      parsed.source === "practice"
+        ? "practice_problem_user_state"
+        : parsed.source === "system-design"
+          ? "system_design_user_state"
+          : "core_java_user_state";
     const idColumn = parsed.source === "practice" ? "problem_id" : "question_id";
 
     const { error } = await supabase
@@ -360,6 +426,8 @@ export default function NotesDashboard() {
       result = result.filter((n) => n.source === "practice");
     } else if (filterTopic === "core-java") {
       result = result.filter((n) => n.source === "core-java");
+    } else if (filterTopic === "system-design") {
+      result = result.filter((n) => n.source === "system-design");
     } else if (filterTopic !== "all") {
       const topicQuestionIds = coreJavaInterviewTopics.find((t) => t.id === filterTopic)?.questions.map((q) => q.id) ?? [];
       result = result.filter((n) => n.source === "core-java" && topicQuestionIds.includes(n.questionId));
@@ -618,6 +686,13 @@ export default function NotesDashboard() {
                 <StickyNote size={14} />
                 Add Practice Notes
               </button>
+              <button
+                onClick={() => navigate("/interview/java/system-design")}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+              >
+                <StickyNote size={14} />
+                Add System Design Notes
+              </button>
             </div>
           </motion.div>
         </div>
@@ -646,6 +721,7 @@ export default function NotesDashboard() {
               <option value="all">All Notes</option>
               <option value="practice">Practice</option>
               <option value="core-java">Interview (Core Java)</option>
+              <option value="system-design">Interview (System Design)</option>
               {coreJavaInterviewTopics.map((t) => (
                 <option key={t.id} value={t.id}>{t.title}</option>
               ))}

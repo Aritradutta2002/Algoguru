@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { practiceData } from "../data/practiceData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Loader2, Notebook, Save, TrendingUp, X } from "lucide-react";
+import { CheckCircle2, Loader2, Notebook, Save, StickyNote, TrendingUp, X } from "lucide-react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -484,14 +484,15 @@ export default function Practice() {
                                         type="button"
                                         onClick={() => openNotesPopup(prob.id, prob.title)}
                                         disabled={isSavingNotes}
-                                        className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-60 ${
+                                        aria-label={hasNotes ? "Edit note" : "Add note"}
+                                        className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all disabled:opacity-60 ${
                                           hasNotes
-                                            ? "border-primary/30 bg-primary/10 text-primary"
-                                            : "border-border/50 bg-muted/30 hover:bg-muted text-muted-foreground"
+                                            ? "bg-warning/15 text-warning hover:bg-warning/25"
+                                            : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                                         }`}
                                       >
-                                        {isSavingNotes ? <Loader2 size={12} className="animate-spin" /> : <Notebook size={12} />}
-                                        {hasNotes ? "View Note" : "Add Note"}
+                                        {isSavingNotes ? <Loader2 size={15} className="animate-spin" /> : <StickyNote size={15} />}
+                                        {hasNotes ? "Edit Note" : "Add Note"}
                                       </button>
 
                                       <button
