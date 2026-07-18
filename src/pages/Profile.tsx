@@ -1046,11 +1046,15 @@ export default function Profile() {
                         />
                       </button>
                       {dsaDropdownOpen && (
-                        <div className="absolute top-full left-0 mt-1.5 w-full bg-popover border border-border/50 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        <div
+                          className="absolute top-full left-0 mt-1.5 w-full bg-popover border border-border/50 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
                           {(["website", "leetcode", "codechef"] as const).map((mode) => (
                             <button
                               key={mode}
-                              onClick={() => {
+                              onMouseDown={(e) => {
+                                e.preventDefault();
                                 handleModeToggle(mode);
                                 setDsaDropdownOpen(false);
                               }}
