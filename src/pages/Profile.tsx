@@ -992,20 +992,20 @@ export default function Profile() {
         ) : (
           <div className="space-y-6 animate-in fade-in zoom-in-95">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
-              <div className="bg-[#1C1C1C] text-white rounded-2xl p-6 border border-white/5 shadow-2xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1 overflow-hidden">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1 overflow-hidden">
                 <div className="flex flex-col items-start gap-4 w-full mb-8 relative z-10">
-                  <h3 className="text-[16px] font-bold tracking-wide text-white/90 shrink-0">
+                  <h3 className="text-[16px] font-bold tracking-wide text-foreground/90 shrink-0">
                     DSA Progress
                   </h3>
 
-                  <div className="flex p-1 bg-[#252525] rounded-full min-w-0 border border-white/5 shadow-inner">
+                  <div className="flex p-1 bg-muted rounded-full min-w-0 border border-border/50 shadow-inner">
                     <button
                       onClick={() => handleModeToggle("website")}
                       className={cn(
                         "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "website"
-                          ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
-                          : "text-white/40 hover:text-white/80 border border-transparent",
+                          ? "bg-background text-foreground shadow-sm border border-border"
+                          : "text-muted-foreground hover:text-foreground border border-transparent",
                       )}
                     >
                       Algoguru
@@ -1015,8 +1015,8 @@ export default function Profile() {
                       className={cn(
                         "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "leetcode"
-                          ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
-                          : "text-white/40 hover:text-white/80 border border-transparent",
+                          ? "bg-background text-foreground shadow-sm border border-border"
+                          : "text-muted-foreground hover:text-foreground border border-transparent",
                       )}
                     >
                       LeetCode
@@ -1026,8 +1026,8 @@ export default function Profile() {
                       className={cn(
                         "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
                         dataMode === "codechef"
-                          ? "bg-[#3A2D28] text-[#D0C1B0] shadow-sm border border-white/10"
-                          : "text-white/40 hover:text-white/80 border border-transparent",
+                          ? "bg-background text-foreground shadow-sm border border-border"
+                          : "text-muted-foreground hover:text-foreground border border-transparent",
                       )}
                     >
                       CodeChef
@@ -1038,7 +1038,7 @@ export default function Profile() {
                 {(isLeetcodeLoading && dataMode === "leetcode") ||
                 (isCodechefLoading && dataMode === "codechef") ? (
                   <div className="flex-1 flex items-center justify-center relative z-10">
-                    <Loader2 className="animate-spin text-white/40 w-8 h-8" />
+                    <Loader2 className="animate-spin text-muted-foreground/40 w-8 h-8" />
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center gap-10 mt-2 relative z-10">
@@ -1090,19 +1090,19 @@ export default function Profile() {
                           })}
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-[28px] font-semibold text-white tracking-tight leading-none mb-1">
+                        <span className="text-[28px] font-semibold text-foreground tracking-tight leading-none mb-1">
                           {currentTotalSolved}
                         </span>
                         {dataMode !== "codechef" && (
                            <>
-                             <div className="w-8 h-[1px] bg-white/20 my-1" />
-                             <span className="text-[12px] font-medium text-white/50 tracking-wider">
+                             <div className="w-8 h-[1px] bg-border my-1" />
+                             <span className="text-[12px] font-medium text-muted-foreground tracking-wider">
                                {currentTotalQuestions}
                              </span>
                            </>
                         )}
                         {dataMode === "codechef" && (
-                          <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest mt-1">
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-1">
                             Rating
                           </span>
                         )}
@@ -1127,11 +1127,11 @@ export default function Profile() {
                               )}
                             >
                               <div className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: segment.stroke, color: segment.stroke }} />
-                              <span className="text-xs text-white/60 font-medium">
+                              <span className="text-xs text-muted-foreground font-medium">
                                 {segment.label}
                               </span>
-                              <span className="text-xs text-white/90 font-semibold">
-                                {segment.value}<span className="text-white/30">/{segment.total}</span>
+                              <span className="text-xs text-foreground font-semibold">
+                                {segment.value}<span className="text-muted-foreground/50">/{segment.total}</span>
                               </span>
                             </div>
                           );
@@ -1143,18 +1143,18 @@ export default function Profile() {
                       <div className="flex flex-row flex-wrap justify-center w-full gap-8 mt-2">
                         <div className="flex items-center gap-2">
                            <div className="w-2 h-2 rounded-full bg-[#eab308]" />
-                           <span className="text-xs text-white/60 font-medium">Stars</span>
+                           <span className="text-xs text-muted-foreground font-medium">Stars</span>
                            <span className="text-xs text-[#eab308] font-semibold">{codechefData?.stars || "N/A"}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-white/40" />
-                           <span className="text-xs text-white/60 font-medium">Global</span>
-                           <span className="text-xs text-white/90 font-semibold">{codechefData?.globalRank || "-"}</span>
+                           <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />
+                           <span className="text-xs text-muted-foreground font-medium">Global</span>
+                           <span className="text-xs text-foreground font-semibold">{codechefData?.globalRank || "-"}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-white/40" />
-                           <span className="text-xs text-white/60 font-medium">Country</span>
-                           <span className="text-xs text-white/90 font-semibold">{codechefData?.countryRank || "-"}</span>
+                           <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />
+                           <span className="text-xs text-muted-foreground font-medium">Country</span>
+                           <span className="text-xs text-foreground font-semibold">{codechefData?.countryRank || "-"}</span>
                         </div>
                       </div>
                     )}
