@@ -134,11 +134,8 @@ export default function Profile() {
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const dsaCardRef = useRef<HTMLDivElement>(null);
   const [isNarrowDsa, setIsNarrowDsa] = useState(false);
-  const [dsaDropdownOpen, setDsaDropdownOpen] = useState(false);
-  const dsaDropdownRef = useRef<HTMLDivElement>(null);
 
   // Platform State
   const [dataMode, setDataMode] = useState<"website" | "leetcode" | "codechef">(
@@ -181,17 +178,6 @@ export default function Profile() {
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
-
-  // ── Close DSA dropdown on outside click ──
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (dsaDropdownRef.current && !dsaDropdownRef.current.contains(e.target as Node)) {
-        setDsaDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   // Initial load for LeetCode if available
@@ -1029,47 +1015,20 @@ export default function Profile() {
 
                   {/* ── Adaptive toggle: inline pills when wide, dropdown when narrow ── */}
                   {isNarrowDsa ? (
-                    <div className="relative w-full z-20" ref={dsaDropdownRef}>
-                      <button
-                        onClick={() => setDsaDropdownOpen((p) => !p)}
-                        className="flex items-center justify-between w-full px-3 py-2 bg-muted rounded-xl border border-border/50 shadow-inner text-[12px] font-semibold text-foreground transition-all hover:bg-muted/80"
+                    <div className="relative w-full z-20">
+                      <select
+                        value={dataMode}
+                        onChange={(e) => handleModeToggle(e.target.value as "website" | "leetcode" | "codechef")}
+                        className="appearance-none w-full px-3 py-2 bg-muted rounded-xl border border-border/50 shadow-inner text-[12px] font-semibold text-foreground transition-all hover:bg-muted/80 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
                       >
-                        <span>
-                          {dataMode === "website" ? "Algoguru" : dataMode === "leetcode" ? "LeetCode" : "CodeChef"}
-                        </span>
-                        <ChevronDown
-                          size={14}
-                          className={cn(
-                            "text-muted-foreground transition-transform duration-200",
-                            dsaDropdownOpen && "rotate-180",
-                          )}
-                        />
-                      </button>
-                      {dsaDropdownOpen && (
-                        <div
-                          className="absolute top-full left-0 mt-1.5 w-full bg-popover border border-border/50 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-                          onMouseDown={(e) => e.stopPropagation()}
-                        >
-                          {(["website", "leetcode", "codechef"] as const).map((mode) => (
-                            <button
-                              key={mode}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleModeToggle(mode);
-                                setDsaDropdownOpen(false);
-                              }}
-                              className={cn(
-                                "w-full text-left px-4 py-2.5 text-[12px] font-semibold transition-all",
-                                dataMode === mode
-                                  ? "text-foreground bg-muted/70"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
-                              )}
-                            >
-                              {mode === "website" ? "Algoguru" : mode === "leetcode" ? "LeetCode" : "CodeChef"}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                        <option value="website">Algoguru</option>
+                        <option value="leetcode">LeetCode</option>
+                        <option value="codechef">CodeChef</option>
+                      </select>
+                      <ChevronDown
+                        size={14}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                      />
                     </div>
                   ) : (
                     <div className="flex p-1 bg-muted rounded-full min-w-0 border border-border/50 shadow-inner">
