@@ -55,58 +55,71 @@ const normalizeCalendarDateKey = (dateKey: string) => {
   return dateKeyFromDate(parsedDate);
 };
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Intensity color palettes — each entry has BOTH a light-mode and dark-mode
+   class so Tailwind's `dark:` variant handles the switch automatically.
+   Index 0 = no activity, 1‒5 = increasing intensity.
+   ────────────────────────────────────────────────────────────────────────── */
 const MODE_INTENSITY_COLORS: Record<HeatmapMode, string[]> = {
   website: [
-    "bg-muted/80 dark:bg-[#202020]",
-    "bg-emerald-200 dark:bg-emerald-950/80",
-    "bg-emerald-300 dark:bg-emerald-800/85",
-    "bg-emerald-400 dark:bg-emerald-600/85",
-    "bg-emerald-500 dark:bg-emerald-500/90",
-    "bg-emerald-600 dark:bg-emerald-400",
+    /* 0 */ "bg-stone-200/70 dark:bg-[#1a1f1a]",
+    /* 1 */ "bg-emerald-200/80 dark:bg-emerald-900/60",
+    /* 2 */ "bg-emerald-300/90 dark:bg-emerald-800/70",
+    /* 3 */ "bg-emerald-400 dark:bg-emerald-600/80",
+    /* 4 */ "bg-emerald-500 dark:bg-emerald-500/90",
+    /* 5 */ "bg-emerald-600 dark:bg-emerald-400",
   ],
   leetcode: [
-    "bg-muted/80 dark:bg-[#202020]",
-    "bg-amber-200 dark:bg-[#3a2812]/80",
-    "bg-amber-300 dark:bg-[#70470f]/85",
-    "bg-amber-400 dark:bg-[#b36a08]/90",
-    "bg-amber-500 dark:bg-[#f59e0b]/90",
-    "bg-amber-600 dark:bg-[#fbbf24]",
+    /* 0 */ "bg-stone-200/70 dark:bg-[#1f1a14]",
+    /* 1 */ "bg-amber-200/80 dark:bg-amber-900/50",
+    /* 2 */ "bg-amber-300/90 dark:bg-amber-800/60",
+    /* 3 */ "bg-amber-400 dark:bg-amber-600/70",
+    /* 4 */ "bg-amber-500 dark:bg-amber-500/85",
+    /* 5 */ "bg-amber-600 dark:bg-amber-400",
   ],
   codechef: [
-    "bg-muted/80 dark:bg-[#202020]",
-    "bg-orange-200 dark:bg-[#2f241e]/80",
-    "bg-orange-300 dark:bg-[#604533]/85",
-    "bg-orange-400 dark:bg-[#98623b]/90",
-    "bg-orange-500 dark:bg-[#d08a47]/90",
-    "bg-orange-600 dark:bg-[#f5b15e]",
+    /* 0 */ "bg-stone-200/70 dark:bg-[#1f1812]",
+    /* 1 */ "bg-orange-200/80 dark:bg-orange-900/50",
+    /* 2 */ "bg-orange-300/90 dark:bg-orange-800/55",
+    /* 3 */ "bg-orange-400 dark:bg-orange-600/70",
+    /* 4 */ "bg-orange-500 dark:bg-orange-500/85",
+    /* 5 */ "bg-orange-600 dark:bg-orange-400",
   ],
 };
 
+/* Ring colors on hover — light rings for day mode, saturated for dark */
 const MODE_RING_COLORS: Record<HeatmapMode, string[]> = {
   website: [
-    "ring-border/50 dark:ring-white/10",
-    "ring-emerald-200/50 dark:ring-emerald-500/30",
-    "ring-emerald-300/50 dark:ring-emerald-400/30",
-    "ring-emerald-400/50 dark:ring-emerald-400/40",
-    "ring-emerald-500/50 dark:ring-emerald-300/40",
-    "ring-emerald-600/50 dark:ring-emerald-300/50",
+    "ring-stone-300/50 dark:ring-white/10",
+    "ring-emerald-400/40 dark:ring-emerald-500/30",
+    "ring-emerald-400/50 dark:ring-emerald-400/35",
+    "ring-emerald-500/50 dark:ring-emerald-400/40",
+    "ring-emerald-600/50 dark:ring-emerald-300/45",
+    "ring-emerald-700/40 dark:ring-emerald-300/50",
   ],
   leetcode: [
-    "ring-border/50 dark:ring-white/10",
-    "ring-amber-200/50 dark:ring-amber-500/30",
-    "ring-amber-300/50 dark:ring-amber-400/30",
-    "ring-amber-400/50 dark:ring-amber-400/40",
-    "ring-amber-500/50 dark:ring-amber-300/40",
-    "ring-amber-600/50 dark:ring-amber-300/50",
+    "ring-stone-300/50 dark:ring-white/10",
+    "ring-amber-400/40 dark:ring-amber-500/30",
+    "ring-amber-400/50 dark:ring-amber-400/35",
+    "ring-amber-500/50 dark:ring-amber-400/40",
+    "ring-amber-600/50 dark:ring-amber-300/45",
+    "ring-amber-700/40 dark:ring-amber-300/50",
   ],
   codechef: [
-    "ring-border/50 dark:ring-white/10",
-    "ring-orange-200/50 dark:ring-orange-500/25",
-    "ring-orange-300/50 dark:ring-orange-400/30",
-    "ring-orange-400/50 dark:ring-orange-400/40",
-    "ring-orange-500/50 dark:ring-orange-300/40",
-    "ring-orange-600/50 dark:ring-orange-300/50",
+    "ring-stone-300/50 dark:ring-white/10",
+    "ring-orange-400/40 dark:ring-orange-500/25",
+    "ring-orange-400/50 dark:ring-orange-400/30",
+    "ring-orange-500/50 dark:ring-orange-400/40",
+    "ring-orange-600/50 dark:ring-orange-300/40",
+    "ring-orange-700/40 dark:ring-orange-300/50",
   ],
+};
+
+/* Hover shadow color per mode */
+const MODE_HOVER_SHADOW: Record<HeatmapMode, string> = {
+  website: "hover:shadow-emerald-500/25 dark:hover:shadow-emerald-500/20",
+  leetcode: "hover:shadow-amber-500/25 dark:hover:shadow-amber-500/20",
+  codechef: "hover:shadow-orange-500/25 dark:hover:shadow-orange-500/20",
 };
 
 export function ActivityHeatmap({
@@ -172,32 +185,34 @@ export function ActivityHeatmap({
     () => ({
       website: {
         label: "Website",
-        color: "text-emerald-400",
-        dot: "bg-emerald-400/70",
-        activeBg: "bg-emerald-500/15 border-emerald-500/20",
+        color: "text-emerald-600 dark:text-emerald-400",
+        dot: "bg-emerald-500 dark:bg-emerald-400/70",
+        activeBg: "bg-emerald-100 border-emerald-300/50 dark:bg-emerald-500/15 dark:border-emerald-500/20",
       },
       leetcode: {
         label: "LeetCode",
-        color: "text-[#FFA116]",
-        dot: "bg-[#FFA116]/75",
-        activeBg: "bg-[#FFA116]/15 border-[#FFA116]/20",
+        color: "text-amber-600 dark:text-[#FFA116]",
+        dot: "bg-amber-500 dark:bg-[#FFA116]/75",
+        activeBg: "bg-amber-100 border-amber-300/50 dark:bg-[#FFA116]/15 dark:border-[#FFA116]/20",
       },
       codechef: {
         label: "CodeChef",
-        color: "text-[#f5b15e]",
-        dot: "bg-[#f5b15e]/75",
-        activeBg: "bg-[#8B5E34]/20 border-[#f5b15e]/20",
+        color: "text-orange-600 dark:text-[#f5b15e]",
+        dot: "bg-orange-500 dark:bg-[#f5b15e]/75",
+        activeBg: "bg-orange-100 border-orange-300/50 dark:bg-[#8B5E34]/20 dark:border-[#f5b15e]/20",
       },
     }),
     [],
   );
 
-  const activeModeColor = modeConfig[dataMode]?.color || "text-emerald-400";
-  const activeDotColor = modeConfig[dataMode]?.dot || "bg-emerald-400/70";
+  const activeModeColor = modeConfig[dataMode]?.color || "text-emerald-600 dark:text-emerald-400";
+  const activeDotColor = modeConfig[dataMode]?.dot || "bg-emerald-500 dark:bg-emerald-400/70";
   const intensityColors =
     MODE_INTENSITY_COLORS[dataMode] || MODE_INTENSITY_COLORS.website;
   const intensityRingColors =
     MODE_RING_COLORS[dataMode] || MODE_RING_COLORS.website;
+  const hoverShadow =
+    MODE_HOVER_SHADOW[dataMode] || MODE_HOVER_SHADOW.website;
 
   const {
     weeks,
@@ -370,7 +385,7 @@ export function ActivityHeatmap({
       {/* ── Header ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-muted/60 border border-border/50 dark:bg-white/[0.04] dark:border-white/[0.06]">
+          <div className="p-2 rounded-xl bg-muted/60 border border-border/40">
             <Activity size={16} className={cn(activeModeColor, "opacity-80")} />
           </div>
           <div>
@@ -392,7 +407,7 @@ export function ActivityHeatmap({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex w-full sm:w-auto items-center justify-center gap-2 text-[11px] font-semibold text-muted-foreground bg-muted/60 border border-border/50 px-3 py-2 rounded-xl hover:bg-muted hover:text-foreground transition-all duration-200 active:scale-95 dark:text-white/60 dark:bg-white/[0.04] dark:border-white/[0.08] dark:hover:bg-white/[0.08] dark:hover:text-white/80"
+              className="flex w-full sm:w-auto items-center justify-center gap-2 text-[11px] font-semibold text-muted-foreground bg-muted/50 border border-border/40 px-3 py-2 rounded-xl hover:bg-muted hover:text-foreground transition-all duration-200 active:scale-95"
             >
               {selectedYear === "Last 12 months" ? "12 months" : selectedYear}
               <ChevronDown
@@ -405,8 +420,8 @@ export function ActivityHeatmap({
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 bg-popover text-popover-foreground border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 dark:bg-[#1a1a1a] dark:border-white/[0.08]">
-                <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border/60 dark:text-white/30 dark:border-white/[0.06]">
+              <div className="absolute top-full right-0 mt-2 w-44 bg-popover text-popover-foreground border border-border/60 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border/40">
                   Select Range
                 </div>
                 {yearOptions.map((year) => (
@@ -417,15 +432,15 @@ export function ActivityHeatmap({
                       setIsDropdownOpen(false);
                     }}
                     className={cn(
-                      "w-full text-left px-4 py-3 text-[12px] font-semibold transition-all duration-150 hover:bg-muted active:scale-[0.98] dark:hover:bg-white/[0.06]",
+                      "w-full text-left px-4 py-3 text-[12px] font-semibold transition-all duration-150 hover:bg-muted active:scale-[0.98]",
                       selectedYear === year
-                        ? "text-foreground bg-muted/70 dark:text-white dark:bg-white/[0.04]"
-                        : "text-muted-foreground hover:text-foreground dark:text-white/50 dark:hover:text-white/80",
+                        ? "text-foreground bg-muted/70"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {year === "Last 12 months" ? "Last 12 months" : year}
                     {year === currentYear && (
-                      <span className="ml-2 text-[9px] font-bold uppercase tracking-wider text-emerald-400/60">
+                      <span className="ml-2 text-[9px] font-bold uppercase tracking-wider text-emerald-600/80 dark:text-emerald-400/60">
                         Current
                       </span>
                     )}
@@ -436,7 +451,7 @@ export function ActivityHeatmap({
           </div>
 
           {/* Mode Toggle */}
-          <div className="grid grid-cols-3 bg-muted/60 rounded-2xl p-0.5 border border-border/50 shadow-inner dark:bg-white/[0.03] dark:border-white/[0.06]">
+          <div className="grid grid-cols-3 bg-muted/50 rounded-2xl p-0.5 border border-border/40 shadow-inner">
             {(Object.keys(modeConfig) as HeatmapMode[]).map((mode) => {
               const cfg = modeConfig[mode];
               const isActive = dataMode === mode;
@@ -448,7 +463,7 @@ export function ActivityHeatmap({
                     "min-w-0 text-[10px] font-bold px-2.5 sm:px-3.5 py-2 rounded-xl transition-all duration-300 tracking-wider uppercase",
                     isActive
                       ? `${cfg.activeBg} ${cfg.color} shadow-sm`
-                      : "text-muted-foreground hover:text-foreground dark:text-white/35 dark:hover:text-white/70",
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {cfg.label}
@@ -462,16 +477,16 @@ export function ActivityHeatmap({
       {/* ── Heatmap Grid ── */}
       <div
         ref={containerRef}
-        className="relative overflow-x-auto overflow-y-hidden rounded-2xl border border-border/50 bg-muted/25 p-4 shadow-inner scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent dark:border-white/[0.06] dark:bg-[#141414] dark:scrollbar-thumb-white/[0.08]"
+        className="relative overflow-x-auto overflow-y-hidden rounded-2xl border border-border/40 bg-card/50 dark:bg-[#141414] p-4 shadow-inner scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
         style={{ minHeight: `${cellSize * 7 + cellGap * 8 + 56}px` }}
       >
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/75 backdrop-blur-[2px] rounded-2xl dark:bg-[#0d0d0d]/70">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/75 backdrop-blur-[2px] rounded-2xl">
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
                 <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full animate-pulse" />
                 <Loader2
-                  className="animate-spin text-emerald-400/60 relative"
+                  className="animate-spin text-emerald-500/60 dark:text-emerald-400/60 relative"
                   size={24}
                 />
               </div>
@@ -590,14 +605,14 @@ export function ActivityHeatmap({
                                     "text-[11px] font-bold",
                                     count > 0
                                       ? activeModeColor
-                                      : "text-white/40",
+                                      : "text-muted-foreground",
                                   )}
                                 >
                                   {count}{" "}
                                   {count === 1 ? "submission" : "submissions"}
                                 </span>
                               </div>
-                              <span className="text-[10px] font-medium text-white/50">
+                              <span className="text-[10px] font-medium text-muted-foreground">
                                 {day.date.toLocaleDateString(undefined, {
                                   weekday: "short",
                                   month: "short",
@@ -607,10 +622,10 @@ export function ActivityHeatmap({
                               </span>
                               {count > 0 && (
                                 <div className="flex items-center gap-1.5 mt-0.5">
-                                  <span className="text-[9px] font-semibold uppercase tracking-wider text-emerald-400/70">
+                                  <span className="text-[9px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400/70">
                                     Active
                                   </span>
-                                  <span className="w-1 h-1 rounded-full bg-emerald-400/50" />
+                                  <span className="w-1 h-1 rounded-full bg-emerald-500 dark:bg-emerald-400/50" />
                                 </div>
                               )}
                             </div>
@@ -625,22 +640,10 @@ export function ActivityHeatmap({
                               isFuture && "opacity-15",
                               !isFuture &&
                                 count > 0 &&
-                                "cursor-pointer hover:scale-[1.35] hover:shadow-lg",
-                              !isFuture &&
-                                count > 0 &&
-                                dataMode === "website" &&
-                                "hover:shadow-emerald-500/20",
-                              !isFuture &&
-                                count > 0 &&
-                                dataMode === "leetcode" &&
-                                "hover:shadow-amber-500/20",
-                              !isFuture &&
-                                count > 0 &&
-                                dataMode === "codechef" &&
-                                "hover:shadow-orange-500/20",
+                                `cursor-pointer hover:scale-[1.35] hover:shadow-lg ${hoverShadow}`,
                               !isFuture &&
                                 count === 0 &&
-                                "hover:ring-1 hover:ring-white/[0.12]",
+                                "hover:ring-1 hover:ring-border dark:hover:ring-white/[0.12]",
                               animReady && "animate-in fade-in",
                             )}
                             style={{
@@ -662,13 +665,13 @@ export function ActivityHeatmap({
       </div>
 
       {/* ── Footer / Stats + Legend ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-5 pt-4 border-t border-border/50 dark:border-white/[0.06]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-5 pt-4 border-t border-border/40">
         {/* Stats */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 px-3 py-2">
             <div className="flex items-center gap-1.5">
               <div className={cn("w-2 h-2 rounded-full", activeDotColor)} />
-              <span className="text-[11px] font-semibold text-foreground dark:text-white/90">
+              <span className="text-[11px] font-semibold text-foreground">
                 {activeDays}
               </span>
             </div>
@@ -676,9 +679,9 @@ export function ActivityHeatmap({
               active days
             </span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 px-3 py-2">
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold text-[#FFA116]/90">
+              <span className="text-[11px] font-semibold text-amber-600 dark:text-[#FFA116]/90">
                 {maxStreak}
               </span>
             </div>
@@ -686,9 +689,9 @@ export function ActivityHeatmap({
               longest streak
             </span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 px-3 py-2">
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold text-foreground dark:text-white/90">
+              <span className="text-[11px] font-semibold text-foreground">
                 {totalSubmissions.toLocaleString()}
               </span>
             </div>
