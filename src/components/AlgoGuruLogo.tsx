@@ -7,16 +7,14 @@ interface AlgoGuruLogoProps {
 }
 
 export function AlgoGuruLogo({ size = 80, showText = true, className = "" }: AlgoGuruLogoProps) {
-  const style = showText 
-    ? { width: size, height: 'auto', maxWidth: '100%' }
-    : { height: size, width: 'auto' };
+  const src = showText ? "/algoguru-logo.png" : "/algoguru-icon.png";
 
   return (
     <img
-      src="/algoguru-logo.png"
+      src={src}
       alt="AlgoGuru Logo"
-      style={style}
-      className={`object-contain ${className}`}
+      width={size}
+      className={`max-w-full object-contain ${className}`}
     />
   );
 }
