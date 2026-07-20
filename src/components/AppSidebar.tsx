@@ -247,15 +247,12 @@ export function AppSidebar() {
           <div className="relative flex-shrink-0">
             <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <AlgoGuruLogo
-              size={42}
+              size={36}
               showText={false}
-              className="relative z-10 transition-transform duration-300 group-hover:scale-110"
+              className="relative z-10 transition-transform duration-300 group-hover:scale-105"
             />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
-              AlgoGuru
-            </span>
             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-0.5 group-hover:text-primary/60 transition-colors">
               {currentMode.description}
             </span>
