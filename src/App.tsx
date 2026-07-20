@@ -602,10 +602,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   }
                 }}
               >
-                <div className="relative flex-shrink-0 flex items-center">
+                <div className="relative flex-shrink-0 w-8 h-8">
                   <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <AlgoGuruLogo size={24} showText={false} className="relative z-10 block h-auto" />
+                  <AlgoGuruLogo size={32} showText={false} className="relative z-10 block w-full h-auto" />
                 </div>
+                <span className="hidden sm:inline text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
+                  AlgoGuru
+                </span>
               </div>
             </AppTooltip>
             
