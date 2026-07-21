@@ -33,7 +33,7 @@ export type {
 const DIRECT_UPSTREAM_URL = "https://alfa-leetcode-api.onrender.com/daily";
 const DIRECT_UPSTREAM_TIMEOUT_MS = 10_000;
 
-const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v1";
+const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v2";
 /** Soft cap on cache age before we stop returning it as "fresh". 36h gives
  *  enough slack to cover any timezone oddity while still being bounded. */
 const LS_CACHE_FRESH_MS = 1000 * 60 * 60 * 36;
@@ -158,9 +158,11 @@ async function fetchDailyChallengeDirectWithRetry(): Promise<DailyChallengeRespo
 interface UpstreamQuestion {
   questionId?: unknown;
   title?: unknown;
+  questionTitle?: unknown;
   titleSlug?: unknown;
   difficulty?: unknown;
   content?: unknown;
+  question?: unknown;
   exampleTestcases?: unknown;
   topicTags?: unknown;
   hints?: unknown;
@@ -190,12 +192,15 @@ function buildResponseFromUpstream(
     ? (question.topicTags as LeetCodeTopicTag[])
     : [];
 
+  const rawTitle = question.title ?? question.questionTitle;
+  const rawContent = question.content ?? question.question;
+
   const problem: DailyProblem = {
     questionId: String(question.questionId),
-    title: String(question.title ?? ""),
+    title: String(rawTitle ?? ""),
     titleSlug: String(question.titleSlug),
     difficulty: String(question.difficulty ?? "Unknown"),
-    content: String(question.content ?? ""),
+    content: String(rawContent ?? ""),
     exampleTestcases: question.exampleTestcases
       ? String(question.exampleTestcases)
       : undefined,

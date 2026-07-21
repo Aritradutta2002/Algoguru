@@ -99,12 +99,15 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
     ? (question.topicTags as TopicTag[])
     : [];
 
+  const rawTitle = question.title ?? question.questionTitle;
+  const rawContent = question.content ?? question.question;
+
   return {
     questionId: String(question.questionId),
-    title: String(question.title ?? ""),
+    title: String(rawTitle ?? ""),
     titleSlug: String(question.titleSlug),
     difficulty: String(question.difficulty ?? "Unknown"),
-    content: String(question.content ?? ""),
+    content: String(rawContent ?? ""),
     exampleTestcases: question.exampleTestcases
       ? String(question.exampleTestcases)
       : undefined,
