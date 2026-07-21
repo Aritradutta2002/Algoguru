@@ -71,6 +71,85 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
+  // Try direct LeetCode GraphQL endpoint first
+  try {
+    const query = `
+      query questionOfToday {
+        activeDailyCodingChallengeQuestion {
+          date
+          link
+          question {
+            questionId
+            questionFrontendId
+            title
+            titleSlug
+            difficulty
+            topicTags {
+              name
+              slug
+            }
+            hints
+            content
+            exampleTestcases
+            acRate
+          }
+        }
+      }
+    `;
+
+    const gqlRes = await fetch("https://leetcode.com/graphql", {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+
+    if (gqlRes.ok) {
+      const json = (await gqlRes.json()) as {
+        data?: {
+          activeDailyCodingChallengeQuestion?: {
+            link?: string;
+            question?: {
+              questionId?: string;
+              questionFrontendId?: string;
+              title?: string;
+              titleSlug?: string;
+              difficulty?: string;
+              content?: string;
+              exampleTestcases?: string;
+              topicTags?: TopicTag[];
+              hints?: string[];
+              acRate?: number;
+            };
+          };
+        };
+      };
+
+      const rawData = json?.data?.activeDailyCodingChallengeQuestion;
+      if (rawData?.question && rawData.question.titleSlug) {
+        const q = rawData.question;
+        const link = rawData.link
+          ? `https://leetcode.com${rawData.link}`
+          : `https://leetcode.com/problems/${q.titleSlug}/`;
+
+        return {
+          questionId: String(q.questionId || q.questionFrontendId || "1"),
+          title: String(q.title || ""),
+          titleSlug: String(q.titleSlug || ""),
+          difficulty: String(q.difficulty || "Medium"),
+          content: String(q.content || ""),
+          exampleTestcases: q.exampleTestcases ? String(q.exampleTestcases) : undefined,
+          topicTags: Array.isArray(q.topicTags) ? q.topicTags : [],
+          hints: Array.isArray(q.hints) ? q.hints : undefined,
+          acRate: typeof q.acRate === "number" ? q.acRate : undefined,
+          link,
+        };
+      }
+    }
+  } catch (_e) {
+    // Fall back to wrapper
+  }
+
   const res = await fetch(UPSTREAM_URL, {
     signal,
     headers: { Accept: "application/json" },
@@ -80,9 +159,6 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
   }
   const raw = (await res.json()) as Record<string, unknown>;
 
-  // alfa-leetcode-api returns either a flat object (newer shape) or a
-  // { data: { activeDailyCodingChallenge: { question: {...} } } } wrapper
-  // depending on the version. Normalize both.
   const question: Record<string, unknown> | null = (() => {
     if (raw && typeof raw === "object" && "questionId" in raw) return raw;
     const data = (raw as {
