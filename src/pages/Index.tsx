@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Coffee, Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, Zap, Terminal, ChevronRight, Star
+  ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays
 } from "lucide-react";
 
 const SECTIONS = [
@@ -70,6 +70,19 @@ const SECTIONS = [
     accentClass: "border-[#9BE2C3] group-hover:text-category-interview",
     route: "/interview",
     stats: "Real Stories",
+  },
+  {
+    id: "daily-challenge",
+    title: "Daily Challenge",
+    subtitle: "Solve today's problem",
+    desc: "A fresh LeetCode problem every day, with a built-in Java editor to craft and test your solution.",
+    icon: <CalendarDays size={24} />,
+    color: "#F4A396",
+    tag: "Today",
+    pillClass: "bg-primary/10 text-primary border-transparent",
+    accentClass: "border-[#F4A396] group-hover:text-[#F4A396]",
+    route: "/problem-solver",
+    stats: "Updated Daily",
   },
 ];
 

@@ -33,3 +33,6 @@ supabase/.temp/
 
 # Kiro IDE files
 .kiro/
+
+# Trae IDE plan documents
+.trae/documents/

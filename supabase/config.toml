@@ -2,3 +2,6 @@ project_id = "xemkazcectlganbrolxq"
 
 [functions.guru-chat]
 verify_jwt = false
+
+[functions.leetcode-daily]
+verify_jwt = false

@@ -6,3 +6,4 @@ export { useIsMobile } from './use-mobile';
 export { useToast } from './use-toast';
 export { useCPTemplates } from './useCPTemplates';
 export { useIsAdmin } from './useIsAdmin';
+export { useDailyChallenge, DAILY_CHALLENGE_QUERY_KEY } from './useDailyChallenge';

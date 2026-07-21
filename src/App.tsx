@@ -17,6 +17,7 @@ import TopicPage from "./pages/TopicPage";
 import Playground from "./pages/Playground";
 import Practice from "./pages/Practice";
 import PracticeSolution from "./pages/PracticeSolution";
+import ProblemSolver from "./pages/ProblemSolver";
 import Interview from "./pages/Interview";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -526,9 +527,12 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // When Guru panel narrower than ~22%, hide non-essential UI entirely
   const isTiny = guruPct < 22;
   const isPlaygroundRoute = location.pathname === "/playground";
+  const isProblemSolverRoute = location.pathname === "/problem-solver";
   const contentBottomPaddingClass =
-    location.pathname === "/" || isPlaygroundRoute ? "pb-0" : "pb-10";
-  const contentSurfaceClass = isPlaygroundRoute
+    location.pathname === "/" || isPlaygroundRoute || isProblemSolverRoute
+      ? "pb-0"
+      : "pb-10";
+  const contentSurfaceClass = isPlaygroundRoute || isProblemSolverRoute
     ? "h-full min-h-0 pb-0"
     : `min-h-full ${contentBottomPaddingClass}`;
 
@@ -927,6 +931,7 @@ const App = () => (
                         <Route path="/" element={<Index />} />
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/practice" element={<Practice />} />
+                        <Route path="/problem-solver" element={<ProblemSolver />} />
                         <Route path="/interview" element={<Interview />} />
                         <Route path="/interview/:language" element={<Interview />} />
                         <Route path="/interview/:language/data-structure" element={<InterviewDataStructurePage />} />
