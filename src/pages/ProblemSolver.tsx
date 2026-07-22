@@ -276,7 +276,10 @@ function CodeEditorPane({
   const editorRef = useRef<any>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [codeLoaded, setCodeLoaded] = useState(false);
-  const [testcases, setTestcases] = useState<string>(exampleTestcases || "");
+  const [testcaseTabs, setTestcaseTabs] = useState<{ id: string, name: string, value: string }[]>(() => [
+    { id: "1", name: "Case 1", value: exampleTestcases?.replace(/\\n/g, "\n") || "" }
+  ]);
+  const [activeTestcaseId, setActiveTestcaseId] = useState<string>("1");
   const [editorFontSize, setEditorFontSize] = useState(() => loadNumberSetting("problem-solver-font-size", 14));
 
   useEffect(() => {
@@ -285,7 +288,8 @@ function CodeEditorPane({
 
   // Update local testcases if exampleTestcases changes (e.g., new daily challenge)
   useEffect(() => {
-    setTestcases(exampleTestcases || "");
+    setTestcaseTabs([{ id: "1", name: "Case 1", value: exampleTestcases?.replace(/\\n/g, "\n") || "" }]);
+    setActiveTestcaseId("1");
   }, [exampleTestcases]);
 
   // Load saved code from DB / localStorage on mount or question change
@@ -351,10 +355,11 @@ function CodeEditorPane({
     setIsRunning(true);
     // Combine all tabs into one payload
     const combinedCode = tabs.map((t) => `// --- ${t.name} ---\n${t.content}`).join("\n\n");
-    const result = await runJavaCode(combinedCode, testcases);
+    const currentTestcase = testcaseTabs.find((t) => t.id === activeTestcaseId)?.value || "";
+    const result = await runJavaCode(combinedCode, currentTestcase);
     setRunResult(result);
     setIsRunning(false);
-  }, [tabs, testcases]);
+  }, [tabs, testcaseTabs, activeTestcaseId]);
 
   const formatCode = useCallback(async () => {
     const raw = code;
@@ -634,12 +639,12 @@ function CodeEditorPane({
 
       {/* ═════════ Resize Handle ═════════ */}
       <PanelResizeHandle
-        className="group shrink-0 flex items-center justify-center"
-        style={{ height: 6, background: isDark ? "#1a1a2e" : "#ebebf0", cursor: "row-resize" }}
+        className="group shrink-0 flex items-center justify-center relative z-50 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+        style={{ height: 12, background: isDark ? "#1a1a2e" : "#fafafa", cursor: "row-resize" }}
       >
         <div
-          className="w-8 h-1 rounded-full transition-all duration-300 group-hover:w-12"
-          style={{ background: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.15)" }}
+          className="w-12 h-1.5 rounded-full transition-all duration-300 group-hover:w-16 group-hover:bg-primary/50"
+          style={{ background: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.2)" }}
         />
       </PanelResizeHandle>
 
@@ -768,18 +773,65 @@ function CodeEditorPane({
                 </div>
               </motion.div>
             ) : (
-              <motion.div key="testcases" {...fadeIn} className="space-y-5">
-                <div className="space-y-2">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-[0.15em]"
-                    style={{ color: isDark ? "#475569" : "#94a3b8" }}
-                  >
-                    Example Input
-                  </span>
+              <motion.div key="testcases" {...fadeIn} className="space-y-4">
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                    {testcaseTabs.map((tc, index) => (
+                      <div
+                        key={tc.id}
+                        onClick={() => setActiveTestcaseId(tc.id)}
+                        className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all min-w-max select-none"
+                        style={{
+                          background: activeTestcaseId === tc.id
+                            ? isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)"
+                            : "transparent",
+                          color: activeTestcaseId === tc.id
+                            ? isDark ? "#e2e8f0" : "#1e293b"
+                            : isDark ? "#94a3b8" : "#64748b",
+                        }}
+                      >
+                        {tc.name}
+                        {testcaseTabs.length > 1 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newTabs = testcaseTabs.filter((t) => t.id !== tc.id);
+                              setTestcaseTabs(newTabs);
+                              if (activeTestcaseId === tc.id) {
+                                setActiveTestcaseId(newTabs[newTabs.length - 1].id);
+                              }
+                            }}
+                            className="p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/10 dark:hover:bg-white/10 ml-1"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => {
+                        const newId = String(Date.now());
+                        const name = `Case ${testcaseTabs.length + 1}`;
+                        const newTabs = [...testcaseTabs, { id: newId, name, value: "" }];
+                        setTestcaseTabs(newTabs);
+                        setActiveTestcaseId(newId);
+                      }}
+                      className="ml-1 p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                      style={{ color: isDark ? "#94a3b8" : "#64748b" }}
+                      title="Add new testcase"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  
                   <textarea
-                    value={testcases}
-                    onChange={(e) => setTestcases(e.target.value)}
-                    placeholder="Enter custom testcases..."
+                    value={testcaseTabs.find((tc) => tc.id === activeTestcaseId)?.value || ""}
+                    onChange={(e) => {
+                      setTestcaseTabs((prev) =>
+                        prev.map((tc) => (tc.id === activeTestcaseId ? { ...tc, value: e.target.value } : tc))
+                      );
+                    }}
+                    placeholder="Enter custom testcase..."
                     className="w-full min-h-[150px] p-4 rounded-xl font-mono text-xs leading-relaxed overflow-x-auto resize-y focus:outline-none"
                     style={{
                       background: isDark
