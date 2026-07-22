@@ -1,4 +1,4 @@
-﻿﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import {
@@ -2864,7 +2864,7 @@ export default function Playground() {
       </div>
 
       {/* Editor + Output with resizable panels */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 p-2 pb-3">
         <ResizablePanelGroup
           direction={isMobile ? "vertical" : "horizontal"}
           className="h-full"
@@ -2893,6 +2893,7 @@ export default function Playground() {
           <ResizablePanel
             defaultSize={isMobile ? 60 : guruBotOpen ? 50 : 55}
             minSize={30}
+            className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background"
           >
             <div className="flex flex-col h-full">
               {/* Problem panel */}
@@ -3153,8 +3154,7 @@ export default function Playground() {
             <>
               {/* Resize Handle */}
               <ResizableHandle
-                withHandle
-                className="w-[3px] bg-border/20 data-[panel-group-direction=vertical]:h-[3px]"
+                className="w-3.5 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors z-50 data-[panel-group-direction=vertical]:h-3.5"
               />
 
               {/* Right Panel: Input (top) + Output (bottom) */}
@@ -3234,7 +3234,7 @@ export default function Playground() {
                     autoSaveId="playground-stdin-console-layout"
                   >
                     {/* Input Panel - always visible */}
-                    <ResizablePanel defaultSize={32} minSize={12}>
+                    <ResizablePanel defaultSize={32} minSize={12} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background">
                       <div className={IO_PANEL_CLASSES}>
                         <div className={IO_HEADER_CLASSES}>
                           <div className={IO_INPUT_ICON_CLASSES}>
@@ -3254,12 +3254,11 @@ export default function Playground() {
                     </ResizablePanel>
 
                     <ResizableHandle
-                      withHandle
-                      className="bg-slate-300 data-[panel-group-direction=vertical]:h-[3px] [&>div]:bg-slate-500/80 dark:bg-border/20 dark:[&>div]:bg-border"
+                      className="h-3.5 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors z-50 data-[panel-group-direction=vertical]:h-3.5"
                     />
 
                     {/* Output Panel */}
-                    <ResizablePanel defaultSize={68} minSize={18}>
+                    <ResizablePanel defaultSize={68} minSize={18} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background">
                       <div className={IO_PANEL_CLASSES}>
                         <div className={IO_HEADER_CLASSES}>
                           <div className={IO_CONSOLE_ICON_CLASSES}>
@@ -3319,8 +3318,7 @@ export default function Playground() {
           {guruBotOpen && !isMobile && (
             <>
               <ResizableHandle
-                withHandle
-                className="w-[3px] bg-border/20 data-[panel-group-direction=vertical]:h-[3px]"
+                className="w-3.5 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors z-50 data-[panel-group-direction=vertical]:h-3.5"
               />
 
               <ResizablePanel
@@ -3334,6 +3332,7 @@ export default function Playground() {
                   setGuruBotCollapsed(size <= GURU_EXPAND_TRIGGER_SIZE);
                 }}
                 onCollapse={() => setGuruBotCollapsed(true)}
+                className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background"
               >
                 {guruBotCollapsed ? (
                   <AppTooltip content="Expand GuruBot" side="left">
