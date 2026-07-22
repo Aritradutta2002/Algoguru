@@ -394,10 +394,11 @@ function CodeEditorPane({
       direction="vertical"
       autoSaveId="editor-testcases-split-v3"
       className="h-full"
-      style={{ background: isDark ? "#1a1a2e" : "#fafafa" }}
+      style={{ background: "transparent" }}
     >
       {/* ═════════ Editor Panel ═════════ */}
-      <Panel defaultSize={62} minSize={30} className="flex flex-col min-h-0">
+      <Panel defaultSize={62} minSize={30} className="flex flex-col min-h-0 rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
+        <div className="flex flex-col h-full" style={{ background: isDark ? "#16162a" : "#ffffff" }}>
         {/* --- Editor Top Bar --- */}
         <div
           className="flex items-center justify-between px-3 py-1.5 shrink-0"
@@ -635,12 +636,13 @@ function CodeEditorPane({
             </select>
           </div>
         </div>
+        </div>
       </Panel>
 
       {/* ═════════ Resize Handle ═════════ */}
       <PanelResizeHandle
         className="group shrink-0 flex items-center justify-center relative z-50 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-        style={{ height: 12, background: isDark ? "#1a1a2e" : "#fafafa", cursor: "row-resize" }}
+        style={{ height: 16, cursor: "row-resize", background: "transparent" }}
       >
         <div
           className="w-12 h-1.5 rounded-full transition-all duration-300 group-hover:w-16 group-hover:bg-primary/50"
@@ -649,7 +651,8 @@ function CodeEditorPane({
       </PanelResizeHandle>
 
       {/* ═════════ Test Cases / Output Panel ═════════ */}
-      <Panel defaultSize={38} minSize={15} className="flex flex-col min-h-0">
+      <Panel defaultSize={38} minSize={15} className="flex flex-col min-h-0 rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
+        <div className="flex flex-col h-full" style={{ background: isDark ? "#16162a" : "#ffffff" }}>
         {/* Header */}
         <div
           className="flex items-center gap-3 px-3 pt-2 pb-0 shrink-0"
@@ -845,6 +848,7 @@ function CodeEditorPane({
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
         </div>
       </Panel>
     </PanelGroup>
@@ -1250,8 +1254,8 @@ export default function ProblemSolver() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="flex flex-col h-full min-h-0"
-      style={{ background: isDark ? "#0f0f23" : "#f5f5fa" }}
+      className="flex flex-col h-full min-h-0 p-3 pb-0"
+      style={{ background: isDark ? "#0a0a0f" : "#e2e8f0" }}
     >
       <div className="flex-1 min-h-0">
         {isLoading ? (
@@ -1267,16 +1271,16 @@ export default function ProblemSolver() {
           <PanelGroup
             direction="horizontal"
             autoSaveId="problem-solver-split-v4"
-            className="h-full w-full overflow-hidden"
+            className="h-full w-full"
           >
-            <Panel defaultSize={45} minSize={25}>
+            <Panel defaultSize={45} minSize={25} className="rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
               <ProblemDetails data={data} theme={theme} />
             </Panel>
 
-            <PanelResizeHandle className="group flex items-center justify-center" style={{ width: 6 }}>
+            <PanelResizeHandle className="group flex items-center justify-center relative z-50 cursor-col-resize hover:bg-black/5 dark:hover:bg-white/5 transition-colors" style={{ width: 16, background: "transparent" }}>
               <div
-                className="h-8 w-1 rounded-full transition-all duration-300 group-hover:h-12"
-                style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.12)" }}
+                className="h-12 w-1.5 rounded-full transition-all duration-300 group-hover:w-2 group-hover:bg-primary/50"
+                style={{ background: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.2)" }}
               />
             </PanelResizeHandle>
 
@@ -1290,6 +1294,11 @@ export default function ProblemSolver() {
           </PanelGroup>
         ) : null}
       </div>
+      
+      {/* ── Page Footer (outside of panels) if needed, but we integrated into ProblemDetails earlier. 
+          Actually wait, ProblemDetails has a bottom bar. The panels fill the space. 
+          We just add a tiny bottom margin to the layout. */}
+      <div className="h-3 shrink-0" />
     </motion.div>
   );
 }
