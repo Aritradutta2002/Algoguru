@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_challenge_user_code: {
+        Row: {
+          id: string
+          user_id: string
+          question_id: string
+          code: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          question_id: string
+          code?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          question_id?: string
+          code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cp_templates: {
         Row: {
           code: string
