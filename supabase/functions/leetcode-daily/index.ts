@@ -40,6 +40,7 @@ interface DailyProblem {
   hints?: string[];
   acRate?: number;
   link: string;
+  solution?: string | null;
 }
 
 interface CachedPayload {
@@ -92,6 +93,9 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
             content
             exampleTestcases
             acRate
+            solution {
+              content
+            }
           }
         }
       }
@@ -120,6 +124,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
               topicTags?: TopicTag[];
               hints?: string[];
               acRate?: number;
+              solution?: { content?: string };
             };
           };
         };
@@ -143,6 +148,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           hints: Array.isArray(q.hints) ? q.hints : undefined,
           acRate: typeof q.acRate === "number" ? q.acRate : undefined,
           link,
+          solution: q.solution?.content || null,
         };
       }
     }
@@ -178,6 +184,17 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
   const rawTitle = question.title ?? question.questionTitle;
   const rawContent = question.content ?? question.question;
 
+  let solutionHtml: string | null = null;
+  try {
+    const solRes = await fetch(`https://alfa-leetcode-api.onrender.com/officialSolution/${question.titleSlug}`, { signal });
+    if (solRes.ok) {
+      const solRaw = await solRes.json() as { data?: { question?: { solution?: { content?: string } } } };
+      solutionHtml = solRaw?.data?.question?.solution?.content || null;
+    }
+  } catch (e) {
+    console.error("Failed to fetch official solution:", e);
+  }
+
   return {
     questionId: String(question.questionId),
     title: String(rawTitle ?? ""),
@@ -191,6 +208,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
     hints: Array.isArray(question.hints) ? (question.hints as string[]) : undefined,
     acRate: typeof question.acRate === "number" ? question.acRate : undefined,
     link: `https://leetcode.com/problems/${String(question.titleSlug)}/`,
+    solution: solutionHtml,
   };
 }
 

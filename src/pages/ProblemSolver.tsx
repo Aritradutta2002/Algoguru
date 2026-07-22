@@ -31,6 +31,7 @@ import {
   Rocket,
   RotateCcw,
   Trash2,
+  X,
   XCircle,
 } from "lucide-react";
 
@@ -43,6 +44,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyChallengeResponse } from "@/types/leetcode";
+import * as prettier from "prettier/standalone";
+import * as prettierPluginJava from "prettier-plugin-java";
 
 /* ------------------------------------------------------------------ */
 /* Constants                                                           */
@@ -95,6 +98,14 @@ function writeLocalCode(questionId: string, code: string): void {
     /* quota / private mode — silently ignore */
   }
 }
+
+const loadNumberSetting = (key: string, fallback: number) => {
+  try {
+    const val = localStorage.getItem(key);
+    if (val !== null) return Number(val);
+  } catch (e) {}
+  return fallback;
+};
 
 /** Load saved code: DB first (if logged-in), then localStorage fallback. */
 async function loadCode(
@@ -149,7 +160,7 @@ interface RunResult {
   executionTimeMs: number;
 }
 
-async function runJavaCode(sourceCode: string): Promise<RunResult> {
+async function runJavaCode(sourceCode: string, stdin: string = ""): Promise<RunResult> {
   const startTime = Date.now();
 
   try {
@@ -172,7 +183,7 @@ async function runJavaCode(sourceCode: string): Promise<RunResult> {
       body: JSON.stringify({
         compiler: "openjdk-jdk-21+35",
         code: proc,
-        stdin: "",
+        stdin: stdin,
         "compiler-option-raw": "",
         "runtime-option-raw": "",
         save: false,
@@ -228,6 +239,12 @@ const fadeIn = {
 /* Code Editor + Test Cases (Right Pane)                               */
 /* ------------------------------------------------------------------ */
 
+interface FileTab {
+  id: string;
+  name: string;
+  content: string;
+}
+
 function CodeEditorPane({
   questionId,
   theme,
@@ -240,13 +257,35 @@ function CodeEditorPane({
   const { user } = useAuth();
   const userId = user?.id ?? null;
 
-  const [code, setCode] = useState<string>(DEFAULT_JAVA_TEMPLATE);
+  const [tabs, setTabs] = useState<FileTab[]>([{ id: "1", name: "Solution.java", content: DEFAULT_JAVA_TEMPLATE }]);
+  const [activeTabId, setActiveTabId] = useState<string>("1");
+  const code = tabs.find((t) => t.id === activeTabId)?.content ?? "";
+
+  const setCode = useCallback(
+    (newContent: string) => {
+      setTabs((prev) => prev.map((t) => (t.id === activeTabId ? { ...t, content: newContent } : t)));
+    },
+    [activeTabId],
+  );
+
   const [isRunning, setIsRunning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isFormatted, setIsFormatted] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const editorRef = useRef<any>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [codeLoaded, setCodeLoaded] = useState(false);
+  const [testcases, setTestcases] = useState<string>(exampleTestcases || "");
+  const [editorFontSize, setEditorFontSize] = useState(() => loadNumberSetting("problem-solver-font-size", 14));
+
+  useEffect(() => {
+    localStorage.setItem("problem-solver-font-size", String(editorFontSize));
+  }, [editorFontSize]);
+
+  // Update local testcases if exampleTestcases changes (e.g., new daily challenge)
+  useEffect(() => {
+    setTestcases(exampleTestcases || "");
+  }, [exampleTestcases]);
 
   // Load saved code from DB / localStorage on mount or question change
   useEffect(() => {
@@ -254,7 +293,18 @@ function CodeEditorPane({
     setCodeLoaded(false);
     loadCode(questionId, userId).then((saved) => {
       if (!cancelled) {
-        setCode(saved ?? DEFAULT_JAVA_TEMPLATE);
+        let parsedTabs: FileTab[] = [{ id: "1", name: "Solution.java", content: saved ?? DEFAULT_JAVA_TEMPLATE }];
+        try {
+          if (saved && saved.startsWith("[")) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              parsedTabs = parsed;
+            }
+          }
+        } catch (e) {}
+        
+        setTabs(parsedTabs);
+        setActiveTabId(parsedTabs[0].id);
         setRunResult(null);
         setCodeLoaded(true);
       }
@@ -270,17 +320,25 @@ function CodeEditorPane({
       // Debounce DB writes to avoid hammering Supabase on every keystroke
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
-        void persistCode(questionId, next, userId);
+        setTabs((currentTabs) => {
+          const updatedTabs = currentTabs.map((t) => (t.id === activeTabId ? { ...t, content: next } : t));
+          void persistCode(questionId, JSON.stringify(updatedTabs), userId);
+          return updatedTabs;
+        });
       }, 1500);
     },
-    [questionId, userId],
+    [questionId, userId, activeTabId],
   );
 
   const handleResetCode = useCallback(() => {
     setCode(DEFAULT_JAVA_TEMPLATE);
     setRunResult(null);
-    void persistCode(questionId, DEFAULT_JAVA_TEMPLATE, userId);
-  }, [questionId, userId]);
+    setTabs((currentTabs) => {
+      const updatedTabs = currentTabs.map((t) => (t.id === activeTabId ? { ...t, content: DEFAULT_JAVA_TEMPLATE } : t));
+      void persistCode(questionId, JSON.stringify(updatedTabs), userId);
+      return updatedTabs;
+    });
+  }, [questionId, userId, activeTabId]);
 
   const handleCopyCode = useCallback(() => {
     navigator.clipboard.writeText(code);
@@ -290,15 +348,36 @@ function CodeEditorPane({
 
   const handleRunCode = useCallback(async () => {
     setIsRunning(true);
-    const result = await runJavaCode(code);
+    // Combine all tabs into one payload
+    const combinedCode = tabs.map((t) => `// --- ${t.name} ---\n${t.content}`).join("\n\n");
+    const result = await runJavaCode(combinedCode, testcases);
     setRunResult(result);
     setIsRunning(false);
+  }, [tabs, testcases]);
+
+  const formatCode = useCallback(async () => {
+    const raw = code;
+    if (!raw.trim()) return;
+    try {
+      const formatted = await prettier.format(raw, {
+        parser: "java",
+        plugins: [prettierPluginJava, (prettierPluginJava as any)?.default || {}],
+      });
+      setCode(formatted);
+      setIsFormatted(true);
+      setTimeout(() => setIsFormatted(false), 2000);
+    } catch (error) {
+      console.error("Formatting error:", error);
+    }
   }, [code]);
 
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       void handleRunCode();
+    });
+    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
+      void formatCode();
     });
   };
 
@@ -357,6 +436,21 @@ function CodeEditorPane({
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
 
+            {/* Format */}
+            <button
+              onClick={() => { void formatCode(); }}
+              className="h-7 px-2 rounded-md flex items-center justify-center gap-1.5 transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                color: isFormatted ? "#34d399" : isDark ? "#94a3b8" : "#64748b",
+                background: isFormatted
+                  ? isDark ? "rgba(52,211,153,0.1)" : "rgba(52,211,153,0.08)"
+                  : "transparent",
+              }}
+              title="Format Code (Shift+Alt+F)"
+            >
+              {isFormatted ? <Check className="h-3.5 w-3.5" /> : <span className="text-xs font-medium">Format</span>}
+            </button>
+
             {/* Reset */}
             <button
               onClick={handleResetCode}
@@ -397,24 +491,64 @@ function CodeEditorPane({
           </div>
         </div>
 
-        {/* --- File Tab --- */}
+        {/* --- File Tabs --- */}
         <div
-          className="flex items-center px-2 py-1 shrink-0 select-none"
+          className="flex items-center px-2 py-1 shrink-0 select-none overflow-x-auto"
           style={{
             background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
             borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
+            scrollbarWidth: "none",
           }}
         >
-          <div
-            className="flex items-center gap-1.5 px-3 py-1 rounded-t-md text-xs font-medium"
-            style={{
-              background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-              color: isDark ? "#e2e8f0" : "#1e293b",
-              borderBottom: `2px solid ${isDark ? "#818cf8" : "#6366f1"}`,
+          {tabs.map((tab) => (
+            <div
+              key={tab.id}
+              onClick={() => setActiveTabId(tab.id)}
+              className="group flex items-center gap-1.5 px-3 py-1 rounded-t-md text-xs font-medium cursor-pointer transition-all min-w-max"
+              style={{
+                background: activeTabId === tab.id
+                  ? isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
+                  : "transparent",
+                color: activeTabId === tab.id
+                  ? isDark ? "#e2e8f0" : "#1e293b"
+                  : isDark ? "#94a3b8" : "#64748b",
+                borderBottom: activeTabId === tab.id ? `2px solid ${isDark ? "#818cf8" : "#6366f1"}` : "2px solid transparent",
+              }}
+            >
+              {tab.name}
+              {tabs.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newTabs = tabs.filter((t) => t.id !== tab.id);
+                    setTabs(newTabs);
+                    if (activeTabId === tab.id) {
+                      setActiveTabId(newTabs[newTabs.length - 1].id);
+                    }
+                    void persistCode(questionId, JSON.stringify(newTabs), userId);
+                  }}
+                  className="p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/10 dark:hover:bg-white/10"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          ))}
+
+          <button
+            onClick={() => {
+              const newId = String(Date.now());
+              const name = `Helper${tabs.length}.java`;
+              const newTabs = [...tabs, { id: newId, name, content: "class " + name.replace(".java", "") + " {\n\n}\n" }];
+              setTabs(newTabs);
+              setActiveTabId(newId);
+              void persistCode(questionId, JSON.stringify(newTabs), userId);
             }}
+            className="ml-2 p-1 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+            style={{ color: isDark ? "#94a3b8" : "#64748b" }}
           >
-            Solution.java
-          </div>
+            <Plus className="h-3.5 w-3.5" />
+          </button>
         </div>
 
         {/* --- Monaco Editor --- */}
@@ -432,7 +566,7 @@ function CodeEditorPane({
             onChange={handleChange}
             onMount={handleMount}
             options={{
-              fontSize: 14,
+              fontSize: editorFontSize,
               fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
               fontLigatures: true,
               minimap: { enabled: false },
@@ -455,6 +589,35 @@ function CodeEditorPane({
               quickSuggestions: { other: true, comments: false, strings: true },
             }}
           />
+        </div>
+
+        {/* --- Editor Footer --- */}
+        <div
+          className="flex items-center justify-between px-3 py-1 shrink-0 select-none"
+          style={{
+            background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
+            borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>
+              Font Size
+            </span>
+            <select
+              value={editorFontSize}
+              onChange={(e) => setEditorFontSize(Number(e.target.value))}
+              className="h-5 px-1 rounded text-[10px] font-mono outline-none"
+              style={{
+                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                color: isDark ? "#e2e8f0" : "#334155",
+                border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+              }}
+            >
+              {[12, 14, 16, 18, 20].map((size) => (
+                <option key={size} value={size}>{size}px</option>
+              ))}
+            </select>
+          </div>
         </div>
       </Panel>
 
@@ -602,8 +765,11 @@ function CodeEditorPane({
                   >
                     Example Input
                   </span>
-                  <div
-                    className="p-4 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap overflow-x-auto"
+                  <textarea
+                    value={testcases}
+                    onChange={(e) => setTestcases(e.target.value)}
+                    placeholder="Enter custom testcases..."
+                    className="w-full min-h-[150px] p-4 rounded-xl font-mono text-xs leading-relaxed overflow-x-auto resize-y focus:outline-none"
                     style={{
                       background: isDark
                         ? "linear-gradient(135deg, rgba(30,30,55,0.8) 0%, rgba(22,22,42,0.9) 100%)"
@@ -611,9 +777,7 @@ function CodeEditorPane({
                       border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
                       color: isDark ? "#cbd5e1" : "#334155",
                     }}
-                  >
-                    {exampleTestcases || "No testcases provided."}
-                  </div>
+                  />
                 </div>
               </motion.div>
             )}
@@ -874,23 +1038,63 @@ function ProblemDetails({ data }: { data: DailyChallengeResponse }) {
             )}
           </AnimatePresence>
 
-          {/* Problem Description Body */}
-          <motion.section
-            {...fadeIn}
-            className="prose prose-sm dark:prose-invert max-w-none
-              prose-headings:font-bold prose-headings:tracking-tight
-              prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
-              prose-p:leading-relaxed prose-p:my-3
-              prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:p-4 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:border prose-pre:border-white/5
-              prose-code:before:content-none prose-code:after:content-none
-              prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-xs prose-code:text-primary prose-code:font-semibold
-              prose-strong:text-foreground prose-strong:font-bold
-              prose-ul:my-3 prose-ol:my-3 prose-li:my-1
-              [&_.example-block]:p-4 [&_.example-block]:my-3 [&_.example-block]:rounded-xl [&_.example-block]:bg-muted/40 [&_.example-block]:border [&_.example-block]:border-border/50
-              [&_.example-io]:font-mono [&_.example-io]:text-xs [&_.example-io]:font-semibold [&_.example-io]:text-primary"
-          >
-            <div dangerouslySetInnerHTML={{ __html: problem.content }} />
-          </motion.section>
+          {activeTab === 0 ? (
+            <motion.div
+              {...fadeIn}
+              className="prose prose-sm dark:prose-invert max-w-none
+                prose-headings:font-bold prose-headings:tracking-tight
+                prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
+                prose-p:leading-relaxed prose-p:my-3
+                prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:p-4 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:border prose-pre:border-white/5
+                prose-code:before:content-none prose-code:after:content-none
+                prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-xs prose-code:text-primary prose-code:font-semibold
+                prose-strong:text-foreground prose-strong:font-bold
+                prose-ul:my-3 prose-ol:my-3 prose-li:my-1
+                [&_.example-block]:p-4 [&_.example-block]:my-3 [&_.example-block]:rounded-xl [&_.example-block]:bg-muted/40 [&_.example-block]:border [&_.example-block]:border-border/50
+                [&_.example-io]:font-mono [&_.example-io]:text-xs [&_.example-io]:font-semibold [&_.example-io]:text-primary"
+            >
+              <div dangerouslySetInnerHTML={{ __html: problem.content }} />
+            </motion.div>
+          ) : (
+            <motion.div {...fadeIn} className="space-y-4">
+              <h2
+                className="text-xl font-bold tracking-tight"
+                style={{
+                  fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
+                  color: isDark ? "#f1f5f9" : "#0f172a",
+                }}
+              >
+                Official Editorial
+              </h2>
+              {problem.solution ? (
+                <div
+                  className="prose prose-sm dark:prose-invert max-w-none
+                    prose-headings:font-bold
+                    prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
+                    prose-p:leading-relaxed prose-p:my-3
+                    prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:p-4 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:border prose-pre:border-white/5
+                    prose-code:before:content-none prose-code:after:content-none
+                    prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-xs prose-code:text-primary prose-code:font-semibold
+                    prose-strong:text-foreground prose-strong:font-bold
+                    prose-ul:my-3 prose-ol:my-3 prose-li:my-1"
+                >
+                  <div dangerouslySetInnerHTML={{ __html: problem.solution }} />
+                </div>
+              ) : (
+                <div
+                  className="p-6 rounded-xl text-center space-y-3"
+                  style={{
+                    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                    border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+                  }}
+                >
+                  <p className="text-sm font-medium" style={{ color: isDark ? "#94a3b8" : "#64748b" }}>
+                    No free official editorial is available for this problem.
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
         </div>
       </div>
 

@@ -20,6 +20,8 @@ export interface DailyProblem {
   /** Acceptance rate as a percentage (0-100). */
   acRate?: number;
   link: string;
+  /** Official solution HTML, if available. */
+  solution?: string | null;
 }
 
 export type DailyChallengeSource = "upstream" | "db-cache" | "memory-cache";
