@@ -2893,14 +2893,14 @@ export default function Playground() {
           <ResizablePanel
             defaultSize={isMobile ? 60 : guruBotOpen ? 50 : 55}
             minSize={30}
-            className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background"
+            className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]"
           >
             <div className="flex flex-col h-full">
               {/* Problem panel */}
 
               {/* Problem panel */}
               {practiceData && practiceTab === "problem" ? (
-                <div className="flex-1 min-h-0 overflow-y-auto p-10 bg-background relative">
+                <div className="flex-1 min-h-0 overflow-y-auto p-10 bg-white dark:bg-[#16162a] relative">
                   {/* Background Glow */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
@@ -3033,7 +3033,7 @@ export default function Playground() {
                   </div>
                 </div>
               ) : practiceTab === "notes" ? (
-                <div className="flex-1 min-h-0 bg-background relative flex flex-col overflow-hidden">
+                <div className="flex-1 min-h-0 bg-white dark:bg-[#16162a] relative flex flex-col overflow-hidden">
                   <div
                     className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b px-4 py-3"
                     style={PANEL_BORDER_STYLE}
@@ -3234,7 +3234,7 @@ export default function Playground() {
                     autoSaveId="playground-stdin-console-layout"
                   >
                     {/* Input Panel - always visible */}
-                    <ResizablePanel defaultSize={32} minSize={12} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background">
+                    <ResizablePanel defaultSize={32} minSize={12} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]">
                       <div className={IO_PANEL_CLASSES}>
                         <div className={IO_HEADER_CLASSES}>
                           <div className={IO_INPUT_ICON_CLASSES}>
@@ -3258,7 +3258,7 @@ export default function Playground() {
                     />
 
                     {/* Output Panel */}
-                    <ResizablePanel defaultSize={68} minSize={18} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background">
+                    <ResizablePanel defaultSize={68} minSize={18} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]">
                       <div className={IO_PANEL_CLASSES}>
                         <div className={IO_HEADER_CLASSES}>
                           <div className={IO_CONSOLE_ICON_CLASSES}>
@@ -3332,7 +3332,7 @@ export default function Playground() {
                   setGuruBotCollapsed(size <= GURU_EXPAND_TRIGGER_SIZE);
                 }}
                 onCollapse={() => setGuruBotCollapsed(true)}
-                className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-background"
+                className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]"
               >
                 {guruBotCollapsed ? (
                   <AppTooltip content="Expand GuruBot" side="left">
@@ -3367,7 +3367,7 @@ export default function Playground() {
                     </div>
                   </AppTooltip>
                 ) : (
-                  <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-background">
+                  <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-white dark:bg-[#16162a]">
                     <GuruBot
                       open={guruBotOpen}
                       onClose={() => setGuruBotOpen(false)}
