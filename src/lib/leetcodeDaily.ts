@@ -24,7 +24,7 @@ export type {
 const DIRECT_UPSTREAM_URL = "https://alfa-leetcode-api.onrender.com/daily";
 const DIRECT_UPSTREAM_TIMEOUT_MS = 8_000;
 
-const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v3";
+const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v4";
 /** Soft cap on cache age before we stop returning it as "fresh". 36h gives
  *  enough slack to cover any timezone oddity while still being bounded. */
 const LS_CACHE_FRESH_MS = 1000 * 60 * 60 * 36;
@@ -142,7 +142,7 @@ export async function fetchDailyChallenge(): Promise<DailyChallengeResponse> {
       "leetcode-daily",
       { method: "GET" },
     );
-    if (!error && data && data.problem?.questionId) {
+    if (!error && data && data.problem?.questionId && data.problem?.title && data.problem?.content) {
       writeCache({ date: utcDateKey(), response: data, cachedAt: Date.now() });
       return data;
     }
@@ -374,7 +374,6 @@ function buildResponseFromUpstream(
     problem,
     fetchedAt: new Date().toISOString(),
     source: "upstream",
-    stale: true,
   };
 }
 

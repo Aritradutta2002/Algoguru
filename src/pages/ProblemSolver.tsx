@@ -15,12 +15,15 @@ import { format, parseISO } from "date-fns";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   Calendar,
   Check,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Code2,
   Copy,
@@ -30,11 +33,24 @@ import {
   Play,
   RefreshCw,
   RotateCcw,
+  Rocket,
+  Maximize,
+  Settings,
+  Layout,
   Tag,
   Terminal,
   Trash2,
   Trophy,
   XCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Star,
+  MessageSquare,
+  MoreHorizontal,
+  FileText,
+  BookOpen,
+  Layers,
+  Code
 } from "lucide-react";
 
 import { useDailyChallenge } from "@/hooks/useDailyChallenge";
@@ -220,10 +236,10 @@ async function runJavaCode(
 }
 
 /* ------------------------------------------------------------------ */
-/* Code Editor Panel Component                                        */
+/* Code Editor & Test Cases Pane Components                           */
 /* ------------------------------------------------------------------ */
 
-function CodeEditorPanel({
+function CodeEditorPane({
   questionId,
   theme,
   exampleTestcases,
@@ -238,8 +254,6 @@ function CodeEditorPanel({
 
   const [isRunning, setIsRunning] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [consoleOpen, setConsoleOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<"output" | "testcases">("output");
   const [runResult, setRunResult] = useState<RunResult | null>(null);
 
   const editorRef = useRef<any>(null);
@@ -270,9 +284,6 @@ function CodeEditorPanel({
 
   const handleRunCode = async () => {
     setIsRunning(true);
-    setConsoleOpen(true);
-    setActiveTab("output");
-
     const result = await runJavaCode(code);
     setRunResult(result);
     setIsRunning(false);
@@ -288,252 +299,215 @@ function CodeEditorPanel({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-card">
-      {/* Editor Header / Action Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/50 bg-muted/30 shrink-0">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1 text-xs font-mono font-bold bg-background">
-            <Code2 className="h-3.5 w-3.5 text-primary" />
-            Java 21 (JDK)
-          </Badge>
-          <span className="text-[11px] text-muted-foreground hidden sm:inline-block">
-            Autosaved
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleCopyCode}
-            className="h-8 text-xs gap-1.5"
-            title="Copy code to clipboard"
-          >
-            {copied ? (
-              <Check className="h-3.5 w-3.5 text-emerald-500" />
-            ) : (
-              <Copy className="h-3.5 w-3.5" />
-            )}
-            <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleResetCode}
-            className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-            title="Reset to starter template"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Reset</span>
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={() => {
-              void handleRunCode();
-            }}
-            disabled={isRunning}
-            className="h-8 text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition-all"
-            title="Run and compile Java solution (Ctrl + Enter)"
-          >
-            {isRunning ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Play className="h-3.5 w-3.5 fill-current" />
-            )}
-            <span>{isRunning ? "Compiling..." : "Run & Compile"}</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Monaco Editor canvas */}
-      <div className="flex-1 min-h-0 relative">
-        <Editor
-          height="100%"
-          language="java"
-          theme={theme === "light" ? "light" : "vs-dark"}
-          value={code}
-          onChange={handleChange}
-          onMount={handleMount}
-          options={{
-            fontSize: 14,
-            fontFamily:
-              "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-            fontLigatures: true,
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            padding: { top: 12, bottom: 12 },
-            lineNumbers: "on",
-            renderLineHighlight: "line",
-            bracketPairColorization: { enabled: true },
-            autoClosingBrackets: "always",
-            autoClosingQuotes: "always",
-            formatOnPaste: true,
-            tabSize: 4,
-            insertSpaces: true,
-            detectIndentation: false,
-            wordWrap: "on",
-            smoothScrolling: true,
-            cursorBlinking: "smooth",
-            cursorSmoothCaretAnimation: "on",
-            suggest: { showKeywords: true, showSnippets: true },
-            quickSuggestions: { other: true, comments: false, strings: true },
-          }}
-        />
-      </div>
-
-      {/* Bottom Collapsible Console & Output Panel */}
-      <div className="border-t border-border/60 bg-muted/20 shrink-0">
-        {/* Console Header Bar */}
-        <div className="flex items-center justify-between px-4 py-2 bg-muted/40 border-b border-border/40 select-none">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setConsoleOpen(!consoleOpen)}
-              className="flex items-center gap-2 text-xs font-bold tracking-wide uppercase text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Terminal className="h-3.5 w-3.5 text-primary" />
-              Console Output
-            </button>
-
-            {/* Run Status Badges */}
-            {isRunning && (
-              <Badge variant="outline" className="gap-1 text-[11px] bg-amber-500/10 text-amber-600 border-amber-500/30 animate-pulse">
-                <Loader2 className="h-3 w-3 animate-spin" /> Compiling & Running...
-              </Badge>
-            )}
-
-            {!isRunning && runResult && (
-              <div className="flex items-center gap-2">
-                {runResult.status === "success" && (
-                  <Badge variant="outline" className="gap-1 text-[11px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-500" /> Compiled & Executed
-                  </Badge>
-                )}
-                {runResult.status === "compile_error" && (
-                  <Badge variant="outline" className="gap-1 text-[11px] bg-rose-500/10 text-rose-600 border-rose-500/30">
-                    <XCircle className="h-3 w-3 text-rose-500" /> Compilation Error
-                  </Badge>
-                )}
-                {runResult.status === "runtime_error" && (
-                  <Badge variant="outline" className="gap-1 text-[11px] bg-amber-500/10 text-amber-600 border-amber-500/30">
-                    <AlertTriangle className="h-3 w-3 text-amber-500" /> Runtime Error
-                  </Badge>
-                )}
-                {runResult.status === "error" && (
-                  <Badge variant="outline" className="gap-1 text-[11px] bg-rose-500/10 text-rose-600 border-rose-500/30">
-                    <XCircle className="h-3 w-3 text-rose-500" /> Error
-                  </Badge>
-                )}
-                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground font-mono">
-                  <Clock className="h-3 w-3" />
-                  {runResult.executionTimeMs} ms
-                </span>
-              </div>
-            )}
+    <PanelGroup direction="vertical" autoSaveId="editor-testcases-split" className="h-full bg-[#1e1e1e]">
+      <Panel defaultSize={60} minSize={30} className="flex flex-col h-full min-h-0 bg-[#1e1e1e]">
+        {/* Editor Header / Action Bar */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/20 bg-[#1e1e1e] shrink-0">
+          <div className="flex items-center">
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5 font-medium bg-muted/20 hover:bg-muted/30 text-muted-foreground">
+              Java 21 <ChevronDown className="h-3 w-3" />
+            </Button>
           </div>
 
           <div className="flex items-center gap-1">
-            {exampleTestcases && (
-              <Button
-                size="sm"
-                variant={activeTab === "testcases" ? "secondary" : "ghost"}
-                onClick={() => {
-                  setActiveTab("testcases");
-                  setConsoleOpen(true);
-                }}
-                className="h-6 text-[11px] px-2"
-              >
-                Testcases
-              </Button>
-            )}
-
-            <Button
-              size="sm"
-              variant={activeTab === "output" ? "secondary" : "ghost"}
-              onClick={() => {
-                setActiveTab("output");
-                setConsoleOpen(true);
-              }}
-              className="h-6 text-[11px] px-2"
-            >
-              Output
-            </Button>
-
-            {runResult && (
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => setRunResult(null)}
-                className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                title="Clear console output"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            )}
-
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => setConsoleOpen(!consoleOpen)}
-              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-              title={consoleOpen ? "Collapse console" : "Expand console"}
+              onClick={handleCopyCode}
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              title="Copy code"
             >
-              {consoleOpen ? (
-                <ChevronDown className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronUp className="h-3.5 w-3.5" />
-              )}
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleResetCode}
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              title="Reset code"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+            <div className="w-px h-4 bg-border/40 mx-1" />
+            <Button size="sm" variant="ghost" className="h-7 text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 font-medium">
+              Try...
+            </Button>
+            <Button
+              size="icon"
+              onClick={() => { void handleRunCode(); }}
+              disabled={isRunning}
+              className="h-7 w-7 bg-emerald-600 hover:bg-emerald-500 text-white ml-1 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+              title="Run Code (Ctrl + Enter)"
+            >
+              {isRunning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Rocket className="h-3.5 w-3.5" />}
             </Button>
           </div>
         </div>
 
-        {/* Console Body */}
-        {consoleOpen && (
-          <div className="p-3 bg-zinc-950 text-zinc-100 font-mono text-xs leading-relaxed max-h-[220px] min-h-[110px] overflow-y-auto">
-            {activeTab === "testcases" ? (
-              <div className="space-y-2 select-text">
-                <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                  Example Testcases (from LeetCode)
-                </div>
-                <pre className="p-3 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 whitespace-pre-wrap">
-                  {exampleTestcases}
-                </pre>
-              </div>
-            ) : isRunning ? (
-              <div className="flex items-center gap-2 text-amber-400 py-4">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Sending Java code to OpenJDK 21 compiler runner...</span>
-              </div>
-            ) : runResult ? (
-              <div className="space-y-2 select-text">
-                {runResult.status === "compile_error" ? (
-                  <div className="text-rose-400 whitespace-pre-wrap">
-                    {runResult.output}
-                  </div>
-                ) : runResult.status === "runtime_error" ? (
-                  <div className="text-amber-300 whitespace-pre-wrap">
-                    {runResult.output}
-                  </div>
-                ) : runResult.status === "error" ? (
-                  <div className="text-rose-400 whitespace-pre-wrap">
-                    {runResult.output}
-                  </div>
-                ) : (
-                  <div className="text-emerald-300 whitespace-pre-wrap">
-                    {runResult.output}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-zinc-500 py-4 text-center select-none">
-                Click <span className="text-emerald-400 font-bold">Run & Compile</span> or press <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">Ctrl + Enter</kbd> to compile and execute your Java code.
-              </div>
-            )}
+        {/* Editor File Tabs */}
+        <div className="flex items-center px-2 py-1 bg-[#1e1e1e] border-b border-border/10 shrink-0 select-none">
+          <div className="flex items-center gap-2 px-3 py-1 rounded bg-[#2d2d2d] text-xs font-medium text-foreground cursor-pointer">
+            Tab-1
           </div>
-        )}
-      </div>
-    </div>
+          <Button variant="ghost" size="icon" className="h-6 w-6 ml-1 text-muted-foreground hover:text-foreground">
+            +
+          </Button>
+        </div>
+
+        {/* Monaco Editor canvas */}
+        <div className="flex-1 min-h-0 relative">
+          <Editor
+            height="100%"
+            language="java"
+            theme={theme === "light" ? "light" : "vs-dark"}
+            value={code}
+            onChange={handleChange}
+            onMount={handleMount}
+            options={{
+              fontSize: 14,
+              fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+              fontLigatures: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              padding: { top: 12, bottom: 12 },
+              lineNumbers: "on",
+              renderLineHighlight: "line",
+              bracketPairColorization: { enabled: true },
+              autoClosingBrackets: "always",
+              autoClosingQuotes: "always",
+              formatOnPaste: true,
+              tabSize: 4,
+              insertSpaces: true,
+              detectIndentation: false,
+              wordWrap: "on",
+              smoothScrolling: true,
+              cursorBlinking: "smooth",
+              cursorSmoothCaretAnimation: "on",
+              suggest: { showKeywords: true, showSnippets: true },
+              quickSuggestions: { other: true, comments: false, strings: true },
+            }}
+          />
+        </div>
+
+        {/* Editor Settings Footer */}
+        <div className="flex items-center justify-end px-3 py-1.5 border-t border-border/20 bg-[#1e1e1e] shrink-0 text-muted-foreground select-none">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 text-[11px] font-mono cursor-pointer hover:text-foreground">
+              14 <ChevronDown className="h-3 w-3" />
+            </span>
+            <Code className="h-3.5 w-3.5 cursor-pointer hover:text-foreground" />
+            <Layout className="h-3.5 w-3.5 cursor-pointer hover:text-foreground" />
+            <Maximize className="h-3.5 w-3.5 cursor-pointer hover:text-foreground" />
+          </div>
+        </div>
+      </Panel>
+
+      <PanelResizeHandle className="h-1.5 bg-[#2d2d2d] hover:bg-primary/40 transition-colors data-[resize-handle-state=drag]:bg-primary/60 shrink-0" />
+
+      {/* Bottom Panel: Test Cases & Output */}
+      <Panel defaultSize={40} minSize={20} className="flex flex-col h-full min-h-0 bg-[#1e1e1e]">
+        {/* Test Cases Header */}
+        <div className="flex items-center gap-2 px-3 pt-2 shrink-0 border-b border-border/10 bg-[#1e1e1e]">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-t-md bg-[#2d2d2d] text-xs font-semibold text-foreground">
+            <CheckCircle2 className="h-3.5 w-3.5 text-purple-400" /> Test Cases
+          </button>
+        </div>
+
+        {/* Output & Test Cases Content Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          
+          {/* Output / Execution result override (if we ran code) */}
+          {isRunning ? (
+            <div className="flex items-center gap-2 text-amber-400 py-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Compiling & Executing...</span>
+            </div>
+          ) : runResult ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {runResult.status === "success" && (
+                    <Badge variant="outline" className="gap-1 text-[11px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" /> Success
+                    </Badge>
+                  )}
+                  {runResult.status === "compile_error" && (
+                    <Badge variant="outline" className="gap-1 text-[11px] bg-rose-500/10 text-rose-600 border-rose-500/30">
+                      <XCircle className="h-3 w-3 text-rose-500" /> Compilation Error
+                    </Badge>
+                  )}
+                  {runResult.status === "runtime_error" && (
+                    <Badge variant="outline" className="gap-1 text-[11px] bg-amber-500/10 text-amber-600 border-amber-500/30">
+                      <AlertTriangle className="h-3 w-3 text-amber-500" /> Runtime Error
+                    </Badge>
+                  )}
+                  {runResult.status === "error" && (
+                    <Badge variant="outline" className="gap-1 text-[11px] bg-rose-500/10 text-rose-600 border-rose-500/30">
+                      <XCircle className="h-3 w-3 text-rose-500" /> Error
+                    </Badge>
+                  )}
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground font-mono">
+                    <Clock className="h-3 w-3" />
+                    {runResult.executionTimeMs} ms
+                  </span>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => setRunResult(null)} className="h-7 text-xs text-muted-foreground">
+                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
+                </Button>
+              </div>
+
+              <div className="space-y-1.5 select-text">
+                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                  OUTPUT
+                </div>
+                <div className="p-3 rounded-lg bg-[#2a2a2a] border border-border/10 text-zinc-300 font-mono text-xs whitespace-pre-wrap">
+                  {runResult.status === "compile_error" ? (
+                    <span className="text-rose-400">{runResult.output}</span>
+                  ) : runResult.status === "runtime_error" ? (
+                    <span className="text-amber-300">{runResult.output}</span>
+                  ) : runResult.status === "error" ? (
+                    <span className="text-rose-400">{runResult.output}</span>
+                  ) : (
+                    <span className="text-emerald-300">{runResult.output}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Default Test Cases View
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="secondary" className="h-7 text-xs bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 rounded-full px-4 border border-amber-500/30">
+                    Case 1
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs border border-border/30 text-muted-foreground rounded-full px-4 hover:text-foreground">
+                    Case 2
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 border border-border/30 text-muted-foreground rounded-full hover:text-foreground">
+                    +
+                  </Button>
+                </div>
+                <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground gap-1.5 hover:text-foreground">
+                  <RotateCcw className="h-3.5 w-3.5" /> Reset
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    RAW INPUT (EXAMPLE TESTCASES)
+                  </div>
+                  <div className="p-3 rounded-lg bg-[#2a2a2a] border border-border/10 text-zinc-300 font-mono text-xs whitespace-pre-wrap">
+                    {exampleTestcases || "No testcases provided."}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </Panel>
+    </PanelGroup>
   );
 }
 
@@ -635,136 +609,108 @@ function EmptyState({ onRetry }: { onRetry: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Header                                                              */
-/* ------------------------------------------------------------------ */
-
-function PageHeader({
-  data,
-}: {
-  data: DailyChallengeResponse;
-}) {
-  const { problem, date, stale } = data;
-  const formattedDate = useMemo(() => {
-    try {
-      return format(parseISO(date), "EEEE, MMMM d, yyyy");
-    } catch {
-      return date;
-    }
-  }, [date]);
-
-  return (
-    <div className="flex flex-col gap-3 border-b border-border/50 bg-background/60 px-6 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between shrink-0">
-      <div className="flex items-start gap-3 min-w-0">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 mb-1.5">
-            <Badge
-              className={difficultyClasses(problem.difficulty)}
-              variant="outline"
-            >
-              {problem.difficulty}
-            </Badge>
-            {problem.acRate !== undefined && (
-              <Badge variant="secondary" className="font-mono text-[10px]">
-                <Trophy className="mr-1 h-3 w-3" />
-                {problem.acRate.toFixed(1)}% accepted
-              </Badge>
-            )}
-            {stale && (
-              <Badge variant="outline" className="text-[10px] text-amber-600">
-                Cached (upstream unavailable)
-              </Badge>
-            )}
-          </div>
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate">
-            {problem.title}
-          </h1>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="h-3.5 w-3.5" />
-          {formattedDate}
-        </span>
-        <Button asChild size="sm" variant="outline">
-          <a
-            href={problem.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> LeetCode
-          </a>
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* Problem details pane                                                */
 /* ------------------------------------------------------------------ */
 
 function ProblemDetails({ data }: { data: DailyChallengeResponse }) {
-  const { problem, date } = data;
+  const { problem, stale } = data;
+  
   return (
-    <div className="h-full overflow-y-auto p-6 space-y-6">
-      {/* Topics */}
-      {problem.topicTags.length > 0 && (
-        <section>
-          <div className="flex items-center gap-2 mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            <Tag className="h-3.5 w-3.5" /> Topics
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {problem.topicTags.map((t) => (
-              <Badge key={t.name} variant="secondary" className="text-xs">
-                {t.name}
+    <div className="flex flex-col h-full overflow-hidden bg-background">
+      {/* Top Tabs */}
+      <div className="flex items-center gap-6 px-4 pt-2 border-b border-border/40 shrink-0">
+        <button className="flex items-center gap-1.5 pb-2 border-b-2 border-amber-500 text-sm font-semibold text-amber-500">
+          <FileText className="h-4 w-4" /> Description
+        </button>
+        <button className="flex items-center gap-1.5 pb-2 border-b-2 border-transparent text-sm font-medium text-muted-foreground hover:text-foreground">
+          <BookOpen className="h-4 w-4" /> Editorial
+        </button>
+        <button className="flex items-center gap-1.5 pb-2 border-b-2 border-transparent text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Clock className="h-4 w-4" /> Submissions
+        </button>
+        <button className="flex items-center gap-1.5 pb-2 border-b-2 border-transparent text-sm font-medium text-muted-foreground hover:text-foreground">
+          <MessageSquare className="h-4 w-4" /> Discussion
+        </button>
+      </div>
+
+      {/* Problem Content (Scrollable) */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="space-y-4">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {problem.title}
+          </h1>
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={difficultyClasses(problem.difficulty)} variant="outline">
+              {problem.difficulty}
+            </Badge>
+            <Badge variant="secondary" className="text-xs font-medium">
+              Hints
+            </Badge>
+            <Badge variant="secondary" className="text-xs font-medium">
+              Company
+            </Badge>
+            
+            {stale && (
+              <Badge variant="outline" className="text-[10px] text-amber-600 ml-auto">
+                Cached (offline)
               </Badge>
-            ))}
+            )}
           </div>
-        </section>
-      )}
-
-      {/* Date (mobile-only; header shows desktop) */}
-      <section className="sm:hidden">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Calendar className="h-3.5 w-3.5" />
-          <span>{date}</span>
         </div>
-      </section>
 
-      {/* Problem Description Body — HTML from upstream wrapper */}
-      <section
-        className="prose prose-sm dark:prose-invert max-w-none
-          prose-headings:font-bold prose-headings:tracking-tight
-          prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
-          prose-p:leading-relaxed prose-p:my-3
-          prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:p-3.5 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:border prose-pre:border-border/50
-          prose-code:before:content-none prose-code:after:content-none
-          prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-xs prose-code:text-primary
-          prose-strong:text-foreground
-          prose-ul:my-3 prose-ol:my-3 prose-li:my-1
-          [&_.example-block]:p-4 [&_.example-block]:my-3 [&_.example-block]:rounded-xl [&_.example-block]:bg-muted/40 [&_.example-block]:border [&_.example-block]:border-border/50
-          [&_.example-io]:font-mono [&_.example-io]:text-xs [&_.example-io]:font-semibold [&_.example-io]:text-primary"
-      >
-        <div dangerouslySetInnerHTML={{ __html: problem.content }} />
-      </section>
-
-      {/* Hints */}
-      {problem.hints && problem.hints.length > 0 && (
-        <section>
-          <div className="flex items-center gap-2 mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            <Hash className="h-3.5 w-3.5" /> Hints
-          </div>
-          <ol className="space-y-2 text-sm list-decimal pl-5">
-            {problem.hints.map((h, i) => (
-              <li
-                key={i}
-                dangerouslySetInnerHTML={{ __html: h }}
-                className="text-muted-foreground [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-xs [&_code]:text-primary"
-              />
-            ))}
-          </ol>
+        {/* Problem Description Body */}
+        <section
+          className="prose prose-sm dark:prose-invert max-w-none
+            prose-headings:font-bold prose-headings:tracking-tight
+            prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
+            prose-p:leading-relaxed prose-p:my-3
+            prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:p-3.5 prose-pre:rounded-xl prose-pre:border prose-pre:border-border/50 prose-pre:overflow-x-auto
+            prose-code:before:content-none prose-code:after:content-none
+            prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-xs prose-code:text-primary
+            prose-strong:text-foreground
+            prose-ul:my-3 prose-ol:my-3 prose-li:my-1
+            [&_.example-block]:p-4 [&_.example-block]:my-3 [&_.example-block]:rounded-xl [&_.example-block]:bg-muted/40 [&_.example-block]:border [&_.example-block]:border-border/50
+            [&_.example-io]:font-mono [&_.example-io]:text-xs [&_.example-io]:font-semibold [&_.example-io]:text-primary"
+        >
+          <div dangerouslySetInnerHTML={{ __html: problem.content }} />
         </section>
-      )}
+      </div>
+
+      {/* Bottom Toolbar */}
+      <div className="flex items-center justify-between px-4 py-2 border-t border-border/40 bg-background shrink-0">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 hover:text-foreground">
+            <ThumbsUp className="h-4 w-4 text-amber-500 fill-amber-500/20" /> 17
+          </Button>
+          <Button variant="ghost" size="sm" className="h-8 px-2 hover:text-foreground">
+            <ThumbsDown className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-8 px-2 hover:text-foreground">
+            <Star className="h-4 w-4" />
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="h-8 px-2 hover:text-foreground">
+            <a href={problem.link} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Button variant="ghost" size="sm" className="h-8 px-2 hover:text-foreground">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1 border-l border-border/50 pl-2">
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8 hover:text-foreground">
+              <Link to="/">
+                <ChevronLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-foreground" disabled>
+              <ChevronRight className="h-4 w-4 opacity-50" />
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -775,8 +721,7 @@ function ProblemDetails({ data }: { data: DailyChallengeResponse }) {
 
 export default function ProblemSolver() {
   const { theme } = useSettings();
-  const { data, isLoading, isError, error, refetch, isFetching } =
-    useDailyChallenge();
+  const { data, isLoading, isError, error, refetch } = useDailyChallenge();
 
   // Defensive: treat a payload with no `questionId` as "empty".
   const isEmpty = !!data && !data.problem?.questionId;
@@ -788,31 +733,9 @@ export default function ProblemSolver() {
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className="flex flex-col h-full min-h-0"
     >
-      {/* Top bar: back button + page title */}
-      <div className="flex items-center justify-between gap-3 px-6 py-3 border-b border-border/40 shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <Button asChild variant="ghost" size="icon" className="shrink-0">
-            <Link to="/" aria-label="Back to home">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div className="min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              LeetCode
-            </div>
-            <h2 className="text-sm sm:text-base font-bold truncate">
-              Daily Challenge
-            </h2>
-          </div>
-        </div>
-        {isFetching && !isLoading && (
-          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Refreshing
-          </span>
-        )}
-      </div>
+      {/* Top nav bar was removed to match the LeetCode layout which integrates it into panels. */}
+      {/* We are placing the problem layout directly taking the full vertical space. */}
 
-      {/* Body */}
       <div className="flex-1 min-h-0">
         {isLoading ? (
           <ProblemSkeleton />
@@ -830,36 +753,31 @@ export default function ProblemSolver() {
             }}
           />
         ) : data ? (
-          <div className="flex flex-col h-full min-h-0">
-            <PageHeader data={data} />
-            <div className="flex-1 min-h-0">
-              <PanelGroup
-                direction="horizontal"
-                autoSaveId="problem-solver-split"
-                className="h-full"
-              >
-                <Panel
-                  defaultSize={45}
-                  minSize={25}
-                  className="bg-background"
-                >
-                  <ProblemDetails data={data} />
-                </Panel>
-                <PanelResizeHandle className="w-1.5 bg-border/50 hover:bg-primary/40 transition-colors data-[resize-handle-state=drag]:bg-primary/60" />
-                <Panel
-                  defaultSize={55}
-                  minSize={30}
-                  className="bg-card"
-                >
-                  <CodeEditorPanel
-                    questionId={data.problem.questionId}
-                    theme={theme}
-                    exampleTestcases={data.problem.exampleTestcases}
-                  />
-                </Panel>
-              </PanelGroup>
-            </div>
-          </div>
+          <PanelGroup
+            direction="horizontal"
+            autoSaveId="problem-solver-split-v2"
+            className="h-full w-full overflow-hidden"
+          >
+            <Panel
+              defaultSize={45}
+              minSize={25}
+              className="bg-background"
+            >
+              <ProblemDetails data={data} />
+            </Panel>
+            <PanelResizeHandle className="w-1.5 bg-border/50 hover:bg-primary/40 transition-colors data-[resize-handle-state=drag]:bg-primary/60" />
+            <Panel
+              defaultSize={55}
+              minSize={30}
+              className="bg-card"
+            >
+              <CodeEditorPane
+                questionId={data.problem.questionId}
+                theme={theme}
+                exampleTestcases={data.problem.exampleTestcases}
+              />
+            </Panel>
+          </PanelGroup>
         ) : null}
       </div>
     </motion.div>

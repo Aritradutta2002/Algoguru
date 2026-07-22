@@ -211,6 +211,7 @@ async function readDbCache(
     .eq("date", date)
     .maybeSingle<CacheRow>();
   if (error || !data) return null;
+  if (!data.problem_data.title || !data.problem_data.content) return null;
   return {
     date: data.date,
     problem: data.problem_data,
@@ -229,6 +230,7 @@ async function readLatestDbCache(
     .limit(1)
     .maybeSingle<CacheRow>();
   if (error || !data) return null;
+  if (!data.problem_data.title || !data.problem_data.content) return null;
   return {
     date: data.date,
     problem: data.problem_data,
