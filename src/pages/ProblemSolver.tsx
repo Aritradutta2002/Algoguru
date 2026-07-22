@@ -39,6 +39,7 @@ import { useDailyChallenge } from "@/hooks/useDailyChallenge";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { GuruBot } from "@/components/GuruBot";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -448,7 +449,19 @@ function CodeEditorPane({
               }}
               title="Format Code (Shift+Alt+F)"
             >
-              {isFormatted ? <Check className="h-3.5 w-3.5" /> : <span className="text-xs font-medium">Format</span>}
+              {isFormatted ? (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">Formatted</span>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={14} height={14} fill="currentColor">
+                    <path d="M64 128C64 92.7 92.7 64 128 64L416 64C451.3 64 480 92.7 480 128L496 128C540.2 128 576 163.8 576 208L576 304C576 348.2 540.2 384 496 384L336 384C327.2 384 320 391.2 320 400L320 418.7C338.6 425.3 352 443.1 352 464L352 560C352 586.5 330.5 608 304 608L272 608C245.5 608 224 586.5 224 560L224 464C224 443.1 237.4 425.3 256 418.7L256 400C256 355.8 291.8 320 336 320L496 320C504.8 320 512 312.8 512 304L512 208C512 199.2 504.8 192 496 192L480 192C480 227.3 451.3 256 416 256L128 256C92.7 256 64 227.3 64 192L64 128z"/>
+                  </svg>
+                  <span className="text-xs font-medium">Format</span>
+                </>
+              )}
             </button>
 
             {/* Reset */}
@@ -606,15 +619,13 @@ function CodeEditorPane({
             <select
               value={editorFontSize}
               onChange={(e) => setEditorFontSize(Number(e.target.value))}
-              className="h-5 px-1 rounded text-[10px] font-mono outline-none"
+              className="h-5 px-1 rounded text-[10px] font-mono outline-none dark:bg-zinc-800 dark:text-zinc-200 bg-white text-zinc-800"
               style={{
-                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
-                color: isDark ? "#e2e8f0" : "#334155",
                 border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
               }}
             >
               {[12, 14, 16, 18, 20].map((size) => (
-                <option key={size} value={size}>{size}px</option>
+                <option key={size} value={size} className="dark:bg-zinc-800 dark:text-zinc-200 bg-white text-zinc-800">{size}px</option>
               ))}
             </select>
           </div>
@@ -879,14 +890,20 @@ function EmptyState({ onRetry }: { onRetry: () => void }) {
 const LEFT_TABS = [
   { label: "Description", icon: "📄" },
   { label: "Editorial", icon: "📖" },
+  { label: "Guru AI", icon: "🤖" },
 ] as const;
 
-function ProblemDetails({ data }: { data: DailyChallengeResponse }) {
+function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: "dark" | "light" }) {
   const { problem, stale } = data;
   const [activeTab, setActiveTab] = useState(0);
   const [hintsOpen, setHintsOpen] = useState(false);
 
-  const isDark = document.documentElement.classList.contains("dark");
+  const isDark = theme === "dark";
+
+  // Build the full problem context for GuruBot
+  const fullProblemContext = useMemo(() => {
+    return `Title: ${problem.title}\nDifficulty: ${problem.difficulty}\n\nProblem Description:\n${problem.content}\n\nHints:\n${(problem.hints || []).join("\n")}`;
+  }, [problem]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ background: isDark ? "#16162a" : "#ffffff" }}>
@@ -933,112 +950,123 @@ function ProblemDetails({ data }: { data: DailyChallengeResponse }) {
       {/* ── Scrollable Content ── */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
         <div className="p-6 space-y-6">
-          <motion.div {...fadeIn} className="space-y-4">
-            <h1
-              className="text-2xl font-bold tracking-tight leading-tight"
-              style={{
-                fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-                color: isDark ? "#f1f5f9" : "#0f172a",
-              }}
-            >
-              {problem.title}
-            </h1>
-
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Difficulty */}
-              <span
-                className="inline-flex items-center h-6 px-3 rounded-full text-xs font-bold tracking-wide"
-                style={
-                  problem.difficulty === "Hard"
-                    ? { background: isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.08)", color: isDark ? "#f87171" : "#dc2626", border: `1px solid ${isDark ? "rgba(239,68,68,0.2)" : "rgba(239,68,68,0.15)"}` }
-                    : problem.difficulty === "Medium"
-                      ? { background: isDark ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.08)", color: isDark ? "#fbbf24" : "#d97706", border: `1px solid ${isDark ? "rgba(245,158,11,0.2)" : "rgba(245,158,11,0.15)"}` }
-                      : { background: isDark ? "rgba(16,185,129,0.1)" : "rgba(16,185,129,0.08)", color: isDark ? "#34d399" : "#059669", border: `1px solid ${isDark ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.15)"}` }
-                }
-              >
-                {problem.difficulty}
-              </span>
-
-              {/* Hints toggle — only shown when hints exist */}
-              {problem.hints && problem.hints.length > 0 && (
-                <button
-                  onClick={() => setHintsOpen(!hintsOpen)}
-                  className="inline-flex items-center gap-1 h-6 px-3 rounded-full text-xs font-semibold transition-all duration-200 hover:scale-[1.03]"
-                  style={{
-                    background: hintsOpen
-                      ? isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.1)"
-                      : isDark ? "rgba(139,92,246,0.08)" : "rgba(139,92,246,0.06)",
-                    color: isDark ? "#a78bfa" : "#7c3aed",
-                    border: `1px solid ${isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.12)"}`,
-                  }}
-                >
-                  <Lightbulb className="h-3 w-3" /> Hints ({problem.hints.length})
-                </button>
-              )}
-
-              {/* Topic tags */}
-              {problem.topicTags.map((t) => (
-                <span
-                  key={t.name}
-                  className="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-medium"
-                  style={{
-                    background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
-                    color: isDark ? "#94a3b8" : "#64748b",
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-                  }}
-                >
-                  {t.name}
-                </span>
-              ))}
-
-              {stale && (
-                <span
-                  className="inline-flex items-center h-6 px-3 rounded-full text-[10px] font-bold ml-auto"
-                  style={{ background: "rgba(245,158,11,0.08)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.15)" }}
-                >
-                  Cached
-                </span>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Hints Collapsible */}
-          <AnimatePresence>
-            {hintsOpen && problem.hints && problem.hints.length > 0 && (
+          <AnimatePresence mode="popLayout">
+            {activeTab === 0 && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
+                key="problem-header"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
               >
-                <div
-                  className="p-4 rounded-xl space-y-2"
+                <h1
+                  className="text-2xl font-bold tracking-tight leading-tight"
                   style={{
-                    background: isDark ? "rgba(139,92,246,0.05)" : "rgba(139,92,246,0.03)",
-                    border: `1px solid ${isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.1)"}`,
+                    fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
+                    color: isDark ? "#f1f5f9" : "#0f172a",
                   }}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: "#a78bfa" }}>
-                    Hints
+                  {problem.title}
+                </h1>
+
+                {/* Badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Difficulty */}
+                  <span
+                    className="inline-flex items-center h-6 px-3 rounded-full text-xs font-bold tracking-wide"
+                    style={
+                      problem.difficulty === "Hard"
+                        ? { background: isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.08)", color: isDark ? "#f87171" : "#dc2626", border: `1px solid ${isDark ? "rgba(239,68,68,0.2)" : "rgba(239,68,68,0.15)"}` }
+                        : problem.difficulty === "Medium"
+                          ? { background: isDark ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.08)", color: isDark ? "#fbbf24" : "#d97706", border: `1px solid ${isDark ? "rgba(245,158,11,0.2)" : "rgba(245,158,11,0.15)"}` }
+                          : { background: isDark ? "rgba(16,185,129,0.1)" : "rgba(16,185,129,0.08)", color: isDark ? "#34d399" : "#059669", border: `1px solid ${isDark ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.15)"}` }
+                    }
+                  >
+                    {problem.difficulty}
                   </span>
-                  <ol className="space-y-2 text-sm list-decimal pl-5">
-                    {problem.hints.map((h, i) => (
-                      <li
-                        key={i}
-                        dangerouslySetInnerHTML={{ __html: h }}
-                        className="[&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-xs [&_code]:text-primary"
-                        style={{ color: isDark ? "#94a3b8" : "#64748b" }}
-                      />
-                    ))}
-                  </ol>
+
+                  {/* Hints toggle — only shown when hints exist */}
+                  {problem.hints && problem.hints.length > 0 && (
+                    <button
+                      onClick={() => setHintsOpen(!hintsOpen)}
+                      className="inline-flex items-center gap-1 h-6 px-3 rounded-full text-xs font-semibold transition-all duration-200 hover:scale-[1.03]"
+                      style={{
+                        background: hintsOpen
+                          ? isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.1)"
+                          : isDark ? "rgba(139,92,246,0.08)" : "rgba(139,92,246,0.06)",
+                        color: isDark ? "#a78bfa" : "#7c3aed",
+                        border: `1px solid ${isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.12)"}`,
+                      }}
+                    >
+                      <Lightbulb className="h-3 w-3" /> Hints ({problem.hints.length})
+                    </button>
+                  )}
+
+                  {/* Topic tags */}
+                  {problem.topicTags.map((t) => (
+                    <span
+                      key={t.name}
+                      className="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-medium"
+                      style={{
+                        background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                        color: isDark ? "#94a3b8" : "#64748b",
+                        border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+                      }}
+                    >
+                      {t.name}
+                    </span>
+                  ))}
+
+                  {stale && (
+                    <span
+                      className="inline-flex items-center h-6 px-3 rounded-full text-[10px] font-bold ml-auto"
+                      style={{ background: "rgba(245,158,11,0.08)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.15)" }}
+                    >
+                      Cached
+                    </span>
+                  )}
                 </div>
+
+                {/* Hints Collapsible */}
+                <AnimatePresence>
+                  {hintsOpen && problem.hints && problem.hints.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div
+                        className="p-4 rounded-xl space-y-2 mt-4"
+                        style={{
+                          background: isDark ? "rgba(139,92,246,0.05)" : "rgba(139,92,246,0.03)",
+                          border: `1px solid ${isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.1)"}`,
+                        }}
+                      >
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: "#a78bfa" }}>
+                          Hints
+                        </span>
+                        <ol className="space-y-2 text-sm list-decimal pl-5">
+                          {problem.hints.map((h, i) => (
+                            <li
+                              key={i}
+                              dangerouslySetInnerHTML={{ __html: h }}
+                              className="[&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-xs [&_code]:text-primary"
+                              style={{ color: isDark ? "#94a3b8" : "#64748b" }}
+                            />
+                          ))}
+                        </ol>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {activeTab === 0 ? (
+          {activeTab === 0 && (
             <motion.div
               {...fadeIn}
               className="prose prose-sm dark:prose-invert max-w-none
@@ -1055,7 +1083,9 @@ function ProblemDetails({ data }: { data: DailyChallengeResponse }) {
             >
               <div dangerouslySetInnerHTML={{ __html: problem.content }} />
             </motion.div>
-          ) : (
+          )}
+
+          {activeTab === 1 && (
             <motion.div {...fadeIn} className="space-y-4">
               <h2
                 className="text-xl font-bold tracking-tight"
@@ -1093,6 +1123,18 @@ function ProblemDetails({ data }: { data: DailyChallengeResponse }) {
                   </p>
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {activeTab === 2 && (
+            <motion.div {...fadeIn} className="h-[600px] rounded-xl overflow-hidden border border-border/30 relative">
+              <GuruBot
+                open={true}
+                onClose={() => {}}
+                embedded={true}
+                debugMode={false}
+                initialContext={`You are assisting a user in solving the following LeetCode daily challenge. Ensure your answers are helpful, precise, and act as a guide.\n\n${fullProblemContext}`}
+              />
             </motion.div>
           )}
         </div>
@@ -1176,7 +1218,7 @@ export default function ProblemSolver() {
             className="h-full w-full overflow-hidden"
           >
             <Panel defaultSize={45} minSize={25}>
-              <ProblemDetails data={data} />
+              <ProblemDetails data={data} theme={theme} />
             </Panel>
 
             <PanelResizeHandle className="group flex items-center justify-center" style={{ width: 6 }}>
