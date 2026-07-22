@@ -189,8 +189,8 @@ const DEFAULT_CODE: Record<string, string> = {
 };
 
 const THEMES = [
-  { id: "dracula", label: "Dracula", icon: <Palette size={13} /> },
   { id: "vs-dark", label: "Dark", icon: <Moon size={13} /> },
+  { id: "dracula", label: "Dracula", icon: <Palette size={13} /> },
   { id: "light", label: "Light", icon: <Sun size={13} /> },
   {
     id: "solarized-dark",
@@ -207,7 +207,7 @@ const PANEL_HEADER_CLASSES =
   "flex items-center gap-3 px-5 py-3 border-b bg-muted/20 backdrop-blur-sm";
 const PANEL_BORDER_STYLE = { borderColor: "hsl(var(--border) / 0.3)" };
 const IO_PANEL_CLASSES =
-  "flex h-full flex-col bg-slate-50 text-slate-950 dark:bg-background dark:text-foreground";
+  "flex h-full flex-col bg-slate-50 text-slate-950 dark:bg-[#16162a] dark:text-foreground";
 const IO_HEADER_CLASSES =
   "flex items-center gap-3 border-b border-slate-300 bg-slate-100/95 px-5 py-3 shadow-sm shadow-slate-300/60 backdrop-blur-sm dark:border-border/30 dark:bg-muted/20 dark:shadow-none";
 const IO_LABEL_CLASSES =
@@ -219,7 +219,7 @@ const IO_CONSOLE_ICON_CLASSES =
 const IO_TEXTAREA_CLASSES =
   "flex-1 w-full resize-none bg-white px-6 py-4 font-mono text-sm leading-6 text-slate-950 outline-none placeholder:text-slate-500 shadow-inner shadow-slate-200/70 selection:bg-emerald-200/60 dark:bg-transparent dark:text-foreground dark:placeholder:text-muted-foreground/50 dark:shadow-none dark:selection:bg-primary/20";
 const IO_CONSOLE_CLASSES =
-  "flex-1 min-h-0 overflow-auto border-t border-slate-300 bg-white shadow-inner shadow-slate-200/60 dark:border-transparent dark:bg-zinc-950 dark:shadow-none";
+  "flex-1 min-h-0 overflow-auto border-t border-slate-300 bg-white shadow-inner shadow-slate-200/60 dark:border-transparent dark:bg-[#16162a] dark:shadow-none";
 const ICON_BUTTON_CLASSES =
   "flex items-center justify-center w-10 h-10 rounded-2xl border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:border-primary/30 hover:text-primary transition-all duration-300 shadow-sm";
 const DROPDOWN_ITEM_CLASSES =
