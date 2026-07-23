@@ -4,9 +4,21 @@ import {
   Coffee, Code2, Trophy, BrainCircuit, Target,
   ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays
 } from "lucide-react";
-import { JavaTreeBanner } from "@/components/JavaTreeBanner";
 
 const SECTIONS = [
+  {
+    id: "java-roadmap",
+    title: "Java Roadmap",
+    subtitle: "Complete learning path",
+    desc: "Interactive visual roadmap showing the complete Java journey from basics to advanced with all topics and subtopics.",
+    icon: <Coffee size={24} />,
+    color: "#A8A4F5",
+    tag: "NEW",
+    pillClass: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-transparent animate-pulse",
+    accentClass: "border-accentLine-core group-hover:text-accentLine-core",
+    route: "/java-roadmap",
+    stats: "Interactive Tree",
+  },
   {
     id: "java",
     title: "Core CS Subjects",
@@ -118,8 +130,57 @@ export default function Index() {
         </motion.div>
       </div>
 
-      {/* ── JAVA TREE BANNER ─────────────────────────────── */}
-      <JavaTreeBanner />
+      {/* ── HERO ─────────────────────────────────────────── */}
+      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-24 max-w-7xl mx-auto relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="relative z-10 text-center md:text-left">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-6">
+              <Zap size={12} className="text-primary" />
+              <span className="text-muted-foreground">The ultimate platform for modern developers</span>
+            </div>
+
+            {/* Hero Title */}
+            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black uppercase leading-[1.1] tracking-tighter mb-8">
+              Master <span className="text-primary">Code</span>.{" "}
+              Ace <span className="text-accent">Interviews</span>.
+            </h1>
+
+            <p className="text-sm md:text-base font-medium text-muted-foreground max-w-xl leading-relaxed mb-10 mx-auto md:mx-0">
+              The straight-to-the-point platform built for developers who want
+              to crack DSA, ace interviews, and understand Java deeply. No fluff. Just high-quality content.
+            </p>
+
+            <div className="flex flex-wrap justify-center md:justify-start gap-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="bg-[#F3F4F6] text-[#111827] px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg transition-all hover:bg-[#E5E7EB]"
+              >
+                Start Learning
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/playground")}
+                className="bg-card text-foreground border px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-muted"
+              >
+                Try Playground
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* ── SECOND TICKER (Subtle) ────────────── */}
       <div className="w-full overflow-hidden border-y border-border py-2.5 bg-background">
