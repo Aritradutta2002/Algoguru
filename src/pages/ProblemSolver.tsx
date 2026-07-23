@@ -1230,7 +1230,7 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
                   <div className="editorial-content">
                     <ReactMarkdown
                       remarkPlugins={[remarkMath]}
-                      rehypePlugins={[rehypeKatex]}
+                      rehypePlugins={[rehypeRaw, rehypeKatex]}
                       components={{
                         pre({ children }) {
                           return <>{children}</>;
@@ -1264,11 +1264,31 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
                             />
                           );
                         },
+                        iframe({ src }) {
+                          const url = src || "";
+                          return (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 my-5 px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 no-underline hover:no-underline"
+                              style={{
+                                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                                border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`,
+                                color: isDark ? "#93c5fd" : "#2563eb",
+                              }}
+                            >
+                              <ExternalLink size={16} />
+                              View Implementation on LeetCode
+                            </a>
+                          );
+                        },
                       }}
                     >
                       {problem.solution}
                     </ReactMarkdown>
-                  </div>              ) : (
+                  </div>
+              ) : (
                 <div
                   className="p-6 rounded-xl text-center space-y-3"
                   style={{
