@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as d3 from "d3";
 import { javaMindMapData } from "@/data/javaMindMapData";
 import type { GraphNode, GraphLink } from "@/types/mindMap.types";
-import { Play, Pause, RotateCcw, Maximize2, Minimize2, ArrowLeft, Info } from "lucide-react";
+import { Play, Pause, RotateCcw, Maximize2, Minimize2, ArrowLeft, Info, Fullscreen } from "lucide-react";
 
 // ─── Node size helpers ──────────────────────────────────────────────────────
 function nodeWidth(level: number) {
@@ -72,6 +72,7 @@ export default function JavaRoadmapPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [showInfo, setShowInfo] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // ── Init data ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -363,6 +364,23 @@ export default function JavaRoadmapPage() {
     setIsPaused((p) => !p);
   };
 
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  // Listen for fullscreen change events (e.g., Escape key)
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
   const resetView = () => {
     const svg = d3.select(svgRef.current);
     const W = svgRef.current?.clientWidth ?? 1200;
@@ -464,6 +482,20 @@ export default function JavaRoadmapPage() {
 
         <div className="border-t border-border/40 my-1" />
 
+        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+          Display
+        </div>
+
+        <button
+          onClick={toggleFullscreen}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-foreground text-xs font-semibold transition-all"
+        >
+          {isFullscreen ? <Minimize2 size={13} /> : <Fullscreen size={13} />}
+          {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+        </button>
+
+        <div className="border-t border-border/40 my-1" />
+
         {/* Stats */}
         <div className="text-[10px] text-muted-foreground px-1 space-y-1">
           <div>Nodes: <span className="text-foreground font-bold">{nodes.length}</span></div>
@@ -481,15 +513,6 @@ export default function JavaRoadmapPage() {
         </div>
       </div>
 
-      {/* ── Top center title ────────────────────────────────────────────────── */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 text-center pointer-events-none">
-        <div className="bg-card/70 backdrop-blur-xl border border-border/60 rounded-2xl px-6 py-3 shadow-2xl">
-          <h1 className="text-lg font-black uppercase tracking-tight bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
-            Java Mind Map
-          </h1>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Interactive force-directed graph</p>
-        </div>
-      </div>
 
       {/* ── Info panel (top right) ───────────────────────────────────────────── */}
       <div className="absolute top-4 right-4 z-20">
