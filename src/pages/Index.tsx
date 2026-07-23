@@ -1,24 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import {
-  Coffee, Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays
+import { motion } from "framer-motion";import { Coffee, Code2, Trophy, BrainCircuit, Target,
+  ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays, Map as MapIcon
 } from "lucide-react";
 
 const SECTIONS = [
-  {
-    id: "java-roadmap",
-    title: "Java Roadmap",
-    subtitle: "Complete learning path",
-    desc: "Interactive visual roadmap showing the complete Java journey from basics to advanced with all topics and subtopics.",
-    icon: <Coffee size={24} />,
-    color: "#A8A4F5",
-    tag: "NEW",
-    pillClass: "bg-gradient-to-r from-purple-500 to-blue-500 text-white border-transparent animate-pulse",
-    accentClass: "border-accentLine-core group-hover:text-accentLine-core",
-    route: "/java-roadmap",
-    stats: "Interactive Tree",
-  },
   {
     id: "java",
     title: "Core CS Subjects",
@@ -181,6 +166,47 @@ export default function Index() {
           </motion.div>
         </div>
       </section>
+
+      {/* ── JAVA ROADMAP FLOATING BANNER ────────────── */}
+      <motion.div
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+        onClick={() => navigate("/java-roadmap")}
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-50 cursor-pointer group hidden md:block"
+      >
+        <div className="relative flex items-center">
+          {/* Main banner */}
+          <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 rounded-l-xl py-5 px-3 shadow-2xl shadow-purple-500/25 transition-all duration-300 group-hover:shadow-purple-500/40 group-hover:pr-4">
+            <div className="flex flex-col items-center gap-2.5">
+              {/* Icon */}
+              <div className="text-white/90">
+                <MapIcon size={20} />
+              </div>
+              {/* Vertical text */}
+              <div className="text-[9px] font-black uppercase tracking-[0.15em] text-white/80"
+                style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+              >
+                Java Roadmap
+              </div>
+              {/* Arrow indicator */}
+              <motion.div
+                animate={{ x: [0, 3, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                className="text-white/60"
+              >
+                <ArrowRight size={14} />
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Hover glow border */}
+          <div className="absolute inset-y-0 left-0 w-0.5 bg-white/20 group-hover:bg-white/40 transition-colors" />
+        </div>
+
+        {/* Subtle dot indicator on hover */}
+        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-purple-500 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg shadow-purple-500/50" />
+      </motion.div>
 
       {/* ── SECOND TICKER (Subtle) ────────────── */}
       <div className="w-full overflow-hidden border-y border-border py-2.5 bg-background">
