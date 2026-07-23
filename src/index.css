@@ -866,3 +866,321 @@
   padding-left: 8px;
   margin: 1px 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* Editorial Content — Premium LeetCode Editorial Styling              */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.editorial-content {
+  font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+  font-size: 0.935rem;
+  line-height: 1.85;
+  color: hsl(var(--foreground) / 0.88);
+  word-break: break-word;
+}
+
+/* ── Headings ── */
+.editorial-content h1,
+.editorial-content h2,
+.editorial-content h3,
+.editorial-content h4,
+.editorial-content h5,
+.editorial-content h6 {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+  margin-top: 2.25rem;
+  margin-bottom: 1rem;
+  line-height: 1.35;
+}
+
+.editorial-content h1 {
+  font-size: 1.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.4);
+}
+
+.editorial-content h2 {
+  font-size: 1.35rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+}
+
+.editorial-content h3 {
+  font-size: 1.15rem;
+  color: hsl(var(--primary));
+}
+
+.editorial-content h4 {
+  font-size: 1.05rem;
+}
+
+.editorial-content > *:first-child {
+  margin-top: 0;
+}
+
+/* ── Paragraphs ── */
+.editorial-content p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  line-height: 1.85;
+}
+
+/* ── Links ── */
+.editorial-content a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+.editorial-content a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Bold & Italic ── */
+.editorial-content strong,
+.editorial-content b {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.editorial-content em,
+.editorial-content i {
+  font-style: italic;
+}
+
+/* ── Inline Code ── */
+.editorial-content code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.84em;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--primary) / 0.18);
+  font-weight: 500;
+}
+
+/* ── Code Blocks (pre > code) ── */
+.editorial-content pre {
+  margin: 1.5rem 0;
+  padding: 0;
+  background: #0D0D0D;
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border) / 0.35);
+  overflow-x: auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+.editorial-content pre code {
+  display: block;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  background: transparent;
+  color: #abb2bf;
+  border: none;
+  border-radius: 0;
+  font-weight: 400;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ── Lists ── */
+.editorial-content ul,
+.editorial-content ol {
+  margin: 1.25rem 0;
+  padding-left: 1.75rem;
+}
+
+.editorial-content ul {
+  list-style: none;
+}
+
+.editorial-content ul > li {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.65rem;
+  line-height: 1.8;
+}
+
+.editorial-content ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--primary) / 0.6);
+}
+
+.editorial-content ol {
+  list-style: decimal;
+}
+
+.editorial-content ol > li {
+  margin-bottom: 0.65rem;
+  padding-left: 0.35rem;
+  line-height: 1.8;
+}
+
+.editorial-content ol > li::marker {
+  color: hsl(var(--primary));
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+}
+
+.editorial-content li > ul,
+.editorial-content li > ol {
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+/* ── Blockquotes ── */
+.editorial-content blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+  border-radius: 0 0.75rem 0.75rem 0;
+  color: hsl(var(--foreground) / 0.92);
+  font-style: normal;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.editorial-content blockquote p {
+  margin: 0.5rem 0;
+}
+
+/* ── Tables ── */
+.editorial-content table {
+  width: 100%;
+  margin: 1.75rem 0;
+  border-collapse: collapse;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border) / 0.5);
+  font-size: 0.88rem;
+}
+
+.editorial-content thead th {
+  background: hsl(var(--primary) / 0.06);
+  color: hsl(var(--primary));
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid hsl(var(--primary) / 0.15);
+}
+
+.editorial-content tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.35);
+  color: hsl(var(--foreground) / 0.88);
+}
+
+.editorial-content tbody tr:nth-child(even) td {
+  background: hsl(var(--muted) / 0.15);
+}
+
+.editorial-content tbody tr:hover td {
+  background: hsl(var(--primary) / 0.06);
+}
+
+/* ── Horizontal Rules ── */
+.editorial-content hr {
+  margin: 2.5rem 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
+}
+
+/* ── Images ── */
+.editorial-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 2rem auto;
+  display: block;
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border) / 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* ── iframes (LeetCode embeds, videos) ── */
+.editorial-content iframe {
+  max-width: 100%;
+  margin: 1.5rem 0;
+  border-radius: 0.75rem;
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+/* ── Definition lists ── */
+.editorial-content dl {
+  margin: 1.25rem 0;
+}
+.editorial-content dt {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-top: 1rem;
+}
+.editorial-content dd {
+  margin-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Sup / Sub (used in math/complexity) ── */
+.editorial-content sup {
+  font-size: 0.75em;
+  vertical-align: super;
+}
+.editorial-content sub {
+  font-size: 0.75em;
+  vertical-align: sub;
+}
+
+/* ── Details / Summary (expandable sections) ── */
+.editorial-content details {
+  margin: 1.25rem 0;
+  border: 1px solid hsl(var(--border) / 0.4);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.editorial-content details summary {
+  padding: 0.85rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: hsl(var(--muted) / 0.15);
+  color: hsl(var(--foreground));
+  transition: background 0.15s ease;
+}
+.editorial-content details summary:hover {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.editorial-content details[open] > summary {
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+}
+
+.editorial-content details > *:not(summary) {
+  padding: 0 1.25rem;
+}
+
+/* ── KaTeX math display blocks ── */
+.editorial-content .katex-display {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+.editorial-content .katex {
+  font-size: 1.05em;
+}

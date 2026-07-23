@@ -1228,54 +1228,9 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
               </h2>
               {problem.solution ? (
                   <div
-                    className="prose prose-sm dark:prose-invert max-w-none
-                      prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground
-                      prose-h1:text-2xl prose-h1:border-b prose-h1:border-border/40 prose-h1:pb-2
-                      prose-h2:text-xl prose-h2:border-b prose-h2:border-border/40 prose-h2:pb-2 prose-h2:mt-10
-                      prose-h3:text-lg prose-h3:mt-8
-                      prose-p:leading-relaxed prose-p:my-4 prose-p:text-muted-foreground/90
-                      prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                      prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-xl prose-blockquote:not-italic prose-blockquote:text-foreground/90 prose-blockquote:shadow-sm prose-blockquote:my-6
-                      prose-code:before:content-none prose-code:after:content-none
-                      prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-[13px] prose-code:text-primary prose-code:font-semibold
-                      prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-pre:border-none
-                      prose-strong:text-foreground prose-strong:font-bold
-                      prose-ul:my-5 prose-ol:my-5 prose-li:my-2 prose-li:text-muted-foreground/90
-                      prose-img:rounded-2xl prose-img:shadow-xl prose-img:border prose-img:border-border/30 prose-img:my-8
-                      prose-table:w-full prose-table:rounded-xl prose-table:overflow-hidden prose-table:border prose-table:border-border/50 prose-table:my-8
-                      prose-th:bg-muted/30 prose-th:p-4 prose-th:text-left prose-th:font-semibold
-                      prose-td:p-4 prose-td:border-t prose-td:border-border/50
-                      [&_.katex-display]:my-6 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-2
-                      [&_.katex]:text-[1.05em]"
-                  >
-                    <ReactMarkdown 
-                      remarkPlugins={[remarkMath]} 
-                      rehypePlugins={[rehypeRaw, rehypeKatex]}
-                      components={{
-                        pre({ children }) {
-                          return <>{children}</>;
-                        },
-                        code({ className, children, ...props }) {
-                          const text = extractText(children);
-                          const isBlock = className?.startsWith("language-") || text.includes("\n");
-                          if (isBlock) {
-                            return (
-                              <EditorialCodeBlock className={className}>
-                                {children}
-                              </EditorialCodeBlock>
-                            );
-                          }
-                          return (
-                            <code className={className} {...props}>
-                              {children}
-                            </code>
-                          );
-                        }
-                      }}
-                    >
-                      {problem.solution}
-                    </ReactMarkdown>
-                  </div>
+                    className="editorial-content"
+                    dangerouslySetInnerHTML={{ __html: problem.solution }}
+                  />
               ) : (
                 <div
                   className="p-6 rounded-xl text-center space-y-3"
