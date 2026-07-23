@@ -1227,11 +1227,48 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
                 Official Editorial
               </h2>
               {problem.solution ? (
-                  <div
-                    className="editorial-content"
-                    dangerouslySetInnerHTML={{ __html: problem.solution }}
-                  />
-              ) : (
+                  <div className="editorial-content">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                      components={{
+                        pre({ children }) {
+                          return <>{children}</>;
+                        },
+                        code({ className, children, ...props }) {
+                          const text = extractText(children);
+                          const isBlock = className?.startsWith("language-") || text.includes("\n");
+                          if (isBlock) {
+                            return (
+                              <EditorialCodeBlock className={className}>
+                                {children}
+                              </EditorialCodeBlock>
+                            );
+                          }
+                          return (
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                        img({ src, alt, ...props }) {
+                          return (
+                            <img
+                              src={src}
+                              alt={alt || ""}
+                              {...props}
+                              loading="lazy"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          );
+                        },
+                      }}
+                    >
+                      {problem.solution}
+                    </ReactMarkdown>
+                  </div>              ) : (
                 <div
                   className="p-6 rounded-xl text-center space-y-3"
                   style={{
