@@ -47,6 +47,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyChallengeResponse } from "@/types/leetcode";
 import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import "katex/dist/katex.min.css";
 
 /* ------------------------------------------------------------------ */
 /* Constants                                                           */
@@ -224,6 +231,61 @@ async function runJavaCode(sourceCode: string, stdin: string = ""): Promise<RunR
       executionTimeMs: Date.now() - startTime,
     };
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Editorial Code Block Helper                                         */
+/* ------------------------------------------------------------------ */
+
+function EditorialCodeBlock({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const lang = className?.replace("language-", "") || "text";
+
+  return (
+    <div className="my-5 rounded-2xl overflow-hidden border border-border/40 shadow-xl bg-[#0D0D0D]">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20 border-b border-border/20">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+          {lang}
+        </span>
+        <button
+          onClick={async () => {
+            await navigator.clipboard.writeText(children);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+          className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition-all hover:bg-white/10 text-muted-foreground hover:text-white min-h-[32px] active:scale-95"
+        >
+          {copied ? (
+            <Check size={13} className="text-emerald-400" />
+          ) : (
+            <Copy size={13} />
+          )}
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <div className="text-[13.5px] leading-[1.6] font-mono overflow-x-auto">
+        <SyntaxHighlighter
+          language={lang}
+          style={oneDark}
+          customStyle={{
+            margin: 0,
+            border: "none",
+            background: "transparent",
+            padding: "1.25rem",
+          }}
+          wrapLongLines={false}
+        >
+          {children}
+        </SyntaxHighlighter>
+      </div>
+    </div>
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -1153,19 +1215,54 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
                 Official Editorial
               </h2>
               {problem.solution ? (
-                <div
-                  className="prose prose-sm dark:prose-invert max-w-none
-                    prose-headings:font-bold
-                    prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
-                    prose-p:leading-relaxed prose-p:my-3
-                    prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:p-4 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:border prose-pre:border-white/5
-                    prose-code:before:content-none prose-code:after:content-none
-                    prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-xs prose-code:text-primary prose-code:font-semibold
-                    prose-strong:text-foreground prose-strong:font-bold
-                    prose-ul:my-3 prose-ol:my-3 prose-li:my-1"
-                >
-                  <div dangerouslySetInnerHTML={{ __html: problem.solution }} />
-                </div>
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none
+                      prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground
+                      prose-h1:text-2xl prose-h1:border-b prose-h1:border-border/40 prose-h1:pb-2
+                      prose-h2:text-xl prose-h2:border-b prose-h2:border-border/40 prose-h2:pb-2 prose-h2:mt-10
+                      prose-h3:text-lg prose-h3:mt-8
+                      prose-p:leading-relaxed prose-p:my-4 prose-p:text-muted-foreground/90
+                      prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                      prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-xl prose-blockquote:not-italic prose-blockquote:text-foreground/90 prose-blockquote:shadow-sm prose-blockquote:my-6
+                      prose-code:before:content-none prose-code:after:content-none
+                      prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-[13px] prose-code:text-primary prose-code:font-semibold
+                      prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-pre:border-none
+                      prose-strong:text-foreground prose-strong:font-bold
+                      prose-ul:my-5 prose-ol:my-5 prose-li:my-2 prose-li:text-muted-foreground/90
+                      prose-img:rounded-2xl prose-img:shadow-xl prose-img:border prose-img:border-border/30 prose-img:my-8
+                      prose-table:w-full prose-table:rounded-xl prose-table:overflow-hidden prose-table:border prose-table:border-border/50 prose-table:my-8
+                      prose-th:bg-muted/30 prose-th:p-4 prose-th:text-left prose-th:font-semibold
+                      prose-td:p-4 prose-td:border-t prose-td:border-border/50
+                      [&_.katex-display]:my-6 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-2
+                      [&_.katex]:text-[1.05em]"
+                  >
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkMath]} 
+                      rehypePlugins={[rehypeRaw, rehypeKatex]}
+                      components={{
+                        pre({ children }) {
+                          return <>{children}</>;
+                        },
+                        code({ className, children, ...props }) {
+                          const isBlock = className?.startsWith("language-") || String(children).includes("\n");
+                          if (isBlock) {
+                            return (
+                              <EditorialCodeBlock className={className}>
+                                {String(children).replace(/\n$/, "")}
+                              </EditorialCodeBlock>
+                            );
+                          }
+                          return (
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          );
+                        }
+                      }}
+                    >
+                      {problem.solution}
+                    </ReactMarkdown>
+                  </div>
               ) : (
                 <div
                   className="p-6 rounded-xl text-center space-y-3"
