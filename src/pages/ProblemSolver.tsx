@@ -237,15 +237,27 @@ async function runJavaCode(sourceCode: string, stdin: string = ""): Promise<RunR
 /* Editorial Code Block Helper                                         */
 /* ------------------------------------------------------------------ */
 
+/** Recursively extract text from React children (handles nested elements from rehype-raw). */
+function extractText(node: React.ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (typeof node === "object" && "props" in node) {
+    return extractText((node as React.ReactElement).props.children);
+  }
+  return "";
+}
+
 function EditorialCodeBlock({
   children,
   className,
 }: {
-  children: string;
+  children: React.ReactNode;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const lang = className?.replace("language-", "") || "text";
+  const codeText = extractText(children).replace(/\n$/, "");
 
   return (
     <div className="my-5 rounded-2xl overflow-hidden border border-border/40 shadow-xl bg-[#0D0D0D]">
@@ -255,7 +267,7 @@ function EditorialCodeBlock({
         </span>
         <button
           onClick={async () => {
-            await navigator.clipboard.writeText(children);
+            await navigator.clipboard.writeText(codeText);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
           }}
@@ -281,7 +293,7 @@ function EditorialCodeBlock({
           }}
           wrapLongLines={false}
         >
-          {children}
+          {codeText}
         </SyntaxHighlighter>
       </div>
     </div>
@@ -1244,11 +1256,12 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
                           return <>{children}</>;
                         },
                         code({ className, children, ...props }) {
-                          const isBlock = className?.startsWith("language-") || String(children).includes("\n");
+                          const text = extractText(children);
+                          const isBlock = className?.startsWith("language-") || text.includes("\n");
                           if (isBlock) {
                             return (
                               <EditorialCodeBlock className={className}>
-                                {String(children).replace(/\n$/, "")}
+                                {children}
                               </EditorialCodeBlock>
                             );
                           }
