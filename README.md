@@ -71,3 +71,75 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Health Check / Monitoring
+
+A lightweight health-check endpoint is available for uptime monitoring services like UptimeRobot.
+
+### Endpoint
+
+```
+GET https://<project-ref>.supabase.co/functions/v1/health
+```
+
+For this project:
+```
+GET https://tgzyttzmtsnlxxiywoww.supabase.co/functions/v1/health
+```
+
+### What It Checks
+
+1. **Application availability** — the Supabase Edge Function runtime is alive.
+2. **Database connectivity** — executes `SELECT 1` via a PostgreSQL function (`health_ping()`) to verify the Supabase PostgreSQL database is reachable.
+
+### Expected Responses
+
+**Healthy (HTTP 200):**
+```json
+{
+  "status": "UP",
+  "database": "UP"
+}
+```
+
+**Unhealthy (HTTP 503):**
+```json
+{
+  "status": "DOWN",
+  "database": "DOWN"
+}
+```
+
+### Security
+
+- No authentication required (`verify_jwt = false`)
+- Never exposes credentials, connection strings, stack traces, or SQL errors
+- Only returns `UP` / `DOWN` status strings
+
+### UptimeRobot Configuration
+
+| Setting              | Value                                                                   |
+|----------------------|-------------------------------------------------------------------------|
+| **Monitor Type**     | HTTP(S)                                                                 |
+| **URL**              | `https://tgzyttzmtsnlxxiywoww.supabase.co/functions/v1/health`         |
+| **Monitoring Interval** | 5 minutes (recommended)                                             |
+| **HTTP Method**      | GET                                                                     |
+| **Expected Status**  | 200                                                                     |
+| **Keyword (optional)** | `"status":"UP"` (type: keyword exists)                               |
+| **Timeout**          | 30 seconds                                                              |
+
+### Deployment
+
+1. **Run the SQL migration** against your Supabase project:
+   - Via the Supabase Dashboard → SQL Editor, run `supabase/migrations/20260815_add_health_ping_function.sql`
+   - Or via CLI: `supabase db push`
+
+2. **Deploy the edge function**:
+   ```bash
+   supabase functions deploy health --no-verify-jwt
+   ```
+
+3. **Verify**:
+   ```bash
+   curl https://tgzyttzmtsnlxxiywoww.supabase.co/functions/v1/health
+   ```
