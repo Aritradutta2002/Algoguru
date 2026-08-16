@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   Bookmark,
@@ -7,6 +8,7 @@ import {
   Coffee,
   Flame,
   Layers,
+  Sparkles,
   Target,
   Timer,
   TrendingUp,
@@ -20,7 +22,61 @@ import { PriorityBadge, DifficultyBadge } from "@/components/interview/CoreJavaB
 import { hasCoreJavaVisualization } from "@/components/interview/CoreJavaVisualizationBlock";
 import "@/styles/core-java-interview.css";
 
-function countDifficulty(questions: ReturnType<typeof getAllCoreJavaQuestions>, difficulty: string): number {
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const stagger = {
+  animate: { transition: { staggerChildren: 0.06 } },
+};
+
+const LEARNING_PATHS = [
+  {
+    id: "core-java-qa",
+    title: "Core Java Q&A",
+    subtitle: "Theory, code & interview-ready answers",
+    icon: Coffee,
+    color: "primary" as const,
+    route: "/interview/java/core-java-qa",
+  },
+  {
+    id: "data-structure",
+    title: "Data Structure",
+    subtitle: "DSA patterns used in Java rounds",
+    icon: Target,
+    color: "accent" as const,
+    route: "/interview/java/data-structure",
+  },
+  {
+    id: "system-design",
+    title: "System Design",
+    subtitle: "Scalable system thinking",
+    icon: Layers,
+    color: "destructive" as const,
+    route: "/interview/java/system-design",
+  },
+  {
+    id: "sql-structure",
+    title: "SQL Questions",
+    subtitle: "Interview SQL concepts & patterns",
+    icon: Flame,
+    color: "info" as const,
+    route: "/interview/java/sql-structure",
+  },
+];
+
+const PATH_ICON_STYLES = {
+  primary: "bg-primary/10 border-primary/20 text-primary",
+  accent: "bg-accent/10 border-accent/20 text-accent",
+  destructive: "bg-destructive/10 border-destructive/20 text-destructive",
+  info: "bg-info/10 border-info/20 text-info",
+};
+
+function countDifficulty(
+  questions: ReturnType<typeof getAllCoreJavaQuestions>,
+  difficulty: string
+): number {
   return questions.filter((q) => q.meta.difficulty === difficulty).length;
 }
 
@@ -40,7 +96,6 @@ export default function JavaInterviewHub() {
   const bookmarkedCount = bookmarkedIds.length;
   const vizCount = allQuestions.filter((q) => hasCoreJavaVisualization(q.question.id)).length;
 
-  // Most asked: very-high priority, ordered by global index
   const mostAsked = useMemo(
     () =>
       allQuestions
@@ -50,13 +105,11 @@ export default function JavaInterviewHub() {
     [allQuestions]
   );
 
-  // Continue learning: first not-done very-high priority question
   const continueQuestion = useMemo(
     () => allQuestions.find((q) => q.meta.priority === "very-high" && !doneMap[q.question.id]),
     [allQuestions, doneMap]
   );
 
-  // Per-topic progress for roadmap
   const topicStats = useMemo(
     () =>
       coreJavaInterviewTopics.map((topic, i) => {
@@ -73,13 +126,11 @@ export default function JavaInterviewHub() {
     [doneMap]
   );
 
-  // Reading time estimate: based on word count of answers (200 wpm)
   const totalWords = useMemo(
     () => allQuestions.reduce((sum, q) => sum + (q.question.answer?.split(/\s+/).length ?? 0), 0),
     [allQuestions]
   );
   const fullReadMinutes = Math.max(5, Math.round(totalWords / 200));
-  // Quick revision: derived from the high-priority questions' one-line explanations (250 wpm skimming)
   const quickRevisionMinutes = useMemo(() => {
     const words = allQuestions
       .filter((q) => q.meta.priority === "very-high" || q.meta.priority === "high")
@@ -87,269 +138,393 @@ export default function JavaInterviewHub() {
     return Math.max(10, Math.round(words / 250));
   }, [allQuestions]);
 
+  const learningPaths = LEARNING_PATHS.map((path) =>
+    path.id === "core-java-qa"
+      ? { ...path, subtitle: `${totalQuestions} interview questions with answers` }
+      : path
+  );
+
   return (
-    <div className="cjh-page min-h-screen bg-background text-foreground">
+    <div className="cjh-page min-h-screen text-foreground selection:bg-primary/20">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        {/* ── Breadcrumb ─────────────────────────────────────────── */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-6 font-mono flex-wrap">
+        {/* Breadcrumb */}
+        <motion.nav
+          {...fadeUp}
+          transition={{ duration: 0.4 }}
+          aria-label="Breadcrumb"
+          className="cjh-breadcrumb text-[11px] text-muted-foreground mb-8 font-mono"
+        >
           <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-          <span aria-hidden="true">/</span>
+          <span aria-hidden="true" className="opacity-40">/</span>
           <Link to="/interview" className="hover:text-primary transition-colors">Interview</Link>
-          <span aria-hidden="true">/</span>
-          <span className="text-foreground/80 font-semibold">Java</span>
-        </nav>
+          <span aria-hidden="true" className="opacity-40">/</span>
+          <span className="text-foreground font-semibold">Java</span>
+        </motion.nav>
 
-        {/* ── Hero ───────────────────────────────────────────────── */}
-        <header className="cjh-hero relative overflow-hidden rounded-2xl border border-border/40 bg-card p-6 md:p-10 mb-10">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" aria-hidden="true" />
-          <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/40 text-[10px] font-bold uppercase tracking-widest mb-4 font-mono">
-              <Coffee size={12} className="text-primary" />
-              <span className="text-muted-foreground">Java Interview Preparation</span>
-            </div>
-            <h1 className="text-3xl md:text-[42px] font-bold tracking-tight leading-[1.15] mb-4">
-              Master Java. Prepare smarter.{" "}
-              <span className="text-primary">Crack the interview.</span>
-            </h1>
-            <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed mb-6 max-w-xl">
-              A structured Java interview path covering Core Java, OOP, Collections,
-              Multithreading, JVM, Java 8+ and advanced concepts — with visualizations,
-              code examples and interview-ready answers.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={() =>
-                  continueQuestion
-                    ? navigate(getCoreJavaQuestionDetailPath(continueQuestion.question))
-                    : navigate("/interview/java/core-java-qa")
-                }
-                className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity active:scale-95"
-              >
-                {progressPct > 0 ? "Continue Learning" : "Start Learning"}
-                <ArrowRight size={15} />
-              </button>
-              <Link
-                to="/interview/java/core-java-qa"
-                className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] rounded-lg border border-border/50 bg-card font-semibold text-sm text-foreground hover:bg-muted/60 transition-colors active:scale-95"
-              >
-                Explore Questions
-              </Link>
-            </div>
-          </div>
+        {/* Hero */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="cjh-hero p-6 md:p-10 lg:p-12 mb-10"
+        >
+          <div className="cjh-hero-glow" aria-hidden="true" />
+          <div className="cjh-hero-accent" aria-hidden="true" />
 
-          {/* ── Hero stats (derived from data) ───────────────────── */}
-          <dl className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-3 mt-8 md:mt-10">
-            <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">Questions</dt>
-              <dd className="text-2xl font-bold text-foreground">{totalQuestions}+</dd>
-            </div>
-            <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">Topics</dt>
-              <dd className="text-2xl font-bold text-foreground">{topicCount}</dd>
-            </div>
-            <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">Difficulties</dt>
-              <dd className="text-sm font-bold text-foreground mt-1.5">
-                <span className="text-success">{easyCount} Easy</span> ·{" "}
-                <span className="text-warning">{mediumCount} Medium</span> ·{" "}
-                <span className="text-destructive">{hardCount} Hard</span>
-              </dd>
-            </div>
-            <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">Visual Guides</dt>
-              <dd className="text-2xl font-bold text-foreground">{vizCount}</dd>
-            </div>
-          </dl>
-        </header>
-
-        {/* ── Progress card ──────────────────────────────────────── */}
-        {doneCount > 0 && (
-          <section className="rounded-2xl border border-primary/25 bg-primary/5 p-5 md:p-6 mb-10" aria-label="Your Java interview progress">
-            <div className="flex items-center gap-3 mb-3">
-              <TrendingUp size={16} className="text-primary" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">Your Java Interview Progress</h2>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden" role="progressbar" aria-label="Progress" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
-                <div className="h-full bg-primary rounded-full transition-[width] duration-300" style={{ width: `${progressPct}%` }} />
+          <div className="relative z-10 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+              <div className="cjh-hero-badge mb-5">
+                <Coffee size={13} />
+                Java Interview Preparation
               </div>
-              <span className="text-sm font-bold text-primary font-mono">{progressPct}%</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {doneCount} / {totalQuestions} questions completed
-              {bookmarkedCount > 0 && <> · {bookmarkedCount} bookmarked</>}
-            </p>
-            {continueQuestion && (
-              <button
-                onClick={() => navigate(getCoreJavaQuestionDetailPath(continueQuestion.question))}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity"
-              >
-                Continue Learning <ArrowRight size={13} />
-              </button>
-            )}
-          </section>
-        )}
-
-        {/* ── Learning paths (existing routes preserved) ─────────── */}
-        <section className="mb-12" aria-labelledby="learning-paths-heading">
-          <h2 id="learning-paths-heading" className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Layers size={16} className="text-primary" /> Learning Paths
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { id: "core-java-qa", title: "Core Java Q&A", subtitle: `${totalQuestions} interview questions with answers`, icon: <Coffee size={18} />, color: "primary", route: "/interview/java/core-java-qa" },
-              { id: "data-structure", title: "Data Structure", subtitle: "DSA patterns used in Java rounds", icon: <Target size={18} />, color: "accent", route: "/interview/java/data-structure" },
-              { id: "system-design", title: "System Design", subtitle: "Scalable system thinking", icon: <Layers size={18} />, color: "destructive", route: "/interview/java/system-design" },
-              { id: "sql-structure", title: "SQL Questions", subtitle: "Interview SQL concepts & patterns", icon: <Flame size={18} />, color: "info", route: "/interview/java/sql-structure" },
-            ].map((path) => (
-              <Link
-                key={path.id}
-                to={path.route}
-                className="group rounded-xl border border-border/40 bg-card p-5 hover:border-primary/40 hover:bg-muted/30 transition-all"
-              >
-                <div
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 border ${
-                    path.color === "primary" && "bg-primary/10 border-primary/20 text-primary"
-                  } ${path.color === "accent" && "bg-accent/10 border-accent/20 text-accent"} ${
-                    path.color === "destructive" && "bg-destructive/10 border-destructive/20 text-destructive"
-                  } ${path.color === "info" && "bg-info/10 border-info/20 text-info"}`}
+              <h1 className="cjh-hero-title text-3xl md:text-[2.75rem] lg:text-5xl font-bold leading-[1.1] mb-4">
+                Master Java. Prepare smarter.{" "}
+                <span>Crack the interview.</span>
+              </h1>
+              <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed mb-7 max-w-xl">
+                A structured path through Core Java, OOP, Collections, Multithreading,
+                JVM, and Java 8+ — with visual guides, code snippets, and interview-ready answers.
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    continueQuestion
+                      ? navigate(getCoreJavaQuestionDetailPath(continueQuestion.question))
+                      : navigate("/interview/java/core-java-qa")
+                  }
+                  className="cjh-btn-primary"
                 >
-                  {path.icon}
-                </div>
-                <h3 className="text-sm font-bold mb-1 group-hover:text-primary transition-colors">{path.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{path.subtitle}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
+                  {progressPct > 0 ? "Continue Learning" : "Start Learning"}
+                  <ArrowRight size={15} />
+                </button>
+                <Link to="/interview/java/core-java-qa" className="cjh-btn-secondary">
+                  Explore Questions
+                </Link>
+              </div>
+            </div>
 
-        {/* ── Roadmap ────────────────────────────────────────────── */}
-        <section className="mb-12" aria-labelledby="roadmap-heading">
-          <div className="flex items-end justify-between flex-wrap gap-3 mb-4">
-            <h2 id="roadmap-heading" className="text-lg font-bold flex items-center gap-2">
-              <Target size={16} className="text-primary" /> Interview Roadmap
+            <dl className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Questions", value: `${totalQuestions}+` },
+                { label: "Topics", value: String(topicCount) },
+                {
+                  label: "Difficulty Mix",
+                  value: null,
+                  custom: (
+                    <span className="text-xs font-bold leading-relaxed">
+                      <span className="text-success">{easyCount}E</span>
+                      {" · "}
+                      <span className="text-warning">{mediumCount}M</span>
+                      {" · "}
+                      <span className="text-destructive">{hardCount}H</span>
+                    </span>
+                  ),
+                },
+                { label: "Visual Guides", value: String(vizCount) },
+              ].map((stat) => (
+                <div key={stat.label} className="cjh-stat-card">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">
+                    {stat.label}
+                  </dt>
+                  <dd className="text-2xl font-bold text-foreground">
+                    {stat.custom ?? stat.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </motion.header>
+
+        {/* Progress */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+          className="cjh-progress-card p-5 md:p-6 mb-12"
+          aria-label="Your Java interview progress"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="cjh-section-icon">
+                <TrendingUp size={16} />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider">Your Progress</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {doneCount > 0
+                    ? `${doneCount} of ${totalQuestions} questions completed`
+                    : "Start your first question to track progress"}
+                  {bookmarkedCount > 0 && ` · ${bookmarkedCount} bookmarked`}
+                </p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold text-primary font-mono">{progressPct}%</span>
+          </div>
+          <div
+            className="cjh-progress-track"
+            role="progressbar"
+            aria-label="Overall progress"
+            aria-valuenow={progressPct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div className="cjh-progress-fill" style={{ width: `${progressPct}%` }} />
+          </div>
+          {continueQuestion && (
+            <button
+              type="button"
+              onClick={() => navigate(getCoreJavaQuestionDetailPath(continueQuestion.question))}
+              className="mt-4 cjh-btn-primary text-xs py-2 px-4 min-h-0"
+            >
+              Pick up where you left off <ArrowRight size={13} />
+            </button>
+          )}
+        </motion.section>
+
+        {/* Learning Paths */}
+        <motion.section
+          className="mb-14"
+          aria-labelledby="learning-paths-heading"
+          variants={stagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: "-40px" }}
+        >
+          <div className="cjh-section-header">
+            <h2 id="learning-paths-heading" className="cjh-section-title">
+              <span className="cjh-section-icon"><Layers size={16} /></span>
+              Learning Paths
             </h2>
-            <span className="text-xs text-muted-foreground font-mono">{topicCount} topics · {totalQuestions} questions</span>
+            <span className="cjh-section-meta">4 tracks · pick your focus</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {learningPaths.map((path, i) => {
+              const Icon = path.icon;
+              return (
+                <motion.div key={path.id} variants={fadeUp} transition={{ delay: i * 0.05 }}>
+                  <Link
+                    to={path.route}
+                    className={`cjh-path-card cjh-path-card--${path.color} group`}
+                  >
+                    <div className={`cjh-path-icon border ${PATH_ICON_STYLES[path.color]}`}>
+                      <Icon size={20} />
+                    </div>
+                    <h3 className="text-[15px] font-bold mb-1.5 group-hover:text-primary transition-colors relative z-10">
+                      {path.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed relative z-10 flex-1">
+                      {path.subtitle}
+                    </p>
+                    <span className="cjh-path-arrow relative z-10">
+                      Open track <ArrowRight size={12} />
+                    </span>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        {/* Roadmap */}
+        <motion.section
+          className="mb-14"
+          aria-labelledby="roadmap-heading"
+          variants={stagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: "-40px" }}
+        >
+          <div className="cjh-section-header">
+            <h2 id="roadmap-heading" className="cjh-section-title">
+              <span className="cjh-section-icon"><Target size={16} /></span>
+              Interview Roadmap
+            </h2>
+            <span className="cjh-section-meta">{topicCount} topics · {totalQuestions} questions</span>
           </div>
           <div className="cjh-roadmap grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {topicStats.map(({ topic, number, done, total, pct }) => (
-              <Link
-                key={topic.id}
-                to={`/interview/java/core-java-qa?topic=${topic.id}`}
-                className="group rounded-xl border border-border/40 bg-card p-4 hover:border-primary/40 hover:bg-muted/30 transition-all"
-              >
-                <div className="flex items-center gap-3 mb-2.5">
-                  <span className="font-mono text-[11px] font-black text-muted-foreground/60 w-6 shrink-0">
-                    {String(number).padStart(2, "0")}
-                  </span>
-                  <span className="text-lg leading-none shrink-0" aria-hidden="true">{topic.icon}</span>
-                  <h3 className="text-sm font-bold flex-1 min-w-0 truncate group-hover:text-primary transition-colors">
-                    {topic.title}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden" role="progressbar" aria-label={`${topic.title} progress`} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-                    <div
-                      className="h-full rounded-full transition-[width] duration-300"
-                      style={{ width: `${pct}%`, background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))" }}
-                    />
+            {topicStats.map(({ topic, number, done, total, pct }, i) => (
+              <motion.div key={topic.id} variants={fadeUp} transition={{ delay: i * 0.03 }}>
+                <Link
+                  to={`/interview/java/core-java-qa?topic=${topic.id}`}
+                  className={`cjh-topic-card group ${pct === 100 ? "cjh-topic-card--complete" : ""}`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="cjh-topic-number">{String(number).padStart(2, "0")}</span>
+                    <span className="cjh-topic-emoji" aria-hidden="true">{topic.icon}</span>
+                    <h3 className="text-sm font-bold flex-1 min-w-0 truncate group-hover:text-primary transition-colors">
+                      {topic.title}
+                    </h3>
+                    {pct === 100 && (
+                      <CheckCircle2 size={16} className="text-success shrink-0" aria-label="Complete" />
+                    )}
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground">{done}/{total}</span>
-                </div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground group-hover:text-primary transition-colors">
-                  Explore Questions <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Most Asked ─────────────────────────────────────────── */}
-        <section className="mb-12" aria-labelledby="most-asked-heading">
-          <div className="flex items-end justify-between flex-wrap gap-3 mb-4">
-            <h2 id="most-asked-heading" className="text-lg font-bold flex items-center gap-2">
-              <Flame size={16} className="text-primary" /> Most Asked Java Questions
-            </h2>
-            <span className="text-xs text-muted-foreground">High-priority concepts for interviews</span>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {mostAsked.map((entry) => (
-              <Link
-                key={entry.question.id}
-                to={getCoreJavaQuestionDetailPath(entry.question)}
-                className="group rounded-xl border border-border/40 bg-card p-4 hover:border-primary/40 hover:bg-muted/30 transition-all"
-              >
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded bg-primary/10 border border-primary/20 text-primary">
-                    Q{String(entry.index + 1).padStart(2, "0")}
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <div
+                      className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden"
+                      role="progressbar"
+                      aria-label={`${topic.title} progress`}
+                      aria-valuenow={pct}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    >
+                      <div
+                        className="h-full rounded-full transition-[width] duration-500"
+                        style={{
+                          width: `${pct}%`,
+                          background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))",
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+                      {done}/{total}
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground group-hover:text-primary transition-colors">
+                    Explore <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
                   </span>
-                  {entry.meta.difficulty && <DifficultyBadge difficulty={entry.meta.difficulty} />}
-                </div>
-                <h3 className="text-sm font-semibold leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                  {entry.question.question}
-                </h3>
-                {entry.meta.priority && <PriorityBadge priority={entry.meta.priority} />}
-              </Link>
+                </Link>
+              </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
 
-        {/* ── Quick Revision ─────────────────────────────────────── */}
-        <section className="mb-12" aria-labelledby="quick-revision-heading">
-          <div className="rounded-2xl border border-border/40 bg-card p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6">
+        {/* Most Asked */}
+        <motion.section
+          className="mb-14"
+          aria-labelledby="most-asked-heading"
+          variants={stagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: "-40px" }}
+        >
+          <div className="cjh-section-header">
+            <h2 id="most-asked-heading" className="cjh-section-title">
+              <span className="cjh-section-icon"><Flame size={16} /></span>
+              Most Asked Questions
+            </h2>
+            <Link
+              to="/interview/java/core-java-qa?filter=most-asked"
+              className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mostAsked.map((entry, i) => (
+              <motion.div key={entry.question.id} variants={fadeUp} transition={{ delay: i * 0.05 }}>
+                <Link
+                  to={getCoreJavaQuestionDetailPath(entry.question)}
+                  className="cjh-question-card group"
+                >
+                  <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+                    <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary">
+                      Q{String(entry.index + 1).padStart(2, "0")}
+                    </span>
+                    {entry.meta.difficulty && <DifficultyBadge difficulty={entry.meta.difficulty} />}
+                  </div>
+                  <h3 className="text-[14px] font-semibold leading-snug mb-3 group-hover:text-primary transition-colors line-clamp-2 flex-1">
+                    {entry.question.question}
+                  </h3>
+                  <div className="mt-auto">
+                    {entry.meta.priority && <PriorityBadge priority={entry.meta.priority} />}
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Quick Revision */}
+        <motion.section
+          className="mb-14"
+          aria-labelledby="quick-revision-heading"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="cjh-revision-banner p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 relative z-10">
             <div className="flex-1">
-              <h2 id="quick-revision-heading" className="text-lg font-bold mb-2 flex items-center gap-2">
-                <Timer size={16} className="text-primary" /> Interview Tomorrow?
+              <div className="inline-flex items-center gap-2 text-primary text-[10px] font-bold uppercase tracking-widest font-mono mb-2">
+                <Sparkles size={12} />
+                ~{quickRevisionMinutes} min revision
+              </div>
+              <h2 id="quick-revision-heading" className="text-xl md:text-2xl font-bold mb-2 flex items-center gap-2">
+                <Timer size={20} className="text-primary" />
+                Interview tomorrow?
               </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Revise the most important Java concepts quickly. Start with the highest-priority
-                questions, then move through the roadmap.
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
+                Skim the highest-priority questions first — theory, code, and one-line
+                takeaways designed for last-minute revision.
               </p>
             </div>
             <button
+              type="button"
               onClick={() => navigate("/interview/java/core-java-qa?filter=most-asked")}
-              className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shrink-0 active:scale-95"
+              className="cjh-btn-primary shrink-0"
             >
               Start Quick Revision <ArrowRight size={15} />
             </button>
           </div>
-        </section>
+        </motion.section>
 
-        {/* ── Continue learning / stats footer ───────────────────── */}
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Study stats">
-          <div className="rounded-xl border border-border/40 bg-card p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Bookmark size={14} className="text-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">Bookmarks</span>
-            </div>
-            <p className="text-xl font-bold">{bookmarkedCount}</p>
-            <p className="text-[11px] text-muted-foreground">saved questions</p>
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle2 size={14} className="text-success" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">Completed</span>
-            </div>
-            <p className="text-xl font-bold">{doneCount}</p>
-            <p className="text-[11px] text-muted-foreground">of {totalQuestions} questions</p>
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Timer size={14} className="text-warning" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">Full Read</span>
-            </div>
-            <p className="text-xl font-bold">~{fullReadMinutes} min</p>
-            <p className="text-[11px] text-muted-foreground">estimated for all answers</p>
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Flame size={14} className="text-destructive" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">Quick Revision</span>
-            </div>
-            <p className="text-xl font-bold">~{quickRevisionMinutes} min</p>
-            <p className="text-[11px] text-muted-foreground">high-priority essentials</p>
-          </div>
-        </section>
+        {/* Stats footer */}
+        <motion.section
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          aria-label="Study stats"
+          variants={stagger}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true }}
+        >
+          {[
+            {
+              icon: Bookmark,
+              label: "Bookmarks",
+              value: bookmarkedCount,
+              sub: "saved questions",
+              iconClass: "bg-primary/10 text-primary",
+            },
+            {
+              icon: CheckCircle2,
+              label: "Completed",
+              value: doneCount,
+              sub: `of ${totalQuestions} questions`,
+              iconClass: "bg-success/10 text-success",
+            },
+            {
+              icon: Timer,
+              label: "Full Read",
+              value: `~${fullReadMinutes} min`,
+              sub: "all answers",
+              iconClass: "bg-warning/10 text-warning",
+            },
+            {
+              icon: Flame,
+              label: "Quick Revision",
+              value: `~${quickRevisionMinutes} min`,
+              sub: "high-priority essentials",
+              iconClass: "bg-destructive/10 text-destructive",
+            },
+          ].map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div key={stat.label} variants={fadeUp} transition={{ delay: i * 0.05 }}>
+                <div className="cjh-footer-stat">
+                  <div className={`cjh-footer-stat-icon ${stat.iconClass}`}>
+                    <Icon size={14} />
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">
+                    {stat.label}
+                  </p>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{stat.sub}</p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.section>
       </div>
     </div>
   );
