@@ -11,6 +11,7 @@ import {
   Layers,
   Target,
 } from "lucide-react";
+import JavaInterviewHub from "./interview/JavaInterviewHub";
 
 type InterviewLanguage = "java" | "cpp" | "python";
 
@@ -148,6 +149,11 @@ export default function Interview() {
       navigate("/interview", { replace: true });
     }
   }, [language, selectedLanguage, navigate]);
+
+  // Java has a dedicated interview hub
+  if (selectedLanguage === "java") {
+    return <JavaInterviewHub />;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">

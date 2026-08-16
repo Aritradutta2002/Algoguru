@@ -1,25 +1,27 @@
-import { useState, useEffect, useMemo, useCallback, useRef, Suspense, memo } from "react";
-import type { ReactNode } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
-  CheckCircle2,
-  StickyNote,
-  X,
-  Search,
-  Coffee,
+  ArrowRight,
+  Bookmark,
   BookOpen,
   Check,
-  FileText,
+  ChevronRight,
+  Coffee,
   Code2,
   Download,
-  Trash2,
-  PanelLeftOpen,
+  FileText,
+  Flame,
   Loader2,
+  Network,
+  PanelLeftOpen,
+  Search,
+  StickyNote,
+  Trash2,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { coreJavaInterviewTopics } from "@/data/coreJavaInterviewData";
 import { CodeBlock } from "@/components/CodeBlock";
@@ -27,59 +29,81 @@ import { renderNoteMarkdown } from "@/lib/renderNoteMarkdown";
 import jsPDF from "jspdf";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
-
-import RichTextNoteEditor from "@/components/RichTextNoteEditor";
+import { CoreJavaQuestionAnswer } from "@/components/interview/CoreJavaQuestionAnswer";
+import { CoreJavaBookmarkButton } from "@/components/interview/CoreJavaActions";
+import { DifficultyBadge, PriorityBadge, JavaVersionBadge } from "@/components/interview/CoreJavaBadges";
+import { useCoreJavaUserState } from "@/hooks/useCoreJavaUserState";
+import { useCoreJavaBookmarks } from "@/hooks/useCoreJavaBookmarks";
+import { getAllCoreJavaQuestions, type IndexedCoreJavaQuestion } from "@/lib/coreJavaQuestionIndex";
+import { getCoreJavaQuestionDetailPath } from "@/data/coreJavaInterviewMetadata";
+import { hasCoreJavaVisualization } from "@/components/interview/CoreJavaVisualizationBlock";
 import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
+import "@/styles/core-java-interview.css";
 
 type SolutionView = "theory" | "code" | null;
+type FilterKind = "all" | "most-asked" | "easy" | "medium" | "hard" | "bookmarked" | "completed";
 
-// ---------------------------------------------------------------------------
-// QuestionCard — memoized to prevent unnecessary re-renders when sibling
-// cards, search input, or note drafts change.
-// ---------------------------------------------------------------------------
+const FILTER_OPTIONS: { id: FilterKind; label: string; icon?: string }[] = [
+  { id: "all", label: "All" },
+  { id: "most-asked", label: "Most Asked", icon: "🔥" },
+  { id: "easy", label: "Easy" },
+  { id: "medium", label: "Medium" },
+  { id: "hard", label: "Hard" },
+  { id: "bookmarked", label: "Bookmarked" },
+  { id: "completed", label: "Completed" },
+];
+
+// ─────────────────────────────────────────────────────────────────────────
+// QuestionCard
+// ─────────────────────────────────────────────────────────────────────────
 interface QuestionCardProps {
-  question: (typeof coreJavaInterviewTopics)[number]["questions"][number];
-  idx: number;
+  entry: IndexedCoreJavaQuestion;
   isDone: boolean;
   hasNote: boolean;
+  isBookmarked: boolean;
   activeView: SolutionView;
   onToggleDone: (id: string) => void;
   onToggleView: (id: string, view: Exclude<SolutionView, null>) => void;
   onOpenNote: (id: string) => void;
+  onToggleBookmark: (id: string) => void;
 }
 
 const _QuestionCard = ({
-  question,
-  idx,
+  entry,
   isDone,
   hasNote,
+  isBookmarked,
   activeView,
   onToggleDone,
   onToggleView,
   onOpenNote,
+  onToggleBookmark,
 }: QuestionCardProps) => {
+  const { question, topic, meta } = entry;
+  const detailPath = getCoreJavaQuestionDetailPath(question);
+
   return (
     <div
       className={`rounded-2xl border transition-all duration-200 overflow-hidden relative ${
         isDone
           ? "bg-success/5 border-success/20"
-          : activeView 
+          : activeView
             ? "bg-card border-primary/30 shadow-sm"
             : "bg-card border-border/40 hover:border-border/60"
       }`}
     >
-      {/* Accent bar when expanded */}
       {activeView && !isDone && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl" aria-hidden="true" />
       )}
-      
-      {/* Card header */}
-      <div className="p-5 md:p-7">
+
+      <div className="p-5 md:p-6">
         <div className="flex items-start gap-4">
           {/* Done toggle */}
           <button
             onClick={() => onToggleDone(question.id)}
-            title={isDone ? "Mark undone" : "Mark as done"}
+            title={isDone ? "Mark undone" : "Mark as learned"}
+            aria-pressed={isDone}
+            aria-label={isDone ? "Mark as not learned" : "Mark as learned"}
             className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all active:scale-95 ${
               isDone
                 ? "bg-success border-success text-white shadow-sm"
@@ -93,11 +117,17 @@ const _QuestionCard = ({
             {/* Meta row */}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground/50 bg-muted/30 px-2 py-0.5 rounded-md">
-                Q{String(idx + 1).padStart(2, '0')}
+                Q{String(entry.index + 1).padStart(2, "0")}
               </span>
+              <span className="text-[10px] font-semibold text-muted-foreground/70 flex items-center gap-1">
+                {topic.icon} {topic.title}
+              </span>
+              {meta.difficulty && <DifficultyBadge difficulty={meta.difficulty} />}
+              {meta.priority === "very-high" && <PriorityBadge priority="very-high" />}
+              {meta.javaVersions?.map((v) => <JavaVersionBadge key={v} version={v} />)}
               {isDone && (
                 <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
-                  Done
+                  Learned
                 </span>
               )}
               {hasNote && (
@@ -105,54 +135,57 @@ const _QuestionCard = ({
                   Note Added
                 </span>
               )}
+              {hasCoreJavaVisualization(question.id) && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-info bg-info/10 px-2 py-0.5 rounded-full">
+                  <Network size={10} /> Visual
+                </span>
+              )}
             </div>
 
-            {/* Question text */}
-            <h3
-              className={`text-[20px] font-[700] leading-[1.55] mb-3 ${
-                isDone ? "opacity-40 line-through text-foreground" : "text-foreground"
-              }`}
-            >
-              {question.question}
-            </h3>
-
-            {/* Explanation */}
-            {question.explanation && (
-              <p
-                className={`text-[16px] leading-[1.8] mb-5 ${
-                  isDone ? "opacity-40" : "text-muted-foreground"
+            {/* Question title — links to detail page */}
+            <Link to={detailPath} className="group/title block">
+              <h3
+                className={`text-[19px] font-bold leading-[1.5] mb-2.5 transition-colors group-hover/title:text-primary ${
+                  isDone ? "opacity-40 line-through text-foreground" : "text-foreground"
                 }`}
               >
+                {question.question}
+              </h3>
+            </Link>
+
+            {/* One-line mental model */}
+            {question.explanation && (
+              <p className={`text-[14.5px] leading-[1.75] mb-4 ${isDone ? "opacity-40" : "text-muted-foreground"}`}>
                 {question.explanation}
               </p>
             )}
 
             {/* Action buttons */}
-            <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-border/20">
+            <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border/20">
               <button
                 onClick={() => onToggleView(question.id, "theory")}
                 aria-expanded={activeView === "theory"}
-                className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
+                className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
                   activeView === "theory"
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                     : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <FileText size={15} />
-                Theory
+                <FileText size={14} />
+                Quick Answer
               </button>
 
               {question.code && (
                 <button
                   onClick={() => onToggleView(question.id, "code")}
                   aria-expanded={activeView === "code"}
-                  className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
+                  className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
                     activeView === "code"
                       ? "bg-accent text-accent-foreground shadow-md shadow-accent/20"
                       : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <Code2 size={15} />
+                  <Code2 size={14} />
                   Example
                 </button>
               )}
@@ -160,15 +193,32 @@ const _QuestionCard = ({
               <button
                 onClick={() => onOpenNote(question.id)}
                 aria-label={hasNote ? "Edit note for this question" : "Add note for this question"}
-                className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
+                className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
                   hasNote
                     ? "bg-warning/15 text-warning hover:bg-warning/25"
                     : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <StickyNote size={15} />
-                {hasNote ? "Edit Note" : "Add Note"}
+                <StickyNote size={14} />
+                {hasNote ? "Edit Note" : "Note"}
               </button>
+
+              <div className="flex-1" />
+
+              <CoreJavaBookmarkButton
+                questionId={question.id}
+                isBookmarked={isBookmarked}
+                onToggle={onToggleBookmark}
+                compact
+              />
+
+              <Link
+                to={detailPath}
+                aria-label={`Read full answer: ${question.question}`}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[36px] rounded-lg bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground text-[12px] font-semibold transition-all"
+              >
+                Read <ArrowRight size={13} />
+              </Link>
             </div>
           </div>
         </div>
@@ -185,10 +235,10 @@ const _QuestionCard = ({
             className="overflow-hidden"
           >
             <div className="border-t border-border/20" />
-            <div className="p-5 md:p-7 space-y-4">
+            <div className="p-5 md:p-6 space-y-4">
               {activeView === "theory" && (
-                <div className="bg-muted/30 rounded-xl p-6 md:p-8 border border-border/20 shadow-inner">
-                  {renderTheoryContent(question.answer)}
+                <div className="bg-muted/30 rounded-xl p-5 md:p-6 border border-border/20 shadow-inner">
+                  <CoreJavaQuestionAnswer answer={question.answer} />
                 </div>
               )}
               {activeView === "code" && question.code && (
@@ -208,42 +258,62 @@ const _QuestionCard = ({
   );
 };
 
-/** Custom comparator — only re-render when props that affect the output change. */
 function areQuestionCardsEqual(prev: QuestionCardProps, next: QuestionCardProps): boolean {
   return (
+    prev.entry.question.id === next.entry.question.id &&
     prev.isDone === next.isDone &&
     prev.hasNote === next.hasNote &&
-    prev.activeView === next.activeView &&
-    prev.question.id === next.question.id &&
-    prev.idx === next.idx
+    prev.isBookmarked === next.isBookmarked &&
+    prev.activeView === next.activeView
   );
 }
 
 const QuestionCard = memo(_QuestionCard, areQuestionCardsEqual);
 
+// ─────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────
 export default function InterviewCoreJavaQuestionsPage() {
   const { language } = useParams<{ language?: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { doneMap, notesMap, upsertingId, toggleDone, saveNote, deleteNote } = useCoreJavaUserState();
+  const { isBookmarked, toggleBookmark, bookmarkedIds } = useCoreJavaBookmarks();
   const backRoute = language ? `/interview/${language}` : "/interview";
 
-  const [doneMap, setDoneMap] = useState<Record<string, boolean>>({});
-  const [notesMap, setNotesMap] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(searchParams.get("topic"));
+  const [activeFilter, setActiveFilter] = useState<FilterKind>(
+    (searchParams.get("filter") as FilterKind) || "all"
+  );
   const [solutionViewMap, setSolutionViewMap] = useState<Record<string, SolutionView>>({});
-  const [showOnlyUndone, setShowOnlyUndone] = useState(false);
   const [topicSidebarOpen, setTopicSidebarOpen] = useState(false);
-  const [upsertingId, setUpsertingId] = useState<string | null>(null);
   const [showNotesPanel, setShowNotesPanel] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { setOpen: setGlobalSidebarOpen } = useSidebar();
   const sidebarWasOpen = useRef<boolean | null>(null);
+
+  // SEO title
+  useEffect(() => {
+    document.title = "Core Java Interview Questions | AlgoGuru";
+    return () => {
+      document.title = "AlgoGuru";
+    };
+  }, []);
+
+  // Sync URL params → state
+  useEffect(() => {
+    setSelectedTopic(searchParams.get("topic"));
+    const filter = searchParams.get("filter") as FilterKind | null;
+    if (filter && FILTER_OPTIONS.some((f) => f.id === filter)) setActiveFilter(filter);
+  }, [searchParams]);
 
   // Auto-close global sidebar on mount for better reading experience
   useEffect(() => {
@@ -259,29 +329,30 @@ export default function InterviewCoreJavaQuestionsPage() {
     };
   }, [setGlobalSidebarOpen]);
 
-  // Debounce search input by 300ms before applying to filter
+  // Debounce search input by 300ms
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Escape key handler for note editor modal
+  // "/" keyboard shortcut focuses search (when not typing in an input)
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && activeNoteId) setActiveNoteId(null);
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+      if (e.key === "/" && !isTyping) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (e.key === "Escape") {
+        if (activeNoteId) setActiveNoteId(null);
+        if (showNotesPanel) setShowNotesPanel(false);
+        if (topicSidebarOpen) setTopicSidebarOpen(false);
+      }
     };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [activeNoteId]);
-
-  // Escape key handler for notes panel
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && showNotesPanel) setShowNotesPanel(false);
-    };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [showNotesPanel]);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [activeNoteId, showNotesPanel, topicSidebarOpen]);
 
   const requireLogin = useCallback(
     (action: string) => {
@@ -295,105 +366,45 @@ export default function InterviewCoreJavaQuestionsPage() {
     [navigate, toast]
   );
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setDoneMap({});
-      setNotesMap({});
-      return;
-    }
-
-    const loadUserState = async () => {
-      const { data, error } = await supabase
-        .from("core_java_user_state")
-        .select("question_id, notes, is_completed")
-        .eq("user_id", user.id);
-
-      if (error) {
-        console.warn("Could not load core_java_user_state:", error.message);
+  const handleToggleDone = useCallback(
+    (id: string) => {
+      if (!user && !authLoading) {
+        requireLogin("save progress");
         return;
       }
-
-      const done: Record<string, boolean> = {};
-      const notes: Record<string, string> = {};
-      for (const row of data ?? []) {
-        if (row.is_completed) done[row.question_id] = true;
-        if (row.notes) notes[row.question_id] = row.notes;
-      }
-      setDoneMap(done);
-      setNotesMap(notes);
-    };
-
-    loadUserState();
-  }, [authLoading, user]);
-
-  const upsertUserState = useCallback(
-    async (questionId: string, patch: Partial<{ notes: string; is_completed: boolean }>) => {
-      if (!user) {
-        requireLogin("save progress");
-        return false;
-      }
-
-      setUpsertingId(questionId);
-      const { error } = await supabase
-        .from("core_java_user_state")
-        .upsert(
-          {
-            user_id: user.id,
-            question_id: questionId,
-            ...patch,
-          },
-          { onConflict: "user_id,question_id" }
-        );
-
-      setUpsertingId(null);
-      if (error) {
-        toast({ title: "Save failed", description: error.message, variant: "destructive" });
-        return false;
-      }
-      return true;
+      toggleDone(id);
     },
-    [requireLogin, user, toast]
+    [user, authLoading, requireLogin, toggleDone]
   );
 
-  const toggleDone = useCallback(async (id: string) => {
-    setDoneMap((prev) => {
-      const nextValue = !prev[id];
-      upsertUserState(id, { is_completed: nextValue }).then((ok) => {
-        if (!ok) {
-          // Revert if failed
-          setDoneMap((innerPrev) => ({ ...innerPrev, [id]: !nextValue }));
-        }
-      });
-      return { ...prev, [id]: nextValue };
-    });
-  }, [upsertUserState]);
+  const handleToggleBookmark = useCallback(
+    (id: string) => {
+      if (!user && !authLoading) {
+        requireLogin("save bookmarks");
+        return;
+      }
+      toggleBookmark(id);
+    },
+    [user, authLoading, requireLogin, toggleBookmark]
+  );
 
   const openNote = useCallback((id: string) => {
     setActiveNoteId(id);
     setNoteDraft(notesMap[id] || "");
   }, [notesMap]);
 
-  const saveNote = async () => {
+  const handleSaveNote = async () => {
     if (!activeNoteId) return;
-    const ok = await upsertUserState(activeNoteId, { notes: noteDraft });
+    const ok = await saveNote(activeNoteId, noteDraft);
     if (ok) {
-      setNotesMap((prev) => ({ ...prev, [activeNoteId]: noteDraft }));
       setActiveNoteId(null);
       setNoteDraft("");
     }
   };
 
-  const deleteNoteFromPanel = async (id: string) => {
+  const handleDeleteNoteFromPanel = async (id: string) => {
     setDeletingNoteId(id);
-    const ok = await upsertUserState(id, { notes: "" });
-    if (ok) {
-      setNotesMap((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    }
+    await deleteNote(id);
     setDeletingNoteId(null);
   };
 
@@ -404,30 +415,122 @@ export default function InterviewCoreJavaQuestionsPage() {
     }));
   }, []);
 
-  const totalQuestions = useMemo(
-    () => coreJavaInterviewTopics.reduce((s, t) => s + t.questions.length, 0),
-    []
-  );
-  const doneCount = useMemo(() => Object.values(doneMap).filter(Boolean).length, [doneMap]);
+  // ── Derived data ──────────────────────────────────────────────────────
+  const allQuestions = useMemo(() => getAllCoreJavaQuestions(), []);
+  const totalQuestions = allQuestions.length;
+  const doneCount = useMemo(() => allQuestions.filter((q) => doneMap[q.question.id]).length, [allQuestions, doneMap]);
   const progressPct = totalQuestions > 0 ? Math.round((doneCount / totalQuestions) * 100) : 0;
 
-  const filteredTopics = useMemo(() => {
-    if (!debouncedSearch.trim() && !showOnlyUndone) return coreJavaInterviewTopics;
+  const filteredEntries = useMemo(() => {
     const q = debouncedSearch.toLowerCase().trim();
-    return coreJavaInterviewTopics
-      .map((topic) => {
-        const filtered = topic.questions.filter((question) => {
-          const matchesSearch =
-            !q ||
-            question.question.toLowerCase().includes(q) ||
-            (question.answer && question.answer.toLowerCase().includes(q));
-          const matchesUndone = !showOnlyUndone || !doneMap[question.id];
-          return matchesSearch && matchesUndone;
-        });
-        return { ...topic, questions: filtered };
-      })
-      .filter((t) => t.questions.length > 0);
-  }, [debouncedSearch, showOnlyUndone, doneMap]);
+    return allQuestions.filter((entry) => {
+      const { question, topic, meta } = entry;
+
+      // Topic filter
+      if (selectedTopic && topic.id !== selectedTopic) return false;
+
+      // Search across title, tags, category, difficulty, priority, keywords
+      if (q) {
+        const searchable = [
+          question.question,
+          question.answer,
+          question.explanation,
+          topic.title,
+          ...(meta.tags ?? []),
+          meta.difficulty ?? "",
+          meta.priority ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+        if (!searchable.includes(q)) return false;
+      }
+
+      // Toolbar filters
+      switch (activeFilter) {
+        case "most-asked":
+          if (meta.priority !== "very-high" && meta.priority !== "high") return false;
+          break;
+        case "easy":
+          if (meta.difficulty !== "easy") return false;
+          break;
+        case "medium":
+          if (meta.difficulty !== "medium") return false;
+          break;
+        case "hard":
+          if (meta.difficulty !== "hard") return false;
+          break;
+        case "bookmarked":
+          if (!bookmarkedIds.includes(question.id)) return false;
+          break;
+        case "completed":
+          if (!doneMap[question.id]) return false;
+          break;
+        default:
+          break;
+      }
+      return true;
+    });
+  }, [allQuestions, debouncedSearch, selectedTopic, activeFilter, bookmarkedIds, doneMap]);
+
+  // Group filtered entries by topic while preserving roadmap order
+  const groupedTopics = useMemo(() => {
+    const order = new Map(coreJavaInterviewTopics.map((t) => [t.id, t]));
+    const groups = new Map<string, { topic: (typeof coreJavaInterviewTopics)[number]; entries: IndexedCoreJavaQuestion[] }>();
+    for (const entry of filteredEntries) {
+      const g = groups.get(entry.topic.id) ?? { topic: entry.topic, entries: [] };
+      g.entries.push(entry);
+      groups.set(entry.topic.id, g);
+    }
+    // Order by topic order in the data
+    return Array.from(order.keys())
+      .map((id) => groups.get(id))
+      .filter((g): g is NonNullable<typeof g> => !!g);
+  }, [filteredEntries]);
+
+  const hasActiveFilters =
+    !!debouncedSearch.trim() || !!selectedTopic || activeFilter !== "all";
+
+  const clearFilters = useCallback(() => {
+    setSearchQuery("");
+    setDebouncedSearch("");
+    setSelectedTopic(null);
+    setActiveFilter("all");
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
+
+  const handleTopicClick = useCallback((topicId: string | null) => {
+    setSelectedTopic(topicId);
+    if (topicId) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("topic", topicId);
+        return next;
+      }, { replace: true });
+    } else {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("topic");
+        return next;
+      }, { replace: true });
+    }
+  }, [setSearchParams]);
+
+  const handleFilterClick = useCallback((filter: FilterKind) => {
+    setActiveFilter(filter);
+    if (filter === "all") {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("filter");
+        return next;
+      }, { replace: true });
+    } else {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("filter", filter);
+        return next;
+      }, { replace: true });
+    }
+  }, [setSearchParams]);
 
   const downloadNotesPDF = () => {
     const doc = new jsPDF();
@@ -438,7 +541,7 @@ export default function InterviewCoreJavaQuestionsPage() {
 
     Object.entries(notesMap).forEach(([id, note]) => {
       if (!note) return;
-      const question = coreJavaInterviewTopics.flatMap((t) => t.questions).find((q) => q.id === id);
+      const question = allQuestions.find((q) => q.question.id === id)?.question;
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       const qText = question?.question || id;
@@ -460,32 +563,10 @@ export default function InterviewCoreJavaQuestionsPage() {
     doc.save("Core-Java-Notes.pdf");
   };
 
-  const handleTopicClick = (topicId: string) => {
-    setSelectedTopic((prev) => {
-      const next = prev === topicId ? null : topicId;
-      if (next) {
-        setTimeout(() => {
-          const el = document.getElementById(`topic-${next}`);
-          if (el) {
-            // Scroll taking the header into account
-            const y = el.getBoundingClientRect().top + window.scrollY - 80;
-            window.scrollTo({ top: y, behavior: "smooth" });
-          }
-        }, 100);
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-      return next;
-    });
-  };
-
-  // -------------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------------
+  // ── Render ────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
-      
-      {/* ── Page Header ─────────────────────────────────────────────── */}
+    <div className="cjq-page min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
+      {/* ── Page Header ──────────────────────────────────────────── */}
       <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
         <div className="px-4 md:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
@@ -500,41 +581,41 @@ export default function InterviewCoreJavaQuestionsPage() {
               <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0 hidden sm:block">
                 <Coffee size={16} className="text-primary" />
               </div>
-              <h1 className="text-lg md:text-xl font-bold tracking-tight truncate">
-                Core Java <span className="text-primary">Q&A</span>
-              </h1>
+              <div className="min-w-0">
+                <nav aria-label="Breadcrumb" className="hidden md:flex items-center gap-1 text-[10px] text-muted-foreground/70 font-mono mb-0.5">
+                  <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+                  <ChevronRight size={9} aria-hidden="true" />
+                  <Link to="/interview/java" className="hover:text-primary transition-colors">Interview</Link>
+                  <ChevronRight size={9} aria-hidden="true" />
+                  <span className="text-foreground/70">Core Java</span>
+                </nav>
+                <h1 className="text-lg md:text-xl font-bold tracking-tight truncate">
+                  Core Java <span className="text-primary">Q&A</span>
+                </h1>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end shrink-0">
             {/* Search */}
             <div className="relative hidden md:block">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" aria-hidden="true" />
               <input
-                type="text"
-                placeholder="Search questions…"
+                ref={searchInputRef}
+                type="search"
+                role="searchbox"
+                placeholder="Search questions… ( / )"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search Java interview questions"
                 className="pl-9 pr-3 py-1.5 text-sm border border-border/40 bg-muted/20 rounded-full w-48 lg:w-64 outline-none focus:border-primary/50 focus:bg-card transition-all placeholder:text-muted-foreground/50"
               />
             </div>
 
-            {/* Filter Toggle */}
-            <button
-              onClick={() => setShowOnlyUndone((v) => !v)}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all shrink-0 hidden sm:block ${
-                showOnlyUndone
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
-                  : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              {showOnlyUndone ? "Show All" : "Undone Only"}
-            </button>
-
             {/* Notes Modal Trigger */}
             <button
               onClick={() => setShowNotesPanel(true)}
-              className="px-4 py-1.5 rounded-full text-sm font-semibold border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-2 shrink-0 transition-all"
+              className="px-4 py-1.5 rounded-full text-sm font-semibold border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-2 shrink-0 transition-all min-h-[36px]"
             >
               <StickyNote size={14} />
               <span className="hidden sm:inline">Notes</span>
@@ -549,7 +630,7 @@ export default function InterviewCoreJavaQuestionsPage() {
             <AppTooltip content="Toggle App Sidebar">
               <button
                 onClick={() => setGlobalSidebarOpen((prev) => !prev)}
-                className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 transition-all ml-1"
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 transition-all"
                 aria-label="Toggle App Sidebar"
               >
                 <PanelLeftOpen size={16} />
@@ -568,7 +649,7 @@ export default function InterviewCoreJavaQuestionsPage() {
         </div>
 
         {/* Global Progress Bar under header */}
-        <div className="h-[2px] w-full bg-muted/40 relative">
+        <div className="h-[2px] w-full bg-muted/40 relative" role="progressbar" aria-label="Overall progress" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
           <motion.div
             className="absolute left-0 top-0 bottom-0 bg-primary"
             initial={{ width: 0 }}
@@ -578,84 +659,107 @@ export default function InterviewCoreJavaQuestionsPage() {
         </div>
       </header>
 
-      {/* Mobile search bar */}
-      <div className="md:hidden px-4 py-3 bg-card border-b border-border/20 shrink-0">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+      {/* ── Search + Filter toolbar (mobile search included) ─────── */}
+      <div className="shrink-0 px-4 md:px-6 py-3 bg-card border-b border-border/20">
+        {/* Mobile search */}
+        <div className="relative md:hidden mb-3">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" aria-hidden="true" />
           <input
-            type="text"
+            ref={searchInputRef}
+            type="search"
+            role="searchbox"
             placeholder="Search questions…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search Java interview questions"
             className="pl-9 pr-3 py-2 text-sm border border-border/40 bg-muted/20 rounded-full w-full outline-none focus:border-primary/50 focus:bg-card transition-all"
           />
         </div>
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
-          <button
-            onClick={() => setShowOnlyUndone((v) => !v)}
-            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border transition-all whitespace-nowrap shrink-0 ${
-              showOnlyUndone
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-muted/30 border-border/40 text-muted-foreground"
-            }`}
-          >
-            {showOnlyUndone ? "Show All" : "Undone Only"}
-          </button>
+
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 cjq-scrollbar-hide">
+          {FILTER_OPTIONS.map((filter) => (
+            <button
+              key={filter.id}
+              onClick={() => handleFilterClick(filter.id)}
+              aria-pressed={activeFilter === filter.id}
+              className={`px-3.5 py-1.5 min-h-[34px] rounded-full text-[12.5px] font-semibold border whitespace-nowrap shrink-0 transition-all ${
+                activeFilter === filter.id
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
+                  : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {filter.icon && <span aria-hidden="true">{filter.icon} </span>}
+              {filter.label}
+              {filter.id === "bookmarked" && bookmarkedIds.length > 0 && ` (${bookmarkedIds.length})`}
+            </button>
+          ))}
+          <span className="text-[11px] font-mono text-muted-foreground/60 whitespace-nowrap shrink-0 ml-1">
+            {filteredEntries.length} of {totalQuestions} questions
+          </span>
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1 px-3 py-1.5 min-h-[34px] rounded-full text-[12px] font-semibold text-destructive border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 whitespace-nowrap shrink-0 transition-all"
+            >
+              <X size={12} /> Clear Filters
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ── Main Layout (Sidebar + Content) ──────────────────────────── */}
+      {/* ── Main Layout (Sidebar + Content) ──────────────────────── */}
       <div className="flex-1 flex relative" style={{ minHeight: 0 }}>
-        
         {/* Permanent Desktop Sidebar */}
-        <aside className="hidden lg:flex w-[260px] xl:w-[300px] shrink-0 border-r border-border/40 bg-card/30 flex-col overflow-y-auto sticky top-0 self-start" style={{ maxHeight: 'calc(100vh - 56px)' }}>
-          <div className="p-5 pb-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-4 flex items-center justify-between">
+        <aside className="hidden lg:block w-[240px] xl:w-[270px] shrink-0 border-r border-border/40 bg-card/30">
+          <div className="sticky top-0 max-h-[calc(100vh-64px)] overflow-y-auto p-4">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-3 flex items-center justify-between">
               <span>Topics</span>
-              <span className="text-[10px] bg-muted/50 px-2 py-0.5 rounded-full text-foreground/80 lowercase tracking-normal">
-                {doneCount}/{totalQuestions} done
+              <span className="text-[10px] bg-muted/50 px-2 py-0.5 rounded-full text-foreground/80 lowercase tracking-normal font-mono">
+                {doneCount}/{totalQuestions}
               </span>
             </h2>
-            
+
             <button
-              onClick={() => handleTopicClick("")} // Pass empty string or null to reset
-              className={`w-full text-left px-4 py-3 rounded-xl transition-all mb-2 border ${
+              onClick={() => handleTopicClick(null)}
+              aria-pressed={!selectedTopic}
+              className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all mb-1.5 border ${
                 !selectedTopic
                   ? "bg-primary/10 border-primary/20 text-foreground"
                   : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <span className="text-lg">📚</span>
-                <span className="text-sm font-semibold">All Topics</span>
+              <div className="flex items-center gap-2.5">
+                <span className="text-base" aria-hidden="true">📚</span>
+                <span className="text-[13px] font-semibold">All Topics</span>
               </div>
             </button>
-            
-            <div className="space-y-1.5">
+
+            <div className="space-y-1">
               {coreJavaInterviewTopics.map((topic) => {
                 const topicDone = topic.questions.filter((q) => doneMap[q.id]).length;
                 const topicTotal = topic.questions.length;
                 const pct = topicTotal > 0 ? Math.round((topicDone / topicTotal) * 100) : 0;
                 const isActive = selectedTopic === topic.id;
-                
+
                 return (
                   <button
                     key={topic.id}
-                    onClick={() => handleTopicClick(topic.id)}
-                    className={`w-full text-left px-4 py-3 rounded-xl transition-all border ${
+                    onClick={() => handleTopicClick(isActive ? null : topic.id)}
+                    aria-pressed={isActive}
+                    className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all border ${
                       isActive
                         ? "bg-primary/5 border-primary/20 text-foreground shadow-sm"
                         : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
-                    <div className="flex items-center gap-3 mb-2.5">
-                      <span className="text-lg shrink-0">{topic.icon}</span>
-                      <span className="text-[13px] font-semibold truncate flex-1 leading-tight">{topic.title}</span>
-                      <span className="text-[11px] font-mono text-muted-foreground/60 shrink-0">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <span className="text-base shrink-0" aria-hidden="true">{topic.icon}</span>
+                      <span className="text-[12.5px] font-semibold truncate flex-1 leading-tight">{topic.title}</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/60 shrink-0">
                         {topicDone}/{topicTotal}
                       </span>
                     </div>
-                    <div className="ml-[34px] h-[3px] rounded-full bg-muted/60 overflow-hidden">
+                    <div className="ml-[30px] h-[3px] rounded-full bg-muted/60 overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{
@@ -672,9 +776,8 @@ export default function InterviewCoreJavaQuestionsPage() {
         </aside>
 
         {/* Scrollable Content Area */}
-        <main className="flex-1 overflow-y-auto scroll-smooth">
+        <main className="flex-1 min-w-0">
           <div className="w-full px-4 md:px-8 lg:px-10 xl:px-14 py-6 pb-24">
-            
             <div className="space-y-10">
               {/* Sign-in nudge */}
               {!user && !authLoading && (
@@ -682,12 +785,12 @@ export default function InterviewCoreJavaQuestionsPage() {
                   <div>
                     <h3 className="text-sm font-bold text-warning mb-1">Your progress isn't being saved</h3>
                     <p className="text-[13px] text-muted-foreground leading-relaxed">
-                      Sign in to permanently save your completed questions and personal notes across devices.
+                      Sign in to save your completed questions, bookmarks and personal notes across devices.
                     </p>
                   </div>
                   <button
                     onClick={() => navigate("/auth")}
-                    className="px-6 py-2.5 rounded-full bg-warning text-warning-foreground font-bold text-sm shrink-0 hover:bg-warning/90 transition-colors"
+                    className="px-6 py-2.5 rounded-lg bg-warning text-warning-foreground font-bold text-sm shrink-0 hover:bg-warning/90 transition-colors min-h-[40px]"
                   >
                     Sign In
                   </button>
@@ -695,81 +798,77 @@ export default function InterviewCoreJavaQuestionsPage() {
               )}
 
               {/* Empty state */}
-              {filteredTopics.length === 0 && (
+              {groupedTopics.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
                   <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
                     <Search size={28} className="text-muted-foreground/50" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground mb-2">No questions found</h3>
-                  <p className="text-[15px] text-muted-foreground">
-                    Try adjusting your search query or removing the "Undone Only" filter.
+                  <p className="text-[15px] text-muted-foreground max-w-sm">
+                    Try a different search or clear your filters.
                   </p>
-                  {(searchQuery || showOnlyUndone) && (
+                  {hasActiveFilters && (
                     <button
-                      onClick={() => {
-                        setSearchQuery("");
-                        setShowOnlyUndone(false);
-                        setSelectedTopic(null);
-                      }}
-                      className="mt-6 px-6 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors"
+                      onClick={clearFilters}
+                      className="mt-6 px-6 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors min-h-[40px]"
                     >
-                      Clear all filters
+                      Clear Filters
                     </button>
                   )}
                 </div>
               )}
 
               {/* Topic groups */}
-              {filteredTopics.map((topic) => {
-                if (selectedTopic && topic.id !== selectedTopic) return null;
-                return (
-                  <div key={topic.id} id={`topic-${topic.id}`} className="space-y-5 scroll-mt-24">
-                    {/* Topic header */}
-                    <div className="flex items-center gap-4 pb-5 border-b-2 border-border/30">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl shrink-0">
-                        {topic.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-[22px] font-bold tracking-tight text-foreground leading-tight">
-                          {topic.title}
-                        </h2>
-                        <p className="text-[14px] text-muted-foreground mt-0.5">
-                          {topic.questions.length} questions
-                        </p>
-                      </div>
+              {groupedTopics.map((group) => (
+                <div key={group.topic.id} className="space-y-4">
+                  {/* Topic header */}
+                  <div className="flex items-center gap-4 pb-4 border-b-2 border-border/30">
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl shrink-0" aria-hidden="true">
+                      {group.topic.icon}
                     </div>
-
-                    {/* Questions single-column list */}
-                    <div className="space-y-4">
-                      {topic.questions.map((question, idx) => (
-                        <QuestionCard
-                          key={question.id}
-                          question={question}
-                          idx={idx}
-                          isDone={!!doneMap[question.id]}
-                          hasNote={!!notesMap[question.id]}
-                          activeView={solutionViewMap[question.id] ?? null}
-                          onToggleDone={toggleDone}
-                          onToggleView={toggleSolutionView}
-                          onOpenNote={openNote}
-                        />
-                      ))}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-[20px] font-bold tracking-tight text-foreground leading-tight">
+                        {group.topic.title}
+                      </h2>
+                      <p className="text-[13px] text-muted-foreground mt-0.5">
+                        {group.entries.length} question{group.entries.length !== 1 ? "s" : ""}
+                        {selectedTopic && ` · filtered from ${group.topic.questions.length}`}
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Questions single-column list */}
+                  <div className="space-y-4">
+                    {group.entries.map((entry) => (
+                      <QuestionCard
+                        key={entry.question.id}
+                        entry={entry}
+                        isDone={!!doneMap[entry.question.id]}
+                        hasNote={!!notesMap[entry.question.id]}
+                        isBookmarked={isBookmarked(entry.question.id)}
+                        activeView={solutionViewMap[entry.question.id] ?? null}
+                        onToggleDone={handleToggleDone}
+                        onToggleView={toggleSolutionView}
+                        onOpenNote={openNote}
+                        onToggleBookmark={handleToggleBookmark}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </main>
       </div>
 
-      {/* ── Mobile/Overlay Topic Sidebar ─────────────────────────────── */}
+      {/* ── Mobile/Overlay Topic Sidebar ──────────────────────────── */}
       <AnimatePresence>
         {topicSidebarOpen && (
           <>
             <div
               className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
               onClick={() => setTopicSidebarOpen(false)}
+              aria-hidden="true"
             />
             <motion.aside
               initial={{ x: "-100%", opacity: 0 }}
@@ -777,15 +876,18 @@ export default function InterviewCoreJavaQuestionsPage() {
               exit={{ x: "-100%", opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="fixed left-0 top-0 bottom-0 w-[280px] sm:w-[320px] z-[70] bg-card border-r border-border/50 shadow-2xl flex flex-col lg:hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Topics"
             >
-              <div className="flex items-center justify-between px-5 py-5 border-b border-border/30">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
                 <div className="flex items-center gap-2.5">
                   <BookOpen size={18} className="text-primary" />
                   <h2 className="text-[15px] font-bold tracking-tight">Knowledge Areas</h2>
                 </div>
                 <button
                   onClick={() => setTopicSidebarOpen(false)}
-                  className="p-2 rounded-full hover:bg-muted/80 transition-colors bg-muted/40"
+                  className="p-2 rounded-lg hover:bg-muted/80 transition-colors bg-muted/40 min-h-[40px] min-w-[40px] flex items-center justify-center"
                   aria-label="Close sidebar"
                 >
                   <X size={16} />
@@ -795,18 +897,18 @@ export default function InterviewCoreJavaQuestionsPage() {
               <div className="flex-1 overflow-y-auto p-4 space-y-1.5">
                 <button
                   onClick={() => {
-                    handleTopicClick("");
+                    handleTopicClick(null);
                     setTopicSidebarOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3.5 rounded-2xl transition-all mb-2 border ${
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all mb-2 border ${
                     !selectedTopic
                       ? "bg-primary/10 border-primary/20 text-foreground"
                       : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">📚</span>
-                    <span className="text-[15px] font-semibold">All Topics</span>
+                    <span className="text-xl" aria-hidden="true">📚</span>
+                    <span className="text-[14px] font-semibold">All Topics</span>
                   </div>
                 </button>
 
@@ -822,20 +924,20 @@ export default function InterviewCoreJavaQuestionsPage() {
                         handleTopicClick(topic.id);
                         setTopicSidebarOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-3.5 rounded-2xl transition-all border ${
+                      className={`w-full text-left px-4 py-3 rounded-xl transition-all border ${
                         isActive
                           ? "bg-primary/10 border-primary/20 text-foreground"
                           : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                       }`}
                     >
-                      <div className="flex items-center gap-3 mb-2.5">
-                        <span className="text-xl leading-none">{topic.icon}</span>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-xl leading-none" aria-hidden="true">{topic.icon}</span>
                         <span className="text-[14px] font-semibold truncate flex-1">{topic.title}</span>
                         <span className="text-[11px] font-mono text-muted-foreground/60 shrink-0">
                           {topicDone}/{topicTotal}
                         </span>
                       </div>
-                      <div className="ml-[36px] h-[3px] rounded-full bg-muted/60 overflow-hidden">
+                      <div className="ml-[34px] h-[3px] rounded-full bg-muted/60 overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{
@@ -853,25 +955,23 @@ export default function InterviewCoreJavaQuestionsPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Draggable Note Editor (floating, same-page) ──────────────── */}
+      {/* ── Draggable Note Editor (floating, same-page) ───────────── */}
       <AnimatePresence>
         {activeNoteId && (
           <DraggableNoteEditor
             questionTitle={
-              coreJavaInterviewTopics
-                .flatMap((t) => t.questions)
-                .find((q) => q.id === activeNoteId)?.question ?? "Note"
+              allQuestions.find((q) => q.question.id === activeNoteId)?.question.question ?? "Note"
             }
             value={noteDraft}
             onChange={setNoteDraft}
             onClose={() => setActiveNoteId(null)}
-            onSave={saveNote}
+            onSave={handleSaveNote}
             isSaving={upsertingId === activeNoteId}
           />
         )}
       </AnimatePresence>
 
-      {/* ── All Notes Panel ──────────────────────────────────────────── */}
+      {/* ── All Notes Panel ───────────────────────────────────────── */}
       <AnimatePresence>
         {showNotesPanel && (
           <div className="fixed inset-0 flex justify-end z-[100]">
@@ -937,19 +1037,25 @@ export default function InterviewCoreJavaQuestionsPage() {
                   </div>
                 )}
                 {Object.entries(notesMap).map(([id, note]) => {
-                  const questionData = coreJavaInterviewTopics.flatMap((t) => t.questions).find((q) => q.id === id);
+                  const questionData = allQuestions.find((q) => q.question.id === id);
                   return (
                     <div
                       key={id}
                       className="p-5 rounded-2xl bg-card border border-border/40 shadow-sm relative group transition-all hover:border-border/60"
                     >
                       <div className="pr-8 mb-3">
-                        <p className="font-bold text-[14.5px] leading-snug">
-                          {questionData?.question || id}
-                        </p>
+                        {questionData && (
+                          <Link
+                            to={getCoreJavaQuestionDetailPath(questionData.question)}
+                            className="font-bold text-[14.5px] leading-snug hover:text-primary transition-colors"
+                          >
+                            {questionData.question.question}
+                          </Link>
+                        )}
+                        {!questionData && <p className="font-bold text-[14.5px] leading-snug">{id}</p>}
                       </div>
                       <button
-                        onClick={() => deleteNoteFromPanel(id)}
+                        onClick={() => handleDeleteNoteFromPanel(id)}
                         disabled={deletingNoteId === id}
                         className="absolute top-4 right-4 p-2 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive opacity-0 group-hover:opacity-100 transition-all focus:opacity-100 disabled:opacity-50"
                         title="Delete note"
@@ -975,109 +1081,6 @@ export default function InterviewCoreJavaQuestionsPage() {
           </div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-// -------------------------------------------------------------------------
-// Helper render functions
-// -------------------------------------------------------------------------
-
-/** Parse inline **bold** and `code` tokens */
-function parseInline(text: string): ReactNode {
-  const parts: ReactNode[] = [];
-  const regex = /(\*\*[^*]+\*\*|\`[^\`]+\`)/g;
-  let last = 0,
-    k = 0;
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push(text.slice(last, match.index));
-    const token = match[0];
-    if (token.startsWith("**")) {
-      parts.push(
-        <strong key={k++} className="font-bold text-foreground">
-          {token.slice(2, -2)}
-        </strong>
-      );
-    } else {
-      parts.push(
-        <code
-          key={k++}
-          className="font-mono text-[0.85em] font-medium px-1.5 py-[2px] rounded-md bg-primary/10 text-primary border border-primary/20 mx-[1px]"
-        >
-          {token.slice(1, -1)}
-        </code>
-      );
-    }
-    last = match.index + token.length;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  if (parts.length === 0) return text;
-  if (parts.length === 1 && typeof parts[0] === "string") return parts[0];
-  return <>{parts}</>;
-}
-
-function renderTheoryContent(answer: string): ReactNode {
-  if (!answer) return null;
-  const sections = answer.split("\n\n").filter(Boolean);
-  return (
-    <div className="space-y-6 font-sans">
-      {sections.map((section, idx) => {
-        const lines = section.split("\n").filter(Boolean);
-        const isBullet = lines.every((l) => l.trim().startsWith("- "));
-        const isNumbered = lines.every((l) => /^\d+\./.test(l.trim()));
-        const isHeading =
-          lines.length === 1 &&
-          (lines[0].startsWith("##") ||
-            (lines[0].endsWith(":") && lines[0].length < 70) ||
-            (lines[0].length < 55 && !lines[0].endsWith(".") && !lines[0].startsWith("-")));
-
-        if (isHeading) {
-          return (
-            <div key={idx} className="flex items-center gap-3 pt-3">
-              <span className="w-1 h-6 rounded-full bg-primary shrink-0" />
-              <h4 className="text-[18px] font-bold text-foreground tracking-tight">
-                {lines[0].replace(/^#{1,3}\s*/, "").replace(/:$/, "")}
-              </h4>
-            </div>
-          );
-        }
-        if (isBullet) {
-          return (
-            <ul key={idx} className="space-y-3">
-              {lines.map((l, i) => (
-                <li key={i} className="flex items-start gap-3.5 text-[16px] leading-[1.85] text-foreground/90">
-                  <span className="mt-[10px] w-2 h-2 rounded-full bg-primary/70 shrink-0" />
-                  <span>{parseInline(l.replace(/^- /, ""))}</span>
-                </li>
-              ))}
-            </ul>
-          );
-        }
-        if (isNumbered) {
-          return (
-            <ol key={idx} className="space-y-3.5">
-              {lines.map((l, i) => (
-                <li key={i} className="flex items-start gap-4 text-[16px] leading-[1.85]">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-[12px] font-bold flex items-center justify-center mt-[2px]">
-                    {i + 1}
-                  </span>
-                  <span className="text-foreground/90">{parseInline(l.replace(/^\d+\.\s*/, ""))}</span>
-                </li>
-              ))}
-            </ol>
-          );
-        }
-        return (
-          <div key={idx} className="space-y-3">
-            {lines.map((l, i) => (
-              <p key={i} className="text-[16px] leading-[1.9] text-foreground/90">
-                {parseInline(l)}
-              </p>
-            ))}
-          </div>
-        );
-      })}
     </div>
   );
 }
