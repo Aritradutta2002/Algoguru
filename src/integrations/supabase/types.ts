@@ -69,27 +69,33 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_bookmarked: boolean
           is_completed: boolean
           notes: string
           question_id: string
+          reading_section: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_bookmarked?: boolean
           is_completed?: boolean
           notes?: string
           question_id: string
+          reading_section?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_bookmarked?: boolean
           is_completed?: boolean
           notes?: string
           question_id?: string
+          reading_section?: string
           updated_at?: string
           user_id?: string
         }

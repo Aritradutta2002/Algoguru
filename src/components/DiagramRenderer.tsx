@@ -10,6 +10,7 @@ const colorMap: Record<string, string> = {
   info: "var(--info)",
   heap: "var(--heap)",
   muted: "var(--muted-foreground)",
+  destructive: "var(--destructive)",
 };
 
 function getColor(c?: string) {

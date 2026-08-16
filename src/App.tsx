@@ -37,6 +37,7 @@ import Admin from "./pages/Admin";
 import JavaRoadmapPage from "./pages/JavaRoadmapPage";
 import InterviewDataStructurePage from "./pages/interview/InterviewDataStructurePage";
 import InterviewCoreJavaQuestionsPage from "./pages/interview/InterviewCoreJavaQuestionsPage";
+import InterviewCoreJavaQuestionDetailPage from "./pages/interview/InterviewCoreJavaQuestionDetailPage";
 import InterviewSystemDesignPage from "./pages/interview/InterviewSystemDesignPage";
 import InterviewSqlStructurePage from "./pages/interview/InterviewSqlStructurePage";
 import InterviewLanguageQuestionsPage from "./pages/interview/InterviewLanguageQuestionsPage";
@@ -939,6 +940,7 @@ const App = () => (
                         <Route path="/interview/:language/data-structure" element={<InterviewDataStructurePage />} />
                         <Route path="/interview/:language/language-questions" element={<InterviewLanguageQuestionsPage />} />
                         <Route path="/interview/:language/core-java-qa" element={<InterviewCoreJavaQuestionsPage />} />
+                        <Route path="/interview/:language/core-java-qa/:questionSlug" element={<InterviewCoreJavaQuestionDetailPage />} />
                         <Route path="/interview/:language/system-design" element={<InterviewSystemDesignPage />} />
                         <Route path="/interview/:language/sql-structure" element={<InterviewSqlStructurePage />} />
                         <Route path="/practice/solution/:problemId" element={<PracticeSolution />} />
