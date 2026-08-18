@@ -1,4 +1,7 @@
-﻿export interface InterviewQuestion {
+﻿import { extraQuestionsByTopic } from "./coreJavaInterviewExtras";
+import { mustKnowQuestionsByTopic } from "./coreJavaInterviewMustKnow";
+
+export interface InterviewQuestion {
   id: string;
   question: string;
   answer: string;
@@ -16,7 +19,7 @@ export interface InterviewTopic {
   questions: InterviewQuestion[];
 }
 
-export const coreJavaInterviewTopics: InterviewTopic[] = [
+const coreJavaInterviewTopicsBase: InterviewTopic[] = [
   {
     id: "basics",
     title: "Java Basics",
@@ -215,3 +218,12 @@ export const coreJavaInterviewTopics: InterviewTopic[] = [
     ],
   },
 ];
+
+export const coreJavaInterviewTopics: InterviewTopic[] = coreJavaInterviewTopicsBase.map((topic) => ({
+  ...topic,
+  questions: [
+    ...topic.questions,
+    ...(extraQuestionsByTopic[topic.id] ?? []),
+    ...(mustKnowQuestionsByTopic[topic.id] ?? []),
+  ],
+}));
