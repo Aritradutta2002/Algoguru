@@ -382,9 +382,23 @@ function CodeEditorPane({
     setCodeLoaded(false);
     loadCode(questionId, userId).then((saved) => {
       if (!cancelled) {
-        let parsedTabs: FileTab[] = [{ id: "1", name: "Solution.java", content: saved ?? initialJavaSnippet }];
+        let isDefault = false;
+        
+        // Check if the saved code is basically just the default template
+        if (saved === DEFAULT_JAVA_TEMPLATE) {
+            isDefault = true;
+        } else if (saved && saved.startsWith("[")) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length === 1 && parsed[0].content === DEFAULT_JAVA_TEMPLATE) {
+                    isDefault = true;
+                }
+            } catch (e) {}
+        }
+
+        let parsedTabs: FileTab[] = [{ id: "1", name: "Solution.java", content: (saved && !isDefault) ? saved : initialJavaSnippet }];
         try {
-          if (saved && saved.startsWith("[")) {
+          if (saved && !isDefault && saved.startsWith("[")) {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
               parsedTabs = parsed;

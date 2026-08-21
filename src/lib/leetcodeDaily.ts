@@ -24,7 +24,7 @@ export type {
 const DIRECT_UPSTREAM_URL = "https://alfa-leetcode-api.onrender.com/daily";
 const DIRECT_UPSTREAM_TIMEOUT_MS = 8_000;
 
-const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v4";
+const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v5";
 /** Soft cap on cache age before we stop returning it as "fresh". 36h gives
  *  enough slack to cover any timezone oddity while still being bounded. */
 const LS_CACHE_FRESH_MS = 1000 * 60 * 60 * 36;
@@ -195,6 +195,10 @@ async function fetchDailyChallengeGraphQL(): Promise<DailyChallengeResponse | nu
           content
           exampleTestcases
           acRate
+          codeSnippets {
+            langSlug
+            code
+          }
         }
       }
     }
@@ -228,6 +232,7 @@ async function fetchDailyChallengeGraphQL(): Promise<DailyChallengeResponse | nu
             topicTags?: LeetCodeTopicTag[];
             hints?: string[];
             acRate?: number;
+            codeSnippets?: { langSlug: string; code: string }[];
           };
         };
       };
@@ -254,6 +259,7 @@ async function fetchDailyChallengeGraphQL(): Promise<DailyChallengeResponse | nu
       hints: Array.isArray(q.hints) ? q.hints : undefined,
       acRate: typeof q.acRate === "number" ? q.acRate : undefined,
       link,
+      codeSnippets: Array.isArray(q.codeSnippets) ? q.codeSnippets : undefined,
     };
 
     return {
