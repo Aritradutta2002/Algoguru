@@ -24,7 +24,7 @@ export type {
 const DIRECT_UPSTREAM_URL = "https://alfa-leetcode-api.onrender.com/daily";
 const DIRECT_UPSTREAM_TIMEOUT_MS = 8_000;
 
-const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v5";
+const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v6";
 /** Soft cap on cache age before we stop returning it as "fresh". 36h gives
  *  enough slack to cover any timezone oddity while still being bounded. */
 const LS_CACHE_FRESH_MS = 1000 * 60 * 60 * 36;
@@ -205,7 +205,7 @@ async function fetchDailyChallengeGraphQL(): Promise<DailyChallengeResponse | nu
   `;
 
   try {
-    const res = await fetch("https://leetcode.com/graphql", {
+    const res = await fetch("https://corsproxy.io/?" + encodeURIComponent("https://leetcode.com/graphql"), {
       method: "POST",
       signal: controller.signal,
       headers: {
