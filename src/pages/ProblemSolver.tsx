@@ -324,10 +324,12 @@ function CodeEditorPane({
   questionId,
   theme,
   exampleTestcases,
+  codeSnippets,
 }: {
   questionId: string;
   theme: "dark" | "light";
   exampleTestcases?: string;
+  codeSnippets?: { langSlug: string; code: string }[];
 }) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -366,13 +368,21 @@ function CodeEditorPane({
     setActiveTestcaseId("1");
   }, [exampleTestcases]);
 
+  const initialJavaSnippet = useMemo(() => {
+    const javaCode = codeSnippets?.find((s) => s.langSlug === "java")?.code;
+    if (javaCode) {
+      return `import java.util.*;\n\n${javaCode}`;
+    }
+    return DEFAULT_JAVA_TEMPLATE;
+  }, [codeSnippets]);
+
   // Load saved code from DB / localStorage on mount or question change
   useEffect(() => {
     let cancelled = false;
     setCodeLoaded(false);
     loadCode(questionId, userId).then((saved) => {
       if (!cancelled) {
-        let parsedTabs: FileTab[] = [{ id: "1", name: "Solution.java", content: saved ?? DEFAULT_JAVA_TEMPLATE }];
+        let parsedTabs: FileTab[] = [{ id: "1", name: "Solution.java", content: saved ?? initialJavaSnippet }];
         try {
           if (saved && saved.startsWith("[")) {
             const parsed = JSON.parse(saved);
@@ -410,14 +420,14 @@ function CodeEditorPane({
   );
 
   const handleResetCode = useCallback(() => {
-    setCode(DEFAULT_JAVA_TEMPLATE);
+    setCode(initialJavaSnippet);
     setRunResult(null);
     setTabs((currentTabs) => {
-      const updatedTabs = currentTabs.map((t) => (t.id === activeTabId ? { ...t, content: DEFAULT_JAVA_TEMPLATE } : t));
+      const updatedTabs = currentTabs.map((t) => (t.id === activeTabId ? { ...t, content: initialJavaSnippet } : t));
       void persistCode(questionId, JSON.stringify(updatedTabs), userId);
       return updatedTabs;
     });
-  }, [questionId, userId, activeTabId]);
+  }, [questionId, userId, activeTabId, initialJavaSnippet]);
 
   const handleCopyCode = useCallback(() => {
     navigator.clipboard.writeText(code);
@@ -1411,6 +1421,7 @@ export default function ProblemSolver() {
                 questionId={data.problem.questionId}
                 theme={theme}
                 exampleTestcases={data.problem.exampleTestcases}
+                codeSnippets={data.problem.codeSnippets}
               />
             </Panel>
           </PanelGroup>

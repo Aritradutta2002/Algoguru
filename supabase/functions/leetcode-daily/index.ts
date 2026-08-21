@@ -41,6 +41,7 @@ interface DailyProblem {
   acRate?: number;
   link: string;
   solution?: string | null;
+  codeSnippets?: { langSlug: string; code: string }[];
 }
 
 interface CachedPayload {
@@ -96,6 +97,10 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
             solution {
               content
             }
+            codeSnippets {
+              langSlug
+              code
+            }
           }
         }
       }
@@ -125,6 +130,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
               hints?: string[];
               acRate?: number;
               solution?: { content?: string };
+              codeSnippets?: { langSlug: string; code: string }[];
             };
           };
         };
@@ -149,6 +155,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           acRate: typeof q.acRate === "number" ? q.acRate : undefined,
           link,
           solution: q.solution?.content || null,
+          codeSnippets: q.codeSnippets,
         };
       }
     }
@@ -209,6 +216,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
     acRate: typeof question.acRate === "number" ? question.acRate : undefined,
     link: `https://leetcode.com/problems/${String(question.titleSlug)}/`,
     solution: solutionHtml,
+    codeSnippets: Array.isArray(question.codeSnippets) ? (question.codeSnippets as any) : undefined,
   };
 }
 

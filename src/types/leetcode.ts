@@ -22,6 +22,7 @@ export interface DailyProblem {
   link: string;
   /** Official solution HTML, if available. */
   solution?: string | null;
+  codeSnippets?: { langSlug: string; code: string }[];
 }
 
 export type DailyChallengeSource = "upstream" | "db-cache" | "memory-cache";
