@@ -642,20 +642,30 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="hidden sm:block h-6 w-px bg-border/20" />
               <UserMenu />
               <div className="h-6 w-px bg-border/20" />
-              <AppTooltip content={guruOpen ? "Close Guru" : "Open Guru"}>
-                <button
-                  onClick={toggleGuruPanel}
-                  aria-label={guruOpen ? "Close Guru" : "Open Guru"}
-                  className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${
-                    guruOpen 
-                      ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
-                      : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
-                  }`}
-                >
-                  <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
-                  <span className="hidden sm:inline">Guru</span>
-                </button>
-              </AppTooltip>
+              {isProblemSolverRoute ? (
+                <AppTooltip content="Guru AI is inside the Description panel → Guru AI tab (auto-attached to your code)">
+                  <div className="flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-widest rounded-2xl border bg-primary/10 border-primary/20 text-primary">
+                    <Sparkles size={14} />
+                    <span className="hidden sm:inline">Guru in tab</span>
+                    <span className="sm:hidden">Tab</span>
+                  </div>
+                </AppTooltip>
+              ) : (
+                <AppTooltip content={guruOpen ? "Close Guru" : "Open Guru"}>
+                  <button
+                    onClick={toggleGuruPanel}
+                    aria-label={guruOpen ? "Close Guru" : "Open Guru"}
+                    className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${
+                      guruOpen 
+                        ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
+                        : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
+                    }`}
+                  >
+                    <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
+                    <span className="hidden sm:inline">Guru</span>
+                  </button>
+                </AppTooltip>
+              )}
             </div>
           </header>
 

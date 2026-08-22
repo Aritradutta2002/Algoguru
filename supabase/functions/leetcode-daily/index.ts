@@ -202,6 +202,21 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
     console.error("Failed to fetch official solution:", e);
   }
 
+  // Ensure codeSnippets is populated even when upstream is alfa wrapper (which omits it)
+  let codeSnippets = Array.isArray(question.codeSnippets) ? (question.codeSnippets as any) : undefined;
+  if (!codeSnippets) {
+    try {
+      const selRes = await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${question.titleSlug}`, { signal });
+      if (selRes.ok) {
+        const selRaw = await selRes.json() as { codeSnippets?: any; question?: { codeSnippets?: any } };
+        const fetched = selRaw?.codeSnippets ?? selRaw?.question?.codeSnippets;
+        if (Array.isArray(fetched) && fetched.length > 0) codeSnippets = fetched;
+      }
+    } catch (_e) {
+      // silently ignore — fallback will use DEFAULT template
+    }
+  }
+
   return {
     questionId: String(question.questionId),
     title: String(rawTitle ?? ""),
@@ -216,7 +231,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
     acRate: typeof question.acRate === "number" ? question.acRate : undefined,
     link: `https://leetcode.com/problems/${String(question.titleSlug)}/`,
     solution: solutionHtml,
-    codeSnippets: Array.isArray(question.codeSnippets) ? (question.codeSnippets as any) : undefined,
+    codeSnippets,
   };
 }
 

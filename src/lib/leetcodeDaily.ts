@@ -24,7 +24,7 @@ export type {
 const DIRECT_UPSTREAM_URL = "https://alfa-leetcode-api.onrender.com/daily";
 const DIRECT_UPSTREAM_TIMEOUT_MS = 8_000;
 
-const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v6";
+const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v7";
 /** Soft cap on cache age before we stop returning it as "fresh". 36h gives
  *  enough slack to cover any timezone oddity while still being bounded. */
 const LS_CACHE_FRESH_MS = 1000 * 60 * 60 * 36;
@@ -115,6 +115,12 @@ const FALLBACK_PROBLEM: DailyChallengeResponse = {
     ],
     acRate: 65.4,
     link: "https://leetcode.com/problems/maximize-active-section-with-trade-i/",
+    codeSnippets: [
+      {
+        langSlug: "java",
+        code: "class Solution {\n    public int maxActiveSectionsAfterTrade(String s) {\n        \n    }\n}",
+      },
+    ],
   },
 };
 
@@ -330,6 +336,8 @@ interface UpstreamQuestion {
   topicTags?: unknown;
   hints?: unknown;
   acRate?: unknown;
+  codeSnippets?: unknown;
+  solution?: unknown;
 }
 
 function buildResponseFromUpstream(
@@ -358,6 +366,19 @@ function buildResponseFromUpstream(
   const rawTitle = question.title ?? question.questionTitle;
   const rawContent = question.content ?? question.question;
 
+  const codeSnippets = Array.isArray(question.codeSnippets)
+    ? (question.codeSnippets as { langSlug: string; code: string }[])
+    : undefined;
+
+  const solution = (() => {
+    if (typeof question.solution === "string") return question.solution as string;
+    if (question.solution && typeof question.solution === "object") {
+      const s = question.solution as Record<string, unknown>;
+      if (typeof s.content === "string") return s.content;
+    }
+    return undefined;
+  })();
+
   const problem: DailyProblem = {
     questionId: String(question.questionId),
     title: String(rawTitle ?? ""),
@@ -373,6 +394,8 @@ function buildResponseFromUpstream(
       : undefined,
     acRate: typeof question.acRate === "number" ? question.acRate : undefined,
     link: `https://leetcode.com/problems/${String(question.titleSlug)}/`,
+    codeSnippets,
+    solution: solution ?? null,
   };
 
   return {

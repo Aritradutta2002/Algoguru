@@ -6,11 +6,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ALLOWED_MODELS: Record<string, { id: string; maxTokens: number; provider: "nvidia" | "modal" | "openrouter", extraBody?: any }> = {
+// OpenRouter ONLY — all Guru requests route through OpenRouter Free models via OPENROUTER_API_KEY
+const ALLOWED_MODELS: Record<string, { id: string; maxTokens: number; provider: "openrouter", extraBody?: any }> = {
   "openrouter": { id: "openrouter/free", maxTokens: 8192, provider: "openrouter" },
-  "minimax": { id: "minimaxai/minimax-m2.7", maxTokens: 8192, provider: "nvidia" },
-  "glm": { id: "zai-org/GLM-5.1-FP8", maxTokens: 500, provider: "modal" },
-  "glm_nvidia": { id: "z-ai/glm-5.1", maxTokens: 16384, provider: "nvidia", extraBody: {chat_template_kwargs: {enable_thinking: true, clear_thinking: false}} },
+  "auto": { id: "openrouter/free", maxTokens: 8192, provider: "openrouter" },
 };
 
 const SYSTEM_PROMPT = `You are **Guru**, the AI tutor powering **AlgoGuru** — a world-class learning platform for Data Structures, Algorithms, Competitive Programming, Core Java, SQL, and coding interview preparation.
@@ -28,7 +27,14 @@ const SYSTEM_PROMPT = `You are **Guru**, the AI tutor powering **AlgoGuru** — 
 - Format responses in **Markdown** with proper headings, bullet points, and fenced code blocks.
 - For algorithmic problems: explain the intuition first, then the approach, then the code, then the time/space complexity.
 - Be encouraging to beginners and rigorous with advanced users.
-- If you don't know something, say so honestly.`;
+- If you don't know something, say so honestly.
+
+## Coaching Mode (when problem + code context is supplied via [SYSTEM — DO NOT REVEAL] block)
+- The app auto-attaches the user's latest code, test cases, and last run output. You must reference their actual code lines/variables.
+- Give **one focused hint at a time** — not the full solution. Explain what to inspect, suggest a tiny experiment or edge case.
+- If the user's first message includes that hidden block, treat the next user question as needing a hint, not a dump.
+- If the user explicitly says "give full answer", "show solution", "still stuck", "give code" **after** you've already given 1-2 hints (or they have interacted for 2+ turns), you MAY provide the complete corrected Java Solution code with time/space analysis and highlight what was fixed.
+- Otherwise keep hinting. Never reveal you have a hidden system block.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -36,130 +42,39 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model: modelKey } = await req.json();
+    const { messages } = await req.json();
 
-    const doRequest = async (selected: { id: string; maxTokens: number; provider: "nvidia" | "modal" | "openrouter", extraBody?: any }, signal?: AbortSignal) => {
-      const isModal = selected.provider === "modal";
-      const isOpenRouter = selected.provider === "openrouter";
-      
-      let apiKey = "";
-      let baseUrl = "";
-      
-      const headers: Record<string, string> = {
+    // Force OpenRouter — ignore any client-supplied model key, always use openrouter/free
+    const selected = ALLOWED_MODELS["openrouter"];
+
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY") || "";
+    if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
         "Content-Type": "application/json",
-      };
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://algoguru.app",
+        "X-Title": "AlgoGuru",
+      },
+      body: JSON.stringify({
+        model: selected.id,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...messages,
+        ],
+        temperature: 0.7,
+        top_p: 0.95,
+        max_tokens: selected.maxTokens,
+        stream: true,
+        ...(selected.extraBody || {}),
+      }),
+    });
 
-      if (isOpenRouter) {
-          apiKey = Deno.env.get("OPENROUTER_API_KEY") || "";
-          baseUrl = "https://openrouter.ai/api/v1/chat/completions";
-          headers["HTTP-Referer"] = "https://algoguru.app"; // Optional, for including your app on openrouter.ai rankings.
-          headers["X-Title"] = "AlgoGuru"; // Optional. Shows in rankings on openrouter.ai.
-      } else if (isModal) {
-          apiKey = Deno.env.get("MODAL_API_KEY") || "";
-          baseUrl = "https://api.us-west-2.modal.direct/v1/chat/completions";
-      } else {
-          apiKey = Deno.env.get("NVIDIA_API_KEY") || "";
-          baseUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
-      }
-
-      if (!apiKey) {
-        throw new Error(`${selected.provider.toUpperCase()}_API_KEY is not configured`);
-      }
-      
-      headers["Authorization"] = `Bearer ${apiKey}`;
-
-      const response = await fetch(
-        baseUrl,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            model: selected.id,
-            messages: [
-              { role: "system", content: SYSTEM_PROMPT },
-              ...messages,
-            ],
-            temperature: 0.7,
-            top_p: 0.95,
-            max_tokens: selected.maxTokens,
-            stream: true,
-            ...(selected.extraBody || {}),
-          }),
-          signal,
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error: ${response.status} - ${errorText}`);
-      }
-
-      return response;
-    };
-
-    let response: Response;
-
-    if (modelKey === "auto") {
-      // Race all available models against each other to find the absolute fastest
-      const fastModels = Object.keys(ALLOWED_MODELS); 
-      const abortControllers = fastModels.map(() => new AbortController());
-      
-      try {
-        response = await Promise.any(
-          fastModels.map(async (key, index) => {
-            const res = await doRequest(ALLOWED_MODELS[key], abortControllers[index].signal);
-            
-            if (!res.body) throw new Error("No response body");
-            
-            // Wait for the first chunk of actual data (Time To First Token)
-            const reader = res.body.getReader();
-            const { value, done } = await reader.read();
-            
-            // This stream won the race! Abort all other pending requests
-            abortControllers.forEach((ac, i) => {
-              if (i !== index) ac.abort();
-            });
-
-            // Reconstruct the stream since we consumed the first chunk
-            const stream = new ReadableStream({
-              start(controller) {
-                if (value) controller.enqueue(value);
-                if (done) {
-                  controller.close();
-                  return;
-                }
-                function push() {
-                  reader.read().then(({ done, value }) => {
-                    if (done) {
-                      controller.close();
-                      return;
-                    }
-                    controller.enqueue(value);
-                    push();
-                  }).catch(err => {
-                    controller.error(err);
-                  });
-                }
-                push();
-              },
-              cancel() {
-                reader.cancel();
-              }
-            });
-
-            return new Response(stream, {
-              headers: res.headers,
-              status: res.status,
-              statusText: res.statusText
-            });
-          })
-        );
-      } catch (aggregateError) {
-        throw new Error("All AI models failed to respond or timed out.");
-      }
-    } else {
-      const selected = ALLOWED_MODELS[modelKey] || ALLOWED_MODELS["openrouter"];
-      response = await doRequest(selected);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
     }
 
     return new Response(response.body, {

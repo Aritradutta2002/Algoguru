@@ -8,6 +8,7 @@
 // users, with localStorage as a fallback for guests.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -26,6 +27,7 @@ import {
   Lightbulb,
   Loader2,
   Maximize,
+  Minimize,
   Plus,
   RefreshCw,
   Rocket,
@@ -45,6 +47,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyChallengeResponse } from "@/types/leetcode";
+import { generateHarnessMain, parseSolutionSignature, chunkTestCases } from "@/lib/javaHarness";
+import { buildProblemSolverGuruContext, deriveGuruSuggestions } from "@/lib/guruContext";
 import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
 import ReactMarkdown from "react-markdown";
@@ -74,6 +78,19 @@ class Solution {
     }
 }
 `;
+
+// Helpers for LeetCode-accurate starter detection
+function normalizeForCompare(s: string): string {
+  return s.replace(/\s+/g, " ").trim();
+}
+function isStarterLike(code: string, starter: string): boolean {
+  return normalizeForCompare(code) === normalizeForCompare(starter);
+}
+function buildStarterFromSnippet(snippet: string | undefined): string {
+  if (!snippet) return DEFAULT_JAVA_TEMPLATE;
+  const hasImport = /^\s*import\s+/m.test(snippet);
+  return hasImport ? snippet : `import java.util.*;\n\n${snippet}`;
+}
 
 const WANDBOX_API = "https://wandbox.org/api/compile.json";
 const JAVA_AUTO_IMPORTS = [
@@ -181,7 +198,7 @@ async function runJavaCode(sourceCode: string, stdin: string = ""): Promise<RunR
 
     proc = proc.replace(/public\s+class\s+/g, "class ");
 
-    if (!/\bvoid\s+main\b/.test(proc)) {
+    if (!/\bclass\s+Main\b/.test(proc)) {
       proc += `\n\nclass Main {\n    public static void main(String[] args) {\n        System.out.println("=== Java Compilation & Syntax Check Successful ===");\n        System.out.println("Tip: Add a main method to test your solution!");\n    }\n}`;
     }
 
@@ -320,16 +337,69 @@ interface FileTab {
   content: string;
 }
 
+function extractExpectedOutputs(html: string): string[] {
+  if (!html) return [];
+  try {
+    // Browser DOM parse
+    if (typeof document !== "undefined") {
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      const outputs: string[] = [];
+      // LeetCode standard: each example-block contains Output
+      temp.querySelectorAll(".example-block").forEach((block) => {
+        const text = block.textContent || "";
+        // Look for Output: ... next line / span
+        const m = text.match(/Output:\s*([^\n]+)/i);
+        if (m) outputs.push(m[1].trim());
+        else {
+          // fallback: look for example-io inside block where preceding strong is Output
+          const spans = block.querySelectorAll(".example-io");
+          // Heuristic: second span per block is output when first is input
+          if (spans.length >= 2) outputs.push((spans[1].textContent || "").trim());
+          else if (spans.length === 1 && text.toLowerCase().includes("output")) outputs.push((spans[0].textContent || "").trim());
+        }
+      });
+      if (outputs.length > 0) return outputs.map((s) => s.replace(/\u00A0/g, " ").trim());
+    }
+  } catch {}
+  // Regex fallback
+  const re = /Output:\s*<\/strong>\s*<span[^>]*class="example-io"[^>]*>([^<]+)<\/span>/gi;
+  const out: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) out.push(m[1].trim());
+  if (out.length === 0) {
+    const re2 = /Output:\s*([^<\n]+)/gi;
+    while ((m = re2.exec(html)) !== null) out.push(m[1].trim().replace(/<\/?[^>]+>/g, ""));
+  }
+  return out.map((s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim());
+}
+
+export interface LiveEditorSync {
+  code: string;
+  tabs: FileTab[];
+  testcaseTabs: { id: string; name: string; value: string }[];
+  runResult: RunResult | null;
+  isRunning: boolean;
+  selectedCode: string;
+  expectedOutputs: string[];
+}
+
 function CodeEditorPane({
   questionId,
   theme,
   exampleTestcases,
   codeSnippets,
+  problemContent,
+  onLiveSync,
+  insertTrigger,
 }: {
   questionId: string;
   theme: "dark" | "light";
   exampleTestcases?: string;
   codeSnippets?: { langSlug: string; code: string }[];
+  problemContent?: string;
+  onLiveSync?: (state: LiveEditorSync) => void;
+  insertTrigger?: { code: string; nonce: number } | null;
 }) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
@@ -352,11 +422,29 @@ function CodeEditorPane({
   const editorRef = useRef<any>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [codeLoaded, setCodeLoaded] = useState(false);
-  const [testcaseTabs, setTestcaseTabs] = useState<{ id: string, name: string, value: string }[]>(() => [
-    { id: "1", name: "Case 1", value: exampleTestcases?.replace(/\\n/g, "\n") || "" }
-  ]);
+  const buildTestTabs = useCallback((raw?: string, snippet?: string | null) => {
+    const normalized = (raw || "").replace(/\\n/g, "\n");
+    if (!normalized.trim()) return [{ id: "1", name: "Case 1", value: "" }];
+    // Try to chunk by param count if we have signature available
+    try {
+      const javaCode = snippet || codeSnippets?.find((s) => s.langSlug === "java")?.code || "";
+      const sig = javaCode ? parseSolutionSignature(javaCode) : null;
+      const paramCount = sig?.params.length ?? 1;
+      const chunks = chunkTestCases(normalized, Math.max(paramCount, 1));
+      if (chunks.length > 0) {
+        return chunks.map((c, i) => ({ id: String(i + 1), name: `Case ${i + 1}`, value: c.join("\n") }));
+      }
+    } catch {}
+    // Fallback: one tab per non-empty line
+    const lines = normalized.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length <= 1) return [{ id: "1", name: "Case 1", value: normalized }];
+    return lines.map((l, i) => ({ id: String(i + 1), name: `Case ${i + 1}`, value: l }));
+  }, [codeSnippets]);
+
+  const [testcaseTabs, setTestcaseTabs] = useState<{ id: string, name: string, value: string }[]>(() => buildTestTabs(exampleTestcases));
   const [activeTestcaseId, setActiveTestcaseId] = useState<string>("1");
   const [editorFontSize, setEditorFontSize] = useState(() => loadNumberSetting("problem-solver-font-size", 14));
+  const [selectedCode, setSelectedCode] = useState("");
 
   useEffect(() => {
     localStorage.setItem("problem-solver-font-size", String(editorFontSize));
@@ -364,16 +452,27 @@ function CodeEditorPane({
 
   // Update local testcases if exampleTestcases changes (e.g., new daily challenge)
   useEffect(() => {
-    setTestcaseTabs([{ id: "1", name: "Case 1", value: exampleTestcases?.replace(/\\n/g, "\n") || "" }]);
+    const snippet = codeSnippets?.find((s) => s.langSlug === "java")?.code || null;
+    setTestcaseTabs(buildTestTabs(exampleTestcases, snippet));
     setActiveTestcaseId("1");
-  }, [exampleTestcases]);
+  }, [exampleTestcases, codeSnippets, buildTestTabs]);
+
+  // Expected outputs parsed from problem HTML (LeetCode example blocks)
+  const expectedOutputs = useMemo(() => extractExpectedOutputs(problemContent || ""), [problemContent]);
+
+  // Derive param names for input label (e.g., N, s, nums)
+  const paramNames = useMemo(() => {
+    try {
+      const javaCode = codeSnippets?.find((s) => s.langSlug === "java")?.code || "";
+      const sig = javaCode ? parseSolutionSignature(javaCode) : null;
+      if (sig && sig.params.length > 0) return sig.params.map((p) => p.name);
+    } catch {}
+    return [] as string[];
+  }, [codeSnippets]);
 
   const initialJavaSnippet = useMemo(() => {
     const javaCode = codeSnippets?.find((s) => s.langSlug === "java")?.code;
-    if (javaCode) {
-      return `import java.util.*;\n\n${javaCode}`;
-    }
-    return DEFAULT_JAVA_TEMPLATE;
+    return buildStarterFromSnippet(javaCode);
   }, [codeSnippets]);
 
   // Load saved code from DB / localStorage on mount or question change
@@ -382,29 +481,47 @@ function CodeEditorPane({
     setCodeLoaded(false);
     loadCode(questionId, userId).then((saved) => {
       if (!cancelled) {
+        const starter = initialJavaSnippet;
         let isDefault = false;
-        
-        // Check if the saved code is basically just the default template
-        if (saved === DEFAULT_JAVA_TEMPLATE) {
-            isDefault = true;
+        const defaultNorm = normalizeForCompare(DEFAULT_JAVA_TEMPLATE);
+        const starterNorm = normalizeForCompare(starter);
+
+        const checkIsStarter = (codeStr: string) => {
+          const n = normalizeForCompare(codeStr);
+          return n === defaultNorm || n === starterNorm;
+        };
+
+        if (saved && !saved.startsWith("[")) {
+          if (checkIsStarter(saved)) isDefault = true;
         } else if (saved && saved.startsWith("[")) {
-            try {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length === 1 && parsed[0].content === DEFAULT_JAVA_TEMPLATE) {
-                    isDefault = true;
-                }
-            } catch (e) {}
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length === 1 && checkIsStarter(parsed[0].content)) {
+              isDefault = true;
+            }
+          } catch {}
+        } else if (saved === DEFAULT_JAVA_TEMPLATE) {
+          isDefault = true;
         }
 
-        let parsedTabs: FileTab[] = [{ id: "1", name: "Solution.java", content: (saved && !isDefault) ? saved : initialJavaSnippet }];
+        let parsedTabs: FileTab[] = [{ id: "1", name: "Solution.java", content: (saved && !isDefault) ? saved : starter }];
         try {
           if (saved && !isDefault && saved.startsWith("[")) {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              parsedTabs = parsed;
+              // If saved content is actually starter-like but starter changed (new LeetCode problem),
+              // prefer the new starter instead of stale saved
+              const firstContent = parsed[0]?.content || "";
+              if (checkIsStarter(firstContent) && normalizeForCompare(firstContent) !== starterNorm) {
+                parsedTabs = [{ id: "1", name: "Solution.java", content: starter }];
+              } else {
+                parsedTabs = parsed;
+              }
             }
+          } else if (saved && !isDefault && !saved.startsWith("[")) {
+            parsedTabs = [{ id: "1", name: "Solution.java", content: saved }];
           }
-        } catch (e) {}
+        } catch {}
         
         setTabs(parsedTabs);
         setActiveTabId(parsedTabs[0].id);
@@ -413,7 +530,7 @@ function CodeEditorPane({
       }
     });
     return () => { cancelled = true; };
-  }, [questionId, userId]);
+  }, [questionId, userId, initialJavaSnippet]);
 
   const handleChange = useCallback(
     (value: string | undefined) => {
@@ -451,13 +568,33 @@ function CodeEditorPane({
 
   const handleRunCode = useCallback(async () => {
     setIsRunning(true);
-    // Combine all tabs into one payload
-    const combinedCode = tabs.map((t) => `// --- ${t.name} ---\n${t.content}`).join("\n\n");
-    const currentTestcase = testcaseTabs.find((t) => t.id === activeTestcaseId)?.value || "";
-    const result = await runJavaCode(combinedCode, currentTestcase);
+    const solutionCode = tabs.find((t) => t.name === "Solution.java")?.content || tabs[0]?.content || "";
+    const helperCode = tabs.filter((t) => t.name !== "Solution.java").map((t) => `// --- ${t.name} ---\n${t.content}`).join("\n\n");
+    const baseCode = helperCode ? `${solutionCode}\n\n${helperCode}` : solutionCode;
+
+    // Try LeetCode-accurate harness first
+    let harness: string | null = null;
+    try {
+      // Build harness from ALL testcase tabs combined (real LeetCode behavior)
+      const allInputs = testcaseTabs.map((tc) => tc.value).join("\n");
+      const fullExample = allInputs || exampleTestcases || "";
+      harness = generateHarnessMain(baseCode, fullExample);
+    } catch {}
+
+    let result: RunResult;
+    if (harness) {
+      // Harness mode — compile Solution + generated Main, no stdin
+      const combinedWithHarness = `${baseCode}\n\n${harness}`;
+      result = await runJavaCode(combinedWithHarness, "");
+    } else {
+      // Fallback: legacy stdin mode (for unsupported types or no example)
+      const combinedCode = tabs.map((t) => `// --- ${t.name} ---\n${t.content}`).join("\n\n");
+      const currentTestcase = testcaseTabs.find((t) => t.id === activeTestcaseId)?.value || "";
+      result = await runJavaCode(combinedCode, currentTestcase);
+    }
     setRunResult(result);
     setIsRunning(false);
-  }, [tabs, testcaseTabs, activeTestcaseId]);
+  }, [tabs, testcaseTabs, activeTestcaseId, exampleTestcases]);
 
   const formatCode = useCallback(async () => {
     const raw = code;
@@ -483,7 +620,74 @@ function CodeEditorPane({
     editor.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
       void formatCode();
     });
+    // track selection for Guru context (auto-attach selected snippet)
+    editor.onDidChangeCursorSelection((e: any) => {
+      try {
+        const sel = editor.getModel()?.getValueInRange(e.selection)?.trim() || "";
+        if (sel && sel.length >= 2 && sel.length <= 2000) setSelectedCode(sel);
+        else if (!sel) setSelectedCode("");
+      } catch {}
+    });
   };
+
+  // Sync live editor state to parent for Guru context (auto-attach)
+  useEffect(() => {
+    if (!onLiveSync) return;
+    onLiveSync({
+      code,
+      tabs,
+      testcaseTabs,
+      runResult,
+      isRunning,
+      selectedCode,
+      expectedOutputs,
+    });
+  }, [code, tabs, testcaseTabs, runResult, isRunning, selectedCode, expectedOutputs, onLiveSync]);
+
+  // Insert code from Guru AI directly into Monaco (user choice via "Use in editor")
+  useEffect(() => {
+    if (!insertTrigger?.code) return;
+    const incoming = insertTrigger.code.trim();
+    if (!incoming) return;
+    // Heuristic: if incoming looks like a full class/file, replace active tab; else insert at cursor
+    const looksFullFile = /class\s+Solution|public\s+class|import\s+java/.test(incoming);
+    if (looksFullFile) {
+      setTabs((prev) => {
+        const updated = prev.map((t) => (t.id === activeTabId ? { ...t, content: incoming } : t));
+        void persistCode(questionId, JSON.stringify(updated), userId);
+        return updated;
+      });
+      // also focus editor and reveal
+      setTimeout(() => {
+        const ed = editorRef.current;
+        if (ed) {
+          ed.focus();
+          // move cursor to top
+          ed.setPosition({ lineNumber: 1, column: 1 });
+          ed.revealLineNearTop(1);
+        }
+      }, 50);
+    } else {
+      // Insert snippet at cursor position
+      const ed = editorRef.current;
+      if (ed) {
+        const sel = ed.getSelection();
+        const id = { major: 1, minor: 1 };
+        const op = { identifier: id, range: sel, text: "\n" + incoming + "\n", forceMoveMarkers: true };
+        ed.executeEdits("guru-insert", [op]);
+        ed.focus();
+        const newCode = ed.getValue();
+        setTabs((prev) => {
+          const updated = prev.map((t) => (t.id === activeTabId ? { ...t, content: newCode } : t));
+          void persistCode(questionId, JSON.stringify(updated), userId);
+          return updated;
+        });
+      } else {
+        // fallback: append
+        setCode((code ? code + "\n\n" : "") + incoming);
+      }
+    }
+  }, [insertTrigger, activeTabId, questionId, userId]);
 
   const isDark = theme === "dark";
 
@@ -820,59 +1024,188 @@ function CodeEditorPane({
         >
           <AnimatePresence mode="wait">
             {isRunning ? (
-              <motion.div key="running" {...fadeIn} className="flex flex-col items-center justify-center gap-3 py-8">
-                <div
-                  className="h-10 w-10 rounded-xl flex items-center justify-center animate-pulse"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(251,191,36,0.1) 100%)",
-                    border: "1px solid rgba(245,158,11,0.2)",
-                  }}
-                >
-                  <Loader2 className="h-5 w-5 animate-spin" style={{ color: "#f59e0b" }} />
-                </div>
-                <span className="text-sm font-medium" style={{ color: "#f59e0b" }}>
-                  Compiling & Running Java code…
-                </span>
-              </motion.div>
-            ) : runResult ? (
-              <motion.div key="result" {...fadeIn} className="space-y-4">
-                <div className="flex items-center justify-end">
-                  <button
-                    onClick={() => setRunResult(null)}
-                    className="flex items-center gap-1 h-6 px-2 rounded text-[11px] font-medium transition-all duration-200 hover:scale-105"
-                    style={{
-                      color: isDark ? "#64748b" : "#94a3b8",
-                      background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3" /> Clear
-                  </button>
+              <motion.div key="running" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center justify-center gap-5 py-10 relative overflow-hidden">
+                {/* soft ambient glow */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <motion.div animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.05, 1] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-32 rounded-full blur-3xl" style={{ background: isDark ? "radial-gradient(ellipse at center, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.12) 35%, transparent 75%)" : "radial-gradient(ellipse at center, rgba(99,102,241,0.10) 0%, transparent 70%)" }} />
                 </div>
 
-                <div className="space-y-2">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-[0.15em]"
-                    style={{ color: isDark ? "#475569" : "#94a3b8" }}
-                  >
-                    Output
-                  </span>
-                  <div
-                    className="p-4 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap overflow-x-auto"
-                    style={{
-                      background: isDark
-                        ? "linear-gradient(135deg, rgba(30,30,55,0.8) 0%, rgba(22,22,42,0.9) 100%)"
-                        : "#f0f0f5",
-                      border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-                      color:
-                        runResult.status === "success" ? "#34d399"
-                          : runResult.status === "compile_error" || runResult.status === "error" ? "#f87171"
-                            : "#fbbf24",
-                    }}
-                  >
-                    {runResult.output}
+                {/* orbital icon */}
+                <div className="relative">
+                  {/* outer orbit */}
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute -inset-3 rounded-2xl" style={{ border: `1px dashed ${isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.18)"}`, borderTopColor: isDark ? "rgba(99,102,241,0.45)" : "rgba(99,102,241,0.35)" }} />
+                  {/* ping ring */}
+                  <motion.div animate={{ scale: [1, 1.35, 1], opacity: [0.25, 0, 0.25] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }} className="absolute -inset-2 rounded-2xl" style={{ border: `1px solid ${isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.2)"}` }} />
+                  <div className="relative h-14 w-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-lg" style={{ background: isDark ? "linear-gradient(135deg, #1e1e3f 0%, #1a1a2e 55%, #16162a 100%)" : "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)", border: `1px solid ${isDark ? "rgba(99,102,241,0.22)" : "rgba(99,102,241,0.14)"}`, boxShadow: isDark ? "0 8px 32px rgba(99,102,241,0.20), inset 0 1px 0 rgba(255,255,255,0.06)" : "0 8px 24px rgba(99,102,241,0.12)" }}>
+                    {/* shimmer sweep */}
+                    <motion.div animate={{ x: ["-120%", "120%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }} className="absolute inset-0" style={{ background: `linear-gradient(100deg, transparent 20%, ${isDark ? "rgba(255,255,255,0.08)" : "rgba(99,102,241,0.08)"} 30%, transparent 42%)` }} />
+                    <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} style={{ display: "flex" }}>
+                      <Code className="h-6 w-6" style={{ color: "#6366f1" }} />
+                    </motion.div>
+                    <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full flex items-center justify-center shadow-md" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)", border: `2px solid ${isDark ? "#16162a" : "#ffffff"}` }}>
+                      <Rocket className="h-2.5 w-2.5 text-white" />
+                    </span>
                   </div>
                 </div>
+
+                {/* title with shimmer + typing dots */}
+                <div className="relative z-10 flex flex-col items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] font-black tracking-[0.14em] uppercase" style={{ background: isDark ? "linear-gradient(90deg, #a5b4fc 0%, #c4b5fd 45%, #fbbf24 100%)" : "linear-gradient(90deg, #6366f1 0%, #8b5cf6 55%, #f59e0b 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                      Compiling & Running
+                    </span>
+                    <span className="hidden sm:inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black tracking-widest uppercase" style={{ background: isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.08)", color: "#818cf8", border: `1px solid ${isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.14)"}` }}>
+                      <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#10b981" }} /> Java 21
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold tracking-wide" style={{ color: isDark ? "#94a3b8" : "#64748b" }}>javac • java • wandbox</span>
+                    <span className="flex gap-1 ml-1">
+                      {[0, 1, 2].map((i) => (
+                        <motion.span key={i} animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ duration: 0.85, repeat: Infinity, delay: i * 0.16, ease: "easeInOut" }} className="h-1.5 w-1.5 rounded-full" style={{ background: isDark ? "#6366f1" : "#6366f1" }} />
+                      ))}
+                    </span>
+                  </div>
+                </div>
+
+                {/* faux terminal */}
+                <div className="relative z-10 w-full max-w-[320px] rounded-xl overflow-hidden" style={{ background: isDark ? "rgba(13,13,22,0.85)" : "rgba(255,255,255,0.9)", border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, boxShadow: isDark ? "0 10px 40px rgba(0,0,0,0.35)" : "0 10px 30px rgba(0,0,0,0.08)", backdropFilter: "blur(10px)" }}>
+                  <div className="flex items-center gap-1.5 px-3 py-2" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#ef4444" }} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#f59e0b" }} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#10b981" }} />
+                    <span className="ml-auto text-[10px] font-mono tracking-wide" style={{ color: isDark ? "#475569" : "#94a3b8" }}>prog.java</span>
+                  </div>
+                  <div className="px-3 py-2.5 font-mono text-[11px] leading-4 space-y-1">
+                    <div className="flex gap-2"><span style={{ color: "#f59e0b" }}>$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ color: isDark ? "#cbd5e1" : "#334155" }}>javac -cp . Solution.java</motion.span></div>
+                    <div className="flex gap-2"><span style={{ color: "#10b981" }}>✓</span><span style={{ color: isDark ? "#64748b" : "#94a3b8" }}>compiled in 0.42s</span></div>
+                    <div className="flex gap-2"><span style={{ color: "#f59e0b" }}>$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ color: isDark ? "#cbd5e1" : "#334155" }}>java Main • {testcaseTabs.length} case{testcaseTabs.length > 1 ? "s" : ""}</motion.span><motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.7, repeat: Infinity }} style={{ color: "#6366f1" }}>▌</motion.span></div>
+                  </div>
+                  {/* progress bar */}
+                  <div className="h-[2px] w-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
+                    <motion.div className="h-full" style={{ background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 45%, #f59e0b 100%)" }} initial={{ x: "-100%" }} animate={{ x: "0%" }} transition={{ duration: 1.8, repeat: Infinity, ease: [0.4, 0, 0.2, 1], repeatDelay: 0.15 }} />
+                  </div>
+                </div>
+
+                {/* stepper */}
+                <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase" style={{ color: isDark ? "#475569" : "#94a3b8" }}>
+                  <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full" style={{ background: "#10b981", boxShadow: "0 0 8px rgba(16,185,129,0.5)" }} /> Compile</span>
+                  <span style={{ color: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" }}>—</span>
+                  <span className="flex items-center gap-1.5" style={{ color: "#f59e0b" }}><motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }} className="h-1.5 w-1.5 rounded-full" style={{ background: "#f59e0b", boxShadow: "0 0 8px rgba(245,158,11,0.5)" }} /> Run</span>
+                  <span style={{ color: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" }}>—</span>
+                  <span className="flex items-center gap-1.5 opacity-60"><span className="h-1.5 w-1.5 rounded-full border" style={{ borderColor: isDark ? "#475569" : "#94a3b8" }} /> Verify</span>
+                </div>
               </motion.div>
+            ) : runResult ? (
+              (() => {
+                // Compile/runtime error -> show single error box
+                if (runResult.status === "compile_error" || runResult.status === "runtime_error" || runResult.status === "error") {
+                  return (
+                    <motion.div key="result-error" {...fadeIn} className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-sm font-bold" style={{ color: runResult.status === "compile_error" ? "#f87171" : "#fbbf24" }}>
+                          {runResult.status === "compile_error" ? <><XCircle className="h-4 w-4" /> Compile Error</> : <><AlertTriangle className="h-4 w-4" /> Runtime Error</>}
+                        </span>
+                        <button onClick={() => setRunResult(null)} className="flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-medium transition-all hover:scale-105" style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
+                          <RotateCcw className="h-3.5 w-3.5" /> Reset
+                        </button>
+                      </div>
+                      <div className="p-4 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap overflow-x-auto" style={{ background: isDark ? "rgba(239,68,68,0.08)" : "rgba(239,68,68,0.06)", border: `1px solid ${isDark ? "rgba(239,68,68,0.15)" : "rgba(239,68,68,0.12)"}`, color: "#f87171" }}>
+                        {runResult.output}
+                      </div>
+                    </motion.div>
+                  );
+                }
+                // Success -> LeetCode-style per-case view (screenshot match)
+                const rawLines = runResult.output.trim().split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
+                // For harness we printed one line per case; if more lines due to stacktrace, take first N
+                const perCaseOutputs = testcaseTabs.map((_, i) => rawLines[i] ?? "");
+                const normalize = (s: string) => s.trim().replace(/\s+/g, " ").replace(/,\s/g, ",").replace(/\[\s/g, "[").replace(/\s\]/g, "]").toLowerCase();
+                const caseStatuses = testcaseTabs.map((_, i) => {
+                  const your = perCaseOutputs[i] ?? "";
+                  const expected = expectedOutputs[i] ?? "";
+                  const isCustom = i >= expectedOutputs.length;
+                  if (your.startsWith("Runtime Error")) return { passed: false, your, expected, isCustom };
+                  if (isCustom) return { passed: true, your, expected: "", isCustom };
+                  return { passed: normalize(your) === normalize(expected), your, expected, isCustom };
+                });
+                const hasExpected = expectedOutputs.length > 0;
+                const allPassed = hasExpected ? caseStatuses.filter((c) => !c.isCustom).every((c) => c.passed) && rawLines.length >= Math.min(testcaseTabs.length, expectedOutputs.length) : true;
+                const passedCount = caseStatuses.filter((c) => c.passed).length;
+                const activeIdx = Math.max(0, testcaseTabs.findIndex((t) => t.id === activeTestcaseId));
+                const activeStatus = caseStatuses[activeIdx];
+                const activeTab = testcaseTabs[activeIdx];
+                const inputLabel = paramNames.length === 1 ? paramNames[0] : paramNames.length > 1 ? paramNames.join(", ") : "Input";
+                const overallStatus = hasExpected ? (allPassed ? "Accepted" : "Wrong Answer") : "Executed";
+                return (
+                  <motion.div key="result-success" {...fadeIn} className="space-y-4">
+                    {/* Tabs row with pass/fail icons like screenshot */}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                      {testcaseTabs.map((tc, i) => {
+                        const st = caseStatuses[i];
+                        const isActive = tc.id === activeTestcaseId;
+                        const isPassed = st.passed;
+                        const isFailed = !st.passed && !st.isCustom;
+                        return (
+                          <div key={tc.id} onClick={() => setActiveTestcaseId(tc.id)} className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all min-w-max select-none border" style={{
+                            background: isActive ? (isFailed ? "rgba(239,68,68,0.1)" : isPassed && !st.isCustom ? "rgba(16,185,129,0.12)" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)") : "transparent",
+                            color: isFailed ? "#f87171" : isPassed && !st.isCustom ? "#10b981" : isActive ? (isDark ? "#e2e8f0" : "#1e293b") : (isDark ? "#64748b" : "#94a3b8"),
+                            borderColor: isActive ? (isFailed ? "rgba(239,68,68,0.18)" : isPassed && !st.isCustom ? "rgba(16,185,129,0.18)" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)") : "transparent",
+                          }}>
+                            {isFailed ? <X className="h-3.5 w-3.5" /> : isPassed && !st.isCustom ? <Check className="h-3.5 w-3.5" /> : null}
+                            {tc.name}
+                            {testcaseTabs.length > 1 && (
+                              <button onClick={(e) => { e.stopPropagation(); const newTabs = testcaseTabs.filter((t) => t.id !== tc.id); setTestcaseTabs(newTabs); if (activeTestcaseId === tc.id) setActiveTestcaseId(newTabs[newTabs.length-1]?.id || "1"); }} className="p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/10 dark:hover:bg-white/10 ml-1">
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <button onClick={() => { const newId = String(Date.now()); const name = `Case ${testcaseTabs.length + 1}`; const newTabs = [...testcaseTabs, { id: newId, name, value: "" }]; setTestcaseTabs(newTabs); setActiveTestcaseId(newId); }} className="ml-1 p-1.5 rounded-full border border-dashed transition-colors hover:bg-black/5 dark:hover:bg-white/5" style={{ color: isDark ? "#64748b" : "#94a3b8", borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)" }} title="Add custom testcase">
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => setRunResult(null)} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105" style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}>
+                        <RotateCcw className="h-3.5 w-3.5" /> Reset
+                      </button>
+                    </div>
+
+                    {/* Overall status like screenshot: ✓ Accepted */}
+                    <div className="flex items-center gap-2">
+                      {allPassed ? <Check className="h-4 w-4" style={{ color: "#10b981" }} /> : <X className="h-4 w-4" style={{ color: "#f87171" }} />}
+                      <span className="text-sm font-bold" style={{ color: allPassed ? "#10b981" : "#f87171" }}>{overallStatus}</span>
+                      {hasExpected && <span className="text-xs" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>{passedCount} / {testcaseTabs.length} passed</span>}
+                      <span className="ml-auto flex items-center gap-1 text-[10px] font-mono" style={{ color: "#64748b" }}><Clock className="h-3 w-3" /> {runResult.executionTimeMs}ms</span>
+                    </div>
+
+                    {/* Active case details - Input / Your Output / Expected Output */}
+                    {activeTab && activeStatus && (
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>{inputLabel}</div>
+                          <div className="w-full p-3 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap break-all border" style={{ background: isDark ? "rgba(30,30,55,0.6)" : "#f8f8fc", borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", color: isDark ? "#cbd5e1" : "#1e293b" }}>
+                            {activeTab.value || "(empty)"}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>Your Output</div>
+                            <div className="w-full p-3 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap break-all border" style={{ background: isDark ? "rgba(30,30,55,0.6)" : "#f8f8fc", borderColor: activeStatus.passed || activeStatus.isCustom ? (isDark ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.2)") : (isDark ? "rgba(239,68,68,0.15)" : "rgba(239,68,68,0.2)"), color: activeStatus.passed || activeStatus.isCustom ? (isDark ? "#cbd5e1" : "#1e293b") : "#f87171" }}>
+                              {activeStatus.your || "(no output)"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>Expected Output</div>
+                            <div className="w-full p-3 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap break-all border" style={{ background: isDark ? "rgba(30,30,55,0.6)" : "#f8f8fc", borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", color: isDark ? "#cbd5e1" : "#1e293b" }}>
+                              {activeStatus.isCustom ? <span style={{ color: isDark ? "#475569" : "#94a3b8", fontStyle: "italic" }}>No expected — custom case</span> : (activeStatus.expected || "(not found)")}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })()
             ) : (
               <motion.div key="testcases" {...fadeIn} className="space-y-4">
                 <div className="flex flex-col space-y-3">
@@ -1047,21 +1380,56 @@ const LEFT_TABS = [
   { label: "Guru AI", icon: "🤖" },
 ] as const;
 
-function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: "dark" | "light" }) {
+function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyChallengeResponse, theme: "dark" | "light", liveSync?: LiveEditorSync | null, onInsertCode?: (code: string) => void }) {
   const { problem, stale } = data;
   const [activeTab, setActiveTab] = useState(0);
   const [hintsOpen, setHintsOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const isDark = theme === "dark";
 
-  // Build the full problem context for GuruBot
-  const fullProblemContext = useMemo(() => {
-    return `Title: ${problem.title}\nDifficulty: ${problem.difficulty}\n\nProblem Description:\n${problem.content}\n\nHints:\n${(problem.hints || []).join("\n")}`;
-  }, [problem]);
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsFullscreen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isFullscreen]);
+
+  // Build the full problem context for GuruBot — auto-attached live code/testcases/run
+  const guruContext = useMemo(() => {
+    return buildProblemSolverGuruContext({
+      title: problem.title,
+      difficulty: problem.difficulty,
+      contentHtml: problem.content,
+      exampleTestcases: problem.exampleTestcases,
+      codeSnippets: problem.codeSnippets,
+      hints: problem.hints,
+      topicTags: problem.topicTags,
+      link: problem.link,
+      currentCode: liveSync?.code || "",
+      testcaseTabs: liveSync?.testcaseTabs,
+      runResult: liveSync?.runResult || null,
+      selectedCode: liveSync?.selectedCode || "",
+    });
+  }, [problem, liveSync]);
+
+  const guruSuggestions = useMemo(() => {
+    const hasCode = Boolean(liveSync?.code && liveSync.code.trim().length > 30 && !liveSync.code.includes("TODO: Write your solution"));
+    const hasRun = Boolean(liveSync?.runResult);
+    return deriveGuruSuggestions({ hasCode, hasRun, runStatus: liveSync?.runResult?.status, exampleTestcases: problem.exampleTestcases });
+  }, [liveSync, problem.exampleTestcases]);
+
+  const codeStats = useMemo(() => {
+    if (!liveSync?.code) return null;
+    const loc = liveSync.code.split("\n").length;
+    const chars = liveSync.code.length;
+    return { loc, chars, runStatus: liveSync.runResult?.status };
+  }, [liveSync]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ background: isDark ? "#16162a" : "#ffffff" }}>
-      {/* ── Top Tabs ── */}
+      {/* ── Top Tabs — single row when Guru AI active (all controls in one line) ── */}
+      {activeTab !== 2 && (
       <div
         className="flex items-center shrink-0 select-none overflow-x-auto"
         style={{
@@ -1098,12 +1466,13 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
               />
             )}
           </button>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* ── Scrollable Content ── */}
-      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
-        <div className="p-6 space-y-6">
+      {/* ── Scrollable / Guru Content ── */}
+      <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 2 ? "overflow-hidden" : "overflow-y-auto"}`} style={{ scrollbarWidth: "thin" }}>
+        <div className={activeTab === 2 ? "flex-1 min-h-0 flex flex-col p-2 md:p-3 bg-muted/[0.04]" : "p-6 space-y-6"}>
           <AnimatePresence mode="popLayout">
             {activeTab === 0 && (
               <motion.div
@@ -1329,15 +1698,41 @@ function ProblemDetails({ data, theme }: { data: DailyChallengeResponse, theme: 
           )}
 
           {activeTab === 2 && (
-            <motion.div {...fadeIn} className="h-[600px] rounded-xl overflow-hidden border border-border/30 relative">
-              <GuruBot
-                open={true}
-                onClose={() => {}}
-                embedded={true}
-                debugMode={false}
-                initialContext={`You are assisting a user in solving the following LeetCode daily challenge. Ensure your answers are helpful, precise, and act as a guide.\n\n${fullProblemContext}`}
-              />
-            </motion.div>
+            <>
+              <motion.div {...fadeIn} className={`flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border relative shadow-sm ${isFullscreen ? "hidden" : "border-[#262626] bg-[#0F0F0F]"}`}>
+                <GuruBot
+                  open={true}
+                  onClose={() => setActiveTab(0)}
+                  embedded={true}
+                  debugMode={true}
+                  initialContext={guruContext}
+                  questionId={problem.questionId}
+                  suggestedPrompts={guruSuggestions}
+                  onInsertCode={onInsertCode}
+                  showGuruTitle={true}
+                  onToggleFullscreen={() => setIsFullscreen(true)}
+                  isFullscreen={false}
+                />
+              </motion.div>
+              {isFullscreen && createPortal(
+                <div className="fixed inset-0 z-[100] flex flex-col bg-[#0F0F0F] animate-in fade-in duration-200">
+                  <GuruBot
+                    open={true}
+                    onClose={() => setIsFullscreen(false)}
+                    embedded={true}
+                    debugMode={true}
+                    initialContext={guruContext}
+                    questionId={problem.questionId}
+                    suggestedPrompts={guruSuggestions}
+                    onInsertCode={onInsertCode}
+                    showGuruTitle={true}
+                    onToggleFullscreen={() => setIsFullscreen(false)}
+                    isFullscreen={true}
+                  />
+                </div>,
+                document.body
+              )}
+            </>
           )}
         </div>
       </div>
@@ -1392,6 +1787,11 @@ export default function ProblemSolver() {
   const { theme } = useSettings();
   const { data, isLoading, isError, error, refetch } = useDailyChallenge();
   const isEmpty = !!data && !data.problem?.questionId;
+  const [liveSync, setLiveSync] = useState<LiveEditorSync | null>(null);
+  const [guruInsert, setGuruInsert] = useState<{ code: string; nonce: number } | null>(null);
+  const handleGuruInsert = useCallback((code: string) => {
+    setGuruInsert({ code, nonce: Date.now() });
+  }, []);
 
   const isDark = theme === "dark";
 
@@ -1420,7 +1820,7 @@ export default function ProblemSolver() {
             className="h-full w-full"
           >
             <Panel defaultSize={45} minSize={25} className="rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
-              <ProblemDetails data={data} theme={theme} />
+              <ProblemDetails data={data} theme={theme} liveSync={liveSync} onInsertCode={handleGuruInsert} />
             </Panel>
 
             <PanelResizeHandle className="group flex items-center justify-center relative z-50 cursor-col-resize hover:bg-black/5 dark:hover:bg-white/5 transition-colors" style={{ width: 16, background: "transparent" }}>
@@ -1436,6 +1836,9 @@ export default function ProblemSolver() {
                 theme={theme}
                 exampleTestcases={data.problem.exampleTestcases}
                 codeSnippets={data.problem.codeSnippets}
+                problemContent={data.problem.content}
+                onLiveSync={setLiveSync}
+                insertTrigger={guruInsert}
               />
             </Panel>
           </PanelGroup>
