@@ -104,7 +104,7 @@
   border: 1px solid hsl(var(--border) / 0.4);
   background:
     linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.25) 100%);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 8px 40px hsl(var(--foreground) / 0.07);
 }
 
 .cjh-hero::before {
@@ -112,8 +112,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(hsl(var(--border) / 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--border) / 0.12) 1px, transparent 1px);
+    linear-gradient(hsl(var(--border) / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.07) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: radial-gradient(ellipse 70% 80% at 30% 20%, black 20%, transparent 75%);
   pointer-events: none;
@@ -203,12 +203,13 @@
   background: hsl(var(--card) / 0.8);
   font-weight: 600;
   font-size: 0.875rem;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cjh-btn-secondary:hover {
   background: hsl(var(--muted) / 0.5);
   border-color: hsl(var(--primary) / 0.35);
+  transform: translateY(-1px);
 }
 
 .cjh-stat-card {
@@ -245,10 +246,40 @@
 
 .cjh-progress-card {
   border-radius: 1.25rem;
-  border: 1px solid hsl(var(--primary) / 0.3);
+  border: 1px solid hsl(var(--primary) / 0.18);
+  background: hsl(var(--card));
+  box-shadow: 0 4px 24px hsl(var(--foreground) / 0.05);
+}
+
+/* Dark mode — deep, soft elevation instead of light-mode hard shadows */
+.dark .cjh-hero {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+}
+
+.dark .cjh-progress-card {
+  border-color: hsl(var(--primary) / 0.22);
   background:
-    linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--card)) 50%, hsl(var(--primary) / 0.05) 100%);
-  box-shadow: 0 4px 24px hsl(var(--primary) / 0.08);
+    linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 55%, hsl(var(--card)) 100%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.dark .cjh-path-card {
+  background: hsl(var(--card));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.dark .cjh-path-card:hover,
+.dark .cjh-topic-card:hover,
+.dark .cjh-question-card:hover {
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+}
+
+.dark .cjh-stat-card {
+  background: hsl(var(--background) / 0.5);
+}
+
+.dark .cjh-revision-banner {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 .cjh-progress-track {
@@ -259,10 +290,25 @@
 }
 
 .cjh-progress-fill {
+  position: relative;
   height: 100%;
   border-radius: 9999px;
   background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
   transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+.cjh-progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary-foreground) / 0.35), transparent);
+  transform: translateX(-100%);
+  animation: cjh-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes cjh-shimmer {
+  to { transform: translateX(100%); }
 }
 
 .cjh-section-header {
@@ -394,25 +440,18 @@
   background: linear-gradient(135deg, hsl(var(--success) / 0.04), hsl(var(--card)));
 }
 
-.cjh-topic-number {
-  display: inline-flex;
+.cjh-topic-emoji {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.5rem;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 0.4);
-  border: 1px solid hsl(var(--border) / 0.3);
-}
-
-.cjh-topic-emoji {
-  font-size: 1.35rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.7rem;
+  flex-shrink: 0;
+  font-size: 1.15rem;
   line-height: 1;
-  filter: drop-shadow(0 1px 2px hsl(var(--foreground) / 0.1));
+  background: hsl(var(--muted) / 0.35);
+  border: 1px solid hsl(var(--border) / 0.3);
 }
 
 .cjh-question-card {
@@ -501,6 +540,17 @@
 
 .cjq-scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Keyboard focus rings ─────────────────────────────────────────── */
+.cjh-path-card:focus-visible,
+.cjh-topic-card:focus-visible,
+.cjh-question-card:focus-visible,
+.cjh-stat-card:focus-within,
+.cjh-btn-primary:focus-visible,
+.cjh-btn-secondary:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────── */

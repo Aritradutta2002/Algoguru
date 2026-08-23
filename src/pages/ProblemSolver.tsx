@@ -35,6 +35,7 @@ import {
   Trash2,
   X,
   XCircle,
+  BrainCircuit,
 } from "lucide-react";
 
 import { useDailyChallenge } from "@/hooks/useDailyChallenge";
@@ -152,7 +153,7 @@ const LEETCODE_DARK_THEME = {
   base: "vs-dark" as const,
   inherit: true,
   rules: [
-    { token: "", foreground: "D4D4D4", background: "1A1A1A" },
+    { token: "", foreground: "D4D0C8", background: "1B1A18" },
     { token: "comment", foreground: "6A9955", fontStyle: "italic" },
     // Java primitive / type keywords → green (int, void, boolean, char, etc) — must come BEFORE generic keyword
     { token: "keyword.boolean", foreground: "4EC9B0" },
@@ -198,28 +199,28 @@ const LEETCODE_DARK_THEME = {
     { token: "delimiter.parenthesis", foreground: "D4D4D4" },
   ],
   colors: {
-    "editor.background": "#1A1A1A",
-    "editor.foreground": "#D4D4D4",
-    "editorLineNumber.foreground": "#858585",
-    "editorLineNumber.activeForeground": "#C6C6C6",
-    "editorGutter.background": "#1A1A1A",
-    "editor.lineHighlightBackground": "#2D2D30",
+    "editor.background": "#1B1A18",
+    "editor.foreground": "#D4D0C8",
+    "editorLineNumber.foreground": "#7D7A72",
+    "editorLineNumber.activeForeground": "#C9C5BC",
+    "editorGutter.background": "#1B1A18",
+    "editor.lineHighlightBackground": "#26251F",
     "editor.lineHighlightBorder": "#00000000",
-    "editor.selectionBackground": "#264F78AA",
-    "editor.inactiveSelectionBackground": "#3A3D41AA",
-    "editorCursor.foreground": "#AEAFAD",
-    "editorIndentGuide.background": "#404040",
-    "editorIndentGuide.activeBackground": "#707070",
-    "editorBracketMatch.background": "#515C6A55",
-    "editorBracketMatch.border": "#888888",
+    "editor.selectionBackground": "#4A4436AA",
+    "editor.inactiveSelectionBackground": "#3A3833AA",
+    "editorCursor.foreground": "#C9C5BC",
+    "editorIndentGuide.background": "#3B3934",
+    "editorIndentGuide.activeBackground": "#6B675E",
+    "editorBracketMatch.background": "#5C564755",
+    "editorBracketMatch.border": "#8A8578",
     "scrollbar.shadow": "#00000000",
-    "scrollbarSlider.background": "#79797966",
-    "scrollbarSlider.hoverBackground": "#646464B3",
-    "scrollbarSlider.activeBackground": "#BFBFBF66",
-    "editorWidget.background": "#252526",
-    "editorSuggestWidget.background": "#252526",
-    "editorSuggestWidget.foreground": "#D4D4D4",
-    "editorSuggestWidget.selectedBackground": "#2A2D2E",
+    "scrollbarSlider.background": "#79766E66",
+    "scrollbarSlider.hoverBackground": "#64615AB3",
+    "scrollbarSlider.activeBackground": "#BFBBB166",
+    "editorWidget.background": "#232220",
+    "editorSuggestWidget.background": "#232220",
+    "editorSuggestWidget.foreground": "#D4D0C8",
+    "editorSuggestWidget.selectedBackground": "#33312C",
   },
 } as const;
 
@@ -1116,7 +1117,7 @@ function CodeEditorPane({
         {/* --- Monaco Editor --- */}
         <div className="flex-1 min-h-0 relative">
           {!codeLoaded && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: isDark ? "#1A1A1A" : "#fafafa" }}>
+            <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: isDark ? "#1B1A18" : "#fafafa" }}>
               <Loader2 className="h-6 w-6 animate-spin" style={{ color: isDark ? "#64748b" : "#94a3b8" }} />
             </div>
           )}
@@ -1808,7 +1809,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                   className="text-2xl font-bold tracking-tight leading-tight"
                   style={{
                     fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-                    color: isDark ? "#f1f5f9" : "#0f172a",
+                    color: isDark ? "#ece7dd" : "#0f172a",
                   }}
                 >
                   {problem.title}
@@ -1882,27 +1883,27 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <div
-                        className="p-4 rounded-xl space-y-2 mt-4"
-                        style={{
-                          background: isDark ? "rgba(139,92,246,0.05)" : "rgba(139,92,246,0.03)",
-                          border: `1px solid ${isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.1)"}`,
-                        }}
-                      >
-                        <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: "#a78bfa" }}>
-                          Hints
-                        </span>
-                        <ol className="space-y-2 text-sm list-decimal pl-5">
-                          {problem.hints.map((h, i) => (
-                            <li
-                              key={i}
-                              dangerouslySetInnerHTML={{ __html: h }}
-                              className="[&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-xs [&_code]:text-primary"
-                              style={{ color: isDark ? "#94a3b8" : "#64748b" }}
-                            />
-                          ))}
-                        </ol>
-                      </div>
+                        <div
+                          className="p-4 rounded-xl space-y-2 mt-4"
+                          style={{
+                            background: isDark ? "rgba(232,177,104,0.05)" : "rgba(139,92,246,0.03)",
+                            border: `1px solid ${isDark ? "rgba(232,177,104,0.14)" : "rgba(139,92,246,0.1)"}`,
+                          }}
+                        >
+                          <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: isDark ? "#e8b168" : "#a78bfa" }}>
+                            Hints
+                          </span>
+                          <ol className="space-y-2 text-sm list-decimal pl-5">
+                            {problem.hints.map((h, i) => (
+                              <li
+                                key={i}
+                                dangerouslySetInnerHTML={{ __html: h }}
+                                className="[&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-xs [&_code]:border [&_code]:border-white/10 [&_code]:bg-white/5"
+                                style={{ color: isDark ? "#a8a29a" : "#64748b" }}
+                              />
+                            ))}
+                          </ol>
+                        </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1913,17 +1914,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
           {activeTab === 0 && (
             <motion.div
               {...fadeIn}
-              className="prose prose-sm dark:prose-invert max-w-none
-                prose-headings:font-bold prose-headings:tracking-tight
-                prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
-                prose-p:leading-relaxed prose-p:my-3
-                prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-pre:p-4 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:border prose-pre:border-white/5
-                prose-code:before:content-none prose-code:after:content-none
-                prose-code:bg-muted/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-xs prose-code:text-primary prose-code:font-semibold
-                prose-strong:text-foreground prose-strong:font-bold
-                prose-ul:my-3 prose-ol:my-3 prose-li:my-1
-                [&_.example-block]:p-4 [&_.example-block]:my-3 [&_.example-block]:rounded-xl [&_.example-block]:bg-muted/40 [&_.example-block]:border [&_.example-block]:border-border/50
-                [&_.example-io]:font-mono [&_.example-io]:text-xs [&_.example-io]:font-semibold [&_.example-io]:text-primary"
+              className="problem-description max-w-none [&_.example-block]:p-4 [&_.example-block]:my-3 [&_.example-block]:rounded-xl [&_.example-block]:bg-muted/40 [&_.example-block]:border [&_.example-block]:border-border/50 [&_.example-io]:font-mono [&_.example-io]:text-xs [&_.example-io]:font-semibold [&_.example-io]:text-primary"
             >
               <div dangerouslySetInnerHTML={{ __html: problem.content }} />
             </motion.div>
@@ -1935,7 +1926,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                 className="text-xl font-bold tracking-tight"
                 style={{
                   fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-                  color: isDark ? "#f1f5f9" : "#0f172a",
+                  color: isDark ? "#ece7dd" : "#0f172a",
                 }}
               >
                 Official Editorial
@@ -2004,15 +1995,71 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                   </div>
               ) : (
                 <div
-                  className="p-6 rounded-xl text-center space-y-3"
+                  className="p-6 rounded-xl space-y-4"
                   style={{
                     background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
                     border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
                   }}
                 >
-                  <p className="text-sm font-medium" style={{ color: isDark ? "#94a3b8" : "#64748b" }}>
-                    No free official editorial is available for this problem.
+                  <p className="text-sm font-medium text-center" style={{ color: isDark ? "#a8a29a" : "#64748b" }}>
+                    The official editorial couldn't be loaded for this problem — it may be LeetCode-premium only.
                   </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {[
+                      {
+                        label: "LeetCode Editorial",
+                        href: `https://leetcode.com/problems/${problem.titleSlug}/editorial/`,
+                        icon: <ExternalLink size={14} />,
+                      },
+                      {
+                        label: "Community Solutions",
+                        href: `https://leetcode.com/problems/${problem.titleSlug}/solutions/`,
+                        icon: <ExternalLink size={14} />,
+                      },
+                      {
+                        label: "Video Walkthrough",
+                        href: `https://www.youtube.com/results?search_query=${encodeURIComponent(problem.title + " leetcode solution")}`,
+                        icon: <ExternalLink size={14} />,
+                      },
+                      {
+                        label: "Ask Guru AI",
+                        action: () => setActiveTab(2),
+                        icon: <BrainCircuit size={14} />,
+                      },
+                    ].map((l) =>
+                      l.action ? (
+                        <button
+                          key={l.label}
+                          onClick={l.action}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80"
+                          style={{
+                            background: isDark ? "rgba(232,177,104,0.08)" : "rgba(0,0,0,0.03)",
+                            border: `1px solid ${isDark ? "rgba(232,177,104,0.2)" : "rgba(0,0,0,0.1)"}`,
+                            color: isDark ? "#e8b168" : "#b45309",
+                          }}
+                        >
+                          {l.icon}
+                          {l.label}
+                        </button>
+                      ) : (
+                        <a
+                          key={l.label}
+                          href={l.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80 no-underline"
+                          style={{
+                            background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                            border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`,
+                            color: isDark ? "#c7c2b8" : "#33415c",
+                          }}
+                        >
+                          {l.icon}
+                          {l.label}
+                        </a>
+                      )
+                    )}
+                  </div>
                 </div>
               )}
             </motion.div>

@@ -146,7 +146,7 @@ export default function JavaInterviewHub() {
 
   return (
     <div className="cjh-page min-h-screen text-foreground selection:bg-primary/20">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div className="w-full max-w-[1800px] mx-auto px-4 md:px-10 lg:px-16 py-8 md:py-12">
         {/* Breadcrumb */}
         <motion.nav
           {...fadeUp}
@@ -177,7 +177,7 @@ export default function JavaInterviewHub() {
                 <Coffee size={13} />
                 Java Interview Preparation
               </div>
-              <h1 className="cjh-hero-title text-3xl md:text-[2.75rem] lg:text-5xl font-bold leading-[1.1] mb-4">
+              <h1 className="cjh-hero-title text-3xl md:text-[2.75rem] lg:text-5xl 2xl:text-[3.5rem] font-bold leading-[1.1] mb-4">
                 Master Java. Prepare smarter.{" "}
                 <span>Crack the interview.</span>
               </h1>
@@ -237,50 +237,74 @@ export default function JavaInterviewHub() {
         </motion.header>
 
         {/* Progress */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.1 }}
-          className="cjh-progress-card p-5 md:p-6 mb-12"
-          aria-label="Your Java interview progress"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="cjh-section-icon">
+        {progressPct > 0 ? (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.1 }}
+            className="cjh-progress-card p-5 md:p-6 mb-12"
+            aria-label="Your Java interview progress"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="cjh-section-icon">
+                  <TrendingUp size={16} />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold uppercase tracking-wider">Your Progress</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {doneCount} of {totalQuestions} questions completed
+                    {bookmarkedCount > 0 && ` · ${bookmarkedCount} bookmarked`}
+                  </p>
+                </div>
+              </div>
+              <span className="text-2xl font-bold text-primary font-mono">{progressPct}%</span>
+            </div>
+            <div
+              className="cjh-progress-track"
+              role="progressbar"
+              aria-label="Overall progress"
+              aria-valuenow={progressPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div className="cjh-progress-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            {continueQuestion && (
+              <button
+                type="button"
+                onClick={() => navigate(getCoreJavaQuestionDetailPath(continueQuestion.question))}
+                className="mt-4 cjh-btn-primary text-xs py-2 px-4 min-h-0"
+              >
+                Pick up where you left off <ArrowRight size={13} />
+              </button>
+            )}
+          </motion.section>
+        ) : (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.1 }}
+            onClick={() => continueQuestion ? navigate(getCoreJavaQuestionDetailPath(continueQuestion.question)) : navigate("/interview/java/core-java-qa")}
+            className="cjh-progress-card w-full px-5 py-4 mb-12 flex items-center justify-between gap-4 group text-left"
+            aria-label="Start your Java interview progress"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="cjh-section-icon shrink-0">
                 <TrendingUp size={16} />
               </div>
-              <div>
-                <h2 className="text-sm font-bold uppercase tracking-wider">Your Progress</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {doneCount > 0
-                    ? `${doneCount} of ${totalQuestions} questions completed`
-                    : "Start your first question to track progress"}
-                  {bookmarkedCount > 0 && ` · ${bookmarkedCount} bookmarked`}
-                </p>
-              </div>
+              <p className="text-sm font-semibold truncate">
+                Track your progress across {totalQuestions} questions
+                <span className="hidden md:inline text-muted-foreground font-normal"> — answer your first question to begin</span>
+              </p>
             </div>
-            <span className="text-2xl font-bold text-primary font-mono">{progressPct}%</span>
-          </div>
-          <div
-            className="cjh-progress-track"
-            role="progressbar"
-            aria-label="Overall progress"
-            aria-valuenow={progressPct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          >
-            <div className="cjh-progress-fill" style={{ width: `${progressPct}%` }} />
-          </div>
-          {continueQuestion && (
-            <button
-              type="button"
-              onClick={() => navigate(getCoreJavaQuestionDetailPath(continueQuestion.question))}
-              className="mt-4 cjh-btn-primary text-xs py-2 px-4 min-h-0"
-            >
-              Pick up where you left off <ArrowRight size={13} />
-            </button>
-          )}
-        </motion.section>
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary whitespace-nowrap shrink-0">
+              Get started
+              <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </motion.button>
+        )}
 
         {/* Learning Paths */}
         <motion.section
@@ -342,7 +366,7 @@ export default function JavaInterviewHub() {
             </h2>
             <span className="cjh-section-meta">{topicCount} topics · {totalQuestions} questions</span>
           </div>
-          <div className="cjh-roadmap grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="cjh-roadmap grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {topicStats.map(({ topic, number, done, total, pct }, i) => (
               <motion.div key={topic.id} variants={fadeUp} transition={{ delay: i * 0.03 }}>
                 <Link
@@ -350,39 +374,35 @@ export default function JavaInterviewHub() {
                   className={`cjh-topic-card group ${pct === 100 ? "cjh-topic-card--complete" : ""}`}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="cjh-topic-number">{String(number).padStart(2, "0")}</span>
                     <span className="cjh-topic-emoji" aria-hidden="true">{topic.icon}</span>
-                    <h3 className="text-sm font-bold flex-1 min-w-0 truncate group-hover:text-primary transition-colors">
-                      {topic.title}
-                    </h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold truncate group-hover:text-primary transition-colors">
+                        {topic.title}
+                      </h3>
+                      <p className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                        Topic {String(number).padStart(2, "0")} · {done}/{total} solved
+                      </p>
+                    </div>
                     {pct === 100 && (
                       <CheckCircle2 size={16} className="text-success shrink-0" aria-label="Complete" />
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mb-2.5">
+                  <div
+                    className="h-1.5 rounded-full bg-muted overflow-hidden"
+                    role="progressbar"
+                    aria-label={`${topic.title} progress`}
+                    aria-valuenow={pct}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
                     <div
-                      className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden"
-                      role="progressbar"
-                      aria-label={`${topic.title} progress`}
-                      aria-valuenow={pct}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      <div
-                        className="h-full rounded-full transition-[width] duration-500"
-                        style={{
-                          width: `${pct}%`,
-                          background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))",
-                        }}
-                      />
-                    </div>
-                    <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                      {done}/{total}
-                    </span>
+                      className="h-full rounded-full transition-[width] duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))",
+                      }}
+                    />
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground group-hover:text-primary transition-colors">
-                    Explore <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
-                  </span>
                 </Link>
               </motion.div>
             ))}
@@ -410,7 +430,7 @@ export default function JavaInterviewHub() {
               View all <ArrowRight size={12} />
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
             {mostAsked.map((entry, i) => (
               <motion.div key={entry.question.id} variants={fadeUp} transition={{ delay: i * 0.05 }}>
                 <Link

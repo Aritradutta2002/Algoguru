@@ -1184,3 +1184,266 @@
 .editorial-content .katex {
   font-size: 1.05em;
 }
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* Problem Description — Late-Night Long-Reading Experience            */
+/* Warm, low-glare palette tuned for extended night sessions           */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.problem-description {
+  font-family: 'Inter', 'Roboto', system-ui, sans-serif;
+  font-size: 0.9375rem; /* 15px — comfortable reading size */
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  color: #3d4452;
+  word-break: break-word;
+}
+
+.problem-description p {
+  margin: 0.9rem 0;
+  line-height: 1.8;
+}
+
+.problem-description > *:first-child {
+  margin-top: 0;
+}
+
+/* ── Headings ── */
+.problem-description h1,
+.problem-description h2,
+.problem-description h3,
+.problem-description h4 {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  color: #1c2230;
+  margin: 1.75rem 0 0.75rem;
+}
+.problem-description h1 { font-size: 1.35rem; }
+.problem-description h2 { font-size: 1.15rem; }
+.problem-description h3 { font-size: 1.02rem; }
+.problem-description h4 { font-size: 0.95rem; }
+
+/* ── Bold & Italic ── */
+.problem-description strong,
+.problem-description b {
+  font-weight: 700;
+  color: #232a38;
+}
+
+/* ── Links ── */
+.problem-description a {
+  color: #b45309;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: rgba(180, 83, 9, 0.35);
+  text-underline-offset: 3px;
+}
+.problem-description a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* ── Inline Code Chips (LeetCode-style bordered chips) ── */
+.problem-description code {
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.86em;
+  background: rgba(15, 23, 42, 0.05);
+  color: #33415c;
+  padding: 2px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.problem-description pre code {
+  white-space: pre;
+  display: block;
+}
+
+/* ── Code Blocks (examples: Input/Output) ── */
+.problem-description pre {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  background: #faf7f2;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: 12px;
+  overflow-x: auto;
+  line-height: 1.7;
+}
+
+.problem-description pre code,
+.problem-description pre * {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.84rem;
+  color: #414b5e;
+}
+
+/* ── Lists — relaxed bullet rhythm like LeetCode ── */
+.problem-description ul,
+.problem-description ol {
+  margin: 0.9rem 0;
+  padding-left: 1.6rem;
+}
+
+.problem-description ul {
+  list-style: disc;
+}
+
+.problem-description ul > li,
+.problem-description ol > li {
+  margin-bottom: 0.85rem;
+  padding-left: 0.3rem;
+  line-height: 1.8;
+}
+
+.problem-description li > code {
+  white-space: nowrap;
+}
+
+.problem-description li:last-child {
+  margin-bottom: 0;
+}
+
+.problem-description ol {
+  list-style: decimal;
+}
+
+.problem-description ol > li::marker {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* ── Tables ── */
+.problem-description table {
+  width: 100%;
+  margin: 1.25rem 0;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.problem-description th,
+.problem-description td {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  text-align: left;
+}
+.problem-description th {
+  background: rgba(15, 23, 42, 0.04);
+  font-weight: 600;
+}
+
+/* ── Horizontal rule ── */
+.problem-description hr {
+  margin: 1.75rem 0;
+  border: none;
+  height: 1px;
+  background: rgba(15, 23, 42, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* Problem Description + Editorial — DARK (late-night warm palette)    */
+/* Warm charcoal-tinted surfaces, candlelight text — no harsh blues    */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.dark .problem-description {
+  color: #c7c2b8; /* warm parchment gray — easy on night eyes */
+}
+
+.dark .problem-description strong,
+.dark .problem-description b {
+  color: #ece7dd;
+}
+
+.dark .problem-description h1,
+.dark .problem-description h2,
+.dark .problem-description h3,
+.dark .problem-description h4 {
+  color: #ece7dd;
+}
+
+.dark .problem-description a {
+  color: #e8b168;
+  text-decoration-color: rgba(232, 177, 104, 0.35);
+}
+
+.dark .problem-description code {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ddd6c9;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.dark .problem-description pre {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .problem-description pre code,
+.dark .problem-description pre * {
+  color: #cfc8ba;
+}
+
+.dark .problem-description th {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .problem-description th,
+.dark .problem-description td {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .problem-description hr {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Editorial tab shares the same night palette ── */
+.dark .editorial-content {
+  color: #c7c2b8;
+}
+
+.dark .editorial-content strong,
+.dark .editorial-content b {
+  color: #ece7dd;
+}
+
+.dark .editorial-content h1,
+.dark .editorial-content h2,
+.dark .editorial-content h3,
+.dark .editorial-content h4,
+.dark .editorial-content h5,
+.dark .editorial-content h6 {
+  color: #ece7dd;
+}
+
+.dark .editorial-content h3 {
+  color: #e8b168;
+}
+
+.dark .editorial-content code {
+  background: rgba(232, 177, 104, 0.08);
+  color: #e8ca96;
+  border: 1px solid rgba(232, 177, 104, 0.18);
+}
+
+.dark .editorial-content pre {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.dark .editorial-content pre code {
+  color: #cfc8ba;
+}
+
+.dark .editorial-content a {
+  color: #e8b168;
+}
+
+.dark .editorial-content ul > li::before {
+  background: rgba(232, 177, 104, 0.55);
+}
+
+.dark .editorial-content ol > li::marker {
+  color: #e8b168;
+}

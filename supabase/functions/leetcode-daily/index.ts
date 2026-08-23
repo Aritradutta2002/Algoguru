@@ -23,6 +23,65 @@ const corsHeaders = {
 
 const UPSTREAM_URL = "https://alfa-leetcode-api.onrender.com/daily";
 const UPSTREAM_TIMEOUT_MS = 10_000;
+// The official-solution fetch gets its own budget so a slow problem fetch
+// never starves/aborts it (this previously caused editorials to vanish).
+const SOLUTION_TIMEOUT_MS = 12_000;
+
+// Fetch the official editorial for a problem. Tries LeetCode GraphQL first
+// (returns content only for FREE public editorials), then the alfa wrapper
+// endpoint as a fallback. Returns null when neither yields content.
+async function fetchOfficialSolution(titleSlug: string): Promise<string | null> {
+  // 1) Direct LeetCode GraphQL — highest fidelity, includes full HTML.
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SOLUTION_TIMEOUT_MS);
+    const res = await fetch("https://leetcode.com/graphql", {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json", Referer: "https://leetcode.com" },
+      body: JSON.stringify({
+        query: `
+          query officialSolution($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+              solution {
+                content
+              }
+            }
+          }
+        `,
+        variables: { titleSlug },
+      }),
+    });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const json = (await res.json()) as {
+        data?: { question?: { solution?: { content?: string } } };
+      };
+      const content = json?.data?.question?.solution?.content;
+      if (content) return content;
+    }
+  } catch (_e) {
+    // fall through to wrapper
+  }
+
+  // 2) alfa wrapper fallback.
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SOLUTION_TIMEOUT_MS);
+    const solRes = await fetch(`https://alfa-leetcode-api.onrender.com/officialSolution/${titleSlug}`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (solRes.ok) {
+      const solRaw = await solRes.json() as { data?: { question?: { solution?: { content?: string } } } };
+      return solRaw?.data?.question?.solution?.content || null;
+    }
+  } catch (e) {
+    console.error("Failed to fetch official solution:", e);
+  }
+
+  return null;
+}
 
 interface TopicTag {
   name: string;
@@ -143,6 +202,13 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           ? `https://leetcode.com${rawData.link}`
           : `https://leetcode.com/problems/${q.titleSlug}/`;
 
+        // GraphQL omits solution content for member-only editorials — retry
+        // via the dedicated helper before giving up.
+        let solutionContent = q.solution?.content || null;
+        if (!solutionContent) {
+          solutionContent = await fetchOfficialSolution(String(q.titleSlug));
+        }
+
         return {
           questionId: String(q.questionId || q.questionFrontendId || "1"),
           title: String(q.title || ""),
@@ -154,7 +220,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           hints: Array.isArray(q.hints) ? q.hints : undefined,
           acRate: typeof q.acRate === "number" ? q.acRate : undefined,
           link,
-          solution: q.solution?.content || null,
+          solution: solutionContent,
           codeSnippets: q.codeSnippets,
         };
       }
@@ -192,15 +258,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
   const rawContent = question.content ?? question.question;
 
   let solutionHtml: string | null = null;
-  try {
-    const solRes = await fetch(`https://alfa-leetcode-api.onrender.com/officialSolution/${question.titleSlug}`, { signal });
-    if (solRes.ok) {
-      const solRaw = await solRes.json() as { data?: { question?: { solution?: { content?: string } } } };
-      solutionHtml = solRaw?.data?.question?.solution?.content || null;
-    }
-  } catch (e) {
-    console.error("Failed to fetch official solution:", e);
-  }
+  solutionHtml = await fetchOfficialSolution(String(question.titleSlug));
 
   // Ensure codeSnippets is populated even when upstream is alfa wrapper (which omits it)
   let codeSnippets = Array.isArray(question.codeSnippets) ? (question.codeSnippets as any) : undefined;
@@ -302,6 +360,27 @@ async function writeDbCache(
   }
 }
 
+// Cache rows written before the solution fetch was reliable may be missing the
+// editorial. When serving such a row, try to backfill it once and persist the
+// fix so later visitors don't repeat the work.
+async function backfillSolution(
+  admin: ReturnType<typeof createClient>,
+  payload: CachedPayload,
+): Promise<void> {
+  if (payload.problem.solution) return;
+  try {
+    const solution = await fetchOfficialSolution(payload.problem.titleSlug);
+    if (!solution) return;
+    payload.problem.solution = solution;
+    await admin
+      .from("daily_challenge_cache")
+      .update({ problem_data: payload.problem, fetched_at: new Date().toISOString() })
+      .eq("date", payload.date);
+  } catch (e) {
+    console.error("Solution backfill failed:", (e as Error).message);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -349,7 +428,10 @@ Deno.serve(async (req: Request) => {
 
     // Fall back to today's DB row first, then the most recent row.
     const todays = await readDbCache(admin, dateKey);
-    if (todays) return jsonResponse(todays);
+    if (todays) {
+      await backfillSolution(admin, todays);
+      return jsonResponse(todays);
+    }
     const latest = await readLatestDbCache(admin);
     if (latest) return jsonResponse(latest);
 
