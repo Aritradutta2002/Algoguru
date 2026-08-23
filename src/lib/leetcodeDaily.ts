@@ -24,7 +24,7 @@ export type {
 const DIRECT_UPSTREAM_URL = "https://alfa-leetcode-api.onrender.com/daily";
 const DIRECT_UPSTREAM_TIMEOUT_MS = 8_000;
 
-const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v7";
+const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v9";
 /** Soft cap on cache age before we stop returning it as "fresh". 36h gives
  *  enough slack to cover any timezone oddity while still being bounded. */
 const LS_CACHE_FRESH_MS = 1000 * 60 * 60 * 36;
@@ -127,17 +127,106 @@ const FALLBACK_PROBLEM: DailyChallengeResponse = {
 /**
  * Fetch the LeetCode Daily Challenge for today (UTC).
  */
+async function enrichWithCodeSnippets(resp: DailyChallengeResponse): Promise<DailyChallengeResponse> {
+  if (resp.problem.codeSnippets && resp.problem.codeSnippets.length > 0) return resp;
+  const slug = resp.problem.titleSlug;
+  if (!slug) return resp;
+  const candidates = [
+    `https://alfa-leetcode-api.onrender.com/select?titleSlug=${encodeURIComponent(slug)}`,
+    `https://alfa-leetcode-api.onrender.com/question?titleSlug=${encodeURIComponent(slug)}`,
+  ];
+  for (const url of candidates) {
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 7000);
+      const r = await fetch(url, { signal: controller.signal, headers: { Accept: "application/json" } });
+      clearTimeout(t);
+      if (!r.ok) continue;
+      const j = (await r.json()) as Record<string, unknown>;
+      const rawSnippets =
+        (j as { codeSnippets?: unknown })?.codeSnippets ??
+        (j as { question?: { codeSnippets?: unknown } })?.question?.codeSnippets ??
+        (j as { data?: { question?: { codeSnippets?: unknown } } })?.data?.question?.codeSnippets;
+      if (Array.isArray(rawSnippets) && rawSnippets.length > 0) {
+        return {
+          ...resp,
+          problem: {
+            ...resp.problem,
+            codeSnippets: rawSnippets as { langSlug: string; code: string }[],
+          },
+        };
+      }
+    } catch {}
+  }
+  // Final daily-proof fallback: direct LeetCode GraphQL per slug (uses same corsproxy, but per-question is more reliable than daily)
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 7000);
+    const query = `query questionData($titleSlug: String!) { question(titleSlug: $titleSlug) { codeSnippets { langSlug code } } }`;
+    const r = await fetch("https://corsproxy.io/?" + encodeURIComponent("https://leetcode.com/graphql"), {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables: { titleSlug: slug } }),
+    });
+    clearTimeout(t);
+    if (r.ok) {
+      const j = (await r.json()) as { data?: { question?: { codeSnippets?: unknown } } };
+      const rawSnippets = j?.data?.question?.codeSnippets;
+      if (Array.isArray(rawSnippets) && rawSnippets.length > 0) {
+        return {
+          ...resp,
+          problem: {
+            ...resp.problem,
+            codeSnippets: rawSnippets as { langSlug: string; code: string }[],
+          },
+        };
+      }
+    }
+  } catch {}
+  return resp;
+}
+
+function purgeStaleSolveCaches(): void {
+  try {
+    // Purge old LS_CACHE versions and any cached response whose snippet is the generic solve() template
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      if (k.startsWith("leetcode_daily_challenge_cache_v") && k !== LS_CACHE_KEY) {
+        localStorage.removeItem(k);
+      }
+    }
+    const raw = localStorage.getItem(LS_CACHE_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as CachedEntry;
+        const snippets = parsed?.response?.problem?.codeSnippets;
+        const hasRealSnippet = Array.isArray(snippets) && snippets.some((s) => (s as { code?: string })?.code && !(s as { code: string }).code.includes("public int solve()"));
+        if (!hasRealSnippet && parsed?.response?.problem?.titleSlug) {
+          localStorage.removeItem(LS_CACHE_KEY);
+        }
+      } catch {}
+    }
+  } catch {}
+}
+
 export async function fetchDailyChallenge(): Promise<DailyChallengeResponse> {
+  purgeStaleSolveCaches();
   const cache = readCache();
 
-  // Tier 0: Return fresh local cache
+  // Tier 0: Return fresh local cache — but only if it has a real snippet
   if (cache && cache.date === utcDateKey() && isFresh(cache)) {
-    return cache.response;
+    const hasSnippet = !!(cache.response.problem.codeSnippets && cache.response.problem.codeSnippets.length > 0);
+    if (hasSnippet) return cache.response;
+    // stale snippet cache -> evict and refetch
+    try { localStorage.removeItem(LS_CACHE_KEY); } catch {}
   }
 
   // Tier 1: Direct LeetCode GraphQL query (bypasses third-party wrapper rate limits)
-  const directGraphQL = await fetchDailyChallengeGraphQL();
+  let directGraphQL = await fetchDailyChallengeGraphQL();
   if (directGraphQL) {
+    directGraphQL = await enrichWithCodeSnippets(directGraphQL);
     writeCache({ date: utcDateKey(), response: directGraphQL, cachedAt: Date.now() });
     return directGraphQL;
   }
@@ -149,8 +238,9 @@ export async function fetchDailyChallenge(): Promise<DailyChallengeResponse> {
       { method: "GET" },
     );
     if (!error && data && data.problem?.questionId && data.problem?.title && data.problem?.content) {
-      writeCache({ date: utcDateKey(), response: data, cachedAt: Date.now() });
-      return data;
+      const enriched = await enrichWithCodeSnippets(data);
+      writeCache({ date: utcDateKey(), response: enriched, cachedAt: Date.now() });
+      return enriched;
     }
   } catch (err) {
     console.warn(
@@ -160,15 +250,17 @@ export async function fetchDailyChallenge(): Promise<DailyChallengeResponse> {
   }
 
   // Tier 3: Third-party wrapper API fallback
-  const directWrapper = await fetchDailyChallengeDirectWithRetry();
+  let directWrapper = await fetchDailyChallengeDirectWithRetry();
   if (directWrapper) {
+    directWrapper = await enrichWithCodeSnippets(directWrapper);
     writeCache({ date: utcDateKey(), response: directWrapper, cachedAt: Date.now() });
     return directWrapper;
   }
 
-  // Tier 4: Serve any cached response (even if stale)
+  // Tier 4: Serve any cached response (even if stale) — enrich if possible
   if (cache) {
-    return { ...cache.response, stale: true };
+    const enriched = await enrichWithCodeSnippets(cache.response);
+    return { ...enriched, stale: true };
   }
 
   // Tier 5: Built-in fallback challenge object so page NEVER crashes

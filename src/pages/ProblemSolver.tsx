@@ -86,10 +86,31 @@ function normalizeForCompare(s: string): string {
 function isStarterLike(code: string, starter: string): boolean {
   return normalizeForCompare(code) === normalizeForCompare(starter);
 }
+function isGenericSolveTemplate(code: string): boolean {
+  const n = normalizeForCompare(code);
+  return n.includes("public int solve()") && n.includes("return 0;") && n.includes("Running Java solution");
+}
 function buildStarterFromSnippet(snippet: string | undefined): string {
   if (!snippet) return DEFAULT_JAVA_TEMPLATE;
   const hasImport = /^\s*import\s+/m.test(snippet);
   return hasImport ? snippet : `import java.util.*;\n\n${snippet}`;
+}
+function migrateStaleSolveCode(questionId: string): void {
+  try {
+    const k = lsKey(questionId);
+    const raw = localStorage.getItem(k);
+    if (!raw) return;
+    let shouldPurge = false;
+    if (isGenericSolveTemplate(raw)) shouldPurge = true;
+    else if (raw.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((t: { content?: string }) => t.content && isGenericSolveTemplate(t.content))) shouldPurge = true;
+        if (Array.isArray(parsed) && parsed.length === 1 && parsed[0]?.content && isGenericSolveTemplate(parsed[0].content)) shouldPurge = true;
+      } catch {}
+    }
+    if (shouldPurge) localStorage.removeItem(k);
+  } catch {}
 }
 
 const WANDBOX_API = "https://wandbox.org/api/compile.json";
@@ -99,6 +120,82 @@ const JAVA_AUTO_IMPORTS = [
   "import java.io.*;",
   "import java.math.*;",
 ];
+
+// LeetCode-exact 3-color dark theme — blue (keywords) + green (types) + cream (identifiers) like LeetCode screenshot
+const LEETCODE_DARK_THEME = {
+  base: "vs-dark" as const,
+  inherit: true,
+  rules: [
+    { token: "", foreground: "D4D4D4", background: "1A1A1A" },
+    { token: "comment", foreground: "6A9955", fontStyle: "italic" },
+    // Java primitive / type keywords → green (int, void, boolean, char, etc) — must come BEFORE generic keyword
+    { token: "keyword.boolean", foreground: "4EC9B0" },
+    { token: "keyword.byte", foreground: "4EC9B0" },
+    { token: "keyword.char", foreground: "4EC9B0" },
+    { token: "keyword.double", foreground: "4EC9B0" },
+    { token: "keyword.float", foreground: "4EC9B0" },
+    { token: "keyword.int", foreground: "4EC9B0" },
+    { token: "keyword.long", foreground: "4EC9B0" },
+    { token: "keyword.short", foreground: "4EC9B0" },
+    { token: "keyword.void", foreground: "4EC9B0" },
+    { token: "keyword.String", foreground: "4EC9B0" },
+    { token: "keyword.Integer", foreground: "4EC9B0" },
+    { token: "keyword.Long", foreground: "4EC9B0" },
+    { token: "keyword.Double", foreground: "4EC9B0" },
+    // generic keywords (public, private, class, etc) → blue
+    { token: "keyword", foreground: "569CD6" },
+    { token: "keyword.control", foreground: "569CD6" },
+    { token: "storage", foreground: "569CD6" },
+    { token: "storage.type", foreground: "4EC9B0" },
+    // class / type names — green (String, Solution, DynamicArray)
+    { token: "type", foreground: "4EC9B0" },
+    { token: "type.identifier", foreground: "4EC9B0" },
+    { token: "class", foreground: "4EC9B0", fontStyle: "bold" },
+    { token: "interface", foreground: "4EC9B0" },
+    { token: "entity.name.type", foreground: "4EC9B0" },
+    { token: "entity.name.class", foreground: "4EC9B0" },
+    // methods / variables / params — cream (sumGame, num, i, n, capacity)
+    { token: "identifier", foreground: "DCDCAA" },
+    { token: "entity.name.function", foreground: "DCDCAA" },
+    { token: "support.function", foreground: "DCDCAA" },
+    { token: "function", foreground: "DCDCAA" },
+    { token: "method", foreground: "DCDCAA" },
+    { token: "variable", foreground: "DCDCAA" },
+    { token: "variable.parameter", foreground: "DCDCAA" },
+    { token: "parameter", foreground: "DCDCAA" },
+    { token: "annotation", foreground: "DCDCAA" },
+    { token: "number", foreground: "B5CEA8" },
+    { token: "string", foreground: "CE9178" },
+    { token: "operator", foreground: "D4D4D4" },
+    { token: "delimiter", foreground: "D4D4D4" },
+    { token: "delimiter.bracket", foreground: "D4D4D4" },
+    { token: "delimiter.parenthesis", foreground: "D4D4D4" },
+  ],
+  colors: {
+    "editor.background": "#1A1A1A",
+    "editor.foreground": "#D4D4D4",
+    "editorLineNumber.foreground": "#858585",
+    "editorLineNumber.activeForeground": "#C6C6C6",
+    "editorGutter.background": "#1A1A1A",
+    "editor.lineHighlightBackground": "#2D2D30",
+    "editor.lineHighlightBorder": "#00000000",
+    "editor.selectionBackground": "#264F78AA",
+    "editor.inactiveSelectionBackground": "#3A3D41AA",
+    "editorCursor.foreground": "#AEAFAD",
+    "editorIndentGuide.background": "#404040",
+    "editorIndentGuide.activeBackground": "#707070",
+    "editorBracketMatch.background": "#515C6A55",
+    "editorBracketMatch.border": "#888888",
+    "scrollbar.shadow": "#00000000",
+    "scrollbarSlider.background": "#79797966",
+    "scrollbarSlider.hoverBackground": "#646464B3",
+    "scrollbarSlider.activeBackground": "#BFBFBF66",
+    "editorWidget.background": "#252526",
+    "editorSuggestWidget.background": "#252526",
+    "editorSuggestWidget.foreground": "#D4D4D4",
+    "editorSuggestWidget.selectedBackground": "#2A2D2E",
+  },
+} as const;
 
 /* ------------------------------------------------------------------ */
 /* Code persistence: Supabase (logged-in) + localStorage (fallback)   */
@@ -420,6 +517,7 @@ function CodeEditorPane({
   const [isFormatted, setIsFormatted] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [codeLoaded, setCodeLoaded] = useState(false);
   const buildTestTabs = useCallback((raw?: string, snippet?: string | null) => {
@@ -475,29 +573,44 @@ function CodeEditorPane({
     return buildStarterFromSnippet(javaCode);
   }, [codeSnippets]);
 
+  // Proactively purge stale solve() cache for this question (permanent migration)
+  useEffect(() => {
+    migrateStaleSolveCode(questionId);
+  }, [questionId]);
+
   // Load saved code from DB / localStorage on mount or question change
   useEffect(() => {
     let cancelled = false;
     setCodeLoaded(false);
+    // If starter is still generic and we have codeSnippets pending, wait; the second effect below will swap it
     loadCode(questionId, userId).then((saved) => {
       if (!cancelled) {
         const starter = initialJavaSnippet;
+        const isGenericStarter = isGenericSolveTemplate(starter);
         let isDefault = false;
         const defaultNorm = normalizeForCompare(DEFAULT_JAVA_TEMPLATE);
         const starterNorm = normalizeForCompare(starter);
 
         const checkIsStarter = (codeStr: string) => {
           const n = normalizeForCompare(codeStr);
-          return n === defaultNorm || n === starterNorm;
+          return n === defaultNorm || n === starterNorm || isGenericSolveTemplate(codeStr);
         };
 
-        if (saved && !saved.startsWith("[")) {
-          if (checkIsStarter(saved)) isDefault = true;
+        // Permanent rule: never restore a generic solve() template if starter is real LeetCode signature
+        const hasRealSnippet = !isGenericStarter && starter !== DEFAULT_JAVA_TEMPLATE;
+
+        if (saved && isGenericSolveTemplate(saved) && hasRealSnippet) {
+          isDefault = true;
+        } else if (saved && !saved.startsWith("[")) {
+          if (checkIsStarter(saved)) isDefault = hasRealSnippet ? true : isDefault || checkIsStarter(saved);
+          if (isGenericSolveTemplate(saved) && hasRealSnippet) isDefault = true;
         } else if (saved && saved.startsWith("[")) {
           try {
             const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length === 1 && checkIsStarter(parsed[0].content)) {
+            if (Array.isArray(parsed) && parsed.length >= 1 && parsed.every((t: { content?: string }) => t.content && isGenericSolveTemplate(t.content)) && hasRealSnippet) {
               isDefault = true;
+            } else if (Array.isArray(parsed) && parsed.length === 1 && checkIsStarter(parsed[0].content)) {
+              isDefault = hasRealSnippet ? true : true;
             }
           } catch {}
         } else if (saved === DEFAULT_JAVA_TEMPLATE) {
@@ -512,10 +625,15 @@ function CodeEditorPane({
               // If saved content is actually starter-like but starter changed (new LeetCode problem),
               // prefer the new starter instead of stale saved
               const firstContent = parsed[0]?.content || "";
-              if (checkIsStarter(firstContent) && normalizeForCompare(firstContent) !== starterNorm) {
+              if ((checkIsStarter(firstContent) || isGenericSolveTemplate(firstContent)) && normalizeForCompare(firstContent) !== starterNorm) {
                 parsedTabs = [{ id: "1", name: "Solution.java", content: starter }];
               } else {
-                parsedTabs = parsed;
+                // Also if any tab is generic solve template and we have real snippet, replace whole set
+                if (hasRealSnippet && parsed.some((t: { content?: string }) => t.content && isGenericSolveTemplate(t.content))) {
+                  parsedTabs = [{ id: "1", name: "Solution.java", content: starter }];
+                } else {
+                  parsedTabs = parsed;
+                }
               }
             }
           } else if (saved && !isDefault && !saved.startsWith("[")) {
@@ -531,6 +649,20 @@ function CodeEditorPane({
     });
     return () => { cancelled = true; };
   }, [questionId, userId, initialJavaSnippet]);
+
+  // Permanent auto-heal: if editor is currently showing generic solve() but a real snippet arrives late (async), swap it live
+  useEffect(() => {
+    if (!codeLoaded) return;
+    const starter = initialJavaSnippet;
+    if (isGenericSolveTemplate(starter)) return; // starter itself is still generic, nothing to heal to
+    const current = tabs.find((t) => t.id === activeTabId)?.content ?? tabs[0]?.content ?? "";
+    if (isGenericSolveTemplate(current)) {
+      // Replace stale generic with real LeetCode signature permanently
+      setTabs((prev) => prev.map((t) => (t.id === activeTabId ? { ...t, content: starter } : t)));
+      void persistCode(questionId, JSON.stringify(tabs.map((t) => (t.id === activeTabId ? { ...t, content: starter } : t))), userId);
+      setRunResult(null);
+    }
+  }, [initialJavaSnippet, codeLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = useCallback(
     (value: string | undefined) => {
@@ -614,6 +746,14 @@ function CodeEditorPane({
 
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
+    // LeetCode-exact theme — defined once
+    try {
+      // @ts-ignore — Monaco theme API
+      monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any);
+      // apply immediately — force LeetCode dark regardless of isDark flash
+      monaco.editor.setTheme(theme === "dark" ? "leetcode-dark" : "light");
+    } catch {}
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       void handleRunCode();
     });
@@ -629,6 +769,19 @@ function CodeEditorPane({
       } catch {}
     });
   };
+
+  // Keep Monaco theme in sync with app theme (LeetCode dark vs light)
+  useEffect(() => {
+    try {
+      const m: any = monacoRef.current;
+      if (m?.editor) m.editor.setTheme(theme === "dark" ? "leetcode-dark" : "light");
+      // also ensure defined if mount hasn't happened yet
+      if (!m && typeof window !== "undefined" && (window as any).monaco?.editor) {
+        (window as any).monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any);
+        (window as any).monaco.editor.setTheme(theme === "dark" ? "leetcode-dark" : "light");
+      }
+    } catch {}
+  }, [theme]);
 
   // Sync live editor state to parent for Guru context (auto-attach)
   useEffect(() => {
@@ -700,7 +853,7 @@ function CodeEditorPane({
     >
       {/* ═════════ Editor Panel ═════════ */}
       <Panel defaultSize={62} minSize={30} className="flex flex-col min-h-0 rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
-        <div className="flex flex-col h-full" style={{ background: isDark ? "#16162a" : "#ffffff" }}>
+        <div className="flex flex-col h-full" style={{ background: isDark ? "#1A1A1A" : "#ffffff" }}>
         {/* --- Editor Top Bar --- */}
         <div
           className="flex items-center justify-between px-3 py-1.5 shrink-0"
@@ -875,39 +1028,64 @@ function CodeEditorPane({
         {/* --- Monaco Editor --- */}
         <div className="flex-1 min-h-0 relative">
           {!codeLoaded && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: isDark ? "#1a1a2e" : "#fafafa" }}>
+            <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: isDark ? "#1A1A1A" : "#fafafa" }}>
               <Loader2 className="h-6 w-6 animate-spin" style={{ color: isDark ? "#64748b" : "#94a3b8" }} />
             </div>
           )}
           <Editor
             height="100%"
             language="java"
-            theme={isDark ? "vs-dark" : "light"}
+            theme={isDark ? "leetcode-dark" : "light"}
             value={code}
             onChange={handleChange}
+            beforeMount={(monaco) => {
+              try { monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any); } catch {}
+            }}
             onMount={handleMount}
             options={{
               fontSize: editorFontSize,
-              fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-              fontLigatures: true,
+              // LeetCode editor — Consolas-like, tight tracking (matches screenshot)
+              fontFamily: '"Consolas","Cascadia Code","JetBrains Mono","Fira Code",Menlo,Monaco,"Courier New",monospace',
+              fontLigatures: false,
+              fontWeight: "400",
+              lineHeight: 19,
+              letterSpacing: 0,
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
-              padding: { top: 16, bottom: 16 },
+              padding: { top: 10, bottom: 10 },
               lineNumbers: "on",
+              lineNumbersMinChars: 2,
+              glyphMargin: true,
+              folding: true,
+              foldingHighlight: false,
               renderLineHighlight: "line",
+              renderLineHighlightOnlyWhenFocus: false,
               bracketPairColorization: { enabled: true },
+              guides: { indentation: true, bracketPairs: "active" },
               autoClosingBrackets: "always",
               autoClosingQuotes: "always",
-              formatOnPaste: true,
+              autoClosingOvertype: "always",
+              formatOnPaste: false,
               tabSize: 4,
               insertSpaces: true,
               detectIndentation: false,
               wordWrap: "on",
               smoothScrolling: true,
-              cursorBlinking: "smooth",
-              cursorSmoothCaretAnimation: "on",
+              cursorBlinking: "blink",
+              cursorSmoothCaretAnimation: "off",
+              cursorWidth: 2,
               suggest: { showKeywords: true, showSnippets: true },
               quickSuggestions: { other: true, comments: false, strings: true },
+              scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8, useShadows: false },
+              overviewRulerBorder: false,
+              hideCursorInOverviewRuler: true,
+              overviewRulerLanes: 0,
+              renderWhitespace: "none",
+              matchBrackets: "always",
+              occurrencesHighlight: "off",
+              selectionHighlight: false,
+              codeLens: false,
+              links: false,
             }}
           />
         </div>
