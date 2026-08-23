@@ -12,6 +12,8 @@ import {
   Target,
 } from "lucide-react";
 import JavaInterviewHub from "./interview/JavaInterviewHub";
+import CppInterviewHub from "./interview/CppInterviewHub";
+import PythonInterviewHub from "./interview/PythonInterviewHub";
 
 type InterviewLanguage = "java" | "cpp" | "python";
 
@@ -150,9 +152,15 @@ export default function Interview() {
     }
   }, [language, selectedLanguage, navigate]);
 
-  // Java has a dedicated interview hub
+  // Dedicated hubs
   if (selectedLanguage === "java") {
     return <JavaInterviewHub />;
+  }
+  if (selectedLanguage === "cpp") {
+    return <CppInterviewHub />;
+  }
+  if (selectedLanguage === "python") {
+    return <PythonInterviewHub />;
   }
 
   return (

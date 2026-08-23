@@ -40,7 +40,7 @@ import InterviewCoreJavaQuestionsPage from "./pages/interview/InterviewCoreJavaQ
 import InterviewCoreJavaQuestionDetailPage from "./pages/interview/InterviewCoreJavaQuestionDetailPage";
 import InterviewSystemDesignPage from "./pages/interview/InterviewSystemDesignPage";
 import InterviewSqlStructurePage from "./pages/interview/InterviewSqlStructurePage";
-import InterviewLanguageQuestionsPage from "./pages/interview/InterviewLanguageQuestionsPage";
+import InterviewLanguageQuestionsPage, { InterviewLanguageQuestionDetailPage } from "./pages/interview/InterviewLanguageQuestionsPage";
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
@@ -898,6 +898,7 @@ const App = () => (
                         <Route path="/interview/:language" element={<Interview />} />
                         <Route path="/interview/:language/data-structure" element={<InterviewDataStructurePage />} />
                         <Route path="/interview/:language/language-questions" element={<InterviewLanguageQuestionsPage />} />
+                        <Route path="/interview/:language/language-questions/:questionSlug" element={<InterviewLanguageQuestionDetailPage />} />
                         <Route path="/interview/:language/core-java-qa" element={<InterviewCoreJavaQuestionsPage />} />
                         <Route path="/interview/:language/core-java-qa/:questionSlug" element={<InterviewCoreJavaQuestionDetailPage />} />
                         <Route path="/interview/:language/system-design" element={<InterviewSystemDesignPage />} />

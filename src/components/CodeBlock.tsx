@@ -1,8 +1,7 @@
-import { useState, memo, useEffect, useRef } from "react";
+import { useState, memo } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Copy, Check, Code2 } from "lucide-react";
-import { useSettings } from "@/contexts/SettingsContext";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { Copy, Check } from "lucide-react";
 
 interface CodeBlockProps {
   title?: string;
@@ -10,25 +9,8 @@ interface CodeBlockProps {
   code: string;
 }
 
-export const CodeBlock = memo(function CodeBlock({ title, language = "java", code }: CodeBlockProps) {
+export const CodeBlock = memo(function CodeBlock({ title, language = "python", code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { theme } = useSettings();
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsVisible(true);
-        observer.disconnect();
-      }
-    }, { rootMargin: "600px" });
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-    return () => observer.disconnect();
-  }, []);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
@@ -36,69 +18,77 @@ export const CodeBlock = memo(function CodeBlock({ title, language = "java", cod
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const displayLang = language.toLowerCase();
+
   return (
-    <div className="code-block-wrapper my-7" style={{ touchAction: 'pan-x pan-y' }}>
-      <div className="code-block-header" style={{ background: "#21222c" }}>
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 mr-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: "hsl(0 70% 55% / 0.7)" }} />
-            <span className="w-3 h-3 rounded-full" style={{ background: "hsl(45 80% 55% / 0.7)" }} />
-            <span className="w-3 h-3 rounded-full" style={{ background: "hsl(130 60% 45% / 0.7)" }} />
-          </div>
-          <Code2 size={14} style={{ color: "hsl(var(--primary))" }} />
-          {title && (
-            <span className="text-xs font-semibold" style={{ color: "hsl(var(--foreground))" }}>
-              {title}
-            </span>
-          )}
-          <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md"
-            style={{ background: "hsl(var(--primary)/0.08)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary)/0.12)" }}>
-            {language}
+    <div className="my-6 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]">
+      {/* Header — LeetCode / NeetCode style: minimal, no traffic lights */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
+        <div className="flex items-center gap-2 min-w-0">
+          {title ? (
+            <span className="text-[13px] font-semibold text-zinc-300 tracking-tight truncate">{title}</span>
+          ) : null}
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border border-[#3a3a3a]">
+            {displayLang}
           </span>
         </div>
+
         <button
           onClick={handleCopy}
-          className="touch-manipulation flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 min-h-[36px] rounded-lg transition-all duration-200 active:scale-95"
-          style={{
-            background: copied ? "hsl(var(--success)/0.1)" : "hsl(var(--muted))",
-            color: copied ? "hsl(var(--success))" : "hsl(var(--muted-foreground))",
-            border: `1px solid ${copied ? "hsl(var(--success)/0.2)" : "hsl(var(--border))"}`,
-          }}
+          aria-label={copied ? "Copied" : "Copy code"}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors shrink-0 ${
+            copied
+              ? "bg-[#1f3a2a] text-emerald-400"
+              : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+          }`}
         >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? "Copied!" : "Copy"}
+          {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+          <span>{copied ? "Copied" : "Copy"}</span>
         </button>
       </div>
-      <div ref={containerRef} style={{ touchAction: 'pan-x', overflowX: 'auto', minHeight: '150px' }}>
-        {isVisible ? (
-          <SyntaxHighlighter
-            language={language}
-            style={oneDark}
-            customStyle={{
-              margin: 0,
-              padding: "1.5rem 1.75rem",
-              background: "#282a36",
-              fontSize: "0.85rem",
-              lineHeight: "1.75",
-              borderRadius: 0,
-              fontFamily: "'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace",
-            }}
-            showLineNumbers
-            lineNumberStyle={{
-              color: "hsl(var(--muted-foreground)/0.25)",
-              fontSize: "0.7rem",
-              paddingRight: "1.5rem",
-              minWidth: "2.5rem",
-              userSelect: "none",
-            }}
-          >
-            {code.trim()}
-          </SyntaxHighlighter>
-        ) : (
-          <div className="flex items-center justify-center p-12 text-muted-foreground/30 font-mono text-xs">
-            Loading...
-          </div>
-        )}
+
+      {/* Code body — dark LeetCode style */}
+      <div className="relative bg-[#1a1a1a] overflow-x-auto">
+        <SyntaxHighlighter
+          language={displayLang}
+          style={vscDarkPlus}
+          customStyle={{
+            margin: 0,
+            padding: "1rem 1.25rem",
+            background: "#1a1a1a",
+            backgroundColor: "#1a1a1a",
+            fontSize: "13.5px",
+            lineHeight: "1.65",
+            fontFamily: "'JetBrains Mono','Fira Code',Consolas,Menlo,monospace",
+            borderRadius: 0,
+          }}
+          codeTagProps={{
+            style: {
+              fontFamily: "'JetBrains Mono','Fira Code',Consolas,Menlo,monospace",
+              fontSize: "13.5px",
+              lineHeight: "1.65",
+              background: "transparent",
+            },
+          }}
+          showLineNumbers
+          lineNumberStyle={{
+            color: "#5a5f69",
+            fontSize: "12px",
+            paddingRight: "1rem",
+            minWidth: "2.5rem",
+            textAlign: "right",
+            userSelect: "none",
+            fontFamily: "'JetBrains Mono',monospace",
+            fontWeight: 400,
+            borderRight: "1px solid #2e2e2e",
+            marginRight: "1rem",
+          }}
+          wrapLines={false}
+          wrapLongLines={false}
+          PreTag="div"
+        >
+          {code.trim()}
+        </SyntaxHighlighter>
       </div>
     </div>
   );

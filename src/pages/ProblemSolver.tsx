@@ -58,7 +58,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
 
 /* ------------------------------------------------------------------ */
@@ -397,13 +397,13 @@ function EditorialCodeBlock({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const lang = className?.replace("language-", "") || "text";
+  const lang = (className?.replace("language-", "") || "text").toLowerCase();
   const codeText = extractText(children).replace(/\n$/, "");
 
   return (
-    <div className="my-5 rounded-2xl overflow-hidden border border-border/40 shadow-xl bg-[#0D0D0D]">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20 border-b border-border/20">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+    <div className="my-5 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border border-[#3a3a3a]">
           {lang}
         </span>
         <button
@@ -412,27 +412,37 @@ function EditorialCodeBlock({
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
           }}
-          className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition-all hover:bg-white/10 text-muted-foreground hover:text-white min-h-[32px] active:scale-95"
+          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
+            copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+          }`}
         >
-          {copied ? (
-            <Check size={13} className="text-emerald-400" />
-          ) : (
-            <Copy size={13} />
-          )}
+          {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <div className="text-[13.5px] leading-[1.6] font-mono overflow-x-auto">
+      <div className="bg-[#1a1a1a] overflow-x-auto">
         <SyntaxHighlighter
           language={lang}
-          style={oneDark}
+          style={vscDarkPlus}
           customStyle={{
             margin: 0,
             border: "none",
-            background: "transparent",
-            padding: "1.25rem",
+            background: "#1a1a1a",
+            backgroundColor: "#1a1a1a",
+            padding: "1rem 1.25rem",
+            fontSize: "13.5px",
+            lineHeight: "1.65",
+          }}
+          codeTagProps={{
+            style: {
+              fontFamily: '"JetBrains Mono","Fira Code",monospace',
+              fontSize: "13.5px",
+              lineHeight: "1.65",
+              background: "transparent",
+            },
           }}
           wrapLongLines={false}
+          PreTag="div"
         >
           {codeText}
         </SyntaxHighlighter>

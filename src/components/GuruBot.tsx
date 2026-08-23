@@ -126,20 +126,17 @@ function CodeBlock({
   const [copied, setCopied] = useState(false);
   const [inserted, setInserted] = useState(false);
   const lang = (className?.replace("language-", "") || "text").toLowerCase();
-  const { theme } = useSettings();
-  const isDark = theme === "dark";
 
   return (
     <div
-      className={`my-4 rounded-xl overflow-hidden border shadow-[0_12px_40px_-12px_rgba(0,0,0,0.2)] ${isDark ? "border-[#2a2a2e] bg-[#121214]" : "border-zinc-200 bg-white"}`}
+      className="my-4 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]"
       style={{ touchAction: "pan-x pan-y" }}
     >
-      <div className={`flex items-center justify-between px-3.5 py-2.5 border-b ${isDark ? "bg-[#1a1a1e] border-white/[0.06]" : "bg-zinc-50 border-zinc-200"}`}>
-        <span className={`flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
-          <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse" />
-          {lang === "java" ? "JAVA" : lang.toUpperCase()}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border border-[#3a3a3a]">
+          {lang}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0">
           {onInsert && (
             <button
               onClick={() => {
@@ -147,10 +144,12 @@ function CodeBlock({
                 setInserted(true);
                 setTimeout(() => setInserted(false), 1800);
               }}
-              className={`touch-manipulation flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border min-h-[30px] active:scale-95 ${inserted ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-700 dark:text-emerald-300" : "bg-sky-500 text-white border-sky-500 hover:bg-sky-600 shadow-sm"}`}
+              className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
+                inserted ? "bg-[#1f3a2a] text-emerald-400" : "bg-[#3a3a3a] text-zinc-300 hover:bg-[#404040] hover:text-white"
+              }`}
               title="Insert code into Monaco editor"
             >
-              {inserted ? <Check size={13} className="text-emerald-500" /> : <ArrowRight size={13} />}
+              {inserted ? <Check size={13} /> : <ArrowRight size={13} />}
               {inserted ? "Inserted" : "Use in editor"}
             </button>
           )}
@@ -160,29 +159,24 @@ function CodeBlock({
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className={`touch-manipulation flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border min-h-[30px] active:scale-95 ${isDark ? "bg-[#2a2a2e] hover:bg-[#333] text-zinc-300 hover:text-white border-white/[0.08]" : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900 border-zinc-200"}`}
+            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
+              copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+            }`}
           >
-            {copied ? (
-              <Check size={13} className="text-emerald-500" />
-            ) : (
-              <Copy size={13} />
-            )}
+            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
             {copied ? "Copied" : "Copy"}
           </button>
         </div>
       </div>
-      <div
-        className={`relative overflow-x-auto ${isDark ? "bg-[#121214]" : "bg-[#fafafa]"}`}
-        style={{ touchAction: "pan-x" }}
-      >
+      <div className="relative overflow-x-auto bg-[#1a1a1a]" style={{ touchAction: "pan-x" }}>
         <SyntaxHighlighter
           language={lang}
-          style={isDark ? vscDarkPlus : vs}
+          style={vscDarkPlus}
           customStyle={{
             margin: 0,
             border: "none",
-            background: isDark ? "#121214" : "#fafafa",
-            backgroundColor: isDark ? "#121214" : "#fafafa",
+            background: "#1a1a1a",
+            backgroundColor: "#1a1a1a",
             padding: "1rem 1.25rem",
             fontSize: "13.5px",
             lineHeight: "1.65",
