@@ -291,7 +291,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
 
                   {/* Buy Me a Coffee */}
                   <a
-                    href={BUYMEACOFFEE_URL}
+                    href="/buy-me-a-coffee"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-4 p-5 rounded-[28px] border border-[#FFDD00]/20 bg-[#FFDD00]/5 transition-all duration-300 hover:bg-[#FFDD00]/10 group"
@@ -300,8 +300,8 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                       <Coffee size={24} className="text-black" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black uppercase tracking-tight text-foreground">Buy Me a Coffee</p>
-                      <p className="text-[11px] font-bold text-muted-foreground/60">One-time or monthly support</p>
+                      <p className="text-sm font-black uppercase tracking-tight text-foreground">Buy Me a Coffee — Best UI</p>
+                      <p className="text-[11px] font-bold text-muted-foreground/60">Open full-page experience</p>
                     </div>
                     <div className="p-2 rounded-xl bg-muted group-hover:bg-[#FFDD00] group-hover:text-black transition-all">
                       <ExternalLink size={14} className="opacity-60 group-hover:opacity-100" />

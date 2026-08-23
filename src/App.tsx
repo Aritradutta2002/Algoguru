@@ -35,6 +35,7 @@ import Profile from "./pages/Profile";
 import NotesDashboard from "./pages/NotesDashboard";
 import Admin from "./pages/Admin";
 import JavaRoadmapPage from "./pages/JavaRoadmapPage";
+import BuyMeACoffee from "./pages/BuyMeACoffee";
 import InterviewDataStructurePage from "./pages/interview/InterviewDataStructurePage";
 import InterviewCoreJavaQuestionsPage from "./pages/interview/InterviewCoreJavaQuestionsPage";
 import InterviewCoreJavaQuestionDetailPage from "./pages/interview/InterviewCoreJavaQuestionDetailPage";
@@ -891,6 +892,8 @@ const App = () => (
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/java-roadmap" element={<JavaRoadmapPage />} />
+                        <Route path="/buy-me-a-coffee" element={<BuyMeACoffee />} />
+                        <Route path="/support" element={<BuyMeACoffee />} />
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/practice" element={<Practice />} />
                         <Route path="/problem-solver" element={<ProblemSolver />} />
