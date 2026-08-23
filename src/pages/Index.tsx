@@ -1,6 +1,7 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";import { Coffee, Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays, Map as MapIcon
+import { motion, AnimatePresence } from "framer-motion";import { Coffee, Code2, Trophy, BrainCircuit, Target,
+  ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays, Map as MapIcon, X
 } from "lucide-react";
 
 const SECTIONS = [
@@ -92,6 +93,16 @@ const TICKER_ITEMS = [
 
 export default function Index() {
   const navigate = useNavigate();
+  const [showFab, setShowFab] = useState(true);
+  useEffect(() => {
+    const hidden = localStorage.getItem("hide-java-roadmap-fab");
+    if (hidden === "1") setShowFab(false);
+  }, []);
+  const dismissFab = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowFab(false);
+    localStorage.setItem("hide-java-roadmap-fab", "1");
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
@@ -180,22 +191,39 @@ export default function Index() {
         </button>
       </div>
 
-      {/* Small floating FAB — visible from any scroll position */}
-      <motion.button
-        initial={{ opacity: 0, y: 10, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
-        onClick={() => navigate("/java-roadmap")}
-        aria-label="Open Java Roadmap"
-        className="fixed bottom-5 right-4 md:bottom-6 md:right-6 z-50 group inline-flex items-center gap-2 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg shadow-zinc-900/10 hover:shadow-xl px-3 py-2 md:px-3.5 md:py-2.5 transition-all"
-      >
-        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center text-white shadow-sm">
-          <MapIcon size={14} />
-        </span>
-        <span className="hidden sm:inline text-xs font-black tracking-wide text-zinc-700 dark:text-zinc-200">Roadmap</span>
-        <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">Java</span>
-        <ArrowRight size={12} className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all hidden sm:block" />
-      </motion.button>
+      {/* Small floating FAB — dismissible, visible from any scroll position */}
+      <AnimatePresence>
+        {showFab && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
+            className="fixed bottom-5 right-4 md:bottom-6 md:right-6 z-50 flex items-center gap-1.5"
+          >
+            <motion.button
+              onClick={() => navigate("/java-roadmap")}
+              aria-label="Open Java Roadmap"
+              className="group inline-flex items-center gap-2 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg shadow-zinc-900/10 hover:shadow-xl px-3 py-2 md:px-3.5 md:py-2.5 transition-all"
+            >
+              <span className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center text-white shadow-sm">
+                <MapIcon size={14} />
+              </span>
+              <span className="hidden sm:inline text-xs font-black tracking-wide text-zinc-700 dark:text-zinc-200">Roadmap</span>
+              <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">Java</span>
+              <ArrowRight size={12} className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all hidden sm:block" />
+            </motion.button>
+            <button
+              onClick={dismissFab}
+              aria-label="Dismiss roadmap shortcut"
+              className="w-7 h-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-md flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              title="Remove"
+            >
+              <X size={12} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── SECOND TICKER (Subtle) ────────────── */}
       <div className="w-full overflow-hidden border-y border-border py-2.5 bg-background">
