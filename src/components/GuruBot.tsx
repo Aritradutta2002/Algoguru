@@ -26,9 +26,10 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { useSettings } from "@/contexts/SettingsContext";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = {
@@ -124,17 +125,19 @@ function CodeBlock({
 }) {
   const [copied, setCopied] = useState(false);
   const [inserted, setInserted] = useState(false);
-  const lang = className?.replace("language-", "") || "text";
+  const lang = (className?.replace("language-", "") || "text").toLowerCase();
+  const { theme } = useSettings();
+  const isDark = theme === "dark";
 
   return (
     <div
-      className="my-4 rounded-2xl overflow-hidden border border-white/10 bg-[#0A0A0F] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]"
+      className={`my-4 rounded-xl overflow-hidden border shadow-[0_12px_40px_-12px_rgba(0,0,0,0.2)] ${isDark ? "border-[#2a2a2e] bg-[#121214]" : "border-zinc-200 bg-white"}`}
       style={{ touchAction: "pan-x pan-y" }}
     >
-      <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-white/[0.06] to-white/[0.02] border-b border-white/10 backdrop-blur">
-        <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/60">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.7)]" />
-          {lang}
+      <div className={`flex items-center justify-between px-3.5 py-2.5 border-b ${isDark ? "bg-[#1a1a1e] border-white/[0.06]" : "bg-zinc-50 border-zinc-200"}`}>
+        <span className={`flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+          <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse" />
+          {lang === "java" ? "JAVA" : lang.toUpperCase()}
         </span>
         <div className="flex items-center gap-1.5">
           {onInsert && (
@@ -144,10 +147,10 @@ function CodeBlock({
                 setInserted(true);
                 setTimeout(() => setInserted(false), 1800);
               }}
-              className={`touch-manipulation flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-all border min-h-[32px] active:scale-95 ${inserted ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-300" : "bg-sky-500/15 border-sky-500/30 text-sky-300 hover:bg-sky-500/25 hover:text-white"}`}
+              className={`touch-manipulation flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border min-h-[30px] active:scale-95 ${inserted ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-700 dark:text-emerald-300" : "bg-sky-500 text-white border-sky-500 hover:bg-sky-600 shadow-sm"}`}
               title="Insert code into Monaco editor"
             >
-              {inserted ? <Check size={12} className="text-emerald-400" /> : <ArrowRight size={12} />}
+              {inserted ? <Check size={13} className="text-emerald-500" /> : <ArrowRight size={13} />}
               {inserted ? "Inserted" : "Use in editor"}
             </button>
           )}
@@ -157,31 +160,46 @@ function CodeBlock({
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="touch-manipulation flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-all bg-white/10 hover:bg-white/15 text-white/70 hover:text-white border border-white/10 min-h-[32px] active:scale-95"
+            className={`touch-manipulation flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border min-h-[30px] active:scale-95 ${isDark ? "bg-[#2a2a2e] hover:bg-[#333] text-zinc-300 hover:text-white border-white/[0.08]" : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900 border-zinc-200"}`}
           >
             {copied ? (
-              <Check size={12} className="text-emerald-400" />
+              <Check size={13} className="text-emerald-500" />
             ) : (
-              <Copy size={12} />
+              <Copy size={13} />
             )}
             {copied ? "Copied" : "Copy"}
           </button>
         </div>
       </div>
       <div
-        className="text-[13px] leading-[1.7] font-mono"
-        style={{ touchAction: "pan-x", overflowX: "auto" }}
+        className={`relative overflow-x-auto ${isDark ? "bg-[#121214]" : "bg-[#fafafa]"}`}
+        style={{ touchAction: "pan-x" }}
       >
         <SyntaxHighlighter
           language={lang}
-          style={oneDark}
+          style={isDark ? vscDarkPlus : vs}
           customStyle={{
             margin: 0,
             border: "none",
-            background: "transparent",
-            padding: "1.25rem",
+            background: isDark ? "#121214" : "#fafafa",
+            backgroundColor: isDark ? "#121214" : "#fafafa",
+            padding: "1rem 1.25rem",
+            fontSize: "13.5px",
+            lineHeight: "1.65",
+            overflow: "visible",
           }}
-          wrapLongLines={true}
+          codeTagProps={{
+            style: {
+              background: "transparent",
+              fontFamily: '"JetBrains Mono","Fira Code",Consolas,"Cascadia Code",Menlo,monospace',
+              fontSize: "13.5px",
+              lineHeight: "1.65",
+              fontWeight: 400,
+            },
+          }}
+          wrapLines={false}
+          wrapLongLines={false}
+          PreTag="div"
         >
           {children}
         </SyntaxHighlighter>
@@ -374,6 +392,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
   ) {
     // Detect mobile viewport (< lg breakpoint = 1024px)
     const isMobile = useMediaQuery("(max-width: 1023px)");
+    const { theme } = useSettings();
+    const isDark = theme === "dark";
 
     const sessionsStorageKey = questionId ? `guru-chat-sessions:${questionId}` : "guru-chat-sessions";
     const currentIdStorageKey = questionId ? `guru-chat-current-id:${questionId}` : "guru-chat-current-id";
@@ -697,23 +717,22 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     if (!open) return null;
 
     // Mobile: full-screen overlay unless GuruBot is embedded in a parent drawer
-    // Desktop/embedded: flex container fills the parent panel
+    // Desktop/embedded: flex container fills the parent panel - theme-aware
     const shouldUseFixedOverlay = isMobile && !embedded;
-    // Clean dark look like screenshot — charcoal bg, minimal chrome
     const containerClasses = shouldUseFixedOverlay
-      ? "fixed inset-0 z-50 flex flex-col h-full bg-[#0F0F0F] text-zinc-100 font-sans"
-      : "flex flex-col h-full bg-[#0F0F0F] text-zinc-100 font-sans relative overflow-hidden";
+      ? `fixed inset-0 z-50 flex flex-col h-full font-sans ${isDark ? "bg-[#0F0F0F] text-zinc-100" : "bg-white text-zinc-900"}`
+      : `flex flex-col h-full font-sans relative overflow-hidden ${isDark ? "bg-[#0F0F0F] text-zinc-100" : "bg-white text-zinc-900"}`;
 
     return (
       <div ref={ref} className={containerClasses}>
-        {/* ─── Header — clean pill like screenshot ─── */}
+        {/* ─── Header — theme-aware ─── */}
         {!hideHeader && (
-        <div className="flex items-center justify-between px-3 py-3 border-b border-[#262626] bg-[#0F0F0F] z-20 sticky top-0">
+        <div className={`flex items-center justify-between px-3 py-3 border-b z-20 sticky top-0 ${isDark ? "border-[#262626] bg-[#0F0F0F]" : "border-zinc-200 bg-white"}`}>
           <div className="flex items-center gap-2">
-            {showGuruTitle && <span className="text-[11px] font-bold tracking-[0.12em] text-zinc-500">GURU AI</span>}
+            {showGuruTitle && <span className={`text-[11px] font-bold tracking-[0.12em] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>GURU AI</span>}
             <button
               onClick={() => setShowHistory((o) => !o)}
-              className={`h-8 w-8 rounded-lg flex items-center justify-center border ${showHistory ? "bg-white text-black border-white" : "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white"}`}
+              className={`h-8 w-8 rounded-lg flex items-center justify-center border ${showHistory ? (isDark ? "bg-white text-black border-white" : "bg-zinc-900 text-white border-zinc-900") : (isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200")}`}
               aria-label="Chat History"
             >
               {showHistory ? <X size={14} /> : <History size={14} />}
@@ -725,7 +744,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               <AppTooltip content={isFullscreen ? "Exit fullscreen" : "Fullscreen"}>
                 <button
                   onClick={onToggleFullscreen}
-                  className="h-8 w-8 rounded-lg flex items-center justify-center bg-[#1A1A1A] border border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626] active:scale-95"
+                  className={`h-8 w-8 rounded-lg flex items-center justify-center border active:scale-95 ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626]" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200"}`}
                   aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
                 >
                   {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
@@ -735,7 +754,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             <AppTooltip content="New Chat">
               <button
                 onClick={startNewChat}
-                className="h-8 w-8 rounded-lg flex items-center justify-center bg-[#1A1A1A] border border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626] active:scale-95"
+                className={`h-8 w-8 rounded-lg flex items-center justify-center border active:scale-95 ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626]" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200"}`}
                 aria-label="New Chat"
               >
                 <MessageSquarePlus size={14} />
@@ -744,7 +763,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             <AppTooltip content="Close Guru">
               <button
                 onClick={handleClose}
-                className="h-8 w-8 rounded-lg flex items-center justify-center bg-[#1A1A1A] border border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626] active:scale-95"
+                className={`h-8 w-8 rounded-lg flex items-center justify-center border active:scale-95 ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626]" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200"}`}
                 aria-label="Close Guru"
               >
                 <X size={16} />
@@ -754,21 +773,21 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         </div>
         )}
 
-        {/* ─── Body — clean dark ─── */}
-        <div className="flex-1 overflow-hidden relative bg-[#0F0F0F]">
+        {/* ─── Body — theme-aware ─── */}
+        <div className={`flex-1 overflow-hidden relative ${isDark ? "bg-[#0F0F0F]" : "bg-zinc-50"}`}>
           {/* Chat History Sidebar */}
           {showHistory ? (
-            <div className="absolute inset-0 z-10 bg-[#0F0F0F] overflow-y-auto animate-in slide-in-from-left-2 duration-300 border-r border-[#262626]">
+            <div className={`absolute inset-0 z-10 overflow-y-auto animate-in slide-in-from-left-2 duration-300 border-r ${isDark ? "bg-[#0F0F0F] border-[#262626]" : "bg-white border-zinc-200"}`}>
               <div className="p-5">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-[11px] font-bold tracking-widest text-zinc-500 uppercase">Chat History</h3>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] text-zinc-400">{sessions.length}</span>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400" : "bg-zinc-100 border-zinc-200 text-zinc-600"}`}>{sessions.length}</span>
                 </div>
                 <div className="space-y-2">
                   {sessions.length === 0 ? (
                     <div className="text-center py-16">
-                      <div className="w-12 h-12 rounded-xl bg-[#1A1A1A] border border-[#262626] flex items-center justify-center mx-auto mb-3">
-                        <MessageSquare size={18} className="text-zinc-600" />
+                      <div className={`w-12 h-12 rounded-xl border flex items-center justify-center mx-auto mb-3 ${isDark ? "bg-[#1A1A1A] border-[#262626]" : "bg-zinc-100 border-zinc-200"}`}>
+                        <MessageSquare size={18} className={isDark ? "text-zinc-600" : "text-zinc-400"} />
                       </div>
                       <p className="text-zinc-500 text-[11px] font-medium">No chats yet</p>
                     </div>
@@ -781,10 +800,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setShowHistory(false);
                           setModel(s.model || "openrouter");
                         }}
-                        className={`touch-manipulation group flex items-center justify-between p-3 rounded-xl cursor-pointer border ${s.id === currentId ? "bg-[#1A1A1A] border-[#333] text-white" : "bg-transparent border-transparent text-zinc-400 hover:bg-[#1A1A1A] hover:text-white"}`}
+                        className={`touch-manipulation group flex items-center justify-between p-3 rounded-xl cursor-pointer border ${s.id === currentId ? (isDark ? "bg-[#1A1A1A] border-[#333] text-white" : "bg-zinc-900 border-zinc-900 text-white") : (isDark ? "bg-transparent border-transparent text-zinc-400 hover:bg-[#1A1A1A] hover:text-white" : "bg-transparent border-transparent text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900")}`}
                       >
                         <div className="flex items-center gap-3 overflow-hidden">
-                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${s.id === currentId ? "bg-white text-black" : "bg-[#262626] text-zinc-400"}`}>
+                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${s.id === currentId ? (isDark ? "bg-white text-black" : "bg-zinc-900 text-white") : (isDark ? "bg-[#262626] text-zinc-400" : "bg-zinc-200 text-zinc-500")}`}>
                             <MessageSquare size={12} />
                           </div>
                           <div className="truncate text-[13px] font-medium">{s.title}</div>
@@ -803,26 +822,26 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             </div>
           ) : (
             <div
-              className="h-full overflow-y-auto p-4 space-y-4 bg-[#0F0F0F]"
+              className={`h-full overflow-y-auto p-4 space-y-4 ${isDark ? "bg-[#0F0F0F]" : "bg-white"}`}
               style={{ overscrollBehavior: "contain" }}
             >
               {messages.length === 0 && (
                 <div className="flex flex-col gap-4 py-2">
                   <div className="space-y-3">
-                    <h2 className="text-[22px] font-bold text-white leading-tight">Hello!</h2>
-                    <p className="text-[13px] leading-relaxed text-zinc-300">
+                    <h2 className={`text-[22px] font-bold leading-tight ${isDark ? "text-white" : "text-zinc-900"}`}>Hello!</h2>
+                    <p className={`text-[13px] leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
                       I am your DSA teaching assistant. I am here to help you master algorithms and data structures through clear, structured, and efficient code implementations.
                     </p>
-                    <p className="text-[13px] leading-relaxed text-zinc-400">
+                    <p className={`text-[13px] leading-relaxed ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
                       If you have a specific problem you are working on, feel free to share it. I can assist with:
                     </p>
                     <div className="space-y-2 text-[13px] leading-relaxed">
-                      <p className="text-zinc-300"><span className="font-bold text-white">Algorithm Design:</span> Breaking down complex problems into logical steps.</p>
-                      <p className="text-zinc-300"><span className="font-bold text-white">Complexity Analysis:</span> Understanding Big O notation for time and space.</p>
-                      <p className="text-zinc-300"><span className="font-bold text-white">Code Optimization:</span> Writing clean, efficient, and idiomatic code.</p>
-                      <p className="text-zinc-300"><span className="font-bold text-white">Debugging:</span> Identifying common pitfalls and edge cases in your implementations.</p>
+                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Algorithm Design:</span> Breaking down complex problems into logical steps.</p>
+                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Complexity Analysis:</span> Understanding Big O notation for time and space.</p>
+                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Code Optimization:</span> Writing clean, efficient, and idiomatic code.</p>
+                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Debugging:</span> Identifying common pitfalls and edge cases in your implementations.</p>
                     </div>
-                    <p className="text-[13px] text-zinc-400 pt-2">How can I help you with your coding journey today?</p>
+                    <p className={`text-[13px] pt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>How can I help you with your coding journey today?</p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-2">
@@ -838,10 +857,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setInput(item.q);
                           setTimeout(() => inputRef.current?.focus(), 50);
                         }}
-                        className="flex items-center justify-between text-left px-4 py-3 rounded-xl bg-[#1A1A1A] border border-[#262626] hover:border-[#333] hover:bg-[#1F1F1F] text-zinc-300 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className={`flex items-center justify-between text-left px-4 py-3 rounded-xl border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${isDark ? "bg-[#1A1A1A] border-[#262626] hover:border-[#333] hover:bg-[#1F1F1F] text-zinc-300 hover:text-white" : "bg-zinc-50 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900"}`}
                       >
                         <span className="text-[13px] font-medium">{item.q}</span>
-                        <ArrowRight size={14} className="text-zinc-500" />
+                        <ArrowRight size={14} className={isDark ? "text-zinc-500" : "text-zinc-400"} />
                       </button>
                     ))}
                   </div>
@@ -851,13 +870,13 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   {m.role === "assistant" ? (
-                    <div className="max-w-[92%] text-[13px] leading-relaxed text-zinc-200 prose prose-invert prose-p:my-2 prose-headings:text-white prose-strong:text-white prose-code:text-sky-300 prose-pre:my-3">
+                    <div className={`max-w-[92%] text-[13px] leading-relaxed ${isDark ? "text-zinc-200 prose prose-invert prose-p:my-2 prose-headings:text-white prose-strong:text-white prose-code:text-sky-300 prose-pre:my-3" : "text-zinc-800 prose prose-p:my-2 prose-headings:text-zinc-900 prose-strong:text-zinc-900 prose-code:text-sky-700 prose-pre:my-3"}`}>
                       <ReactMarkdown
                         components={{
                           code({ className, children, ...props }) {
                             const isBlock = className?.startsWith("language-") || String(children).includes("\n");
                             if (isBlock) return <CodeBlock className={className} onInsert={onInsertCode}>{String(children).replace(/\n$/, "")}</CodeBlock>;
-                            return <code className="px-1.5 py-0.5 rounded bg-[#1A1A1A] border border-[#2A2A2A] text-sky-300 text-[12px] font-mono" {...props}>{children}</code>;
+                            return <code className={`px-1.5 py-0.5 rounded border text-[12px] font-mono ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-sky-300" : "bg-zinc-100 border-zinc-200 text-sky-700"}`} {...props}>{children}</code>;
                           },
                           pre({ children }) { return <>{children}</>; },
                         }}
@@ -866,7 +885,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <div className="max-w-[78%] rounded-xl px-4 py-2.5 bg-[#1E1E1E] border border-[#2A2A2A] text-white text-[13px] leading-relaxed">
+                    <div className={`max-w-[78%] rounded-xl px-4 py-2.5 text-[13px] leading-relaxed ${isDark ? "bg-[#1E1E1E] border border-[#2A2A2A] text-white" : "bg-sky-600 border border-sky-600 text-white"}`}>
                       {m.content}
                     </div>
                   )}
@@ -877,7 +896,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 <div className="flex justify-center">
                   <button
                     onClick={() => { setInput("Give me the full corrected code and explain the fix vs my version"); setTimeout(() => inputRef.current?.focus(), 50); }}
-                    className="text-[11px] font-bold px-4 py-2 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] text-amber-400 hover:bg-[#262626] transition-colors"
+                    className={`text-[11px] font-bold px-4 py-2 rounded-full border transition-colors ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-amber-400 hover:bg-[#262626]" : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"}`}
                   >
                     Still stuck? → Get full answer
                   </button>
@@ -888,9 +907,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="flex justify-start">
                     <div className="flex items-center gap-2 px-3 py-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="h-1.5 w-1.5 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="h-1.5 w-1.5 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className={`h-1.5 w-1.5 rounded-full animate-bounce ${isDark ? "bg-zinc-500" : "bg-zinc-400"}`} style={{ animationDelay: "0ms" }} />
+                      <span className={`h-1.5 w-1.5 rounded-full animate-bounce ${isDark ? "bg-zinc-500" : "bg-zinc-400"}`} style={{ animationDelay: "150ms" }} />
+                      <span className={`h-1.5 w-1.5 rounded-full animate-bounce ${isDark ? "bg-zinc-500" : "bg-zinc-400"}`} style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 )}
@@ -899,24 +918,24 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           )}
         </div>
 
-        {/* ─── Input — clean screenshot style with Attach Code pill ─── */}
+        {/* ─── Input — theme-aware ─── */}
         <div
-          className="p-3 border-t border-[#262626] bg-[#0F0F0F] z-20"
+          className={`p-3 border-t z-20 ${isDark ? "border-[#262626] bg-[#0F0F0F]" : "border-zinc-200 bg-white"}`}
           style={{
             paddingBottom: isMobile ? "max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))" : undefined,
           }}
         >
-          <div className="relative rounded-xl border border-[#2A2A2A] bg-[#1A1A1A] focus-within:border-[#3A3A3A] focus-within:bg-[#1F1F1F] transition-colors p-2.5 pt-2">
+          <div className={`relative rounded-xl border transition-colors p-2.5 pt-2 ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] focus-within:border-[#3A3A3A] focus-within:bg-[#1F1F1F]" : "border-zinc-200 bg-zinc-50 focus-within:border-zinc-300 focus-within:bg-white"}`}>
             {/* Attach Code — dashed pill like screenshot */}
             <button
               onClick={() => setAttachCode((v) => !v)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-medium border transition-colors mb-2 ${attachCode ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300" : "bg-transparent border-dashed border-[#3A3A3A] text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 hover:bg-white/[0.03]"}`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-medium border transition-colors mb-2 ${attachCode ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-300" : (isDark ? "bg-transparent border-dashed border-[#3A3A3A] text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 hover:bg-white/[0.03]" : "bg-transparent border-dashed border-zinc-300 text-zinc-600 hover:text-zinc-800 hover:border-zinc-400 hover:bg-zinc-100")}`}
               title={attachCode ? "Code will be sent with your message (click to detach)" : "Attach your current editor code to Guru"}
             >
-              {attachCode ? <Check size={12} className="text-emerald-400" /> : <span className="text-[14px] leading-none font-light">+</span>}
-              <Code2 size={12} className={attachCode ? "text-emerald-400" : "text-zinc-500"} />
+              {attachCode ? <Check size={12} className="text-emerald-500" /> : <span className="text-[14px] leading-none font-light">+</span>}
+              <Code2 size={12} className={attachCode ? "text-emerald-500" : (isDark ? "text-zinc-500" : "text-zinc-400")} />
               <span>{attachCode ? "Code attached" : "Attach Code"}</span>
-              {attachCode && <span className="ml-1 h-4 w-4 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/15"><X size={10} /></span>}
+              {attachCode && <span className={`ml-1 h-4 w-4 rounded-full flex items-center justify-center ${isDark ? "bg-white/10 hover:bg-white/15" : "bg-zinc-200 hover:bg-zinc-300"}`}><X size={10} /></span>}
             </button>
             <textarea
               ref={inputRef}
@@ -934,24 +953,24 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               }}
               placeholder={attachCode ? "Describe what to build — code is attached..." : "Describe what to build"}
               disabled={loading && !input}
-              className="w-full bg-transparent text-[13px] placeholder:text-zinc-500 text-white outline-none resize-none min-h-[44px] max-h-[96px] md:max-h-[120px] pr-12 py-1 leading-relaxed"
+              className={`w-full bg-transparent text-[13px] outline-none resize-none min-h-[44px] max-h-[96px] md:max-h-[120px] pr-12 py-1 leading-relaxed ${isDark ? "placeholder:text-zinc-500 text-white" : "placeholder:text-zinc-400 text-zinc-900"}`}
               rows={1}
             />
             <button
               onClick={loading ? stopChat : send}
               disabled={(!input.trim() && !loading) || (loading && !input && messages.length === 0)}
-              className={`absolute right-3 bottom-3 h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${loading ? "bg-red-500/20 text-red-400" : "bg-[#2A2A2A] text-zinc-400 hover:bg-[#333] hover:text-white disabled:opacity-30"}`}
+              className={`absolute right-3 bottom-3 h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${loading ? "bg-red-500/20 text-red-400" : (isDark ? "bg-[#2A2A2A] text-zinc-400 hover:bg-[#333] hover:text-white disabled:opacity-30" : "bg-zinc-900 text-white hover:bg-zinc-800 disabled:opacity-30")}`}
               aria-label={loading ? "Stop" : "Send"}
             >
               {loading ? <Square size={12} fill="currentColor" /> : <span className="text-[16px] leading-none">↵</span>}
             </button>
           </div>
-          <div className="flex items-center gap-1 mt-2 px-1 text-[11px] text-zinc-500">
+          <div className={`flex items-center gap-1 mt-2 px-1 text-[11px] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>
             <span>Press</span>
-            <span className="px-1.5 py-0.5 rounded border border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300 text-[10px] font-mono">Enter</span>
+            <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300" : "border-zinc-200 bg-zinc-100 text-zinc-700"}`}>Enter</span>
             <span>to send •</span>
-            <span className="px-1.5 py-0.5 rounded border border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300 text-[10px] font-mono">Shift</span>
-            <span className="px-1 py-0.5 rounded border border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300 text-[10px] font-mono">Enter</span>
+            <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300" : "border-zinc-200 bg-zinc-100 text-zinc-700"}`}>Shift</span>
+            <span className={`px-1 py-0.5 rounded border text-[10px] font-mono ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300" : "border-zinc-200 bg-zinc-100 text-zinc-700"}`}>Enter</span>
             <span>for newline</span>
           </div>
 

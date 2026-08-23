@@ -814,69 +814,18 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                     </AppTooltip>
                   ) : (
                     <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border/30 bg-background">
-                      {!isTiny && (
-                        <div
-                          className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b bg-card/50 backdrop-blur-sm"
-                          style={{
-                            borderColor: "hsl(var(--border) / 0.3)",
-                          }}
-                        >
-                          <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                            <Sparkles size={14} className="text-primary" />
-                          </div>
-                          <span
-                            className="text-xs font-black uppercase tracking-[0.15em] text-foreground overflow-hidden text-ellipsis white-space-nowrap"
-                          >
-                            {isNarrow ? "Guru" : "Guru AI Assistant"}
-                          </span>
-                          <div className="flex-1" />
-                          {!isNarrow && (
-                            <span
-                              className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary"
-                            >
-                              AI
-                            </span>
-                          )}
-                          <AppTooltip content="Maximize Guru Panel">
-                            <button
-                              onClick={() => expandGuruPanel(GURU_PANEL_MAX_SIZE)}
-                              className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                              aria-label="Maximize Guru Panel"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="15 3 21 3 21 9"></polyline>
-                                <polyline points="9 21 3 21 3 15"></polyline>
-                                <line x1="21" y1="3" x2="14" y2="10"></line>
-                                <line x1="3" y1="21" x2="10" y2="14"></line>
-                              </svg>
-                            </button>
-                          </AppTooltip>
-                          <AppTooltip content="Restore Default Split">
-                            <button
-                              onClick={() => expandGuruPanel(GURU_PANEL_DEFAULT_SIZE)}
-                              className="touch-manipulation flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                              aria-label="Restore Default Split"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="4 14 10 14 10 20"></polyline>
-                                <polyline points="20 10 14 10 14 4"></polyline>
-                                <line x1="14" y1="10" x2="21" y2="3"></line>
-                                <line x1="3" y1="21" x2="10" y2="14"></line>
-                              </svg>
-                            </button>
-                          </AppTooltip>
-                          <AppTooltip content="Close Guru">
-                            <button
-                              onClick={() => setGuruOpen(false)}
-                              className="touch-manipulation flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-300 border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
-                              aria-label="Close Guru"
-                            >
-                              <X size={14} />
-                            </button>
-                          </AppTooltip>
-                        </div>
-                      )}
-                      <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+                      <GuruBot
+                        open={guruOpen}
+                        onClose={() => setGuruOpen(false)}
+                        embedded
+                        showGuruTitle
+                        onToggleFullscreen={() => {
+                          const cur = guruPanelSizeRef.current;
+                          if (cur >= GURU_PANEL_MAX_SIZE - 1) expandGuruPanel(GURU_PANEL_DEFAULT_SIZE);
+                          else expandGuruPanel(GURU_PANEL_MAX_SIZE);
+                        }}
+                        isFullscreen={guruPanelSizeRef.current >= GURU_PANEL_MAX_SIZE - 1}
+                      />
                     </div>
                   )}
                 </ResizablePanel>

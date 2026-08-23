@@ -49,6 +49,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyChallengeResponse } from "@/types/leetcode";
 import { generateHarnessMain, parseSolutionSignature, chunkTestCases } from "@/lib/javaHarness";
 import { buildProblemSolverGuruContext, deriveGuruSuggestions } from "@/lib/guruContext";
+import { toast } from "@/hooks/use-toast";
 import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
 import ReactMarkdown from "react-markdown";
@@ -110,6 +111,31 @@ function migrateStaleSolveCode(questionId: string): void {
       } catch {}
     }
     if (shouldPurge) localStorage.removeItem(k);
+  } catch {}
+}
+
+async function purgeStaleSolveCodeFromDB(questionId: string, userId: string | null): Promise<void> {
+  if (!userId) return;
+  try {
+    const { data } = await supabase
+      .from("daily_challenge_user_code")
+      .select("code")
+      .eq("user_id", userId)
+      .eq("question_id", questionId)
+      .maybeSingle();
+    const code = data?.code;
+    if (!code) return;
+    let shouldPurge = false;
+    if (isGenericSolveTemplate(code)) shouldPurge = true;
+    else if (code.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(code);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((t: { content?: string }) => t.content && isGenericSolveTemplate(t.content))) shouldPurge = true;
+      } catch {}
+    }
+    if (shouldPurge) {
+      await supabase.from("daily_challenge_user_code").delete().eq("user_id", userId).eq("question_id", questionId);
+    }
   } catch {}
 }
 
@@ -520,6 +546,7 @@ function CodeEditorPane({
   const monacoRef = useRef<any>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [codeLoaded, setCodeLoaded] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const buildTestTabs = useCallback((raw?: string, snippet?: string | null) => {
     const normalized = (raw || "").replace(/\\n/g, "\n");
     if (!normalized.trim()) return [{ id: "1", name: "Case 1", value: "" }];
@@ -573,10 +600,15 @@ function CodeEditorPane({
     return buildStarterFromSnippet(javaCode);
   }, [codeSnippets]);
 
-  // Proactively purge stale solve() cache for this question (permanent migration)
+  const hasRealStarter = useMemo(() => {
+    return !isGenericSolveTemplate(initialJavaSnippet) && initialJavaSnippet !== DEFAULT_JAVA_TEMPLATE;
+  }, [initialJavaSnippet]);
+
+  // Proactively purge stale solve() cache for this question (permanent migration: local + DB)
   useEffect(() => {
     migrateStaleSolveCode(questionId);
-  }, [questionId]);
+    void purgeStaleSolveCodeFromDB(questionId, userId);
+  }, [questionId, userId]);
 
   // Load saved code from DB / localStorage on mount or question change
   useEffect(() => {
@@ -640,6 +672,15 @@ function CodeEditorPane({
             parsedTabs = [{ id: "1", name: "Solution.java", content: saved }];
           }
         } catch {}
+
+        // If we discarded a stale generic save in favor of a real LeetCode starter, purge it permanently from DB + localStorage
+        if (isDefault && hasRealSnippet && saved) {
+          migrateStaleSolveCode(questionId);
+          void purgeStaleSolveCodeFromDB(questionId, userId);
+          // Persist the real starter so next load doesn't need to heal again
+          const healedPersistence = JSON.stringify(parsedTabs);
+          void persistCode(questionId, healedPersistence, userId);
+        }
         
         setTabs(parsedTabs);
         setActiveTabId(parsedTabs[0].id);
@@ -655,14 +696,19 @@ function CodeEditorPane({
     if (!codeLoaded) return;
     const starter = initialJavaSnippet;
     if (isGenericSolveTemplate(starter)) return; // starter itself is still generic, nothing to heal to
+    if (!hasRealStarter) return;
     const current = tabs.find((t) => t.id === activeTabId)?.content ?? tabs[0]?.content ?? "";
     if (isGenericSolveTemplate(current)) {
       // Replace stale generic with real LeetCode signature permanently
-      setTabs((prev) => prev.map((t) => (t.id === activeTabId ? { ...t, content: starter } : t)));
-      void persistCode(questionId, JSON.stringify(tabs.map((t) => (t.id === activeTabId ? { ...t, content: starter } : t))), userId);
+      const healedTabs = tabs.map((t) => (t.id === activeTabId ? { ...t, content: starter } : t));
+      setTabs(healedTabs);
+      // Purge DB generic and persist healed content to both localStorage + DB
+      void purgeStaleSolveCodeFromDB(questionId, userId).then(() => {
+        void persistCode(questionId, JSON.stringify(healedTabs), userId);
+      });
       setRunResult(null);
     }
-  }, [initialJavaSnippet, codeLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialJavaSnippet, hasRealStarter, codeLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = useCallback(
     (value: string | undefined) => {
@@ -683,14 +729,38 @@ function CodeEditorPane({
   );
 
   const handleResetCode = useCallback(() => {
+    // Never reset to the generic solve() fallback — it means today's LeetCode snippet hasn't loaded yet
+    if (!hasRealStarter || isGenericSolveTemplate(initialJavaSnippet)) {
+      toast({
+        title: "Daily challenge still loading",
+        description: "Please wait a moment — the LeetCode signature is being fetched. Try reset again once loaded.",
+      });
+      return;
+    }
+    // Show confirmation popup matching design: "Are you sure? Your current code will be discarded..."
+    setShowResetConfirm(true);
+  }, [hasRealStarter, initialJavaSnippet]);
+
+  const handleConfirmReset = useCallback(() => {
+    setShowResetConfirm(false);
+    // If current code is already the real starter, no-op (avoid needless DB write)
+    const current = tabs.find((t) => t.id === activeTabId)?.content ?? tabs[0]?.content ?? "";
+    if (normalizeForCompare(current) === normalizeForCompare(initialJavaSnippet)) {
+      setRunResult(null);
+      return;
+    }
     setCode(initialJavaSnippet);
     setRunResult(null);
     setTabs((currentTabs) => {
       const updatedTabs = currentTabs.map((t) => (t.id === activeTabId ? { ...t, content: initialJavaSnippet } : t));
-      void persistCode(questionId, JSON.stringify(updatedTabs), userId);
+      // Ensure any previously persisted generic is cleared before writing real starter
+      void purgeStaleSolveCodeFromDB(questionId, userId).then(() => {
+        void persistCode(questionId, JSON.stringify(updatedTabs), userId);
+      });
       return updatedTabs;
     });
-  }, [questionId, userId, activeTabId, initialJavaSnippet]);
+    toast({ title: "Code reset", description: "Restored today's LeetCode starter template." });
+  }, [questionId, userId, activeTabId, initialJavaSnippet, tabs]);
 
   const handleCopyCode = useCallback(() => {
     navigator.clipboard.writeText(code);
@@ -842,9 +912,20 @@ function CodeEditorPane({
     }
   }, [insertTrigger, activeTabId, questionId, userId]);
 
+  // Close reset confirm on Escape
+  useEffect(() => {
+    if (!showResetConfirm) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowResetConfirm(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showResetConfirm]);
+
   const isDark = theme === "dark";
 
   return (
+    <>
     <PanelGroup
       direction="vertical"
       autoSaveId="editor-testcases-split-v3"
@@ -928,9 +1009,16 @@ function CodeEditorPane({
             {/* Reset */}
             <button
               onClick={handleResetCode}
-              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-105"
+              disabled={!codeLoaded || !hasRealStarter}
+              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               style={{ color: isDark ? "#94a3b8" : "#64748b" }}
-              title="Reset to starter template"
+              title={
+                !codeLoaded
+                  ? "Loading saved code..."
+                  : !hasRealStarter
+                    ? "Daily challenge still loading — reset available once LeetCode signature is loaded"
+                    : "Reset to starter template (today's LeetCode signature)"
+              }
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
@@ -1461,6 +1549,61 @@ function CodeEditorPane({
         </div>
       </Panel>
     </PanelGroup>
+
+      {showResetConfirm && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* overlay */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+            onClick={() => setShowResetConfirm(false)}
+          />
+          {/* modal — matches screenshot: dark rounded card */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-confirm-title"
+            className="relative w-full max-w-[420px] rounded-2xl border shadow-2xl flex items-start gap-4 p-5 sm:p-6"
+            style={{
+              background: "#2a2a2a",
+              borderColor: "rgba(255,255,255,0.08)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.4)",
+            }}
+          >
+            {/* green info circle */}
+            <div className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center" style={{ background: "#22c55e" }}>
+              <span className="text-white font-bold text-[18px] leading-none">i</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 id="reset-confirm-title" className="text-[15px] font-semibold text-white leading-tight">Are you sure?</h3>
+              <p className="mt-1.5 text-[13px] leading-[1.45] text-[#a3a3a3]">
+                Your current code will be discarded and reset to the default code!
+              </p>
+              <div className="mt-5 flex items-center justify-end gap-2.5">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="h-8 px-4 rounded-lg text-[13px] font-medium transition-colors"
+                  style={{ background: "#3a3a3a", color: "#d4d4d4" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#404040")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#3a3a3a")}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmReset}
+                  className="h-8 px-5 rounded-lg text-[13px] font-semibold text-white transition-colors shadow-sm"
+                  style={{ background: "#22c55e" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#16a34a")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#22c55e")}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 
@@ -1877,7 +2020,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
 
           {activeTab === 2 && (
             <>
-              <motion.div {...fadeIn} className={`flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border relative shadow-sm ${isFullscreen ? "hidden" : "border-[#262626] bg-[#0F0F0F]"}`}>
+              <motion.div {...fadeIn} className={`flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border relative shadow-sm ${isFullscreen ? "hidden" : (isDark ? "border-[#262626] bg-[#0F0F0F]" : "border-zinc-200 bg-white")}`}>
                 <GuruBot
                   open={true}
                   onClose={() => setActiveTab(0)}
@@ -1893,7 +2036,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                 />
               </motion.div>
               {isFullscreen && createPortal(
-                <div className="fixed inset-0 z-[100] flex flex-col bg-[#0F0F0F] animate-in fade-in duration-200">
+                <div className={`fixed inset-0 z-[100] flex flex-col animate-in fade-in duration-200 ${isDark ? "bg-[#0F0F0F]" : "bg-white"}`}>
                   <GuruBot
                     open={true}
                     onClose={() => setIsFullscreen(false)}
