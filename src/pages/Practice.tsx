@@ -255,7 +255,7 @@ export default function Practice() {
                   </div>
                 </div>
 
-                <div className="grid gap-6 lg:gap-6 grid-cols-1 xl:grid-cols-2">
+                <div className="grid gap-6 grid-cols-1">
                   {topic.subtopics.map((sub) => {
                     const total = sub.problems.length;
                     const done = sub.problems.filter((p) => completed.has(p.id)).length;
