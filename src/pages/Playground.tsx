@@ -938,6 +938,27 @@ export default function Playground() {
     askGuruOnSelection,
   ]);
 
+  const closeSettingsMenu = useCallback(() => {
+    setShowSettingsMenu(false);
+    if (!user || !cloudPrefsLoaded) return;
+    supabase.from("playground_preferences").upsert({
+      user_id: user.id,
+      theme: themeChoice,
+      font_size: editorFontSize,
+      tab_size: editorTabSize,
+      relative_lines: relativeLineNumbers,
+      ask_guru_on_selection: askGuruOnSelection,
+    });
+  }, [
+    user,
+    cloudPrefsLoaded,
+    themeChoice,
+    editorFontSize,
+    editorTabSize,
+    relativeLineNumbers,
+    askGuruOnSelection,
+  ]);
+
   // Load personal templates + built-in overrides from DB.
   useEffect(() => {
     let cancelled = false;
@@ -2389,10 +2410,13 @@ export default function Playground() {
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => {
     return (
-      <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-        style={{ background: "var(--lc-scrim)", backdropFilter: "blur(2px)" }}
-      >
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div
+          className="absolute inset-0"
+          style={{ background: "var(--lc-scrim)", backdropFilter: "blur(2px)" }}
+          onClick={closeSettingsMenu}
+          aria-label="Close settings"
+        />
         <div
           className="lc-surface relative flex w-full max-w-lg animate-in flex-col overflow-hidden rounded-xl duration-200 fade-in zoom-in-95"
           style={{ maxHeight: "85vh" }}
@@ -2410,7 +2434,7 @@ export default function Playground() {
               Settings
             </h2>
             <button
-              onClick={() => setShowSettingsMenu(false)}
+              onClick={closeSettingsMenu}
               className="lc-icon-btn !h-8 !w-8"
               aria-label="Close settings"
             >
@@ -2627,7 +2651,7 @@ export default function Playground() {
               <button
                 onClick={() => {
                   downloadCode();
-                  setShowSettingsMenu(false);
+                  closeSettingsMenu();
                 }}
                 className="lc-hover flex flex-col items-center justify-center gap-2 rounded-lg px-2 py-3.5 text-[12px] font-medium"
                 style={{
@@ -2642,7 +2666,7 @@ export default function Playground() {
               <button
                 onClick={() => {
                   resetCode();
-                  setShowSettingsMenu(false);
+                  closeSettingsMenu();
                 }}
                 className="flex flex-col items-center justify-center gap-2 rounded-lg px-2 py-3.5 text-[12px] font-medium transition-colors"
                 style={{
@@ -3222,16 +3246,9 @@ export default function Playground() {
               </TooltipContent>
             </Tooltip>
 
-            {showSettingsMenu && settingsMenuType === "theme" && (
-              <>
-                <div
-                  className="fixed inset-0 z-[9998]"
-                  onClick={() => setShowSettingsMenu(false)}
-                  style={{ background: "var(--lc-scrim)" }}
-                />
-                {SettingsDropdownContent()}
-              </>
-            )}
+            {showSettingsMenu &&
+              settingsMenuType === "theme" &&
+              SettingsDropdownContent()}
           </TooltipProvider>
         </div>
       </div>
