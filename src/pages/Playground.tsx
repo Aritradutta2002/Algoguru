@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import {
@@ -106,6 +106,8 @@ const PLAYGROUND_FONT_SIZE_KEY = "playground-editor-font-size";
 const PLAYGROUND_TAB_SIZE_KEY = "playground-editor-tab-size";
 const PLAYGROUND_RELATIVE_LINES_KEY = "playground-editor-relative-lines";
 const PLAYGROUND_ASK_GURU_SELECTION_KEY = "playground-ask-guru-selection";
+const PLAYGROUND_THEME_KEY = "playground-editor-theme";
+const PLAYGROUND_WORKSPACE_KEY = "playground-workspace";
 const IO_COLLAPSED_SIZE = 3.5;
 const IO_EXPAND_TRIGGER_SIZE = 4.25;
 const IO_DEFAULT_SIZE = 45;
@@ -129,6 +131,14 @@ const loadBooleanSetting = (key: string, fallback: boolean) => {
   try {
     const raw = localStorage.getItem(key);
     return raw === null ? fallback : raw === "true";
+  } catch {
+    return fallback;
+  }
+};
+
+const loadStringSetting = (key: string, fallback: string) => {
+  try {
+    return localStorage.getItem(key) ?? fallback;
   } catch {
     return fallback;
   }
@@ -189,7 +199,8 @@ const DEFAULT_CODE: Record<string, string> = {
 };
 
 const THEMES = [
-  { id: "vs-dark", label: "Dark", icon: <Moon size={13} /> },
+  { id: "leetcode-dark", label: "LeetCode Dark", icon: <Moon size={13} /> },
+  { id: "vs-dark", label: "VS Dark", icon: <Moon size={13} /> },
   { id: "dracula", label: "Dracula", icon: <Palette size={13} /> },
   { id: "light", label: "Light", icon: <Sun size={13} /> },
   {
@@ -199,33 +210,6 @@ const THEMES = [
   },
   { id: "hc-black", label: "High Contrast", icon: <Palette size={13} /> },
 ];
-
-// Shared CSS Patterns
-const BUTTON_BASE_CLASSES =
-  "flex items-center gap-2 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-lg active:scale-95";
-const PANEL_HEADER_CLASSES =
-  "flex items-center gap-3 px-5 py-3 border-b bg-muted/20 backdrop-blur-sm";
-const PANEL_BORDER_STYLE = { borderColor: "hsl(var(--border) / 0.3)" };
-const IO_PANEL_CLASSES =
-  "flex h-full flex-col bg-slate-50 text-slate-950 dark:bg-[#16162a] dark:text-foreground";
-const IO_HEADER_CLASSES =
-  "flex items-center gap-3 border-b border-slate-300 bg-slate-100/95 px-5 py-3 shadow-sm shadow-slate-300/60 backdrop-blur-sm dark:border-border/30 dark:bg-muted/20 dark:shadow-none";
-const IO_LABEL_CLASSES =
-  "text-[10px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-muted-foreground/70";
-const IO_INPUT_ICON_CLASSES =
-  "flex h-7 w-7 items-center justify-center rounded-lg border border-slate-400/80 bg-white text-slate-800 shadow-sm dark:border-transparent dark:bg-muted dark:text-muted-foreground dark:shadow-none";
-const IO_CONSOLE_ICON_CLASSES =
-  "flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-700 shadow-sm dark:border-success/20 dark:bg-success/10 dark:text-success";
-const IO_TEXTAREA_CLASSES =
-  "flex-1 w-full resize-none bg-white px-6 py-4 font-mono text-sm leading-6 text-slate-950 outline-none placeholder:text-slate-500 shadow-inner shadow-slate-200/70 selection:bg-emerald-200/60 dark:bg-transparent dark:text-foreground dark:placeholder:text-muted-foreground/50 dark:shadow-none dark:selection:bg-primary/20";
-const IO_CONSOLE_CLASSES =
-  "flex-1 min-h-0 overflow-auto border-t border-slate-300 bg-white shadow-inner shadow-slate-200/60 dark:border-transparent dark:bg-[#16162a] dark:shadow-none";
-const ICON_BUTTON_CLASSES =
-  "flex items-center justify-center w-10 h-10 rounded-2xl border border-border/30 bg-muted/30 text-muted-foreground hover:bg-muted hover:border-primary/30 hover:text-primary transition-all duration-300 shadow-sm";
-const DROPDOWN_ITEM_CLASSES =
-  "w-full flex items-center gap-3 px-5 py-4 text-left group";
-const DROPDOWN_ICON_BOX_CLASSES =
-  "w-8 h-8 rounded-xl flex items-center justify-center";
 
 const JAVA_AUTO_IMPORTS = [
   "import java.util.*;",
@@ -246,6 +230,38 @@ const addAutoImports = (source: string) => {
   }
 
   return `${missingImports.join("\n")}\n\n${source}`;
+};
+
+// LeetCode Dark theme definition
+const LEETCODE_DARK_THEME = {
+  base: "vs-dark" as const,
+  inherit: true,
+  rules: [
+    { token: "", foreground: "e1e1e1", background: "282828" },
+    { token: "comment", foreground: "6a9955", fontStyle: "italic" },
+    { token: "keyword", foreground: "569cd6" },
+    { token: "string", foreground: "ce9178" },
+    { token: "number", foreground: "b5cea8" },
+    { token: "type", foreground: "4ec9b0" },
+    { token: "class", foreground: "4ec9b0" },
+    { token: "interface", foreground: "4ec9b0" },
+    { token: "function", foreground: "dcdcaa" },
+    { token: "variable", foreground: "9cdcfe" },
+    { token: "operator", foreground: "d4d4d4" },
+    { token: "annotation", foreground: "dcdcaa" },
+  ],
+  colors: {
+    "editor.background": "#282828",
+    "editor.foreground": "#e1e1e1",
+    "editor.lineHighlightBackground": "#2f2f2f",
+    "editor.selectionBackground": "#264f78",
+    "editorCursor.foreground": "#aeafad",
+    "editorIndentGuide.background": "#404040",
+    "editorLineNumber.foreground": "#6e7681",
+    "editorLineNumber.activeForeground": "#e1e1e1",
+    "scrollbarSlider.background": "#4e4e4eaa",
+    "scrollbarSlider.hoverBackground": "#5a5a5aaa",
+  },
 };
 
 // Dracula theme definition
@@ -353,7 +369,7 @@ function instrumentCodeForDebug(
 
     const prevDepth = braceDepth;
 
-    // Process closing braces FIRST â€” remove out-of-scope variables
+    // Process closing braces FIRST Ã¢â‚¬â€ remove out-of-scope variables
     if (closeBraces > 0) {
       const newDepthAfterClose = braceDepth - closeBraces;
       // Remove variables whose scope depth is greater than the new depth
@@ -370,7 +386,7 @@ function instrumentCodeForDebug(
 
     const inMethodBody = braceDepth >= 2 || prevDepth >= 2;
 
-    // Track method parameters â€” detect any line that looks like a method signature with params
+    // Track method parameters Ã¢â‚¬â€ detect any line that looks like a method signature with params
     // Matches: accessModifiers returnType methodName(Type param1, Type param2, ...) {
     if (openBraces > 0) {
       const methodSigMatch = trimmed.match(
@@ -657,13 +673,19 @@ export default function Playground() {
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
+  const [currentTheme, setCurrentTheme] = useState(
+    () =>
+      THEMES.find(
+        (t) => t.id === loadStringSetting(PLAYGROUND_THEME_KEY, "leetcode-dark"),
+      ) || THEMES[0],
+  );
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [settingsMenuType, setSettingsMenuType] = useState<"language" | "theme">("language");
   const [copied, setCopied] = useState(false);
   const [isFormatted, setIsFormatted] = useState(false);
   const [stdin, setStdin] = useState("");
+  const [consoleTab, setConsoleTab] = useState<"testcase" | "result">("testcase");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const playgroundShellRef = useRef<HTMLDivElement>(null);
   const [showTemplateMenu, setShowTemplateMenu] = useState(false);
@@ -823,6 +845,285 @@ export default function Playground() {
     return () => clearTimeout(timer);
   }, [notesContent, saveNotesNow, user]);
 
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Cloud persistence: preferences, templates, overrides,
+  // workspace. Falls back to localStorage for anonymous users.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const [cloudPrefsLoaded, setCloudPrefsLoaded] = useState(false);
+  const workspaceLoadedRef = useRef(false);
+
+  // Load preferences from DB (logged-in) and migrate local-only settings up.
+  useEffect(() => {
+    let cancelled = false;
+    setCloudPrefsLoaded(false);
+
+    if (!user) {
+      workspaceLoadedRef.current = true;
+      return;
+    }
+
+    const loadPrefs = async () => {
+      const { data } = await supabase
+        .from("playground_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (!data) {
+        // First cloud sync: push current local settings up.
+        try {
+          await supabase.from("playground_preferences").upsert({
+            user_id: user.id,
+            theme: currentTheme.id,
+            font_size: editorFontSize,
+            tab_size: editorTabSize,
+            relative_lines: relativeLineNumbers,
+            ask_guru_on_selection: askGuruOnSelection,
+          });
+        } catch {}
+      } else {
+        const theme = THEMES.find((t) => t.id === data.theme);
+        if (theme) setCurrentTheme(theme);
+        if (Number.isFinite(data.font_size)) setEditorFontSize(data.font_size);
+        if ([2, 4, 8].includes(data.tab_size)) setEditorTabSize(data.tab_size);
+        setRelativeLineNumbers(Boolean(data.relative_lines));
+        setAskGuruOnSelection(Boolean(data.ask_guru_on_selection));
+      }
+      setCloudPrefsLoaded(true);
+    };
+
+    loadPrefs();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  // Persist preferences (debounced) to DB + local mirror.
+  useEffect(() => {
+    if (!cloudPrefsLoaded && user) return;
+    try {
+      localStorage.setItem(PLAYGROUND_THEME_KEY, currentTheme.id);
+    } catch {}
+
+    if (!user) return;
+
+    const timer = setTimeout(() => {
+      supabase.from("playground_preferences").upsert({
+        user_id: user.id,
+        theme: currentTheme.id,
+        font_size: editorFontSize,
+        tab_size: editorTabSize,
+        relative_lines: relativeLineNumbers,
+        ask_guru_on_selection: askGuruOnSelection,
+      });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [
+    cloudPrefsLoaded,
+    user,
+    currentTheme,
+    editorFontSize,
+    editorTabSize,
+    relativeLineNumbers,
+    askGuruOnSelection,
+  ]);
+
+  // Load personal templates + built-in overrides from DB, migrating
+  // any legacy localStorage entries on first load.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!user) return;
+
+    const loadTemplates = async () => {
+      const [{ data: remoteTemplates }, { data: remoteOverrides }] =
+        await Promise.all([
+          supabase
+            .from("playground_user_templates")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: true }),
+          supabase
+            .from("playground_template_overrides")
+            .select("*")
+            .eq("user_id", user.id),
+        ]);
+
+      if (cancelled) return;
+
+      const localTemplates = loadUserTemplates();
+      const localOverrides = loadBuiltinOverrides();
+
+      // One-time migration of anonymous/local data into the cloud.
+      let effectiveTemplates: any[] = remoteTemplates || [];
+      if (
+        (remoteTemplates?.length ?? 0) === 0 &&
+        localTemplates.length > 0
+      ) {
+        try {
+          const { data: inserted } = await supabase
+            .from("playground_user_templates")
+            .insert(
+              localTemplates.map((t) => ({
+                user_id: user.id,
+                name: t.name,
+                description: t.description,
+                code: t.code,
+              })),
+            )
+            .select();
+          if (inserted) {
+            effectiveTemplates = inserted;
+          }
+        } catch {}
+      }
+
+      let effectiveOverrides: any[] = remoteOverrides || [];
+      const overrideEntries = Object.entries(localOverrides);
+      if ((remoteOverrides?.length ?? 0) === 0 && overrideEntries.length > 0) {
+        try {
+          const { data: inserted } = await supabase
+            .from("playground_template_overrides")
+            .insert(
+              overrideEntries.map(([prefix, value]) => ({
+                user_id: user.id,
+                prefix,
+                code: value.code,
+                description: value.description,
+              })),
+            )
+            .select();
+          if (inserted) {
+            effectiveOverrides = inserted;
+          }
+        } catch {}
+      }
+
+      if (!cancelled) {
+        setUserTemplates(
+          effectiveTemplates.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description ?? "",
+            code: t.code ?? "",
+          })),
+        );
+        const overrideMap: Record<
+          string,
+          { code: string; description: string }
+        > = {};
+        for (const row of effectiveOverrides || []) {
+          overrideMap[row.prefix] = {
+            code: row.code ?? "",
+            description: row.description ?? "",
+          };
+        }
+        setBuiltinOverrides(overrideMap);
+      }
+    };
+
+    loadTemplates();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  // Restore last workspace (open code tabs) â€” generic playground only.
+  useEffect(() => {
+    let cancelled = false;
+
+    const restoreLocal = () => {
+      if (practiceId) return;
+      try {
+        const raw = localStorage.getItem(PLAYGROUND_WORKSPACE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (Array.isArray(saved?.tabs) && saved.tabs.length > 0) {
+          setCodeTabs(saved.tabs);
+          setActiveCodeTabId(saved.activeTabId || saved.tabs[0].id);
+        }
+      } catch {}
+    };
+
+    if (!user) {
+      restoreLocal();
+      workspaceLoadedRef.current = true;
+      return;
+    }
+
+    const restore = async () => {
+      const { data } = await supabase
+        .from("playground_workspace")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (!data) {
+        // First cloud sync: migrate local workspace if present.
+        try {
+          const raw = localStorage.getItem(PLAYGROUND_WORKSPACE_KEY);
+          const saved = raw ? JSON.parse(raw) : null;
+          if (!practiceId && Array.isArray(saved?.tabs) && saved.tabs.length) {
+            await supabase.from("playground_workspace").insert({
+              user_id: user.id,
+              tabs: saved.tabs,
+              active_tab_id: saved.activeTabId || saved.tabs[0].id,
+            });
+            if (!cancelled) {
+              setCodeTabs(saved.tabs);
+              setActiveCodeTabId(saved.activeTabId || saved.tabs[0].id);
+            }
+          }
+        } catch {}
+      } else if (!practiceId && Array.isArray(data.tabs) && data.tabs.length) {
+        setCodeTabs(data.tabs as unknown as CodeTab[]);
+        setActiveCodeTabId(
+          (data.active_tab_id as string) || (data.tabs[0] as any)?.id,
+        );
+      }
+
+      if (!cancelled) {
+        workspaceLoadedRef.current = true;
+      }
+    };
+
+    restore();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, practiceId]);
+
+  // Autosave workspace (debounced).
+  useEffect(() => {
+    if (!workspaceLoadedRef.current) return;
+    if (practiceId) return;
+
+    const payload = JSON.stringify({
+      tabs: codeTabs,
+      activeTabId: activeCodeTabId,
+    });
+
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(PLAYGROUND_WORKSPACE_KEY, payload);
+      } catch {}
+      if (user) {
+        supabase.from("playground_workspace").upsert({
+          user_id: user.id,
+          tabs: codeTabs as unknown as any[],
+          active_tab_id: activeCodeTabId,
+        });
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [codeTabs, activeCodeTabId, user, practiceId]);
+
+
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   const decorationsRef = useRef<any[]>([]);
@@ -926,6 +1227,7 @@ export default function Playground() {
   const handleEditorMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any);
     monaco.editor.defineTheme("dracula", DRACULA_THEME as any);
     monaco.editor.defineTheme("solarized-dark", SOLARIZED_DARK_THEME);
 
@@ -1213,7 +1515,7 @@ export default function Playground() {
       },
     });
 
-    // 3. CP Templates from database â€” prefix-triggered snippets
+    // 3. CP Templates from database Ã¢â‚¬â€ prefix-triggered snippets
     const FULL_TEMPLATE_PREFIXES = new Set([
       "template",
       "cpfull",
@@ -1254,7 +1556,7 @@ export default function Playground() {
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: isFullTemplate ? t.code : t.code,
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.None,
-            detail: `âš¡ ${t.name}`,
+            detail: `Ã¢Å¡Â¡ ${t.name}`,
             documentation: t.description,
             filterText: `${t.prefix} ${t.name}`,
             sortText: `0_${t.prefix}`,
@@ -1272,7 +1574,7 @@ export default function Playground() {
       },
     });
 
-    // 4. User-defined symbol autocomplete (IntelliSense) â€” parses current code for variables, methods, classes
+    // 4. User-defined symbol autocomplete (IntelliSense) Ã¢â‚¬â€ parses current code for variables, methods, classes
     const JAVA_RESERVED = new Set([
       "abstract",
       "assert",
@@ -1687,6 +1989,7 @@ export default function Playground() {
 
       setIsRunning(true);
       setOutput("");
+      setConsoleTab("result");
       try {
         let sourceCode = code;
         const isJava = selectedLanguage.language === "java";
@@ -1695,7 +1998,7 @@ export default function Playground() {
         if (debugRun && breakpoints.size > 0 && isJava) {
           sourceCode = instrumentCodeForDebug(sourceCode, breakpoints);
           setOutput(
-            "ðŸ” Debug mode: Instrumented " +
+            "Ã°Å¸â€Â Debug mode: Instrumented " +
               breakpoints.size +
               " breakpoint(s)...\n\n",
           );
@@ -1833,10 +2136,22 @@ export default function Playground() {
       setBuiltinOverrides(updated);
       saveBuiltinOverrides(updated);
       setTemplateDialogOpen(false);
+
+      if (user) {
+        supabase
+          .from("playground_template_overrides")
+          .upsert({
+            user_id: user.id,
+            prefix: editingBuiltinPrefix,
+            code,
+            description: templateDesc.trim(),
+          }, { onConflict: "user_id,prefix" });
+      }
       return;
     }
 
     let updated: UserTemplate[];
+    let savedTemplate: UserTemplate | null = null;
     if (editingTemplate) {
       updated = userTemplates.map((t) =>
         t.id === editingTemplate.id
@@ -1848,6 +2163,7 @@ export default function Playground() {
             }
           : t,
       );
+      savedTemplate = updated.find((t) => t.id === editingTemplate.id) || null;
     } else {
       const newTmpl: UserTemplate = {
         id: crypto.randomUUID(),
@@ -1855,11 +2171,51 @@ export default function Playground() {
         description: templateDesc.trim(),
         code,
       };
+      savedTemplate = newTmpl;
       updated = [...userTemplates, newTmpl];
     }
     setUserTemplates(updated);
     saveUserTemplates(updated);
     setTemplateDialogOpen(false);
+
+    if (user && savedTemplate) {
+      if (editingTemplate) {
+        supabase
+          .from("playground_user_templates")
+          .update({
+            name: savedTemplate.name,
+            description: savedTemplate.description,
+            code: savedTemplate.code,
+          })
+          .eq("id", editingTemplate.id)
+          .eq("user_id", user.id);
+      } else {
+        supabase
+          .from("playground_user_templates")
+          .insert({
+            user_id: user.id,
+            name: savedTemplate.name,
+            description: savedTemplate.description,
+            code: savedTemplate.code,
+          })
+          .select("id")
+          .single()
+          .then(({ data }) => {
+            if (data?.id) {
+              setUserTemplates((prev) =>
+                prev.map((t) =>
+                  t.id === savedTemplate!.id ? { ...t, id: data.id } : t,
+                ),
+              );
+              saveUserTemplates(
+                userTemplates.map((t) =>
+                  t.id === savedTemplate!.id ? { ...t, id: data.id } : t,
+                ),
+              );
+            }
+          });
+      }
+    }
   };
 
   const handleResetBuiltinTemplate = (prefix: string) => {
@@ -1867,6 +2223,14 @@ export default function Playground() {
     delete updated[prefix];
     setBuiltinOverrides(updated);
     saveBuiltinOverrides(updated);
+
+    if (user) {
+      supabase
+        .from("playground_template_overrides")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("prefix", prefix);
+    }
   };
 
   const handleDeleteTemplate = (id: string) => {
@@ -1874,30 +2238,36 @@ export default function Playground() {
     setUserTemplates(updated);
     saveUserTemplates(updated);
     setDeleteConfirmId(null);
+
+    if (user) {
+      supabase
+        .from("playground_user_templates")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+    }
   };
 
-  // Run button component (reusable for both normal and fullscreen)
+  // Run button component (LC pill style)
   const RunButton = ({ compact = false }: { compact?: boolean }) => (
     <AppTooltip content="Run (Ctrl+Enter)">
       <button
         onClick={() => runCode(false)}
-      disabled={isRunning || !code.trim()}
-      className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
-        compact
-          ? "h-8 min-w-[66px] justify-center rounded-md px-2.5 text-[9px] shadow-sm"
-          : "px-6 py-2.5 text-[11px]"
-      } bg-success text-success-foreground shadow-success/20 hover:bg-success/90`}
-      aria-label="Run code"
-    >
+        disabled={isRunning || !code.trim()}
+        className={`lc-pill lc-pill-green ${
+          compact ? "!px-4 !py-[5px] !text-[12px]" : "!px-6 !py-2 !text-[13px]"
+        }`}
+        aria-label="Run code"
+      >
         {isRunning ? (
           <Loader2 size={14} className="animate-spin" />
         ) : (
-        <Play size={14} fill="currentColor" strokeWidth={0} />
-      )}
-      {compact ? "Run" : isRunning ? "Running..." : "Run"}
-    </button>
-  </AppTooltip>
-);
+          <Play size={14} fill="currentColor" strokeWidth={0} />
+        )}
+        {compact ? "Run" : isRunning ? "Running..." : "Run"}
+      </button>
+    </AppTooltip>
+  );
 
   // Debug button component
   const DebugButton = ({ compact = false }: { compact?: boolean }) => {
@@ -1911,14 +2281,8 @@ export default function Playground() {
         <button
           onClick={() => runCode(true)}
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
-          className={`${BUTTON_BASE_CLASSES} disabled:opacity-50 ${
-            compact
-              ? "h-8 min-w-[74px] justify-center rounded-md px-2.5 text-[9px] shadow-sm"
-              : "px-6 py-2.5 text-[11px]"
-          } ${
-            breakpoints.size > 0
-              ? "bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90"
-              : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
+          className={`lc-pill lc-pill-outline ${
+            compact ? "!px-4 !py-[5px] !text-[12px]" : "!px-6 !py-2 !text-[13px]"
           }`}
           aria-label={tooltip}
         >
@@ -2203,10 +2567,111 @@ export default function Playground() {
     );
   };
 
+  // â”€â”€ Derived layout flags â”€â”€
+  const showLeftDescription = !isMobile && !!practiceData;
+  const showMobileProblemView =
+    isMobile && !!practiceData && practiceTab === "problem";
+  const mainNotesActive = practiceTab === "notes" && !showLeftDescription;
+
+  const difficultyClass =
+    practiceData?.difficulty === "Easy"
+      ? "lc-difficulty-easy"
+      : practiceData?.difficulty === "Medium"
+        ? "lc-difficulty-medium"
+        : "lc-difficulty-hard";
+
+  // â”€â”€ Notes surface (reused in left panel and main area) â”€â”€
+  const notesToolbar = (
+    <div
+      className="flex flex-shrink-0 flex-wrap items-center gap-2 px-4 py-2.5"
+      style={{ borderBottom: "1px solid var(--lc-border)" }}
+    >
+      <button
+        type="button"
+        onClick={() => setNotesPreviewOpen((open) => !open)}
+        className={`lc-pill !py-1.5 !text-[12px] ${notesPreviewOpen ? "lc-pill-outline" : "lc-pill-muted"}`}
+      >
+        <BookOpen size={13} />
+        {notesPreviewOpen ? "Edit" : "Preview"}
+      </button>
+      <button
+        type="button"
+        onClick={() => saveNotesNow(notesContent, true)}
+        className="lc-pill lc-pill-green !py-1.5 !text-[12px]"
+      >
+        <Save size={13} />
+        Save
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setNotesContent("");
+          setNotesPreviewOpen(false);
+          void saveNotesNow("");
+        }}
+        className="lc-pill lc-pill-muted !py-1.5 !text-[12px] hover:!text-[color:var(--lc-red)]"
+      >
+        <Trash2 size={13} />
+        Clear
+      </button>
+      <div className="flex-1" />
+      <span
+        className="text-[11px] font-medium"
+        style={{ color: "var(--lc-faint)" }}
+      >
+        {notesSaveStatus}
+      </span>
+    </div>
+  );
+
+  const notesBody = (
+    <div className="min-h-0 flex-1 overflow-auto p-4">
+      {notesPreviewOpen ? (
+        <div
+          className="note-rendered min-h-full whitespace-pre-wrap rounded-lg p-5 text-sm leading-relaxed"
+          style={{
+            border: "1px solid var(--lc-border)",
+            background: "var(--lc-panel-2)",
+            color: "var(--lc-text)",
+          }}
+          dangerouslySetInnerHTML={{
+            __html:
+              renderNoteMarkdown(notesContent) ||
+              '<span class="text-muted-foreground">No notes to preview.</span>',
+          }}
+        />
+      ) : (
+        <RichTextNoteEditor
+          value={notesContent}
+          onChange={(value) => {
+            setNotesContent(value);
+            setNotesSaveStatus("Saving...");
+          }}
+          placeholder="Type here...(Markdown is enabled)"
+          autoFocus
+        />
+      )}
+    </div>
+  );
+
+  const notesSurface = (
+    <div
+      className="flex h-full min-h-0 flex-col overflow-hidden"
+      style={{ background: "var(--lc-panel)" }}
+    >
+      {notesToolbar}
+      {notesBody}
+    </div>
+  );
+
   return (
     <div
       ref={playgroundShellRef}
-      className={`playground-shell ${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-full min-h-0"} relative flex flex-col overflow-hidden bg-background`}
+      className={`playground-shell ${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-full min-h-0"} relative flex flex-col overflow-hidden`}
+      style={{
+        background: "var(--lc-bg)",
+        color: "var(--lc-text)",
+      }}
     >
       {/* Breakpoint & debug CSS */}
       <style>{`
@@ -2225,73 +2690,19 @@ export default function Playground() {
         .monaco-editor .margin {
           cursor: pointer !important;
         }
-        .light .playground-shell {
-          background: hsl(220 24% 97%);
-          color: hsl(222 44% 11%);
-        }
-        .light .playground-shell .text-muted-foreground,
-        .light .playground-shell .text-muted-foreground\\/40,
-        .light .playground-shell .text-muted-foreground\\/50,
-        .light .playground-shell .text-muted-foreground\\/60,
-        .light .playground-shell .text-muted-foreground\\/70 {
-          color: hsl(220 18% 28%) !important;
-        }
-        .light .playground-shell .text-muted-foreground\\/20,
-        .light .playground-shell .text-muted-foreground\\/30 {
-          color: hsl(220 18% 36%) !important;
-        }
-        .light .playground-shell .text-foreground\\/60,
-        .light .playground-shell .text-foreground\\/70,
-        .light .playground-shell .text-foreground\\/80,
-        .light .playground-shell .text-foreground\\/90 {
-          color: hsl(222 44% 14%) !important;
-        }
-        .light .playground-shell .placeholder\\:text-muted-foreground\\/30::placeholder,
-        .light .playground-shell .placeholder\\:text-muted-foreground\\/45::placeholder,
-        .light .playground-shell .placeholder\\:text-muted-foreground\\/50::placeholder {
-          color: hsl(220 18% 38%) !important;
-        }
-        .light .playground-shell .border-border\\/10,
-        .light .playground-shell .border-border\\/20,
-        .light .playground-shell .border-border\\/30 {
-          border-color: hsl(216 20% 68%) !important;
-        }
-        .light .playground-shell .bg-muted\\/10,
-        .light .playground-shell .bg-muted\\/20,
-        .light .playground-shell .bg-muted\\/30 {
-          background-color: hsl(216 28% 90%) !important;
-        }
-        .light .playground-shell .bg-background\\/50,
-        .light .playground-shell .bg-background\\/70,
-        .light .playground-shell .bg-card\\/50,
-        .light .playground-shell .bg-card\\/85 {
-          background-color: hsl(0 0% 100% / 0.92) !important;
-        }
-        .light .playground-shell .text-amber-400,
-        .light .playground-shell .text-amber-400\\/80 {
-          color: hsl(38 92% 35%) !important;
-        }
-        .light .playground-shell .bg-amber-400\\/10 {
-          background-color: hsl(38 92% 48% / 0.16) !important;
-        }
-        .light .playground-shell .border-amber-400 {
-          border-color: hsl(38 92% 42%) !important;
-        }
       `}</style>
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          ROW 1 â€” Activity / Language Bar
-      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TOP BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="relative flex items-center justify-between px-2 border-b flex-shrink-0 select-none"
+        className="flex flex-shrink-0 select-none items-center justify-between px-3"
         style={{
-          background: "hsl(var(--card))",
-          borderColor: "hsl(var(--border)/0.25)",
-          minHeight: 38,
+          height: 44,
+          background: "var(--lc-panel)",
+          borderBottom: "1px solid var(--lc-border-soft)",
         }}
       >
-        {/* Left: Language selector */}
-        <div className="flex items-center gap-1 h-full ml-2">
+        {/* Left: language selector + compiler info */}
+        <div className="ml-1 flex h-full items-center gap-1">
           <div className="relative flex-shrink-0">
             <AppTooltip content="Change Language" side="bottom">
               <button
@@ -2304,12 +2715,19 @@ export default function Playground() {
                   }
                 }}
                 aria-label="Change Language"
-                className="flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
+                className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium transition-colors hover:bg-white/5"
+                style={{ color: "var(--lc-text)" }}
               >
+                <Code2 size={15} style={{ color: "var(--lc-accent)" }} />
                 <span>{selectedLanguage.label}</span>
                 <ChevronDown
                   size={14}
-                  className={`transition-transform duration-200 ${showSettingsMenu && settingsMenuType === "language" ? "rotate-180" : ""}`}
+                  className={`transition-transform duration-200 ${
+                    showSettingsMenu && settingsMenuType === "language"
+                      ? "rotate-180"
+                      : ""
+                  }`}
+                  style={{ color: "var(--lc-muted)" }}
                 />
               </button>
             </AppTooltip>
@@ -2320,71 +2738,77 @@ export default function Playground() {
                   onClick={() => setShowSettingsMenu(false)}
                 />
                 <div
-                  className="absolute top-10 left-0 z-[9999] min-w-[240px] rounded-xl border border-border/40 py-1.5 shadow-2xl animate-in fade-in zoom-in-95"
+                  className="absolute left-0 top-10 z-[9999] min-w-[260px] overflow-hidden rounded-xl py-1 shadow-2xl animate-in fade-in zoom-in-95"
                   style={{
-                    backgroundColor: "hsl(var(--card))",
+                    background: "var(--lc-panel-2)",
+                    border: "1px solid var(--lc-border)",
                   }}
                 >
-                  {availableLanguages.map((c) => (
-                    <button
-                      key={c.language}
-                      onClick={() => {
-                        setSelectedLanguage(c);
-                        setCode(DEFAULT_CODE[c.language] || "");
-                        setShowSettingsMenu(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-5 py-2.5 text-left text-sm transition-colors ${
-                        selectedLanguage.language === c.language
-                          ? "bg-primary/10 text-primary font-bold"
-                          : "text-foreground font-semibold hover:bg-muted/50"
-                      }`}
-                    >
-                      <span className="">{c.label}</span>
-                      <span
-                        className={`text-xs ml-4 ${
-                          selectedLanguage.language === c.language
-                            ? "text-primary/70"
-                            : "text-muted-foreground/60"
-                        }`}
+                  {availableLanguages.map((c) => {
+                    const isActive = selectedLanguage.language === c.language;
+                    return (
+                      <button
+                        key={c.language}
+                        onClick={() => {
+                          setSelectedLanguage(c);
+                          setCode(DEFAULT_CODE[c.language] || "");
+                          setShowSettingsMenu(false);
+                        }}
+                        className="flex w-full items-center justify-between px-4 py-2.5 text-left text-[13px] transition-colors hover:bg-white/5"
+                        style={{
+                          color: isActive
+                            ? "var(--lc-accent)"
+                            : "var(--lc-text)",
+                          fontWeight: isActive ? 600 : 400,
+                        }}
                       >
-                        {c.version || ""}
-                      </span>
-                    </button>
-                  ))}
+                        <span>{c.label}</span>
+                        <span
+                          className="ml-4 font-mono text-[10px]"
+                          style={{
+                            color: isActive
+                              ? "var(--lc-accent)"
+                              : "var(--lc-faint)",
+                          }}
+                        >
+                          {c.version || ""}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
           </div>
-          <div className="relative group flex-shrink-0">
+          <div className="group relative flex-shrink-0">
             <button
               type="button"
-              className="w-9 h-9 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 transition-all text-sm italic font-serif font-bold"
+              className="lc-icon-btn text-[13px] italic"
               aria-label={`Compiler Info: ${selectedLanguage.label} ${selectedLanguage.version}`}
             >
               i
             </button>
-            <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[260px] -translate-x-1/2 rounded-xl border border-border/30 bg-card px-3 py-2 text-[10px] font-bold text-muted-foreground opacity-0 shadow-2xl shadow-black/20 backdrop-blur-xl transition-all duration-200 group-hover:opacity-100">
-              <span className="font-black text-foreground">
+            <div
+              className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[280px] -translate-x-1/2 rounded-lg px-3 py-2 text-[11px] opacity-0 shadow-xl transition-all duration-200 group-hover:opacity-100"
+              style={{
+                background: "var(--lc-panel-2)",
+                border: "1px solid var(--lc-border)",
+                color: "var(--lc-muted)",
+              }}
+            >
+              <span className="font-semibold" style={{ color: "var(--lc-text)" }}>
                 {selectedLanguage.label}
               </span>
               <span className="mx-1">version:</span>
-              <span className="font-mono text-primary">
+              <span className="font-mono" style={{ color: "var(--lc-accent)" }}>
                 {selectedLanguage.version}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Center: Run + Debug */}
-        <div className="pointer-events-none absolute left-[44%] top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border border-border/20 bg-background/50 px-1.5 py-0.5 shadow-lg shadow-black/10 backdrop-blur-md">
-          <div className="pointer-events-auto flex items-center gap-2">
-            <RunButton compact />
-            <DebugButton compact />
-          </div>
-        </div>
-
         {/* Right: icon toolbar */}
-        <div className="flex items-center gap-2 h-full mr-6">
+        <div className="mr-2 flex h-full items-center gap-1">
           <TooltipProvider delayDuration={300}>
             {/* Templates */}
             <div className="relative flex h-full items-center">
@@ -2392,495 +2816,363 @@ export default function Playground() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => setShowTemplateMenu(!showTemplateMenu)}
-                    className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
+                    className="lc-icon-btn"
+                    aria-label="Templates"
                   >
-                    <FileCode size={18} />
+                    <FileCode size={17} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
+                <TooltipContent side="bottom" className="text-xs font-medium">
                   <p>Templates</p>
                 </TooltipContent>
               </Tooltip>
-            {showTemplateMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-[9998]"
-                  onClick={() => setShowTemplateMenu(false)}
-                  style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
-                />
-                <div
-                  className="fixed left-1/2 -translate-x-1/2 top-20 w-[90vw] max-w-md rounded-[24px] overflow-hidden z-[9999] shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] border border-border/30 max-h-[70vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
-                  style={{
-                    backgroundColor: "hsl(var(--card))",
-                    backdropFilter: "blur(12px)",
-                  }}
-                >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
-                  <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-b border-border/10 bg-muted/10">
-                    Standard Blueprints
-                  </div>
-                  <div className="relative z-10 p-2 space-y-1">
-                    {CP_TEMPLATES.map((tmpl) => {
-                      const override = builtinOverrides[tmpl.prefix];
-                      const isOverridden = !!override;
-                      return (
-                        <div
-                          key={tmpl.prefix}
-                          className="group flex items-center rounded-2xl hover:bg-muted/50 transition-all duration-300 border border-transparent hover:border-border/10"
-                        >
-                          <button
-                            onClick={() => {
-                              setCode(override?.code ?? tmpl.code);
-                              setOutput("");
-                              setShowTemplateMenu(false);
-                            }}
-                            className="flex-1 flex flex-col gap-1 px-4 py-3 text-left"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-[12px] font-bold tracking-tight text-foreground">
-                                {tmpl.name}
-                              </span>
-                              {isOverridden && (
-                                <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
-                                  edited
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
-                              {override?.description ?? tmpl.description}
-                            </span>
-                          </button>
-                          <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                            <AppTooltip content="Edit blueprint">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openEditBuiltinTemplate(tmpl);
-                                }}
-                                className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
-                                aria-label="Edit blueprint"
-                              >
-                                <Pencil size={12} />
-                              </button>
-                            </AppTooltip>
-                            {isOverridden && (
-                              <AppTooltip content="Reset to original">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleResetBuiltinTemplate(tmpl.prefix);
-                                  }}
-                                  className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-warning hover:border-warning/30 transition-all shadow-sm"
-                                  aria-label="Reset to original"
-                                >
-                                  <RotateCcw size={12} />
-                                </button>
-                              </AppTooltip>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {userTemplates.length > 0 && (
-                    <>
-                      <div className="relative z-10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/70 border-y border-border/10 bg-muted/10 mt-2">
-                        My Personal Vault
-                      </div>
-                      <div className="relative z-10 p-2 space-y-1">
-                        {userTemplates.map((tmpl) => (
+
+              {showTemplateMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-[9998]"
+                    onClick={() => setShowTemplateMenu(false)}
+                    style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+                  />
+                  <div
+                    className="fixed left-1/2 top-16 z-[9999] max-h-[70vh] w-[90vw] max-w-md -translate-x-1/2 animate-in overflow-hidden overflow-y-auto rounded-xl shadow-2xl fade-in zoom-in-95 duration-200"
+                    style={{
+                      background: "var(--lc-panel-2)",
+                      border: "1px solid var(--lc-border)",
+                    }}
+                  >
+                    <div
+                      className="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                      style={{
+                        borderBottom: "1px solid var(--lc-border)",
+                        color: "var(--lc-muted)",
+                      }}
+                    >
+                      Standard Templates
+                    </div>
+                    <div className="space-y-0.5 p-1.5">
+                      {CP_TEMPLATES.map((tmpl) => {
+                        const override = builtinOverrides[tmpl.prefix];
+                        const isOverridden = !!override;
+                        return (
                           <div
-                            key={tmpl.id}
-                            className="group flex items-center rounded-2xl hover:bg-muted/50 transition-all duration-300 border border-transparent hover:border-border/10"
+                            key={tmpl.prefix}
+                            className="group flex items-center rounded-lg transition-colors hover:bg-white/5"
                           >
                             <button
                               onClick={() => {
-                                setCode(tmpl.code);
+                                setCode(override?.code ?? tmpl.code);
                                 setOutput("");
                                 setShowTemplateMenu(false);
                               }}
-                              className="flex-1 flex flex-col gap-1 px-4 py-3 text-left"
+                              className="flex flex-1 flex-col gap-0.5 px-3.5 py-2.5 text-left"
                             >
-                              <span className="text-[12px] font-bold tracking-tight text-foreground">
-                                {tmpl.name}
-                              </span>
-                              {tmpl.description && (
-                                <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
-                                  {tmpl.description}
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="text-[13px] font-medium"
+                                  style={{ color: "var(--lc-text)" }}
+                                >
+                                  {tmpl.name}
                                 </span>
-                              )}
+                                {isOverridden && (
+                                  <span
+                                    className="rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase"
+                                    style={{
+                                      background: "var(--lc-accent-soft)",
+                                      color: "var(--lc-accent)",
+                                    }}
+                                  >
+                                    edited
+                                  </span>
+                                )}
+                              </div>
+                              <span
+                                className="text-[11px] leading-tight"
+                                style={{ color: "var(--lc-muted)" }}
+                              >
+                                {override?.description ?? tmpl.description}
+                              </span>
                             </button>
-                            <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                            <div className="flex items-center gap-1 pr-2.5 opacity-0 transition-opacity group-hover:opacity-100">
                               <AppTooltip content="Edit template">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openEditTemplate(tmpl);
+                                    openEditBuiltinTemplate(tmpl);
                                   }}
-                                  className="w-8 h-8 rounded-xl bg-card border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+                                  className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                                  style={{ color: "var(--lc-muted)" }}
                                   aria-label="Edit template"
                                 >
                                   <Pencil size={12} />
                                 </button>
                               </AppTooltip>
-                              <AppTooltip content="Delete template">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDeleteConfirmId(
-                                      tmpl.id === deleteConfirmId
-                                        ? null
-                                        : tmpl.id,
-                                    );
-                                  }}
-                                  className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all shadow-sm ${deleteConfirmId === tmpl.id ? "bg-destructive text-white border-destructive" : "bg-card border-border/30 text-muted-foreground hover:text-destructive hover:border-destructive/30"}`}
-                                  aria-label="Delete template"
-                                >
-                                  {deleteConfirmId === tmpl.id ? (
-                                    <Check size={12} />
-                                  ) : (
-                                    <Trash2 size={12} />
-                                  )}
-                                </button>
-                              </AppTooltip>
+                              {isOverridden && (
+                                <AppTooltip content="Reset to original">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleResetBuiltinTemplate(tmpl.prefix);
+                                    }}
+                                    className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                                    style={{ color: "var(--lc-yellow)" }}
+                                    aria-label="Reset to original"
+                                  >
+                                    <RotateCcw size={12} />
+                                  </button>
+                                </AppTooltip>
+                              )}
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                  <button
-                    onClick={openCreateTemplate}
-                    className="relative z-10 w-full flex items-center justify-center gap-3 px-6 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all border-t border-border/10 group"
-                  >
-                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Plus size={14} />
+                        );
+                      })}
                     </div>
-                    Snapshot Editor to Template
-                  </button>
-                </div>
+
+                    {userTemplates.length > 0 && (
+                      <>
+                        <div
+                          className="mt-1 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                          style={{
+                            borderTop: "1px solid var(--lc-border)",
+                            borderBottom: "1px solid var(--lc-border)",
+                            color: "var(--lc-muted)",
+                          }}
+                        >
+                          My Templates
+                        </div>
+                        <div className="space-y-0.5 p-1.5">
+                          {userTemplates.map((tmpl) => (
+                            <div
+                              key={tmpl.id}
+                              className="group flex items-center rounded-lg transition-colors hover:bg-white/5"
+                            >
+                              <button
+                                onClick={() => {
+                                  setCode(tmpl.code);
+                                  setOutput("");
+                                  setShowTemplateMenu(false);
+                                }}
+                                className="flex flex-1 flex-col gap-0.5 px-3.5 py-2.5 text-left"
+                              >
+                                <span
+                                  className="text-[13px] font-medium"
+                                  style={{ color: "var(--lc-text)" }}
+                                >
+                                  {tmpl.name}
+                                </span>
+                                {tmpl.description && (
+                                  <span
+                                    className="text-[11px] leading-tight"
+                                    style={{ color: "var(--lc-muted)" }}
+                                  >
+                                    {tmpl.description}
+                                  </span>
+                                )}
+                              </button>
+                              <div className="flex items-center gap-1 pr-2.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                <AppTooltip content="Edit template">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openEditTemplate(tmpl);
+                                    }}
+                                    className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                                    style={{ color: "var(--lc-muted)" }}
+                                    aria-label="Edit template"
+                                  >
+                                    <Pencil size={12} />
+                                  </button>
+                                </AppTooltip>
+                                <AppTooltip
+                                  content={
+                                    deleteConfirmId === tmpl.id
+                                      ? "Click again to confirm delete"
+                                      : "Delete template"
+                                  }
+                                >
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeleteConfirmId(
+                                        tmpl.id === deleteConfirmId
+                                          ? null
+                                          : tmpl.id,
+                                      );
+                                    }}
+                                    className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10`}
+                                    style={{
+                                      color:
+                                        deleteConfirmId === tmpl.id
+                                          ? "#ffffff"
+                                          : "var(--lc-muted)",
+                                      background:
+                                        deleteConfirmId === tmpl.id
+                                          ? "var(--lc-red)"
+                                          : "transparent",
+                                    }}
+                                    aria-label="Delete template"
+                                  >
+                                    {deleteConfirmId === tmpl.id ? (
+                                      <Check size={12} />
+                                    ) : (
+                                      <Trash2 size={12} />
+                                    )}
+                                  </button>
+                                </AppTooltip>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    <button
+                      onClick={openCreateTemplate}
+                      className="group flex w-full items-center justify-center gap-2 px-6 py-3.5 text-[12px] font-medium transition-colors hover:bg-white/5"
+                      style={{
+                        borderTop: "1px solid var(--lc-border)",
+                        color: "var(--lc-accent)",
+                      }}
+                    >
+                      <Plus size={14} />
+                      Save current code as template
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Format */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={formatCode}
+                  className="lc-icon-btn"
+                  aria-label="Format code"
+                >
+                  {isFormatted ? (
+                    <Check size={16} style={{ color: "var(--lc-green)" }} />
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 640 640"
+                      width={16}
+                      height={16}
+                      fill="currentColor"
+                    >
+                      <path d="M64 128C64 92.7 92.7 64 128 64L416 64C451.3 64 480 92.7 480 128L496 128C540.2 128 576 163.8 576 208L576 304C576 348.2 540.2 384 496 384L336 384C327.2 384 320 391.2 320 400L320 418.7C338.6 425.3 352 443.1 352 464L352 560C352 586.5 330.5 608 304 608L272 608C245.5 608 224 586.5 224 560L224 464C224 443.1 237.4 425.3 256 418.7L256 400C256 355.8 291.8 320 336 320L496 320C504.8 320 512 312.8 512 304L512 208C512 199.2 504.8 192 496 192L480 192C480 227.3 451.3 256 416 256L128 256C92.7 256 64 227.3 64 192L64 128z" />
+                    </svg>
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs font-medium">
+                <p>Format Code (Shift+Alt+F)</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Reset */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => resetCode()}
+                  className="lc-icon-btn hover:!text-[color:var(--lc-red)]"
+                  aria-label="Reset Code"
+                >
+                  <RotateCcw size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs font-medium">
+                <p>Reset Code</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <div
+              className="mx-1 h-4 w-px"
+              style={{ background: "var(--lc-border)" }}
+            />
+
+            {/* Fullscreen */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleFullscreen}
+                  className="lc-icon-btn"
+                  aria-label="Toggle fullscreen"
+                >
+                  {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs font-medium">
+                <p>
+                  {isFullscreen
+                    ? "Exit Fullscreen (F11)"
+                    : "Toggle Fullscreen (F11)"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Settings */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => {
+                    if (showSettingsMenu && settingsMenuType === "theme") {
+                      setShowSettingsMenu(false);
+                    } else {
+                      setShowSettingsMenu(true);
+                      setSettingsCompilerOpen(false);
+                      setSettingsThemeOpen(true);
+                      setSettingsMenuType("theme");
+                    }
+                  }}
+                  className={`lc-icon-btn ${
+                    showSettingsMenu && settingsMenuType === "theme"
+                      ? "!text-[color:var(--lc-accent)]"
+                      : ""
+                  }`}
+                  aria-label="Settings"
+                >
+                  <Settings size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs font-medium">
+                <p>Settings</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {showSettingsMenu && settingsMenuType === "theme" && (
+              <>
+                <div
+                  className="fixed inset-0 z-[9998]"
+                  onClick={() => setShowSettingsMenu(false)}
+                  style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+                />
+                {SettingsDropdownContent()}
               </>
             )}
-          </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={formatCode}
-                className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all font-medium text-sm"
-              >
-                {isFormatted ? (
-                  <>
-                    <Check size={16} className="text-primary" />
-                    <span className="text-primary hidden sm:inline-block">Formatted</span>
-                  </>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={16} height={16} fill="currentColor">
-                    <path d="M64 128C64 92.7 92.7 64 128 64L416 64C451.3 64 480 92.7 480 128L496 128C540.2 128 576 163.8 576 208L576 304C576 348.2 540.2 384 496 384L336 384C327.2 384 320 391.2 320 400L320 418.7C338.6 425.3 352 443.1 352 464L352 560C352 586.5 330.5 608 304 608L272 608C245.5 608 224 586.5 224 560L224 464C224 443.1 237.4 425.3 256 418.7L256 400C256 355.8 291.8 320 336 320L496 320C504.8 320 512 312.8 512 304L512 208C512 199.2 504.8 192 496 192L480 192C480 227.3 451.3 256 416 256L128 256C92.7 256 64 227.3 64 192L64 128z"/>
-                  </svg>
-                )}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
-              <p>Format Code (Shift+Alt+F)</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => resetCode()}
-                className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all"
-              >
-                <RotateCcw size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
-              <p>Reset Code</p>
-            </TooltipContent>
-          </Tooltip>
-          <div className="w-px h-5 bg-border/30 mx-1" />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={toggleFullscreen}
-                className="w-9 h-9 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40 transition-all"
-              >
-                {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
-              <p>{isFullscreen ? "Exit Fullscreen (F11)" : "Toggle Fullscreen (F11)"}</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => {
-                  if (showSettingsMenu && settingsMenuType === "theme") {
-                    setShowSettingsMenu(false);
-                  } else {
-                    setShowSettingsMenu(true);
-                    setSettingsCompilerOpen(false);
-                    setSettingsThemeOpen(true);
-                    setSettingsMenuType("theme");
-                  }
-                }}
-                className={`w-9 h-9 flex items-center justify-center rounded-md transition-all ${showSettingsMenu && settingsMenuType === "theme" ? "text-primary bg-primary/10" : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40"}`}
-              >
-                <Settings size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs font-medium border-border/40">
-              <p>Settings</p>
-            </TooltipContent>
-          </Tooltip>
-          {showSettingsMenu && settingsMenuType === "theme" && (
-            <>
-              <div
-                className="fixed inset-0 z-[9998]"
-                onClick={() => setShowSettingsMenu(false)}
-                style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
-              />
-              {SettingsDropdownContent()}
-            </>
-          )}
           </TooltipProvider>
         </div>
       </div>
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          ROW 2 â€” Tab Bar + Run + Status
-      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-      <div
-        className="relative flex items-center border-b flex-shrink-0 select-none"
-        style={{
-          background: "hsl(var(--muted)/0.08)",
-          borderColor: "hsl(var(--border)/0.2)",
-          minHeight: 36,
-        }}
-      >
-        {/* Left: file tabs */}
-        <div className="flex items-center h-full">
-          {/* Code tabs — Solution is protected, extra code tabs are closable */}
-          {codeTabs.map((tab) => {
-            const isActive =
-              practiceTab !== "notes" && activeCodeTabId === tab.id;
-
-            return (
-              <div
-                key={tab.id}
-                className="flex items-center h-full border-r"
-                style={{
-                  borderColor: "hsl(var(--border)/0.2)",
-                  background: isActive
-                    ? "hsl(var(--card)/0.85)"
-                    : "transparent",
-                }}
-              >
-                <AppTooltip content={`Switch to ${tab.title}`}>
-                  <button
-                    onClick={() => {
-                      setActiveCodeTabId(tab.id);
-                      setPracticeTab("editor");
-                    }}
-                    className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
-                      isActive
-                        ? "text-foreground border-b-2 border-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                    }`}
-                    aria-label={`Switch to ${tab.title}`}
-                  >
-                    <Code2 size={13} className="text-primary/70" />
-                    <span>{tab.title}</span>
-                  </button>
-                </AppTooltip>
-
-                {!tab.protected && (
-                  <AppTooltip content={`Close ${tab.title}`}>
-                    <button
-                      onClick={() => closeCodeTab(tab.id)}
-                      className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                      aria-label={`Close ${tab.title}`}
-                    >
-                      <X size={10} />
-                    </button>
-                  </AppTooltip>
-                )}
-
-                {tab.id === "solution" && practiceData && (
-                  <AppTooltip content="Close practice problem">
-                    <button
-                      onClick={() => navigate("/playground")}
-                      className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                      aria-label="Close practice problem"
-                    >
-                      <X size={10} />
-                    </button>
-                  </AppTooltip>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Notes tab — opens from toolbar and can be closed */}
-          {notesTabOpen && (
-            <div
-              className="flex items-center h-full border-r"
-              style={{
-                borderRightColor: "hsl(var(--border)/0.2)",
-                background:
-                  practiceTab === "notes"
-                    ? "hsl(var(--card)/0.85)"
-                    : "transparent",
-              }}
-            >
-              <AppTooltip content="Switch to Notes">
-                <button
-                  onClick={() => setPracticeTab("notes")}
-                  className={`flex items-center h-full px-4 gap-2 text-[12px] font-bold transition-all ${
-                    practiceTab === "notes"
-                      ? "text-amber-400 border-b-2 border-amber-400"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                  }`}
-                  aria-label="Switch to Notes"
-                >
-                  <StickyNote
-                    size={13}
-                    className={
-                      practiceTab === "notes"
-                        ? "text-amber-400"
-                        : "text-muted-foreground/70"
-                    }
-                  />
-                  <span>Notes</span>
-                </button>
-              </AppTooltip>
-              <AppTooltip content="Close Notes tab">
-                <button
-                  onClick={() => {
-                    setNotesTabOpen(false);
-                    if (practiceTab === "notes") setPracticeTab("editor");
-                  }}
-                  className="mr-2 w-5 h-5 rounded-sm flex items-center justify-center hover:bg-muted/50 text-muted-foreground/50 hover:text-foreground transition-all"
-                  aria-label="Close Notes tab"
-                >
-                  <X size={10} />
-                </button>
-              </AppTooltip>
-            </div>
-          )}
-
-          {/* + new code tab */}
-          <AppTooltip content="New code tab">
-            <button
-              onClick={openNewCodeTab}
-              aria-label="New code tab"
-              className="flex items-center justify-center w-8 h-full text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all border-r"
-              style={{ borderColor: "hsl(var(--border)/0.2)" }}
-            >
-              <Plus size={13} />
-            </button>
-          </AppTooltip>
-        </div>
-
-        <div className="flex-1" />
-
-        {/* Right status */}
-        <div className="flex items-center gap-0 h-full">
-          <AppTooltip content={guruBotOpen && !guruBotCollapsed ? "Close GuruBot" : "Open GuruBot"}>
-            <button
-              onClick={() => {
-                if (!guruBotOpen || guruBotCollapsed) {
-                  openGuruBotPanel();
-                } else {
-                  setGuruBotOpen(false);
-                }
-              }}
-              className={`flex items-center gap-1.5 px-3 h-full text-[11px] font-bold border-l transition-all group ${
-                guruBotOpen ? "bg-primary/10 text-primary" : "hover:bg-primary/10"
-              }`}
-              style={{
-                borderColor: "hsl(var(--border)/0.2)",
-                color: "hsl(var(--primary))",
-              }}
-              aria-label={guruBotOpen && !guruBotCollapsed ? "Close GuruBot" : "Open GuruBot"}
-            >
-              <Bot size={13} />
-              <span>GuruBot</span>
-            </button>
-          </AppTooltip>
-          <div className="w-px h-4 bg-border/30" />
-          {/* Notes button */}
-          <AppTooltip content="Open Notes tab">
-            <button
-              onClick={() => {
-                setNotesTabOpen(true);
-                setPracticeTab("notes");
-              }}
-              className={`flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l transition-all ${
-                practiceTab === "notes"
-                  ? "text-amber-400 bg-amber-400/10"
-                  : "text-muted-foreground hover:bg-muted/30"
-              }`}
-              style={{ borderColor: "hsl(var(--border)/0.2)" }}
-              aria-label="Open Notes tab"
-            >
-              <StickyNote size={12} />
-              <span>Notes</span>
-            </button>
-          </AppTooltip>
-          <div className="w-px h-4 bg-border/30" />
-
-          {/* Hint */}
-          <AppTooltip content="Hint">
-            <button
-              className="flex items-center gap-1 px-3 h-full text-[11px] font-bold border-l text-amber-400/80 hover:bg-amber-400/10 hover:text-amber-400 transition-all"
-              style={{ borderColor: "hsl(var(--border)/0.2)" }}
-              aria-label="Hint"
-            >
-              <Lightbulb size={12} />
-              <span>Hint</span>
-            </button>
-          </AppTooltip>
-          <div className="w-px h-4 bg-border/30" />
-          {/* Lock */}
-          <AppTooltip content="Lock editor">
-            <button
-              className="flex items-center justify-center w-8 h-full border-l text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/30 transition-all"
-              style={{ borderColor: "hsl(var(--border)/0.2)" }}
-              aria-label="Lock editor"
-            >
-              <Lock size={12} />
-            </button>
-          </AppTooltip>
-          {/* Ln/Col */}
-          <div
-            className="flex items-center px-3 h-full border-l text-[11px] font-mono text-muted-foreground/50"
-            style={{ borderColor: "hsl(var(--border)/0.2)" }}
-          >
-            Ln {cursorPos.ln}, Col {cursorPos.col}
-          </div>
-        </div>
-      </div>
-
-      {/* Editor + Output with resizable panels */}
-      <div className="flex-1 min-h-0 p-2 pb-3">
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MAIN REGION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      <div className="min-h-0 flex-1">
         <ResizablePanelGroup
           direction={isMobile ? "vertical" : "horizontal"}
           className="h-full"
           autoSaveId={
             ioPanelOpen
               ? guruBotOpen && !isMobile
-                ? "playground-editor-io-guru-layout"
-                : "playground-editor-io-layout"
+                ? "lc-playground-editor-io-guru-layout"
+                : "lc-playground-editor-io-layout"
               : guruBotOpen && !isMobile
-                ? "playground-editor-guru-layout"
-                : "playground-editor-layout"
+                ? "lc-playground-editor-guru-layout"
+                : "lc-playground-editor-layout"
           }
           onLayout={(sizes) => {
             if (isMobile || !ioPanelOpen) return;
 
-            const nextIoSize = sizes[1] ?? IO_DEFAULT_SIZE;
+            const idx = showLeftDescription ? 2 : 1;
+            const nextIoSize = sizes[idx] ?? IO_DEFAULT_SIZE;
 
             ioPanelSizeRef.current = nextIoSize;
             const nextCollapsed = nextIoSize <= IO_EXPAND_TRIGGER_SIZE;
@@ -2889,218 +3181,424 @@ export default function Playground() {
             }
           }}
         >
-          {/* Code Editor Panel */}
-          <ResizablePanel
-            defaultSize={isMobile ? 60 : guruBotOpen ? 50 : 55}
-            minSize={30}
-            className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]"
-          >
-            <div className="flex flex-col h-full">
-              {/* Problem panel */}
+          {/* â”€â”€ Left: Description / Notes (desktop + practice problem) â”€â”€ */}
+          {!isMobile && practiceData && (
+            <>
+              <ResizablePanel
+                defaultSize={34}
+                minSize={20}
+                maxSize={55}
+                className="overflow-hidden"
+                style={{ background: "var(--lc-panel)" }}
+              >
+                <div className="flex h-full min-h-0 flex-col">
+                  {/* Panel tabs */}
+                  <div
+                    className="flex flex-shrink-0 items-center px-5 select-none"
+                    style={{
+                      height: 42,
+                      borderBottom: "1px solid var(--lc-border)",
+                    }}
+                  >
+                    <button
+                      onClick={() => setPracticeTab("problem")}
+                      className={`lc-tab ${practiceTab !== "notes" ? "lc-tab-active" : ""}`}
+                    >
+                      Description
+                    </button>
+                    <button
+                      onClick={() => setPracticeTab("notes")}
+                      className={`lc-tab ${practiceTab === "notes" ? "lc-tab-active" : ""}`}
+                    >
+                      Notes
+                    </button>
+                  </div>
 
-              {/* Problem panel */}
-              {practiceData && practiceTab === "problem" ? (
-                <div className="flex-1 min-h-0 overflow-y-auto p-10 bg-white dark:bg-[#16162a] relative">
-                  {/* Background Glow */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-
-                  <div className="max-w-3xl mx-auto space-y-10 relative z-10">
-                    {/* Problem header */}
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        {practiceData.difficulty && (
-                          <span
-                            className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
-                              practiceData.difficulty === "Easy"
-                                ? "bg-success/10 border-success/20 text-success"
-                                : practiceData.difficulty === "Medium"
-                                  ? "bg-warning/10 border-warning/20 text-warning"
-                                  : "bg-accent/10 border-accent/20 text-accent"
-                            }`}
+                  {practiceTab === "notes" ? (
+                    notesSurface
+                  ) : (
+                    <div className="min-h-0 flex-1 overflow-y-auto">
+                      <div className="mx-auto max-w-2xl space-y-8 px-6 py-7">
+                        {/* Title + difficulty */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`flex items-center gap-1.5 text-[13px] font-medium ${difficultyClass}`}
+                            >
+                              <span
+                                className="inline-block h-2 w-2 rounded-full"
+                                style={{
+                                  background: "currentColor",
+                                }}
+                              />
+                              {practiceData.difficulty || "Medium"}
+                            </span>
+                          </div>
+                          <h1
+                            className="text-[22px] font-semibold leading-snug"
+                            style={{ color: "var(--lc-text)" }}
                           >
-                            {practiceData.difficulty}
-                          </span>
+                            {practiceData.title}
+                          </h1>
+                        </div>
+
+                        {/* Complexity chips */}
+                        {(practiceData.timeComplexity ||
+                          practiceData.spaceComplexity) && (
+                          <div className="flex flex-wrap gap-2">
+                            {practiceData.timeComplexity && (
+                              <span
+                                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[12px]"
+                                style={{
+                                  background: "var(--lc-panel-2)",
+                                  border: "1px solid var(--lc-border)",
+                                  color: "var(--lc-muted)",
+                                }}
+                              >
+                                <Clock size={12} />
+                                Time {practiceData.timeComplexity}
+                              </span>
+                            )}
+                            {practiceData.spaceComplexity && (
+                              <span
+                                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[12px]"
+                                style={{
+                                  background: "var(--lc-panel-2)",
+                                  border: "1px solid var(--lc-border)",
+                                  color: "var(--lc-muted)",
+                                }}
+                              >
+                                <Layers size={12} />
+                                Space {practiceData.spaceComplexity}
+                              </span>
+                            )}
+                          </div>
                         )}
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
-                          Challenge Node
-                        </span>
+
+                        {/* Statement */}
+                        <div className="lc-description space-y-4">
+                          {practiceData.theory?.map(
+                            (para: string, i: number) => (
+                              <p key={i}>{para.replace(/\*\*/g, "")}</p>
+                            ),
+                          )}
+                        </div>
+
+                        {/* Key points */}
+                        {practiceData.keyPoints &&
+                          practiceData.keyPoints.length > 0 && (
+                            <div className="space-y-3 pt-2">
+                              <div
+                                className="flex items-center gap-2 text-[13px] font-semibold"
+                                style={{ color: "var(--lc-text)" }}
+                              >
+                                <Target size={14} style={{ color: "var(--lc-accent)" }} />
+                                Key Points
+                              </div>
+                              <ul className="space-y-2.5">
+                                {practiceData.keyPoints.map(
+                                  (point: string, i: number) => (
+                                    <li key={i} className="flex items-start gap-3">
+                                      <span
+                                        className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-semibold"
+                                        style={{
+                                          background: "var(--lc-accent-soft)",
+                                          color: "var(--lc-accent)",
+                                        }}
+                                      >
+                                        {i + 1}
+                                      </span>
+                                      <span
+                                        className="text-[13.5px] leading-relaxed"
+                                        style={{ color: "var(--lc-muted)" }}
+                                      >
+                                        {point}
+                                      </span>
+                                    </li>
+                                  ),
+                                )}
+                              </ul>
+                            </div>
+                          )}
+
+                        {/* Start coding CTA (mobile-friendly affordance kept) */}
+                        <button
+                          onClick={() => setPracticeTab("editor")}
+                          className="lc-pill lc-pill-green mt-2"
+                        >
+                          <Code2 size={14} />
+                          Start Coding
+                        </button>
                       </div>
-                      <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-foreground">
+                    </div>
+                  )}
+                </div>
+              </ResizablePanel>
+              <ResizableHandle className="lc-resizer w-2" />
+            </>
+          )}
+
+          {/* â”€â”€ Right region: editor + console dock (+ GuruBot far right) â”€â”€ */}
+          <ResizablePanel
+            defaultSize={
+              isMobile ? 60 : showLeftDescription ? 66 : guruBotOpen ? 75 : 100
+            }
+            minSize={30}
+            className="overflow-hidden"
+            style={{ background: "var(--lc-panel)" }}
+          >
+            <div className="flex h-full min-h-0 flex-col">
+              {/* File tab strip */}
+              <div
+                className="flex flex-shrink-0 select-none items-stretch overflow-x-auto"
+                style={{
+                  minHeight: 38,
+                  borderBottom: "1px solid var(--lc-border)",
+                  background: "var(--lc-panel)",
+                }}
+              >
+                {/* Mobile-only Description tab */}
+                {isMobile && practiceData && (
+                  <button
+                    onClick={() => setPracticeTab("problem")}
+                    className={`lc-tab !mr-0 flex items-center !px-4 !py-0 ${practiceTab === "problem" ? "lc-tab-active" : ""}`}
+                  >
+                    Description
+                  </button>
+                )}
+
+                {codeTabs.map((tab) => {
+                  const isActive =
+                    practiceTab !== "problem" &&
+                    practiceTab !== "notes" &&
+                    activeCodeTabId === tab.id;
+
+                  return (
+                    <div
+                      key={tab.id}
+                      className="flex items-center border-r"
+                      style={{ borderColor: "var(--lc-border-soft)" }}
+                    >
+                      <button
+                        onClick={() => {
+                          setActiveCodeTabId(tab.id);
+                          setPracticeTab("editor");
+                        }}
+                        className={`lc-tab flex items-center gap-1.5 !mr-0 !py-0 ${isActive ? "lc-tab-active" : ""}`}
+                        aria-label={`Switch to ${tab.title}`}
+                      >
+                        <Code2
+                          size={12}
+                          style={{
+                            color: isActive
+                              ? "var(--lc-accent)"
+                              : "var(--lc-faint)",
+                          }}
+                        />
+                        <span>{tab.title}</span>
+                      </button>
+
+                      {!tab.protected && (
+                        <button
+                          onClick={() => closeCodeTab(tab.id)}
+                          className="mr-1.5 flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-white/10"
+                          style={{ color: "var(--lc-faint)" }}
+                          aria-label={`Close ${tab.title}`}
+                        >
+                          <X size={10} />
+                        </button>
+                      )}
+
+                      {tab.id === "solution" && practiceData && (
+                        <AppTooltip content="Close practice problem">
+                          <button
+                            onClick={() => navigate("/playground")}
+                            className="mr-1.5 flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-white/10"
+                            style={{ color: "var(--lc-faint)" }}
+                            aria-label="Close practice problem"
+                          >
+                            <X size={10} />
+                          </button>
+                        </AppTooltip>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Notes tab (only when not shown in the left panel) */}
+                {!showLeftDescription && notesTabOpen && (
+                  <div
+                    className="flex items-center border-r"
+                    style={{ borderColor: "var(--lc-border-soft)" }}
+                  >
+                    <button
+                      onClick={() => setPracticeTab("notes")}
+                      className={`lc-tab flex items-center gap-1.5 !mr-0 !py-0 ${practiceTab === "notes" ? "lc-tab-active" : ""}`}
+                      aria-label="Switch to Notes"
+                    >
+                      <StickyNote
+                        size={12}
+                        style={{
+                          color:
+                            practiceTab === "notes"
+                              ? "var(--lc-accent)"
+                              : "var(--lc-faint)",
+                        }}
+                      />
+                      <span>Notes</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setNotesTabOpen(false);
+                        if (practiceTab === "notes") setPracticeTab("editor");
+                      }}
+                      className="mr-1.5 flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-white/10"
+                      style={{ color: "var(--lc-faint)" }}
+                      aria-label="Close Notes tab"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  onClick={openNewCodeTab}
+                  aria-label="New code tab"
+                  className="flex w-9 flex-shrink-0 items-center justify-center transition-colors hover:bg-white/5"
+                  style={{ color: "var(--lc-faint)" }}
+                >
+                  <Plus size={14} />
+                </button>
+
+                <div className="flex-1" />
+              </div>
+
+              {/* View area: problem (mobile) / notes / monaco */}
+              {showMobileProblemView ? (
+                <div
+                  className="relative min-h-0 flex-1 overflow-y-auto"
+                  style={{ background: "var(--lc-panel)" }}
+                >
+                  <div className="mx-auto max-w-2xl space-y-7 px-6 py-7">
+                    <div className="space-y-3">
+                      <span
+                        className={`flex items-center gap-1.5 text-[13px] font-medium ${difficultyClass}`}
+                      >
+                        <span
+                          className="inline-block h-2 w-2 rounded-full"
+                          style={{ background: "currentColor" }}
+                        />
+                        {practiceData.difficulty || "Medium"}
+                      </span>
+                      <h1
+                        className="text-[22px] font-semibold leading-snug"
+                        style={{ color: "var(--lc-text)" }}
+                      >
                         {practiceData.title}
-                      </h2>
+                      </h1>
                     </div>
 
-                    {/* Complexity */}
                     {(practiceData.timeComplexity ||
                       practiceData.spaceComplexity) && (
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-2">
                         {practiceData.timeComplexity && (
-                          <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-muted/20 border border-border/30">
-                            <Clock size={14} className="text-primary" />
-                            <div className="flex flex-col">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">
-                                Time
-                              </span>
-                              <span className="text-xs font-black font-mono text-foreground">
-                                {practiceData.timeComplexity}
-                              </span>
-                            </div>
-                          </div>
+                          <span
+                            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[12px]"
+                            style={{
+                              background: "var(--lc-panel-2)",
+                              border: "1px solid var(--lc-border)",
+                              color: "var(--lc-muted)",
+                            }}
+                          >
+                            <Clock size={12} />
+                            Time {practiceData.timeComplexity}
+                          </span>
                         )}
                         {practiceData.spaceComplexity && (
-                          <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-muted/20 border border-border/30">
-                            <Layers size={14} className="text-accent" />
-                            <div className="flex flex-col">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">
-                                Space
-                              </span>
-                              <span className="text-xs font-black font-mono text-foreground">
-                                {practiceData.spaceComplexity}
-                              </span>
-                            </div>
-                          </div>
+                          <span
+                            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[12px]"
+                            style={{
+                              background: "var(--lc-panel-2)",
+                              border: "1px solid var(--lc-border)",
+                              color: "var(--lc-muted)",
+                            }}
+                          >
+                            <Layers size={12} />
+                            Space {practiceData.spaceComplexity}
+                          </span>
                         )}
                       </div>
                     )}
 
-                    {/* Theory */}
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-primary">
-                        <Sparkles size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-[0.25em]">
-                          Problem Architecture
-                        </span>
-                      </div>
-                      <div className="rounded-[32px] p-8 bg-card border border-border/30 shadow-2xl shadow-black/5">
-                        <ul className="space-y-4">
-                          {practiceData.theory?.map(
-                            (para: string, i: number) => (
-                              <li key={i} className="flex items-start gap-4">
-                                <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0" />
-                                <span className="text-[15px] font-medium leading-relaxed text-foreground/70">
-                                  {para.replace(/\*\*/g, "")}
-                                </span>
-                              </li>
-                            ),
-                          )}
-                        </ul>
-                      </div>
+                    <div className="lc-description space-y-4">
+                      {practiceData.theory?.map(
+                        (para: string, i: number) => (
+                          <p key={i}>{para.replace(/\*\*/g, "")}</p>
+                        ),
+                      )}
                     </div>
 
-                    {/* Key Points */}
                     {practiceData.keyPoints &&
                       practiceData.keyPoints.length > 0 && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-warning">
-                            <Target size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-[0.25em]">
-                              Execution Strategy
-                            </span>
+                        <div className="space-y-3 pt-2">
+                          <div
+                            className="flex items-center gap-2 text-[13px] font-semibold"
+                            style={{ color: "var(--lc-text)" }}
+                          >
+                            <Target
+                              size={14}
+                              style={{ color: "var(--lc-accent)" }}
+                            />
+                            Key Points
                           </div>
-                          <div className="rounded-[32px] p-8 bg-warning/5 border border-warning/20">
-                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {practiceData.keyPoints.map(
-                                (point: string, i: number) => (
-                                  <li
-                                    key={i}
-                                    className="flex items-center gap-3 text-sm font-bold text-foreground/80"
+                          <ul className="space-y-2.5">
+                            {practiceData.keyPoints.map(
+                              (point: string, i: number) => (
+                                <li
+                                  key={i}
+                                  className="flex items-start gap-3"
+                                >
+                                  <span
+                                    className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-semibold"
+                                    style={{
+                                      background: "var(--lc-accent-soft)",
+                                      color: "var(--lc-accent)",
+                                    }}
                                   >
-                                    <div className="w-8 h-8 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning flex-shrink-0">
-                                      {i + 1}
-                                    </div>
+                                    {i + 1}
+                                  </span>
+                                  <span
+                                    className="text-[13.5px] leading-relaxed"
+                                    style={{ color: "var(--lc-muted)" }}
+                                  >
                                     {point}
-                                  </li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
+                                  </span>
+                                </li>
+                              ),
+                            )}
+                          </ul>
                         </div>
                       )}
 
-                    {/* Start coding CTA */}
                     <button
                       onClick={() => setPracticeTab("editor")}
-                      className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-[0.15em] text-[11px] shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+                      className="lc-pill lc-pill-green mt-2"
                     >
-                      <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
-                      <Code2 size={16} />
-                      Initialize Environment
-                      <ArrowRight
-                        size={16}
-                        className="transition-transform group-hover:translate-x-1"
-                      />
+                      <Code2 size={14} />
+                      Start Coding
                     </button>
                   </div>
                 </div>
-              ) : practiceTab === "notes" ? (
-                <div className="flex-1 min-h-0 bg-white dark:bg-[#16162a] relative flex flex-col overflow-hidden">
-                  <div
-                    className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b px-4 py-3"
-                    style={PANEL_BORDER_STYLE}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setNotesPreviewOpen((open) => !open)}
-                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                        notesPreviewOpen
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-border/30 bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                      }`}
-                    >
-                      <BookOpen size={13} />
-                      {notesPreviewOpen ? "Edit" : "Preview"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => saveNotesNow(notesContent, true)}
-                      className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-widest text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
-                    >
-                      <Save size={13} />
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNotesContent("");
-                        setNotesPreviewOpen(false);
-                        void saveNotesNow("");
-                      }}
-                      className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/20 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-all hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive active:scale-95"
-                    >
-                      <Trash2 size={13} />
-                      Clear
-                    </button>
-                    <div className="flex-1" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                      {notesSaveStatus}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-h-0 overflow-auto p-4">
-                    {notesPreviewOpen ? (
-                      <div
-                        className="note-rendered min-h-full whitespace-pre-wrap rounded-lg border border-border/30 bg-muted/10 p-5 text-sm leading-relaxed text-foreground"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            renderNoteMarkdown(notesContent) ||
-                            '<span class="text-muted-foreground">No notes to preview.</span>',
-                        }}
-                      />
-                    ) : (
-                      <RichTextNoteEditor
-                        value={notesContent}
-                        onChange={(value) => {
-                          setNotesContent(value);
-                          setNotesSaveStatus("Saving...");
-                        }}
-                        placeholder="Type here...(Markdown is enabled)"
-                        autoFocus
-                      />
-                    )}
-                  </div>
+              ) : mainNotesActive ? (
+                <div
+                  className="min-h-0 flex-1"
+                  style={{ background: "var(--lc-panel)" }}
+                >
+                  {notesSurface}
                 </div>
               ) : (
                 /* Monaco Editor */
-                <div className="flex-1 min-h-0">
+                <div className="min-h-0 flex-1">
                   <Editor
                     height="100%"
                     language={
@@ -3152,12 +3650,14 @@ export default function Playground() {
 
           {ioPanelOpen && (
             <>
-              {/* Resize Handle */}
+              {/* Resize handle between editor and console dock */}
               <ResizableHandle
-                className="w-3.5 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors z-50 data-[panel-group-direction=vertical]:h-3.5"
+                className={`lc-resizer ${
+                  isMobile ? "h-2" : "w-2"
+                }`}
               />
 
-              {/* Right Panel: Input (top) + Output (bottom) */}
+              {/* Console dock */}
               <ResizablePanel
                 ref={ioPanelRef}
                 defaultSize={guruBotOpen && !isMobile ? 25 : IO_DEFAULT_SIZE}
@@ -3189,9 +3689,11 @@ export default function Playground() {
                     setIoCollapsed(false);
                   }
                 }}
+                className="overflow-hidden"
+                style={{ background: "var(--lc-panel)" }}
               >
                 {ioCollapsed && !isMobile ? (
-                  <AppTooltip content="Expand input and output" side="left">
+                  <AppTooltip content="Expand console" side="left">
                     <button
                       type="button"
                       onClick={() =>
@@ -3199,12 +3701,16 @@ export default function Playground() {
                           guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE,
                         )
                       }
-                      aria-label="Expand input and output"
-                      className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
+                      aria-label="Expand console"
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 transition-all duration-200 hover:bg-white/5"
+                      style={{
+                        borderLeft: "1px solid var(--lc-border)",
+                        color: "var(--lc-accent)",
+                      }}
                     >
-                      <Keyboard size={18} className="text-primary" />
-                      <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
-                        Input / Output
+                      <Keyboard size={18} />
+                      <span className="rotate-180 text-[11px] font-medium tracking-widest [writing-mode:vertical-rl]" style={{ color: "var(--lc-text)" }}>
+                        Console
                       </span>
                       <span
                         role="button"
@@ -3220,96 +3726,104 @@ export default function Playground() {
                             closeIOPanel();
                           }
                         }}
-                        aria-label="Close Input / Output"
-                        className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                        aria-label="Close console"
+                        className="flex h-5 w-5 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                        style={{ color: "var(--lc-muted)" }}
                       >
                         <X size={12} />
                       </span>
                     </button>
                   </AppTooltip>
                 ) : (
-                  <ResizablePanelGroup
-                    direction="vertical"
-                    className="h-full"
-                    autoSaveId="playground-stdin-console-layout"
+                  <div
+                    className="flex h-full min-h-0 flex-col"
+                    style={{ borderTop: "1px solid var(--lc-border)" }}
                   >
-                    {/* Input Panel - always visible */}
-                    <ResizablePanel defaultSize={32} minSize={12} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]">
-                      <div className={IO_PANEL_CLASSES}>
-                        <div className={IO_HEADER_CLASSES}>
-                          <div className={IO_INPUT_ICON_CLASSES}>
-                            <Keyboard size={14} />
-                          </div>
-                          <span className={IO_LABEL_CLASSES}>
-                            Standard Input (stdin)
-                          </span>
-                        </div>
-                        <textarea
-                          value={stdin}
-                          onChange={(e) => setStdin(e.target.value)}
-                          placeholder="Enter input for your program..."
-                          className={IO_TEXTAREA_CLASSES}
-                        />
-                      </div>
-                    </ResizablePanel>
-
-                    <ResizableHandle
-                      className="h-3.5 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors z-50 data-[panel-group-direction=vertical]:h-3.5"
-                    />
-
-                    {/* Output Panel */}
-                    <ResizablePanel defaultSize={68} minSize={18} className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]">
-                      <div className={IO_PANEL_CLASSES}>
-                        <div className={IO_HEADER_CLASSES}>
-                          <div className={IO_CONSOLE_ICON_CLASSES}>
-                            <Terminal size={14} />
-                          </div>
-                          <span className={IO_LABEL_CLASSES}>
-                            Virtual Console
-                          </span>
+                    {/* Console action bar: tabs + Run/Debug */}
+                    <div
+                      className="flex select-none flex-shrink-0 items-center justify-between gap-3 px-4"
+                      style={{
+                        height: 44,
+                        borderBottom: "1px solid var(--lc-border)",
+                      }}
+                    >
+                      <div className="flex items-center">
+                        <button
+                          onClick={() => setConsoleTab("testcase")}
+                          className={`lc-tab !mb-0 ${consoleTab === "testcase" ? "lc-tab-active" : ""}`}
+                        >
+                          Testcase
+                        </button>
+                        <button
+                          onClick={() => setConsoleTab("result")}
+                          className={`lc-tab !mb-0 flex items-center gap-2 ${consoleTab === "result" ? "lc-tab-active" : ""}`}
+                        >
+                          Result
                           {isRunning && (
-                            <div className="flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-800 animate-pulse dark:bg-primary/10 dark:border-primary/20 dark:text-primary">
-                              <Loader2 size={10} className="animate-spin" />
-                              Executing
-                            </div>
+                            <Loader2
+                              size={12}
+                              className="animate-spin"
+                              style={{ color: "var(--lc-accent)" }}
+                            />
                           )}
-                          {output && !isRunning && (
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {output && !isRunning && (
+                          <AppTooltip content="Clear output">
                             <button
                               onClick={() => setOutput("")}
-                              className="ml-auto flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-1 text-[9px] font-black uppercase tracking-widest text-slate-700 shadow-sm transition-all duration-300 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-950 dark:border-border/30 dark:bg-muted/30 dark:text-muted-foreground dark:shadow-none dark:hover:bg-muted dark:hover:text-foreground"
+                              className="lc-icon-btn !h-7 !w-7"
+                              aria-label="Clear output"
                             >
-                              <RotateCcw size={10} />
-                              Flush
+                              <RotateCcw size={13} />
                             </button>
-                          )}
-                        </div>
-                        <div className={IO_CONSOLE_CLASSES}>
-                          <pre
-                            className={`h-full whitespace-pre-wrap p-6 font-mono text-[13px] leading-relaxed selection:bg-emerald-200/60 dark:selection:bg-primary/20 ${outputToneClass}`}
-                          >
-                            {output || (
-                              <div className="h-full flex flex-col items-center justify-center space-y-4 pt-12 text-center select-none text-slate-600 dark:text-muted-foreground">
-                                <div className="flex h-16 w-16 items-center justify-center rounded-[24px] border-2 border-dashed border-slate-400 bg-slate-100 shadow-sm dark:border-muted-foreground/20 dark:bg-transparent dark:shadow-none">
-                                  <Play
-                                    size={24}
-                                    className="translate-x-0.5 text-slate-500 dark:text-muted-foreground/40"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <p className="text-[11px] font-black uppercase tracking-widest">
-                                    Awaiting Command
-                                  </p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-muted-foreground/80">
-                                    Press Ctrl+Enter to initialize
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                          </pre>
-                        </div>
+                          </AppTooltip>
+                        )}
+                        <DebugButton compact />
+                        <RunButton compact />
                       </div>
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
+                    </div>
+
+                    {/* Console body */}
+                    {consoleTab === "testcase" ? (
+                      <textarea
+                        value={stdin}
+                        onChange={(e) => setStdin(e.target.value)}
+                        placeholder="Enter input for your program..."
+                        className="min-h-0 flex-1 resize-none bg-transparent px-5 py-4 font-mono text-[13px] leading-relaxed outline-none"
+                        style={{ color: "var(--lc-text)" }}
+                      />
+                    ) : (
+                      <div className="min-h-0 flex-1 overflow-auto">
+                        <pre
+                          className={`lc-console h-full min-h-full p-5 ${outputToneClass}`}
+                        >
+                          {output || (
+                            <div
+                              className="flex h-full min-h-[220px] flex-col items-center justify-center space-y-3 select-none text-center"
+                              style={{ color: "var(--lc-faint)" }}
+                            >
+                              <div
+                                className="flex h-14 w-14 items-center justify-center rounded-full"
+                                style={{ border: "1px dashed var(--lc-border)" }}
+                              >
+                                <Play size={20} className="translate-x-0.5" />
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-[12px] font-medium">
+                                  No output yet
+                                </p>
+                                <p className="text-[11px]">
+                                  Press Ctrl+Enter to run your code
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
                 )}
               </ResizablePanel>
             </>
@@ -3317,9 +3831,7 @@ export default function Playground() {
 
           {guruBotOpen && !isMobile && (
             <>
-              <ResizableHandle
-                className="w-3.5 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors z-50 data-[panel-group-direction=vertical]:h-3.5"
-              />
+              <ResizableHandle className="lc-resizer w-2" />
 
               <ResizablePanel
                 ref={guruPanelRef}
@@ -3332,7 +3844,11 @@ export default function Playground() {
                   setGuruBotCollapsed(size <= GURU_EXPAND_TRIGGER_SIZE);
                 }}
                 onCollapse={() => setGuruBotCollapsed(true)}
-                className="rounded-xl overflow-hidden shadow-sm border border-border/20 bg-white dark:bg-[#16162a]"
+                className="overflow-hidden"
+                style={{
+                  background: "var(--lc-panel)",
+                  borderLeft: "1px solid var(--lc-border)",
+                }}
               >
                 {guruBotCollapsed ? (
                   <AppTooltip content="Expand GuruBot" side="left">
@@ -3347,10 +3863,11 @@ export default function Playground() {
                         }
                       }}
                       aria-label="Expand GuruBot"
-                      className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 transition-all duration-200 hover:bg-white/5"
+                      style={{ color: "var(--lc-accent)" }}
                     >
-                      <Bot size={18} className="text-primary" />
-                      <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+                      <Bot size={18} />
+                      <span className="rotate-180 text-[11px] font-medium tracking-widest [writing-mode:vertical-rl]" style={{ color: "var(--lc-text)" }}>
                         GuruBot
                       </span>
                       <button
@@ -3360,14 +3877,15 @@ export default function Playground() {
                           setGuruBotOpen(false);
                         }}
                         aria-label="Close GuruBot"
-                        className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                        className="flex h-5 w-5 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                        style={{ color: "var(--lc-muted)" }}
                       >
                         <X size={12} />
                       </button>
                     </div>
                   </AppTooltip>
                 ) : (
-                  <div className="h-full min-w-0 overflow-hidden border-l border-border/30 bg-white dark:bg-[#16162a]">
+                  <div className="h-full min-w-0 overflow-hidden">
                     <GuruBot
                       open={guruBotOpen}
                       onClose={() => setGuruBotOpen(false)}
@@ -3384,6 +3902,117 @@ export default function Playground() {
         </ResizablePanelGroup>
       </div>
 
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• STATUS BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      <div
+        className="flex select-none flex-shrink-0 items-center justify-between px-3"
+        style={{
+          height: 30,
+          background: "var(--lc-panel)",
+          borderTop: "1px solid var(--lc-border-soft)",
+        }}
+      >
+        {/* Left: cursor + editor info */}
+        <div
+          className="flex items-center gap-4 font-mono text-[11px]"
+          style={{ color: "var(--lc-muted)" }}
+        >
+          <span>
+            Ln {cursorPos.ln}, Col {cursorPos.col}
+          </span>
+          <span>Spaces: {editorTabSize}</span>
+          <span>{selectedLanguage.label}</span>
+          <span className="hidden sm:inline">{currentTheme.label}</span>
+        </div>
+
+        {/* Right: actions */}
+        <div className="flex items-center">
+          <AppTooltip
+            content={
+              guruBotOpen && !guruBotCollapsed ? "Close GuruBot" : "Open GuruBot"
+            }
+          >
+            <button
+              onClick={() => {
+                if (!guruBotOpen || guruBotCollapsed) {
+                  openGuruBotPanel();
+                } else {
+                  setGuruBotOpen(false);
+                }
+              }}
+              className="flex h-full items-center gap-1.5 px-3 text-[11px] font-medium transition-colors hover:text-[color:var(--lc-accent)]"
+              style={{
+                color:
+                  guruBotOpen && !guruBotCollapsed
+                    ? "var(--lc-accent)"
+                    : "var(--lc-muted)",
+              }}
+              aria-label={
+                guruBotOpen && !guruBotCollapsed ? "Close GuruBot" : "Open GuruBot"
+              }
+            >
+              <Bot size={13} />
+              <span>GuruBot</span>
+            </button>
+          </AppTooltip>
+
+          <div
+            className="mx-1 h-3.5 w-px"
+            style={{ background: "var(--lc-border)" }}
+          />
+
+          {/* Notes */}
+          <AppTooltip content="Open Notes">
+            <button
+              onClick={() => {
+                setNotesTabOpen(true);
+                setPracticeTab((prev) =>
+                  prev === "notes" ? "editor" : "notes",
+                );
+              }}
+              className="flex h-full items-center gap-1 px-3 text-[11px] font-medium transition-colors hover:bg-white/5"
+              style={{
+                color:
+                  practiceTab === "notes"
+                    ? "var(--lc-accent)"
+                    : "var(--lc-muted)",
+              }}
+              aria-label="Open Notes"
+            >
+              <StickyNote size={12} />
+              <span>Notes</span>
+            </button>
+          </AppTooltip>
+
+          <div
+            className="mx-1 h-3.5 w-px"
+            style={{ background: "var(--lc-border)" }}
+          />
+
+          {/* Hint */}
+          <AppTooltip content="Hint">
+            <button
+              className="flex h-full items-center gap-1 px-3 text-[11px] font-medium transition-colors hover:bg-white/5"
+              style={{ color: "var(--lc-yellow)" }}
+              aria-label="Hint"
+            >
+              <Lightbulb size={12} />
+              <span>Hint</span>
+            </button>
+          </AppTooltip>
+
+          {/* Lock */}
+          <AppTooltip content="Lock editor">
+            <button
+              className="lc-icon-btn !h-full !w-8 !rounded-none"
+              style={{ color: "var(--lc-faint)" }}
+              aria-label="Lock editor"
+            >
+              <Lock size={12} />
+            </button>
+          </AppTooltip>
+        </div>
+      </div>
+
       {/* Ask GuruBot on Selection popup */}
       {askGuruPopup && askGuruOnSelection && (
         <button
@@ -3396,8 +4025,14 @@ export default function Playground() {
             setGuruBotOpen(true);
             setAskGuruPopup(null);
           }}
-          className="fixed z-[70] flex items-center gap-2 rounded-2xl border border-primary/30 bg-card/95 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-primary shadow-2xl shadow-black/20 backdrop-blur-xl transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
-          style={{ top: askGuruPopup.top, left: askGuruPopup.left }}
+          className="lc-pill fixed z-[70] !py-2 shadow-xl"
+          style={{
+            top: askGuruPopup.top,
+            left: askGuruPopup.left,
+            background: "var(--lc-panel-2)",
+            border: "1px solid var(--lc-border)",
+            color: "var(--lc-accent)",
+          }}
         >
           <Bot size={13} />
           Ask GuruBot
@@ -3407,16 +4042,15 @@ export default function Playground() {
       {/* Create / Edit Template Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
         <DialogContent
-          className="w-[calc(100vw-2rem)] max-w-[525px] rounded-2xl border border-border/40 bg-card p-7 shadow-[0_32px_120px_-24px_rgba(0,0,0,0.65)]"
+          className="w-[calc(100vw-2rem)] max-w-[525px] rounded-xl p-6 shadow-2xl"
           style={{
-            backgroundColor: "hsl(var(--card))",
+            backgroundColor: "var(--lc-panel-2)",
+            border: "1px solid var(--lc-border)",
+            color: "var(--lc-text)",
           }}
         >
           <DialogHeader>
-            <DialogTitle
-              className="text-lg font-black tracking-tight"
-              style={{ color: "hsl(var(--foreground))" }}
-            >
+            <DialogTitle className="text-base font-semibold">
               {editingBuiltinPrefix
                 ? "Edit Built-in Template"
                 : editingTemplate
@@ -3424,8 +4058,8 @@ export default function Playground() {
                   : "Save as Template"}
             </DialogTitle>
             <DialogDescription
-              className="text-sm font-medium leading-relaxed"
-              style={{ color: "hsl(var(--muted-foreground))" }}
+              className="text-[13px] leading-relaxed"
+              style={{ color: "var(--lc-muted)" }}
             >
               {editingBuiltinPrefix
                 ? "Update this built-in template's description. Current editor code will be saved as your custom version."
@@ -3437,8 +4071,8 @@ export default function Playground() {
           <div className="flex flex-col gap-4 py-2">
             <div>
               <label
-                className="mb-2 block text-[12px] font-black uppercase tracking-wider"
-                style={{ color: "hsl(var(--muted-foreground))" }}
+                className="mb-1.5 block text-[12px] font-medium"
+                style={{ color: "var(--lc-muted)" }}
               >
                 Template Name {editingBuiltinPrefix ? "" : "*"}
               </label>
@@ -3446,14 +4080,19 @@ export default function Playground() {
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="e.g. My Graph Template"
-                className="h-12 rounded-xl !border-border/50 bg-background/70 px-4 text-sm font-bold text-foreground !shadow-none outline-none placeholder:text-muted-foreground/45 focus:!border-primary/60 focus-visible:ring-0 focus-visible:ring-offset-0 dark:!border-border/50 dark:!shadow-none"
+                className="h-10 rounded-lg px-3 text-sm outline-none"
+                style={{
+                  background: "var(--lc-bg)",
+                  border: "1px solid var(--lc-border)",
+                  color: "var(--lc-text)",
+                }}
                 disabled={!!editingBuiltinPrefix}
               />
             </div>
             <div>
               <label
-                className="mb-2 block text-[12px] font-black uppercase tracking-wider"
-                style={{ color: "hsl(var(--muted-foreground))" }}
+                className="mb-1.5 block text-[12px] font-medium"
+                style={{ color: "var(--lc-muted)" }}
               >
                 Description (optional)
               </label>
@@ -3461,25 +4100,30 @@ export default function Playground() {
                 value={templateDesc}
                 onChange={(e) => setTemplateDesc(e.target.value)}
                 placeholder="e.g. BFS/DFS with adjacency list"
-                className="min-h-[74px] rounded-xl border-border/50 bg-background/70 px-4 py-3 text-sm font-bold text-foreground shadow-none outline-none placeholder:text-muted-foreground/45 focus:border-primary/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="min-h-[74px] rounded-lg px-3 py-2.5 text-sm outline-none"
+                style={{
+                  background: "var(--lc-bg)",
+                  border: "1px solid var(--lc-border)",
+                  color: "var(--lc-text)",
+                }}
                 rows={2}
               />
             </div>
             <div
-              className="rounded-xl border border-border/20 px-4 py-2.5 text-[11px] font-bold"
+              className="rounded-lg px-3.5 py-2.5 text-[12px]"
               style={{
-                background: "hsl(var(--muted) / 0.45)",
-                color: "hsl(var(--muted-foreground))",
+                background: "var(--lc-accent-soft)",
+                color: "var(--lc-accent)",
               }}
             >
-              💡 The current editor code will be saved with this template.
+              The current editor code will be saved with this template.
             </div>
           </div>
           <DialogFooter className="gap-3 pt-2">
             <button
               type="button"
               onClick={() => setTemplateDialogOpen(false)}
-              className="h-11 rounded-xl border border-border/50 bg-muted/20 px-5 text-sm font-black text-foreground shadow-none transition-all hover:bg-muted/50 active:scale-95"
+              className="lc-pill lc-pill-muted !rounded-lg"
             >
               Cancel
             </button>
@@ -3487,7 +4131,7 @@ export default function Playground() {
               type="button"
               onClick={handleSaveTemplate}
               disabled={!editingBuiltinPrefix && !templateName.trim()}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary px-5 text-sm font-black text-primary-foreground shadow-none transition-all hover:bg-primary/90 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+              className="lc-pill lc-pill-green !rounded-lg"
             >
               <Save size={15} />
               {editingTemplate || editingBuiltinPrefix ? "Update" : "Save"}

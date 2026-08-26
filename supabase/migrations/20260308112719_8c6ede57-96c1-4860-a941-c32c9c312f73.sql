@@ -47,4 +47,11 @@ CREATE POLICY "Users can view own role" ON public.user_roles
   USING (auth.uid() = user_id);
 
 -- Assign master admin role
-INSERT INTO public.user_roles (user_id, role) VALUES ('25d5a012-a6ec-43a8-a1bc-7738ce4bd346', 'admin');
+-- LOCAL DEV GUARD (temporary): only insert if the user exists locally
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM auth.users WHERE id = '25d5a012-a6ec-43a8-a1bc-7738ce4bd346') THEN
+    INSERT INTO public.user_roles (user_id, role) VALUES ('25d5a012-a6ec-43a8-a1bc-7738ce4bd346', 'admin');
+  END IF;
+END
+$$;

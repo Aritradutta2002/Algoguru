@@ -1447,3 +1447,239 @@
 .dark .editorial-content ol > li::marker {
   color: #e8b168;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   LeetCode-style Playground design tokens & utilities
+   Scoped to .playground-shell — does not affect other pages.
+   ═══════════════════════════════════════════════════════════ */
+.playground-shell {
+  --lc-bg: #282828;
+  --lc-panel: #1e1e1e;
+  --lc-panel-2: #242424;
+  --lc-border: #3c3c3c;
+  --lc-border-soft: #333333;
+  --lc-text: #e1e1e1;
+  --lc-muted: #9d9d9d;
+  --lc-faint: #6f6f6f;
+  --lc-accent: #ffa116;
+  --lc-accent-soft: rgba(255, 161, 22, 0.12);
+  --lc-green: #2ea44f;
+  --lc-green-hover: #3cb45d;
+  --lc-red: #ef4743;
+  --lc-blue: #109dc9;
+  --lc-yellow: #ffc01e;
+}
+
+.light .playground-shell {
+  --lc-bg: #f7f8fa;
+  --lc-panel: #ffffff;
+  --lc-panel-2: #f0f1f3;
+  --lc-border: #e3e5e8;
+  --lc-border-soft: #eceef0;
+  --lc-text: #1a1a1a;
+  --lc-muted: #63666b;
+  --lc-faint: #94969c;
+  --lc-accent-soft: rgba(255, 161, 22, 0.14);
+}
+
+.playground-shell ::selection {
+  background: rgba(255, 161, 22, 0.28);
+}
+
+/* LC-style underline tab */
+.lc-tab {
+  position: relative;
+  color: var(--lc-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 4px;
+  margin-right: 20px;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+}
+.lc-tab:hover {
+  color: var(--lc-text);
+}
+.lc-tab.lc-tab-active {
+  color: var(--lc-text);
+  font-weight: 600;
+}
+.lc-tab.lc-tab-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--lc-accent);
+}
+.light .playground-shell .lc-tab.lc-tab-active::after {
+  background: var(--lc-accent);
+}
+
+/* LC pill buttons */
+.lc-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 18px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.05s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lc-pill:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.lc-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.lc-pill-green {
+  background: var(--lc-green);
+  color: #ffffff;
+}
+.lc-pill-green:hover:not(:disabled) {
+  background: var(--lc-green-hover);
+}
+.lc-pill-outline {
+  background: transparent;
+  color: var(--lc-accent);
+  box-shadow: inset 0 0 0 1px var(--lc-accent);
+}
+.lc-pill-outline:hover:not(:disabled) {
+  background: var(--lc-accent-soft);
+}
+.lc-pill-muted {
+  background: transparent;
+  color: var(--lc-muted);
+  box-shadow: inset 0 0 0 1px var(--lc-border);
+}
+.lc-pill-muted:hover:not(:disabled) {
+  color: var(--lc-text);
+  background: rgba(128, 128, 128, 0.12);
+}
+
+/* LC difficulty dots */
+.lc-difficulty-easy {
+  color: #2db55d;
+}
+.lc-difficulty-medium {
+  color: #ffb800;
+}
+.lc-difficulty-hard {
+  color: #ef4743;
+}
+
+/* Icon button (LC toolbar style) */
+.lc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--lc-muted);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+  cursor: pointer;
+}
+.lc-icon-btn:hover {
+  color: var(--lc-text);
+  background: rgba(128, 128, 128, 0.15);
+}
+
+/* Thin scrollbars inside playground */
+.playground-shell *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.playground-shell *::-webkit-scrollbar-track {
+  background: transparent;
+}
+.playground-shell *::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.35);
+  border-radius: 8px;
+}
+.playground-shell *::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.55);
+}
+
+/* Console output */
+.lc-console {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--lc-text);
+}
+
+/* Resizable handle — subtle LC divider */
+.playground-shell .lc-resizer {
+  background: transparent;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+.playground-shell .lc-resizer[data-resize-handle-state="hover"],
+.playground-shell .lc-resizer[data-resize-handle-state="drag"] {
+  background: var(--lc-accent-soft);
+}
+.playground-shell .lc-resizer[data-resize-handle-state="drag"]::after,
+.playground-shell .lc-resizer[data-resize-handle-state="hover"]::after {
+  content: "";
+  position: absolute;
+  background: var(--lc-accent);
+  border-radius: 2px;
+}
+.playground-shell .lc-resizer[data-panel-group-direction="horizontal"][data-resize-handle-state="drag"]::after,
+.playground-shell .lc-resizer[data-panel-group-direction="horizontal"][data-resize-handle-state="hover"]::after {
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+}
+.playground-shell .lc-resizer[data-panel-group-direction="vertical"][data-resize-handle-state="drag"]::after,
+.playground-shell .lc-resizer[data-panel-group-direction="vertical"][data-resize-handle-state="hover"]::after {
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 3px;
+  transform: translate(-50%, -50%);
+}
+
+/* Monaco gutter cursor affordance (breakpoints) */
+.playground-shell .monaco-editor .margin {
+  cursor: pointer;
+}
+
+/* Description panel typography */
+.lc-description {
+  color: var(--lc-text);
+  font-size: 14px;
+  line-height: 1.75;
+}
+.lc-description p {
+  margin-bottom: 12px;
+}
+.lc-description strong {
+  font-weight: 600;
+  color: var(--lc-text);
+}
+.lc-description code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  background: rgba(128, 128, 128, 0.15);
+  padding: 2px 6px;
+  border-radius: 5px;
+}

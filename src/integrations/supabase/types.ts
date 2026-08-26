@@ -7,64 +7,33 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.4"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
-      daily_challenge_user_code: {
-        Row: {
-          id: string
-          user_id: string
-          question_id: string
-          code: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          question_id: string
-          code?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          question_id?: string
-          code?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      cp_templates: {
-        Row: {
-          code: string
-          created_at: string
-          description: string
-          id: string
-          name: string
-          prefix: string
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          description?: string
-          id?: string
-          name: string
-          prefix: string
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          description?: string
-          id?: string
-          name?: string
-          prefix?: string
-        }
-        Relationships: []
-      }
       core_java_user_state: {
         Row: {
           created_at: string
@@ -96,6 +65,189 @@ export type Database = {
           notes?: string
           question_id?: string
           reading_section?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cp_templates: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          id: string
+          name: string
+          prefix: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          prefix: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          prefix?: string
+        }
+        Relationships: []
+      }
+      daily_challenge_cache: {
+        Row: {
+          date: string
+          fetched_at: string
+          problem_data: Json
+          source: string
+        }
+        Insert: {
+          date: string
+          fetched_at?: string
+          problem_data: Json
+          source?: string
+        }
+        Update: {
+          date?: string
+          fetched_at?: string
+          problem_data?: Json
+          source?: string
+        }
+        Relationships: []
+      }
+      daily_challenge_user_code: {
+        Row: {
+          code: string
+          id: string
+          question_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code?: string
+          id?: string
+          question_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          id?: string
+          question_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      playground_preferences: {
+        Row: {
+          ask_guru_on_selection: boolean
+          font_size: number
+          relative_lines: boolean
+          tab_size: number
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ask_guru_on_selection?: boolean
+          font_size?: number
+          relative_lines?: boolean
+          tab_size?: number
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ask_guru_on_selection?: boolean
+          font_size?: number
+          relative_lines?: boolean
+          tab_size?: number
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      playground_template_overrides: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          id: string
+          prefix: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          prefix: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          prefix?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      playground_user_templates: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      playground_workspace: {
+        Row: {
+          active_tab_id: string | null
+          tabs: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_tab_id?: string | null
+          tabs?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_tab_id?: string | null
+          tabs?: Json
           updated_at?: string
           user_id?: string
         }
@@ -161,6 +313,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_design_user_state: {
+        Row: {
+          created_at: string
+          id: string
+          is_completed: boolean
+          notes: string
+          question_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          notes?: string
+          question_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          notes?: string
+          question_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -194,6 +376,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      health_ping: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
@@ -322,9 +505,13 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
     },
   },
 } as const
+
