@@ -83,6 +83,44 @@ async function fetchOfficialSolution(titleSlug: string): Promise<string | null> 
   return null;
 }
 
+// Fetch codeSnippets for a problem using direct LeetCode GraphQL.
+// This is the most reliable method as client-side wrapper APIs often omit it.
+async function fetchOfficialCodeSnippets(titleSlug: string): Promise<{ langSlug: string; code: string }[] | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SOLUTION_TIMEOUT_MS);
+    const res = await fetch("https://leetcode.com/graphql", {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json", Referer: "https://leetcode.com" },
+      body: JSON.stringify({
+        query: `
+          query questionData($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+              codeSnippets {
+                langSlug
+                code
+              }
+            }
+          }
+        `,
+        variables: { titleSlug },
+      }),
+    });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const json = (await res.json()) as {
+        data?: { question?: { codeSnippets?: { langSlug: string; code: string }[] } };
+      };
+      const snippets = json?.data?.question?.codeSnippets;
+      if (Array.isArray(snippets) && snippets.length > 0) return snippets;
+    }
+  } catch (_e) {
+    // Ignore errors
+  }
+  return null;
+}
+
 interface TopicTag {
   name: string;
   slug?: string;
@@ -263,16 +301,8 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
   // Ensure codeSnippets is populated even when upstream is alfa wrapper (which omits it)
   let codeSnippets = Array.isArray(question.codeSnippets) ? (question.codeSnippets as any) : undefined;
   if (!codeSnippets) {
-    try {
-      const selRes = await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${question.titleSlug}`, { signal });
-      if (selRes.ok) {
-        const selRaw = await selRes.json() as { codeSnippets?: any; question?: { codeSnippets?: any } };
-        const fetched = selRaw?.codeSnippets ?? selRaw?.question?.codeSnippets;
-        if (Array.isArray(fetched) && fetched.length > 0) codeSnippets = fetched;
-      }
-    } catch (_e) {
-      // silently ignore — fallback will use DEFAULT template
-    }
+    const fetchedSnippets = await fetchOfficialCodeSnippets(String(question.titleSlug));
+    if (fetchedSnippets) codeSnippets = fetchedSnippets;
   }
 
   return {
@@ -361,23 +391,47 @@ async function writeDbCache(
 }
 
 // Cache rows written before the solution fetch was reliable may be missing the
-// editorial. When serving such a row, try to backfill it once and persist the
-// fix so later visitors don't repeat the work.
-async function backfillSolution(
+// editorial or codeSnippets. When serving such a row, try to backfill it once
+// and persist the fix so later visitors don't repeat the work.
+async function backfillMissingData(
   admin: ReturnType<typeof createClient>,
   payload: CachedPayload,
 ): Promise<void> {
-  if (payload.problem.solution) return;
-  try {
-    const solution = await fetchOfficialSolution(payload.problem.titleSlug);
-    if (!solution) return;
-    payload.problem.solution = solution;
-    await admin
-      .from("daily_challenge_cache")
-      .update({ problem_data: payload.problem, fetched_at: new Date().toISOString() })
-      .eq("date", payload.date);
-  } catch (e) {
-    console.error("Solution backfill failed:", (e as Error).message);
+  let updated = false;
+
+  if (!payload.problem.solution) {
+    try {
+      const solution = await fetchOfficialSolution(payload.problem.titleSlug);
+      if (solution) {
+        payload.problem.solution = solution;
+        updated = true;
+      }
+    } catch (e) {
+      console.error("Solution backfill failed:", (e as Error).message);
+    }
+  }
+
+  if (!payload.problem.codeSnippets || payload.problem.codeSnippets.length === 0) {
+    try {
+      const snippets = await fetchOfficialCodeSnippets(payload.problem.titleSlug);
+      if (snippets) {
+        payload.problem.codeSnippets = snippets;
+        updated = true;
+      }
+    } catch (e) {
+      console.error("Snippets backfill failed:", (e as Error).message);
+    }
+  }
+
+  if (updated) {
+    try {
+      await admin
+        .from("daily_challenge_cache")
+        .update({ problem_data: payload.problem, fetched_at: new Date().toISOString() })
+        .eq("date", payload.date);
+    } catch (e) {
+      console.error("Failed to persist backfilled data:", (e as Error).message);
+    }
   }
 }
 
@@ -429,11 +483,14 @@ Deno.serve(async (req: Request) => {
     // Fall back to today's DB row first, then the most recent row.
     const todays = await readDbCache(admin, dateKey);
     if (todays) {
-      await backfillSolution(admin, todays);
+      await backfillMissingData(admin, todays);
       return jsonResponse(todays);
     }
     const latest = await readLatestDbCache(admin);
-    if (latest) return jsonResponse(latest);
+    if (latest) {
+      await backfillMissingData(admin, latest);
+      return jsonResponse(latest);
+    }
 
     return jsonResponse(
       {

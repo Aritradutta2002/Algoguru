@@ -131,34 +131,36 @@ async function enrichWithCodeSnippets(resp: DailyChallengeResponse): Promise<Dai
   if (resp.problem.codeSnippets && resp.problem.codeSnippets.length > 0) return resp;
   const slug = resp.problem.titleSlug;
   if (!slug) return resp;
-  const candidates = [
-    `https://alfa-leetcode-api.onrender.com/select?titleSlug=${encodeURIComponent(slug)}`,
-    `https://alfa-leetcode-api.onrender.com/question?titleSlug=${encodeURIComponent(slug)}`,
-  ];
-  for (const url of candidates) {
-    try {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 7000);
-      const r = await fetch(url, { signal: controller.signal, headers: { Accept: "application/json" } });
-      clearTimeout(t);
-      if (!r.ok) continue;
-      const j = (await r.json()) as Record<string, unknown>;
-      const rawSnippets =
-        (j as { codeSnippets?: unknown })?.codeSnippets ??
-        (j as { question?: { codeSnippets?: unknown } })?.question?.codeSnippets ??
-        (j as { data?: { question?: { codeSnippets?: unknown } } })?.data?.question?.codeSnippets;
-      if (Array.isArray(rawSnippets) && rawSnippets.length > 0) {
-        return {
-          ...resp,
-          problem: {
-            ...resp.problem,
-            codeSnippets: rawSnippets as { langSlug: string; code: string }[],
-          },
-        };
+  
+  // 1. Try our dedicated edge function first (reliable, server-side fetch)
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 7000);
+    const { data, error } = await supabase.functions.invoke<{ codeSnippets?: { langSlug: string; code: string }[] }>(
+      "leetcode-snippets",
+      { 
+        method: "GET",
+        query: { titleSlug: slug },
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal 
       }
-    } catch {}
+    );
+    clearTimeout(t);
+    
+    if (!error && data?.codeSnippets && Array.isArray(data.codeSnippets) && data.codeSnippets.length > 0) {
+      return {
+        ...resp,
+        problem: {
+          ...resp.problem,
+          codeSnippets: data.codeSnippets,
+        },
+      };
+    }
+  } catch (err) {
+    console.warn("[leetcodeDaily] leetcode-snippets edge function failed:", (err as Error).message);
   }
-  // Final daily-proof fallback: direct LeetCode GraphQL per slug (uses same corsproxy, but per-question is more reliable than daily)
+
+  // 2. Final fallback: direct LeetCode GraphQL via corsproxy
   try {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 7000);
