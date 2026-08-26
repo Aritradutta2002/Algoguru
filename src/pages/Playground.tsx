@@ -45,6 +45,7 @@ import {
   ListTree,
   Focus,
   CircleDot,
+  ExternalLink,
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import { LeetCodeEditor } from "@/components/editor/LeetCodeEditor";
@@ -68,6 +69,9 @@ import {
   DebuggerPanel,
   DocumentOutline,
 } from "@/components/playground/EditorSidePanels";
+import { PlaygroundProblemsLibrary } from "@/components/playground/PlaygroundProblemsLibrary";
+import { fetchLeetCodeProblem, deriveTitleSlug, type LeetCodeProblem } from "@/lib/leetcodeProblem";
+import { generateHarnessMain, parseSolutionSignature, chunkTestCases } from "@/lib/javaHarness";
 import {
   buildMonacoEditorOptions,
   loadLocalEditorOptions,
@@ -650,6 +654,37 @@ function instrumentCodeForDebug(
   return result.join("\n");
 }
 
+function extractExpectedOutputs(html: string): string[] {
+  if (!html) return [];
+  try {
+    if (typeof document !== "undefined") {
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      const outputs: string[] = [];
+      temp.querySelectorAll(".example-block").forEach((block) => {
+        const text = block.textContent || "";
+        const m = text.match(/Output:\s*([^\n]+)/i);
+        if (m) outputs.push(m[1].trim());
+        else {
+          const spans = block.querySelectorAll(".example-io");
+          if (spans.length >= 2) outputs.push((spans[1].textContent || "").trim());
+          else if (spans.length === 1 && text.toLowerCase().includes("output")) outputs.push((spans[0].textContent || "").trim());
+        }
+      });
+      if (outputs.length > 0) return outputs.map((s) => s.replace(/\u00A0/g, " ").trim());
+    }
+  } catch {}
+  const re = /Output:\s*<\/strong>\s*<span[^>]*class="example-io"[^>]*>([^<]+)<\/span>/gi;
+  const out: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) out.push(m[1].trim());
+  if (out.length === 0) {
+    const re2 = /Output:\s*([^<\n]+)/gi;
+    while ((m = re2.exec(html)) !== null) out.push(m[1].trim().replace(/<\/?[^>]+>/g, ""));
+  }
+  return out.map((s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim());
+}
+
 export default function Playground() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -814,6 +849,12 @@ export default function Playground() {
   const [consoleTab, setConsoleTab] = useState<
     "testcase" | "result" | "problems" | "debug"
   >("testcase");
+  // Practice library state
+  const [activePracticeProblem, setActivePracticeProblem] = useState<LeetCodeProblem | null>(null);
+  const [activePracticeSlug, setActivePracticeSlug] = useState<string | null>(null);
+  const [practiceLoadingSlug, setPracticeLoadingSlug] = useState<string | null>(null);
+  const [testcaseTabs, setTestcaseTabs] = useState<{ id: string; name: string; value: string }[]>([]);
+  const [activeTestcaseId, setActiveTestcaseId] = useState<string>("1");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [editorLocked, setEditorLocked] = useState(false);
   const playgroundShellRef = useRef<HTMLDivElement>(null);
@@ -876,6 +917,92 @@ export default function Playground() {
       guruPanelRef.current?.resize(targetSize);
     });
   }, []);
+
+  // Practice library helpers
+  const buildTestTabsFromExample = useCallback((raw?: string, snippet?: string | null) => {
+    const normalized = (raw || "").replace(/\\n/g, "\n");
+    if (!normalized.trim()) return [{ id: "1", name: "Case 1", value: "" }];
+    try {
+      const javaCode = snippet || "";
+      const sig = javaCode ? parseSolutionSignature(javaCode) : null;
+      const paramCount = sig?.params.length ?? 1;
+      const chunks = chunkTestCases(normalized, Math.max(paramCount, 1));
+      if (chunks.length > 0) return chunks.map((c, i) => ({ id: String(i + 1), name: `Case ${i + 1}`, value: c.join("\n") }));
+    } catch {}
+    const lines = normalized.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length <= 1) return [{ id: "1", name: "Case 1", value: normalized }];
+    return lines.map((l, i) => ({ id: String(i + 1), name: `Case ${i + 1}`, value: l }));
+  }, []);
+
+  const handleSelectPracticeProblem = useCallback(
+    async (problem: { id: string; title: string }, leetData: LeetCodeProblem | null, javaSnippet: string, exampleTestcases: string) => {
+      const slug = deriveTitleSlug(problem as any) || problem.title.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+      setActivePracticeSlug(slug);
+      setActivePracticeProblem(leetData);
+
+      // Determine starter code
+      let starter = javaSnippet;
+      if (!starter) {
+        // fallback from LeetCode data if direct snippet not passed
+        const javaFromData = leetData?.codeSnippets?.find((s) => s.langSlug === "java")?.code || "";
+        starter = javaFromData;
+      }
+      if (!starter || starter.includes("public int solve()")) {
+        // Fallback: use local DEFAULT_CODE enhanced with problem title
+        starter = DEFAULT_CODE["java"];
+      }
+      // Auto-switch to Java when LeetCode snippet is Java (harness is Java-only)
+      if (selectedLanguage.language !== "java") {
+        const javaLang = SUPPORTED_LANGUAGES.find((l) => l.language === "java");
+        if (javaLang) setSelectedLanguage(javaLang);
+      }
+      // Ensure imports handled on next run via addAutoImports; keep snippet as-is
+      setCodeTabs((tabs) => tabs.map((tab) => (tab.id === activeCodeTabId ? { ...tab, code: starter } : tab)));
+      setActiveCodeTabId("solution");
+
+      const tabs = buildTestTabsFromExample(exampleTestcases || leetData?.exampleTestcases || "", starter);
+      setTestcaseTabs(tabs);
+      setActiveTestcaseId(tabs[0]?.id || "1");
+      // legacy stdin mirror first case for backward compat
+      setStdin(tabs[0]?.value || "");
+      setConsoleTab("testcase");
+      setDiagnostics([]);
+      setOutput("");
+      setRunMeta(null);
+      // expand IO panel to show testcase
+      expandIOPanel(isMobile ? IO_MOBILE_DEFAULT_SIZE : guruBotOpen ? IO_GURU_DEFAULT_SIZE : IO_DEFAULT_SIZE);
+      setPracticeTab("editor");
+      toast({
+        title: leetData ? `Loaded: ${leetData.title}` : `Loaded: ${problem.title}`,
+        description: leetData?.exampleTestcases ? `${tabs.length} sample case(s) ready — hit Run` : "Starter loaded — add input in the Testcase tab and hit Run.",
+      });
+    },
+    [activeCodeTabId, buildTestTabsFromExample, expandIOPanel, guruBotOpen, isMobile, toast, selectedLanguage.language],
+  );
+
+  const handleFetchProblem = useCallback(
+    async (titleSlug: string) => {
+      setPracticeLoadingSlug(titleSlug);
+      try {
+        const data = await fetchLeetCodeProblem(titleSlug);
+        return data;
+      } finally {
+        setPracticeLoadingSlug(null);
+      }
+    },
+    [],
+  );
+
+  const expectedOutputs = useMemo(() => extractExpectedOutputs(activePracticeProblem?.content || ""), [activePracticeProblem]);
+
+  const paramNames = useMemo(() => {
+    try {
+      const javaCode = activePracticeProblem?.codeSnippets?.find((s) => s.langSlug === "java")?.code || code;
+      const sig = javaCode ? parseSolutionSignature(javaCode) : null;
+      if (sig && sig.params.length > 0) return sig.params.map((p) => p.name);
+    } catch {}
+    return [] as string[];
+  }, [activePracticeProblem, code]);
 
   // Editor preference state (cloud-synced via playground_preferences)
   const [editorFontSize, setEditorFontSize] = useState(14);
@@ -1684,6 +1811,9 @@ export default function Playground() {
     let nextCode = DEFAULT_CODE[selectedLanguage.language] || "";
     if (practiceId && practiceData?.code?.[0]?.content && selectedLanguage.language === "java") {
       nextCode = practiceData.code[0].content;
+    } else if (activePracticeProblem) {
+      const javaSnippet = activePracticeProblem.codeSnippets?.find((s) => s.langSlug === "java")?.code || "";
+      if (javaSnippet && !javaSnippet.includes("public int solve()")) nextCode = javaSnippet;
     }
     
     setCodeTabs((tabs) =>
@@ -1693,10 +1823,16 @@ export default function Playground() {
     );
     
     setOutput("");
-    setStdin("");
+    // keep testcaseTabs but reset active input if LeetCode problem
+    if (activePracticeProblem && testcaseTabs.length) {
+      const first = testcaseTabs[0]?.value || "";
+      setStdin(first);
+    } else {
+      setStdin("");
+    }
     setBreakpoints(new Set());
     setIsDebugMode(false);
-  }, [selectedLanguage.language, practiceId, practiceData, activeCodeTabId]);
+  }, [selectedLanguage.language, practiceId, practiceData, activeCodeTabId, activePracticeProblem, testcaseTabs]);
 
   const runCode = useCallback(
     async (debugRun = false) => {
@@ -1719,7 +1855,8 @@ export default function Playground() {
       setDebugLine(null);
       setConsoleTab(debugRun ? "debug" : "result");
       const startedAt = performance.now();
-      const stdinAtRun = stdin;
+      // stdinAtRun will be resolved after harness decision; keep mutable
+      let stdinAtRun = stdin;
       let status: RunStatus = debugRun ? "debug" : "accepted";
       try {
         let sourceCode = code;
@@ -1733,13 +1870,54 @@ export default function Playground() {
           );
         }
 
+        // Harness path (when practice problem is loaded)
+        let harness: string | null = null;
+        let harnessStdin = "";
+        if (isJava && !debugRun && (activePracticeProblem?.exampleTestcases || (testcaseTabs.length > 0 && activePracticeProblem))) {
+          try {
+            // Use testcaseTabs if present, else raw exampleTestcases
+            const allInputs = testcaseTabs.length > 0 ? testcaseTabs.map((t) => t.value).join("\n") : activePracticeProblem?.exampleTestcases || "";
+            harness = generateHarnessMain(sourceCode, allInputs);
+          } catch (e) {
+            console.warn("[Playground] harness generate failed", e);
+          }
+        }
+
         let processedCode = sourceCode;
         if (isJava) {
-          processedCode = addAutoImports(sourceCode).replace(
-            /public\s+class\s+/g,
-            "class ",
-          );
+          processedCode = addAutoImports(sourceCode).replace(/public\s+class\s+/g, "class ");
         }
+        // If harness exists, combine Solution + generated Main; stdin stays empty
+        if (harness) {
+          processedCode = `${processedCode}\n\n${harness}`;
+          harnessStdin = "";
+        } else {
+          // Fallback: use active testcase tab or stdin textarea
+          const activeCaseValue = testcaseTabs.find((t) => t.id === activeTestcaseId)?.value;
+          harnessStdin = activeCaseValue ?? stdin ?? "";
+        }
+        // Ensure a Main class exists for Wandbox — harness already provides one, but if parsing
+        // failed or no Leetcode problem is active, inject a minimal Main so compilation succeeds.
+        if (isJava && !/\bclass\s+Main\b/.test(processedCode)) {
+          // Retry harness using current tabs even when activePracticeProblem missing (e.g. GFG load with snippet)
+          if (!harness && !debugRun) {
+            try {
+              const retryInputs = testcaseTabs.length > 0 ? testcaseTabs.map((t) => t.value).join("\n") : harnessStdin || "";
+              if (retryInputs.trim()) {
+                const retryHarness = generateHarnessMain(sourceCode, retryInputs);
+                if (retryHarness) {
+                  processedCode = `${processedCode}\n\n${retryHarness}`;
+                  harness = retryHarness;
+                  harnessStdin = "";
+                }
+              }
+            } catch {}
+          }
+          if (!/\bclass\s+Main\b/.test(processedCode)) {
+            processedCode += `\n\nclass Main {\n    public static void main(String[] args) {\n        System.out.println("=== Java Compilation & Syntax Check Successful ===");\n        System.out.println("Tip: Add a main method to test your solution!");\n    }\n}`;
+          }
+        }
+        stdinAtRun = harness ? "" : harnessStdin;
 
         const res = await fetch(WANDBOX_API, {
           method: "POST",
@@ -1747,7 +1925,7 @@ export default function Playground() {
           body: JSON.stringify({
             compiler: selectedLanguage.version,
             code: processedCode,
-            stdin: stdin || "",
+            stdin: stdinAtRun || "",
             "compiler-option-raw": "",
             "runtime-option-raw": "",
             save: false,
@@ -1831,6 +2009,9 @@ export default function Playground() {
       isMobile,
       guruBotOpen,
       expandIOPanel,
+      activePracticeProblem,
+      testcaseTabs,
+      activeTestcaseId,
     ],
   );
 
@@ -2179,6 +2360,129 @@ export default function Playground() {
     const meta = RUN_STATUS_META[status];
     const isFailure = meta.tone === "fail";
     const inputAtRun = runMeta?.stdinAtRun ?? stdin;
+
+    // LeetCode harness per-testcase validation (when a practice problem is loaded)
+    const isHarnessRun = Boolean(activePracticeProblem && testcaseTabs.length > 0 && !isFailure && output.trim());
+    if (isHarnessRun) {
+      const rawLines = output.trim().split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
+      const perCaseOutputs = testcaseTabs.map((_, i) => rawLines[i] ?? "");
+      const normalize = (s: string) => s.trim().replace(/\s+/g, " ").replace(/,\s/g, ",").replace(/\[\s/g, "[").replace(/\s\]/g, "]").toLowerCase();
+      const caseStatuses = testcaseTabs.map((_, i) => {
+        const your = perCaseOutputs[i] ?? "";
+        const expected = expectedOutputs[i] ?? "";
+        const isCustom = i >= expectedOutputs.length;
+        if (your.startsWith("Runtime Error") || your.includes("Runtime Error on Case")) return { passed: false as boolean, your, expected, isCustom };
+        if (isCustom) return { passed: true as boolean, your, expected: "", isCustom };
+        return { passed: normalize(your) === normalize(expected), your, expected, isCustom };
+      });
+      const hasExpected = expectedOutputs.length > 0;
+      const allPassed = hasExpected ? caseStatuses.filter((c) => !c.isCustom).every((c) => c.passed) && rawLines.length >= Math.min(testcaseTabs.length, expectedOutputs.length) : true;
+      const passedCount = caseStatuses.filter((c) => c.passed).length;
+      const totalCount = testcaseTabs.length;
+      const overallStatusLabel = hasExpected ? (allPassed ? "Accepted" : "Wrong Answer") : "Executed";
+      const overallTone = hasExpected ? (allPassed ? "pass" : "fail") : "pass";
+      const activeIdx = Math.max(0, testcaseTabs.findIndex((t) => t.id === activeTestcaseId));
+      const activeTab = testcaseTabs[activeIdx];
+      const activeStatus = caseStatuses[activeIdx];
+      const inputLabel = paramNames.length === 1 ? paramNames[0] : paramNames.length > 1 ? paramNames.join(", ") : "Input";
+
+      return (
+        <div className="space-y-4 px-5 py-5">
+          {/* Overall verdict */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className={`lc-result-status lc-status-${overallTone}`}>
+              {overallTone === "pass" ? <Check size={18} strokeWidth={3} /> : <X size={18} strokeWidth={3} />}
+              {overallStatusLabel}
+            </span>
+            <span className="text-[12px] font-bold" style={{ color: overallTone === "pass" ? "var(--lc-green)" : "var(--lc-red)" }}>
+              {passedCount} / {totalCount} passed
+            </span>
+            {runMeta?.ms != null && (
+              <span className="lc-chip">
+                <Clock size={11} /> {runMeta.ms} ms
+              </span>
+            )}
+            <span className="lc-chip">{selectedLanguage.label}</span>
+          </div>
+
+          {/* Case tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+            {testcaseTabs.map((tc, i) => {
+              const st = caseStatuses[i];
+              const isActive = tc.id === activeTestcaseId;
+              const isFailed = !st.passed && !st.isCustom;
+              const isPassed = st.passed && !st.isCustom;
+              return (
+                <div
+                  key={tc.id}
+                  className={`group flex items-center gap-1 pl-3 pr-1 py-1 rounded-full text-[11px] font-bold border transition-colors min-w-max ${isActive ? (isFailed ? "bg-[color:var(--lc-red-soft)] text-[color:var(--lc-red)] border-[color:var(--lc-red)]" : isPassed ? "bg-[color:var(--lc-green-soft)] text-[color:var(--lc-green)] border-[color:var(--lc-green)]" : "bg-[color:var(--lc-panel-3)] text-[color:var(--lc-text)] border-[color:var(--lc-border)]") : "bg-transparent text-[color:var(--lc-muted)] border-transparent hover:text-[color:var(--lc-text)]"}`}
+                >
+                  <button onClick={() => setActiveTestcaseId(tc.id)} className="flex items-center gap-1 bg-transparent border-0 p-0 font-bold text-inherit">
+                    {isFailed ? <X size={12} /> : isPassed ? <Check size={12} /> : null}
+                    {tc.name}
+                  </button>
+                  {testcaseTabs.length > 1 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const newTabs = testcaseTabs.filter((t) => t.id !== tc.id);
+                        const renamed = newTabs.map((t, idx) => ({ ...t, name: `Case ${idx + 1}` }));
+                        setTestcaseTabs(renamed);
+                        if (activeTestcaseId === tc.id) setActiveTestcaseId(renamed[0]?.id || "1");
+                      }}
+                      className="ml-1 p-0.5 rounded-full opacity-60 group-hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10"
+                      title="Remove case"
+                    >
+                      <X size={10} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            <button
+              onClick={() => {
+                const newId = String(Date.now());
+                setTestcaseTabs((prev) => [...prev, { id: newId, name: `Case ${prev.length + 1}`, value: "" }]);
+                setActiveTestcaseId(newId);
+                setConsoleTab("testcase");
+              }}
+              className="ml-1 px-2 py-1 rounded-full text-[11px] font-bold border border-dashed"
+              style={{ color: "var(--lc-muted)", borderColor: "var(--lc-border)" }}
+              title="Add custom testcase"
+            >
+              + Add
+            </button>
+          </div>
+
+          {/* Active case cards */}
+          {activeTab && activeStatus && (
+            <div className="space-y-3">
+              <div>
+                <div className="lc-io-label">{inputLabel}</div>
+                <div className="lc-io-card font-mono text-[12px] whitespace-pre-wrap break-all">{activeTab.value || "(empty)"}</div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <div className="lc-io-label">Your Output</div>
+                  <div className={`lc-io-card font-mono text-[12px] whitespace-pre-wrap break-all ${!activeStatus.passed && !activeStatus.isCustom ? "lc-io-card-error" : ""}`}>{activeStatus.your || "(no output)"}</div>
+                </div>
+                <div>
+                  <div className="lc-io-label">Expected Output</div>
+                  <div className="lc-io-card font-mono text-[12px] whitespace-pre-wrap break-all">
+                    {activeStatus.isCustom ? <span style={{ color: "var(--lc-faint)", fontStyle: "italic" }}>No expected — custom case</span> : (activeStatus.expected || "(not found)")}
+                  </div>
+                </div>
+              </div>
+              {!activeStatus.passed && !activeStatus.isCustom && (
+                <div className="text-[11px] font-medium" style={{ color: "var(--lc-red)" }}>
+                  Mismatch — check your logic for this case. Expected vs your output differ after normalization.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-5 px-5 py-5">
@@ -2757,7 +3061,7 @@ export default function Playground() {
 
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TOP BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex flex-shrink-0 select-none items-center justify-between px-3"
+        className={`flex flex-shrink-0 select-none items-center justify-between px-3 ${zenMode ? "hidden" : ""}`}
         style={{
           height: 44,
           background: isDark
@@ -3797,7 +4101,7 @@ export default function Playground() {
             </div>
           </ResizablePanel>
 
-          {ioPanelOpen && (
+          {!zenMode && ioPanelOpen && (
             <>
               {/* Resize handle between editor and console dock */}
               <ResizableHandle
@@ -3986,29 +4290,122 @@ export default function Playground() {
 
                     {/* Console body */}
                     {consoleTab === "testcase" ? (
-                      <div className="min-h-0 flex-1 overflow-auto p-4">
-                        <div className="lc-io-label">stdin</div>
-                        <textarea
-                          value={stdin}
-                          onChange={(e) => setStdin(e.target.value)}
-                          placeholder="Enter input for your program…"
-                          spellCheck={false}
-                          className="lc-field min-h-[120px] w-full resize-none px-3.5 py-3 font-mono text-[13px] leading-relaxed"
-                          style={{ height: "calc(100% - 26px)" }}
-                        />
+                      <div className="min-h-0 flex-1 overflow-auto p-3 flex flex-col gap-3">
+                        {activePracticeProblem && testcaseTabs.length > 0 ? (
+                          <>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {testcaseTabs.map((tc) => (
+                                <div
+                                  key={tc.id}
+                                  className={`group flex items-center gap-1 pl-3 pr-1 py-1 rounded-full text-[11px] font-bold border transition-colors ${activeTestcaseId === tc.id ? "bg-[color:var(--lc-accent)] text-white border-[color:var(--lc-accent)]" : "bg-[color:var(--lc-panel-2)] text-[color:var(--lc-muted)] border-[color:var(--lc-border)] hover:text-[color:var(--lc-text)]"}`}
+                                >
+                                  <button onClick={() => setActiveTestcaseId(tc.id)} className="bg-transparent border-0 p-0 font-bold text-inherit">
+                                    {tc.name}
+                                  </button>
+                                  {testcaseTabs.length > 1 && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const newTabs = testcaseTabs.filter((t) => t.id !== tc.id);
+                                        // re-index names
+                                        const renamed = newTabs.map((t, idx) => ({ ...t, name: `Case ${idx + 1}` }));
+                                        setTestcaseTabs(renamed);
+                                        if (activeTestcaseId === tc.id) setActiveTestcaseId(renamed[0]?.id || "1");
+                                        // sync stdin to active
+                                        if (renamed[0]) setStdin(renamed.find((t) => t.id === activeTestcaseId)?.value || renamed[0].value);
+                                      }}
+                                      className="ml-1 p-0.5 rounded-full opacity-60 group-hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10"
+                                      title="Remove case"
+                                    >
+                                      <X size={10} />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              <button
+                                onClick={() => {
+                                  const newId = String(Date.now());
+                                  setTestcaseTabs((prev) => [...prev, { id: newId, name: `Case ${prev.length + 1}`, value: "" }]);
+                                  setActiveTestcaseId(newId);
+                                }}
+                                className="px-2 py-1 rounded-full text-[11px] font-bold border border-dashed"
+                                style={{ color: "var(--lc-muted)", borderColor: "var(--lc-border)" }}
+                              >
+                                + Add
+                              </button>
+                            </div>
+                            <div className="lc-io-label flex items-center justify-between">
+                              <span>Input — {activePracticeProblem.title} ({activePracticeProblem.difficulty})</span>
+                              {activePracticeProblem.link && (
+                                <a href={activePracticeProblem.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] font-medium hover:underline" style={{ color: "var(--lc-accent)" }}>
+                                  LeetCode <ExternalLink size={11} />
+                                </a>
+                              )}
+                            </div>
+                            <textarea
+                              value={testcaseTabs.find((t) => t.id === activeTestcaseId)?.value || ""}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setTestcaseTabs((prev) => prev.map((t) => (t.id === activeTestcaseId ? { ...t, value: v } : t)));
+                                setStdin(v);
+                              }}
+                              placeholder="Edit test case… each param on new line, e.g. [2,7,11,15]&#10;9"
+                              spellCheck={false}
+                              className="lc-field min-h-[120px] w-full resize-none px-3.5 py-3 font-mono text-[13px] leading-relaxed flex-1"
+                            />
+                            <div className="text-[11px] leading-relaxed p-2 rounded-lg border" style={{ color: "var(--lc-muted)", borderColor: "var(--lc-border-soft)", background: "var(--lc-panel-2)" }}>
+                              <span style={{ color: "var(--lc-text)" }}>{testcaseTabs.length} case(s)</span> ready — hit <b>Run</b> to execute. Add cases or switch tabs before Run.
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="lc-io-label">stdin</div>
+                            <textarea
+                              value={stdin}
+                              onChange={(e) => setStdin(e.target.value)}
+                              placeholder="Enter input for your program…"
+                              spellCheck={false}
+                              className="lc-field min-h-[120px] w-full resize-none px-3.5 py-3 font-mono text-[13px] leading-relaxed"
+                              style={{ height: "calc(100% - 26px)" }}
+                            />
+                            {activePracticeProblem && (
+                              <div className="text-[11px] p-2 rounded border" style={{ color: "var(--lc-muted)", borderColor: "var(--lc-border-soft)" }}>
+                                No sample testcases for this problem — using raw stdin mode.
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     ) : consoleTab === "problems" ? (
-                      <div className="min-h-0 flex-1 overflow-auto">
-                        <ProblemsList
-                          diagnostics={diagnostics}
-                          onJump={(line, col) => {
-                            const editor = editorRef.current;
-                            if (!editor) return;
-                            editor.revealPositionInCenter({ lineNumber: line, column: col });
-                            editor.setPosition({ lineNumber: line, column: col });
-                            editor.focus();
-                          }}
-                        />
+                      <div className="min-h-0 flex-1 overflow-auto flex flex-col">
+                        <div className="shrink-0 p-2" style={{ borderBottom: "1px solid var(--lc-border-soft)" }}>
+                          <ProblemsList
+                            diagnostics={diagnostics}
+                            onJump={(line, col) => {
+                              const editor = editorRef.current;
+                              if (!editor) return;
+                              editor.revealPositionInCenter({ lineNumber: line, column: col });
+                              editor.setPosition({ lineNumber: line, column: col });
+                              editor.focus();
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-h-[280px] overflow-hidden flex flex-col" style={{ background: "var(--lc-panel)" }}>
+                          <div className="px-3 py-2 flex items-center gap-2 shrink-0" style={{ borderBottom: "1px solid var(--lc-border)", background: "var(--lc-panel-2)" }}>
+                            <span className="text-[12px] font-bold" style={{ color: "var(--lc-text)" }}>
+                              Practice Library
+                            </span>
+                          </div>
+                          <div className="flex-1 min-h-0 overflow-auto">
+                            <PlaygroundProblemsLibrary
+                              onFetchProblem={handleFetchProblem}
+                              deriveSlug={deriveTitleSlug as any}
+                              onSelectProblem={handleSelectPracticeProblem}
+                              loadingSlug={practiceLoadingSlug}
+                              activeSlug={activePracticeSlug}
+                            />
+                          </div>
+                        </div>
                       </div>
                     ) : consoleTab === "debug" ? (
                       <div className="min-h-0 flex-1 overflow-auto">
@@ -4035,7 +4432,7 @@ export default function Playground() {
             </>
           )}
 
-          {guruBotOpen && !isMobile && (
+          {!zenMode && guruBotOpen && !isMobile && (
             <>
               <ResizableHandle className="lc-resizer w-2" />
 
@@ -4131,7 +4528,7 @@ export default function Playground() {
 
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• STATUS BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className="flex select-none flex-shrink-0 items-center justify-between px-3"
+        className={`flex select-none flex-shrink-0 items-center justify-between px-3 ${zenMode ? "hidden" : ""}`}
         style={{
           height: 30,
           background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
@@ -4290,6 +4687,20 @@ export default function Playground() {
           </AppTooltip>
         </div>
       </div>
+
+      {zenMode && (
+        <div className="absolute top-3 right-3 z-50">
+          <button
+            onClick={toggleZenMode}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold shadow-lg border"
+            style={{ background: "var(--lc-panel)", borderColor: "var(--lc-border)", color: "var(--lc-text)" }}
+          >
+            <Focus size={13} style={{ color: "var(--lc-accent)" }} />
+            Exit Zen Mode
+            <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: "var(--lc-panel-2)", color: "var(--lc-muted)", border: "1px solid var(--lc-border)" }}>Esc</span>
+          </button>
+        </div>
+      )}
 
       {/* GuruBot selection menu */}
       {askGuruPopup && askGuruOnSelection && !aiEdit && (

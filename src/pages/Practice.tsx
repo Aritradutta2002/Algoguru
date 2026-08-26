@@ -28,6 +28,13 @@ const TOPIC_ACCENTS: Record<string, { bg: string; text: string; border: string; 
   heap: { bg: "bg-indigo-500", text: "text-indigo-600", border: "border-indigo-200", soft: "bg-indigo-50 dark:bg-indigo-950/30" },
   recursion: { bg: "bg-orange-500", text: "text-orange-600", border: "border-orange-200", soft: "bg-orange-50 dark:bg-orange-950/30" },
   tree: { bg: "bg-teal-500", text: "text-teal-600", border: "border-teal-200", soft: "bg-teal-50 dark:bg-teal-950/30" },
+  "binary-search-tree": { bg: "bg-lime-600", text: "text-lime-700", border: "border-lime-200", soft: "bg-lime-50 dark:bg-lime-950/30" },
+  graph: { bg: "bg-sky-600", text: "text-sky-700", border: "border-sky-200", soft: "bg-sky-50 dark:bg-sky-950/30" },
+  backtracking: { bg: "bg-fuchsia-500", text: "text-fuchsia-600", border: "border-fuchsia-200", soft: "bg-fuchsia-50 dark:bg-fuchsia-950/30" },
+  greedy: { bg: "bg-yellow-500", text: "text-yellow-700", border: "border-yellow-200", soft: "bg-yellow-50 dark:bg-yellow-950/30" },
+  "dynamic-programming": { bg: "bg-violet-600", text: "text-violet-700", border: "border-violet-200", soft: "bg-violet-50 dark:bg-violet-950/30" },
+  trie: { bg: "bg-emerald-600", text: "text-emerald-700", border: "border-emerald-200", soft: "bg-emerald-50 dark:bg-emerald-950/30" },
+  "bit-manipulation": { bg: "bg-slate-600", text: "text-slate-700", border: "border-slate-200", soft: "bg-slate-50 dark:bg-slate-900/30" },
 };
 
 function toProblemSlug(title: string): string {
