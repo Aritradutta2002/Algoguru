@@ -40,6 +40,7 @@ import {
   Sparkles,
   Target,
   ArrowRight,
+  SunMoon,
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import * as prettier from "prettier/standalone";
@@ -82,6 +83,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { GuruBot } from "@/components/GuruBot";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { supabase } from "@/integrations/supabase/client";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { renderNoteMarkdown } from "@/lib/renderNoteMarkdown";
@@ -99,6 +101,25 @@ interface CodeTab {
   code: string;
   protected?: boolean;
 }
+
+/** Verdict shown in the LeetCode-style result header. */
+type RunStatus =
+  | "accepted"
+  | "compile_error"
+  | "runtime_error"
+  | "service_error"
+  | "debug";
+
+const RUN_STATUS_META: Record<
+  RunStatus,
+  { label: string; tone: "pass" | "fail" | "warn" }
+> = {
+  accepted: { label: "Accepted", tone: "pass" },
+  compile_error: { label: "Compile Error", tone: "fail" },
+  runtime_error: { label: "Runtime Error", tone: "fail" },
+  service_error: { label: "Judge Unavailable", tone: "warn" },
+  debug: { label: "Debug Trace", tone: "warn" },
+};
 
 const IO_COLLAPSED_SIZE = 3.5;
 const IO_EXPAND_TRIGGER_SIZE = 4.25;
@@ -137,7 +158,7 @@ const THEMES = [
   { id: "leetcode-dark", label: "LeetCode Dark", icon: <Moon size={13} /> },
   { id: "vs-dark", label: "VS Dark", icon: <Moon size={13} /> },
   { id: "dracula", label: "Dracula", icon: <Palette size={13} /> },
-  { id: "light", label: "Light", icon: <Sun size={13} /> },
+  { id: "light", label: "LeetCode Light", icon: <Sun size={13} /> },
   {
     id: "solarized-dark",
     label: "Solarized Dark",
@@ -145,6 +166,28 @@ const THEMES = [
   },
   { id: "hc-black", label: "High Contrast", icon: <Palette size={13} /> },
 ];
+
+/**
+ * Sentinel theme choice meaning "follow the app's light/dark mode".
+ * Stored in playground_preferences.theme alongside real theme ids.
+ */
+const THEME_AUTO = "auto";
+
+/** Which editor theme "auto" resolves to for each app mode. */
+const AUTO_THEME_FOR_APP: Record<"dark" | "light", string> = {
+  dark: "leetcode-dark",
+  light: "light",
+};
+
+/**
+ * The editor theme that was hardcoded as the default before "auto" existed.
+ * A saved row holding it is indistinguishable from "user never chose a theme",
+ * so it is read back as "auto" and the next save migrates the row.
+ */
+const LEGACY_DEFAULT_THEME = "leetcode-dark";
+
+const isValidThemeChoice = (value: unknown): value is string =>
+  value === THEME_AUTO || THEMES.some((t) => t.id === value);
 
 const JAVA_AUTO_IMPORTS = [
   "import java.util.*;",
@@ -190,10 +233,19 @@ const LEETCODE_DARK_THEME = {
     "editor.foreground": "#e1e1e1",
     "editor.lineHighlightBackground": "#2f2f2f",
     "editor.selectionBackground": "#264f78",
+    "editor.selectionHighlightBackground": "#264f7855",
     "editorCursor.foreground": "#aeafad",
     "editorIndentGuide.background": "#404040",
+    "editorIndentGuide.activeBackground": "#5a5a5a",
     "editorLineNumber.foreground": "#6e7681",
     "editorLineNumber.activeForeground": "#e1e1e1",
+    "editorBracketMatch.background": "#ffa11626",
+    "editorBracketMatch.border": "#ffa116",
+    "editorWidget.background": "#242424",
+    "editorWidget.border": "#3c3c3c",
+    "editorSuggestWidget.background": "#242424",
+    "editorSuggestWidget.border": "#3c3c3c",
+    "editorSuggestWidget.selectedBackground": "#ffa1161f",
     "scrollbarSlider.background": "#4e4e4eaa",
     "scrollbarSlider.hoverBackground": "#5a5a5aaa",
   },
@@ -225,6 +277,40 @@ const DRACULA_THEME = {
     "editorCursor.foreground": "#f8f8f0",
     "editorIndentGuide.background": "#44475a",
     "editorLineNumber.foreground": "#6272a4",
+  },
+};
+
+// LeetCode Light theme definition (id kept as "light" so saved prefs keep working)
+const LEETCODE_LIGHT_THEME = {
+  base: "vs" as const,
+  inherit: true,
+  rules: [
+    { token: "", foreground: "262626", background: "ffffff" },
+    { token: "comment", foreground: "6a737d", fontStyle: "italic" },
+    { token: "keyword", foreground: "d73a49" },
+    { token: "string", foreground: "032f62" },
+    { token: "number", foreground: "005cc5" },
+    { token: "type", foreground: "6f42c1" },
+    { token: "class", foreground: "6f42c1" },
+    { token: "interface", foreground: "6f42c1" },
+    { token: "function", foreground: "6f42c1" },
+    { token: "variable", foreground: "24292e" },
+    { token: "operator", foreground: "d73a49" },
+    { token: "annotation", foreground: "e36209" },
+  ],
+  colors: {
+    "editor.background": "#ffffff",
+    "editor.foreground": "#262626",
+    "editor.lineHighlightBackground": "#f6f8fa",
+    "editor.selectionBackground": "#0366d625",
+    "editorCursor.foreground": "#262626",
+    "editorIndentGuide.background": "#eaecef",
+    "editorLineNumber.foreground": "#b1b7bd",
+    "editorLineNumber.activeForeground": "#262626",
+    "editorBracketMatch.background": "#ffa11626",
+    "editorBracketMatch.border": "#ffa116",
+    "scrollbarSlider.background": "#8f929955",
+    "scrollbarSlider.hoverBackground": "#8f929988",
   },
 };
 
@@ -304,7 +390,7 @@ function instrumentCodeForDebug(
 
     const prevDepth = braceDepth;
 
-    // Process closing braces FIRST Ã¢â‚¬â€ remove out-of-scope variables
+    // Process closing braces FIRST - remove out-of-scope variables
     if (closeBraces > 0) {
       const newDepthAfterClose = braceDepth - closeBraces;
       // Remove variables whose scope depth is greater than the new depth
@@ -321,7 +407,7 @@ function instrumentCodeForDebug(
 
     const inMethodBody = braceDepth >= 2 || prevDepth >= 2;
 
-    // Track method parameters Ã¢â‚¬â€ detect any line that looks like a method signature with params
+    // Track method parameters - detect any line that looks like a method signature with params
     // Matches: accessModifiers returnType methodName(Type param1, Type param2, ...) {
     if (openBraces > 0) {
       const methodSigMatch = trimmed.match(
@@ -605,7 +691,24 @@ export default function Playground() {
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
+  // Result-panel metadata for the LeetCode-style status header
+  const [runMeta, setRunMeta] = useState<{
+    status: RunStatus;
+    ms: number | null;
+    stdinAtRun: string;
+  } | null>(null);
+  // Editor theme: "auto" follows the app's light/dark mode; any other value is
+  // an explicit user override that sticks regardless of the app mode.
+  const [themeChoice, setThemeChoice] = useState<string>(THEME_AUTO);
+  const { theme: appTheme } = useSettings();
+  const currentTheme = useMemo(() => {
+    const resolvedId =
+      themeChoice === THEME_AUTO
+        ? AUTO_THEME_FOR_APP[appTheme === "light" ? "light" : "dark"]
+        : themeChoice;
+    return THEMES.find((t) => t.id === resolvedId) ?? THEMES[0];
+  }, [themeChoice, appTheme]);
+
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [settingsMenuType, setSettingsMenuType] = useState<"language" | "theme">("language");
@@ -614,6 +717,7 @@ export default function Playground() {
   const [stdin, setStdin] = useState("");
   const [consoleTab, setConsoleTab] = useState<"testcase" | "result">("testcase");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [editorLocked, setEditorLocked] = useState(false);
   const playgroundShellRef = useRef<HTMLDivElement>(null);
   const [showTemplateMenu, setShowTemplateMenu] = useState(false);
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
@@ -788,8 +892,11 @@ export default function Playground() {
       if (cancelled) return;
 
       if (data) {
-        const theme = THEMES.find((t) => t.id === data.theme);
-        if (theme) setCurrentTheme(theme);
+        if (isValidThemeChoice(data.theme)) {
+          setThemeChoice(
+            data.theme === LEGACY_DEFAULT_THEME ? THEME_AUTO : data.theme,
+          );
+        }
         if (Number.isFinite(data.font_size)) setEditorFontSize(data.font_size);
         if ([2, 4, 8].includes(data.tab_size)) setEditorTabSize(data.tab_size);
         setRelativeLineNumbers(Boolean(data.relative_lines));
@@ -813,7 +920,7 @@ export default function Playground() {
     const timer = setTimeout(() => {
       supabase.from("playground_preferences").upsert({
         user_id: user.id,
-        theme: currentTheme.id,
+        theme: themeChoice,
         font_size: editorFontSize,
         tab_size: editorTabSize,
         relative_lines: relativeLineNumbers,
@@ -824,7 +931,7 @@ export default function Playground() {
   }, [
     cloudPrefsLoaded,
     user,
-    currentTheme,
+    themeChoice,
     editorFontSize,
     editorTabSize,
     relativeLineNumbers,
@@ -1038,6 +1145,7 @@ export default function Playground() {
     monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any);
     monaco.editor.defineTheme("dracula", DRACULA_THEME as any);
     monaco.editor.defineTheme("solarized-dark", SOLARIZED_DARK_THEME);
+    monaco.editor.defineTheme("light", LEETCODE_LIGHT_THEME as any);
 
     editor.updateOptions({
       fontSize: editorFontSize,
@@ -1323,7 +1431,7 @@ export default function Playground() {
       },
     });
 
-    // 3. CP Templates from database Ã¢â‚¬â€ prefix-triggered snippets
+    // 3. CP Templates from database - prefix-triggered snippets
     const FULL_TEMPLATE_PREFIXES = new Set([
       "template",
       "cpfull",
@@ -1364,7 +1472,7 @@ export default function Playground() {
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: isFullTemplate ? t.code : t.code,
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.None,
-            detail: `Ã¢Å¡Â¡ ${t.name}`,
+            detail: `Template: ${t.name}`,
             documentation: t.description,
             filterText: `${t.prefix} ${t.name}`,
             sortText: `0_${t.prefix}`,
@@ -1382,7 +1490,7 @@ export default function Playground() {
       },
     });
 
-    // 4. User-defined symbol autocomplete (IntelliSense) Ã¢â‚¬â€ parses current code for variables, methods, classes
+    // 4. User-defined symbol autocomplete (IntelliSense) - parses current code for variables, methods, classes
     const JAVA_RESERVED = new Set([
       "abstract",
       "assert",
@@ -1797,7 +1905,11 @@ export default function Playground() {
 
       setIsRunning(true);
       setOutput("");
+      setRunMeta(null);
       setConsoleTab("result");
+      const startedAt = performance.now();
+      const stdinAtRun = stdin;
+      let status: RunStatus = debugRun ? "debug" : "accepted";
       try {
         let sourceCode = code;
         const isJava = selectedLanguage.language === "java";
@@ -1806,9 +1918,7 @@ export default function Playground() {
         if (debugRun && breakpoints.size > 0 && isJava) {
           sourceCode = instrumentCodeForDebug(sourceCode, breakpoints);
           setOutput(
-            "Ã°Å¸â€Â Debug mode: Instrumented " +
-              breakpoints.size +
-              " breakpoint(s)...\n\n",
+            `Debug mode: instrumented ${breakpoints.size} breakpoint(s)...\n\n`,
           );
         }
 
@@ -1835,10 +1945,11 @@ export default function Playground() {
 
         if (!res.ok) {
           const errorText = await res.text();
+          status = "service_error";
           setOutput(
             (prev) =>
               prev +
-              `Warning: Compile service error (${res.status}): ${errorText || "Unknown error"}`,
+              `Compile service error (${res.status}): ${errorText || "Unknown error"}`,
           );
           return;
         }
@@ -1848,29 +1959,43 @@ export default function Playground() {
 
         if (data.compiler_error || data.compiler_message) {
           const msg = data.compiler_error || data.compiler_message;
-          if (msg.trim()) parts.push(`[Compiler]\n${msg}`);
+          if (msg.trim()) {
+            parts.push(`[Compiler]\n${msg}`);
+            // A non-zero compiler status with no program output is a real
+            // compile failure; warnings alone still produce a running program.
+            if (data.status !== "0" && !data.program_output) {
+              status = "compile_error";
+            }
+          }
         }
         if (data.program_output) {
           parts.push(data.program_output);
         }
         if (data.program_error) {
           parts.push(`[Runtime Error]\n${data.program_error}`);
+          if (status === "accepted") status = "runtime_error";
         }
 
         const result =
-          parts.join("\n") || "OK: Program executed successfully (no output)";
+          parts.join("\n") || "Program executed successfully (no output)";
         if (debugRun && breakpoints.size > 0) {
           setOutput((prev) => prev + result);
         } else {
           setOutput(result);
         }
       } catch (err) {
+        status = "service_error";
         setOutput(
           (prev) =>
             prev +
-            `Warning: Could not connect to compiler.\n${err instanceof Error ? err.message : "Unknown error"}`,
+            `Could not connect to compiler.\n${err instanceof Error ? err.message : "Unknown error"}`,
         );
       } finally {
+        setRunMeta({
+          status,
+          ms: Math.round(performance.now() - startedAt),
+          stdinAtRun,
+        });
         setIsRunning(false);
       }
     },
@@ -2057,13 +2182,14 @@ export default function Playground() {
           compact ? "!px-4 !py-[5px] !text-[12px]" : "!px-6 !py-2 !text-[13px]"
         }`}
         aria-label="Run code"
+        aria-busy={isRunning}
       >
         {isRunning ? (
           <Loader2 size={14} className="animate-spin" />
         ) : (
           <Play size={14} fill="currentColor" strokeWidth={0} />
         )}
-        {compact ? "Run" : isRunning ? "Running..." : "Run"}
+        {isRunning ? "Running" : "Run"}
       </button>
     </AppTooltip>
   );
@@ -2154,69 +2280,200 @@ export default function Playground() {
     stdin,
   ]);
 
-  const outputToneClass =
-    output.includes("Error") || output.includes("Warning:")
-      ? "text-red-600 dark:text-destructive"
-      : output.includes("[DEBUG")
-        ? "text-amber-600 dark:text-warning"
-        : "text-emerald-600 dark:text-success";
+  // ── LeetCode-style result view: verdict headline + Input/Output cards ──
+  const resultView = (() => {
+    if (isRunning) {
+      return (
+        <div className="space-y-4 px-5 py-5">
+          <div
+            className="flex items-center gap-2.5 text-[15px] font-medium"
+            style={{ color: "var(--lc-muted)" }}
+          >
+            <Loader2
+              size={16}
+              className="animate-spin"
+              style={{ color: "var(--lc-accent)" }}
+            />
+            Judging…
+          </div>
+          <div className="space-y-2">
+            {[100, 72, 88].map((w, i) => (
+              <div
+                key={i}
+                className="h-3.5 animate-pulse rounded"
+                style={{
+                  width: `${w}%`,
+                  background: "var(--lc-panel-3)",
+                  animationDelay: `${i * 120}ms`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (!runMeta && !output) {
+      return (
+        <div
+          className="flex h-full min-h-[220px] select-none flex-col items-center justify-center gap-3 px-6 text-center"
+          style={{ color: "var(--lc-faint)" }}
+        >
+          <div
+            className="flex h-14 w-14 items-center justify-center rounded-full"
+            style={{ border: "1px dashed var(--lc-border)" }}
+          >
+            <Play size={20} className="translate-x-0.5" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-[12.5px] font-medium">
+              You must run your code first
+            </p>
+            <p className="text-[11px]">Press Ctrl+Enter to run</p>
+          </div>
+        </div>
+      );
+    }
+
+    const status = runMeta?.status ?? "accepted";
+    const meta = RUN_STATUS_META[status];
+    const isFailure = meta.tone === "fail";
+    const inputAtRun = runMeta?.stdinAtRun ?? stdin;
+
+    return (
+      <div className="space-y-5 px-5 py-5">
+        {/* Verdict headline + runtime chip */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className={`lc-result-status lc-status-${meta.tone}`}>
+            {meta.tone === "pass" ? (
+              <Check size={18} strokeWidth={3} />
+            ) : meta.tone === "fail" ? (
+              <X size={18} strokeWidth={3} />
+            ) : (
+              <Bug size={17} strokeWidth={2.5} />
+            )}
+            {meta.label}
+          </span>
+          {runMeta?.ms != null && (
+            <span className="lc-chip">
+              <Clock size={11} />
+              {runMeta.ms} ms
+            </span>
+          )}
+          <span className="lc-chip">{selectedLanguage.label}</span>
+        </div>
+
+        {/* Input */}
+        <div>
+          <div className="lc-io-label">Input</div>
+          <div
+            className={`lc-io-card ${inputAtRun.trim() ? "" : "lc-io-card-empty"}`}
+          >
+            {inputAtRun.trim() || "No input provided"}
+          </div>
+        </div>
+
+        {/* Output / stderr */}
+        <div>
+          <div className="lc-io-label">
+            {isFailure ? "Error Message" : "Output"}
+          </div>
+          <div className={`lc-io-card ${isFailure ? "lc-io-card-error" : ""}`}>
+            {output || <span className="lc-io-card-empty">No output</span>}
+          </div>
+        </div>
+      </div>
+    );
+  })();
 
   // Settings dropdown content (reusable)
   const SettingsDropdownContent = () => {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        style={{ background: "var(--lc-scrim)", backdropFilter: "blur(2px)" }}
+      >
         <div
-          className="relative w-full max-w-2xl rounded-2xl border border-border/40 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
-          style={{
-            backgroundColor: "hsl(var(--card))",
-            maxHeight: "85vh",
-          }}
+          className="lc-surface relative flex w-full max-w-lg animate-in flex-col overflow-hidden rounded-xl duration-200 fade-in zoom-in-95"
+          style={{ maxHeight: "85vh" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border/10 bg-muted/10">
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Settings size={20} className="text-primary" />
+          <div
+            className="flex flex-shrink-0 items-center justify-between px-5 py-3.5"
+            style={{ borderBottom: "1px solid var(--lc-border)" }}
+          >
+            <h2
+              className="flex items-center gap-2 text-[15px] font-semibold"
+              style={{ color: "var(--lc-text)" }}
+            >
+              <Settings size={16} style={{ color: "var(--lc-accent)" }} />
               Settings
             </h2>
             <button
               onClick={() => setShowSettingsMenu(false)}
-              className="p-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+              className="lc-icon-btn !h-8 !w-8"
+              aria-label="Close settings"
             >
-              <X size={20} />
+              <X size={16} />
             </button>
           </div>
 
           {/* Body */}
-          <div className="overflow-y-auto px-8 py-6 space-y-8 flex-1">
-            
-            {/* Theme & Fonts Group */}
-            <div className="space-y-6">
-              <h3 className="text-sm font-black uppercase text-muted-foreground/70 tracking-wider">Appearance</h3>
-              
-              <div className="flex items-center justify-between">
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            {/* ── Appearance ── */}
+            <div className="lc-section-label">Appearance</div>
+            <div className="mt-1">
+              <div className="lc-setting-row">
                 <div>
-                  <p className="text-base font-bold text-foreground">Editor Theme</p>
+                  <p className="lc-setting-title">Editor Theme</p>
+                  <p className="lc-setting-desc">
+                    {themeChoice === THEME_AUTO
+                      ? `Following the app's ${appTheme} mode — ${currentTheme.label}`
+                      : "Fixed, regardless of the app's light/dark mode"}
+                  </p>
                 </div>
-                <div className="w-56">
+                <div className="w-48 flex-shrink-0">
                   <Select
-                    value={currentTheme.id}
+                    value={themeChoice}
                     onValueChange={(val) => {
-                      const theme = THEMES.find((t) => t.id === val);
-                      if (theme) setCurrentTheme(theme);
+                      if (isValidThemeChoice(val)) setThemeChoice(val);
                     }}
                   >
-                    <SelectTrigger className="h-10 rounded-lg border-border/40 bg-background text-sm font-semibold shadow-sm focus:ring-primary">
+                    <SelectTrigger
+                      className="lc-field h-9 text-[13px] font-medium"
+                      style={{ color: "var(--lc-text)" }}
+                    >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="z-[10000] border-border/40 bg-card rounded-lg shadow-xl">
+                    <SelectContent
+                      className="z-[10000] rounded-lg"
+                      style={{
+                        background: "var(--lc-panel-2)",
+                        border: "1px solid var(--lc-border)",
+                        color: "var(--lc-text)",
+                      }}
+                    >
+                      <SelectItem
+                        value={THEME_AUTO}
+                        className="cursor-pointer text-[13px]"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span style={{ color: "var(--lc-muted)" }}>
+                            <SunMoon size={13} />
+                          </span>
+                          <span>Sync with App</span>
+                        </div>
+                      </SelectItem>
                       {THEMES.map((theme) => (
                         <SelectItem
                           key={theme.id}
                           value={theme.id}
-                          className="text-sm font-semibold py-2 cursor-pointer"
+                          className="cursor-pointer text-[13px]"
                         >
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg">{theme.icon}</span>
+                          <div className="flex items-center gap-2.5">
+                            <span style={{ color: "var(--lc-muted)" }}>
+                              {theme.icon}
+                            </span>
                             <span>{theme.label}</span>
                           </div>
                         </SelectItem>
@@ -2226,55 +2483,69 @@ export default function Playground() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
                 <div>
-                  <p className="text-base font-bold text-foreground">Font Size</p>
+                  <p className="lc-setting-title">Font Size</p>
+                  <p className="lc-setting-desc">Editor text size in pixels</p>
                 </div>
-                <div className="w-56">
+                <div className="w-48 flex-shrink-0">
                   <Select
                     value={editorFontSize.toString()}
                     onValueChange={(val) => setEditorFontSize(Number(val))}
                   >
-                    <SelectTrigger className="h-10 rounded-lg border-border/40 bg-background text-sm font-semibold shadow-sm focus:ring-primary">
+                    <SelectTrigger
+                      className="lc-field h-9 text-[13px] font-medium"
+                      style={{ color: "var(--lc-text)" }}
+                    >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="z-[10000] border-border/40 bg-card rounded-lg shadow-xl max-h-60">
-                      {[10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24].map((size) => (
-                        <SelectItem
-                          key={size}
-                          value={size.toString()}
-                          className="text-sm font-semibold py-2 cursor-pointer"
-                        >
-                          {size}px
-                        </SelectItem>
-                      ))}
+                    <SelectContent
+                      className="z-[10000] max-h-60 rounded-lg"
+                      style={{
+                        background: "var(--lc-panel-2)",
+                        border: "1px solid var(--lc-border)",
+                        color: "var(--lc-text)",
+                      }}
+                    >
+                      {[10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24].map(
+                        (size) => (
+                          <SelectItem
+                            key={size}
+                            value={size.toString()}
+                            className="cursor-pointer text-[13px]"
+                          >
+                            {size}px
+                          </SelectItem>
+                        ),
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
 
-            <div className="h-px bg-border/20" />
-
-            {/* Editor Preferences */}
-            <div className="space-y-6">
-              <h3 className="text-sm font-black uppercase text-muted-foreground/70 tracking-wider">Editor Preferences</h3>
-
-              <div className="flex items-center justify-between">
+            {/* ── Editor ── */}
+            <div
+              className="lc-section-label mt-5 pt-4"
+              style={{ borderTop: "1px solid var(--lc-border)" }}
+            >
+              Editor
+            </div>
+            <div className="mt-1">
+              <div className="lc-setting-row">
                 <div>
-                  <p className="text-base font-bold text-foreground">Tab Size</p>
-                  <p className="text-xs text-muted-foreground mt-1">Choose the indent size for tabs</p>
+                  <p className="lc-setting-title">Tab Size</p>
+                  <p className="lc-setting-desc">Spaces per indent level</p>
                 </div>
-                <div className="flex bg-muted/30 p-1 rounded-lg border border-border/20">
+                <div className="lc-segment flex-shrink-0">
                   {[2, 4, 8].map((size) => (
                     <button
                       key={size}
                       onClick={() => setEditorTabSize(size)}
-                      className={`w-14 py-1.5 text-sm font-bold rounded-md transition-all ${
-                        editorTabSize === size
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "text-muted-foreground hover:bg-muted"
-                      }`}
+                      data-active={editorTabSize === size}
                     >
                       {size}
                     </button>
@@ -2282,84 +2553,106 @@ export default function Playground() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
                 <div>
-                  <p className="text-base font-bold text-foreground">Relative Line Numbers</p>
-                  <p className="text-xs text-muted-foreground mt-1">Show distance from current cursor line</p>
+                  <p className="lc-setting-title">Relative Line Numbers</p>
+                  <p className="lc-setting-desc">
+                    Show distance from the cursor line
+                  </p>
                 </div>
                 <button
+                  role="switch"
+                  aria-checked={relativeLineNumbers}
+                  aria-label="Relative line numbers"
                   onClick={() => setRelativeLineNumbers((value) => !value)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
-                    relativeLineNumbers ? 'bg-primary' : 'bg-muted'
-                  }`}
+                  className="lc-switch"
+                  data-on={relativeLineNumbers}
                 >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      relativeLineNumbers ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
+                  <span />
                 </button>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
                 <div>
-                  <p className="text-base font-bold text-foreground">Ask GuruBot on Selection</p>
-                  <p className="text-xs text-muted-foreground mt-1">Show popup to ask AI when code is highlighted</p>
+                  <p className="lc-setting-title">Ask GuruBot on Selection</p>
+                  <p className="lc-setting-desc">
+                    Offer AI help when you highlight code
+                  </p>
                 </div>
                 <button
+                  role="switch"
+                  aria-checked={askGuruOnSelection}
+                  aria-label="Ask GuruBot on selection"
                   onClick={() => setAskGuruOnSelection((value) => !value)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
-                    askGuruOnSelection ? 'bg-primary' : 'bg-muted'
-                  }`}
+                  className="lc-switch"
+                  data-on={askGuruOnSelection}
                 >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      askGuruOnSelection ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
+                  <span />
                 </button>
               </div>
             </div>
 
-            <div className="h-px bg-border/20" />
-
-            {/* Actions */}
-            <div className="space-y-6">
-              <h3 className="text-sm font-black uppercase text-muted-foreground/70 tracking-wider">Playground Actions</h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button
-                  onClick={() => copyCode()}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-border/30 bg-muted/10 hover:bg-muted/30 transition-all text-sm font-bold text-foreground gap-3 active:scale-95"
-                >
-                  {copied ? <Check size={20} className="text-success" /> : <Copy size={20} className="text-muted-foreground" />}
-                  {copied ? "Copied!" : "Copy Code"}
-                </button>
-
-                <button
-                  onClick={() => {
-                    downloadCode();
-                    setShowSettingsMenu(false);
-                  }}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-border/30 bg-muted/10 hover:bg-muted/30 transition-all text-sm font-bold text-foreground gap-3 active:scale-95"
-                >
-                  <Download size={20} className="text-muted-foreground" />
-                  Download Source
-                </button>
-
-                <button
-                  onClick={() => {
-                    resetCode();
-                    setShowSettingsMenu(false);
-                  }}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-all text-sm font-bold text-destructive gap-3 active:scale-95"
-                >
-                  <RotateCcw size={20} />
-                  Reset Playground
-                </button>
-              </div>
+            {/* ── Actions ── */}
+            <div
+              className="lc-section-label mt-5 pt-4"
+              style={{ borderTop: "1px solid var(--lc-border)" }}
+            >
+              Actions
             </div>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <button
+                onClick={() => copyCode()}
+                className="lc-hover flex flex-col items-center justify-center gap-2 rounded-lg px-2 py-3.5 text-[12px] font-medium"
+                style={{
+                  border: "1px solid var(--lc-border)",
+                  color: "var(--lc-text)",
+                }}
+              >
+                {copied ? (
+                  <Check size={17} style={{ color: "var(--lc-green)" }} />
+                ) : (
+                  <Copy size={17} style={{ color: "var(--lc-muted)" }} />
+                )}
+                {copied ? "Copied" : "Copy Code"}
+              </button>
 
+              <button
+                onClick={() => {
+                  downloadCode();
+                  setShowSettingsMenu(false);
+                }}
+                className="lc-hover flex flex-col items-center justify-center gap-2 rounded-lg px-2 py-3.5 text-[12px] font-medium"
+                style={{
+                  border: "1px solid var(--lc-border)",
+                  color: "var(--lc-text)",
+                }}
+              >
+                <Download size={17} style={{ color: "var(--lc-muted)" }} />
+                Download
+              </button>
+
+              <button
+                onClick={() => {
+                  resetCode();
+                  setShowSettingsMenu(false);
+                }}
+                className="flex flex-col items-center justify-center gap-2 rounded-lg px-2 py-3.5 text-[12px] font-medium transition-colors"
+                style={{
+                  border: "1px solid var(--lc-red)",
+                  background: "var(--lc-red-soft)",
+                  color: "var(--lc-red)",
+                }}
+              >
+                <RotateCcw size={17} />
+                Reset
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2514,7 +2807,7 @@ export default function Playground() {
                   }
                 }}
                 aria-label="Change Language"
-                className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium transition-colors hover:bg-white/5"
+                className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium lc-hover"
                 style={{ color: "var(--lc-text)" }}
               >
                 <Code2 size={15} style={{ color: "var(--lc-accent)" }} />
@@ -2537,11 +2830,7 @@ export default function Playground() {
                   onClick={() => setShowSettingsMenu(false)}
                 />
                 <div
-                  className="absolute left-0 top-10 z-[9999] min-w-[260px] overflow-hidden rounded-xl py-1 shadow-2xl animate-in fade-in zoom-in-95"
-                  style={{
-                    background: "var(--lc-panel-2)",
-                    border: "1px solid var(--lc-border)",
-                  }}
+                  className="lc-surface absolute left-0 top-10 z-[9999] min-w-[260px] animate-in overflow-hidden rounded-xl py-1 fade-in zoom-in-95"
                 >
                   {availableLanguages.map((c) => {
                     const isActive = selectedLanguage.language === c.language;
@@ -2553,7 +2842,7 @@ export default function Playground() {
                           setCode(DEFAULT_CODE[c.language] || "");
                           setShowSettingsMenu(false);
                         }}
-                        className="flex w-full items-center justify-between px-4 py-2.5 text-left text-[13px] transition-colors hover:bg-white/5"
+                        className="flex w-full items-center justify-between px-4 py-2.5 text-left text-[13px] lc-hover"
                         style={{
                           color: isActive
                             ? "var(--lc-accent)"
@@ -2588,12 +2877,8 @@ export default function Playground() {
               i
             </button>
             <div
-              className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[280px] -translate-x-1/2 rounded-lg px-3 py-2 text-[11px] opacity-0 shadow-xl transition-all duration-200 group-hover:opacity-100"
-              style={{
-                background: "var(--lc-panel-2)",
-                border: "1px solid var(--lc-border)",
-                color: "var(--lc-muted)",
-              }}
+              className="lc-surface pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max max-w-[280px] -translate-x-1/2 rounded-lg px-3 py-2 text-[11px] opacity-0 transition-all duration-200 group-hover:opacity-100"
+              style={{ color: "var(--lc-muted)" }}
             >
               <span className="font-semibold" style={{ color: "var(--lc-text)" }}>
                 {selectedLanguage.label}
@@ -2631,14 +2916,10 @@ export default function Playground() {
                   <div
                     className="fixed inset-0 z-[9998]"
                     onClick={() => setShowTemplateMenu(false)}
-                    style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+                    style={{ background: "var(--lc-scrim)" }}
                   />
                   <div
-                    className="fixed left-1/2 top-16 z-[9999] max-h-[70vh] w-[90vw] max-w-md -translate-x-1/2 animate-in overflow-hidden overflow-y-auto rounded-xl shadow-2xl fade-in zoom-in-95 duration-200"
-                    style={{
-                      background: "var(--lc-panel-2)",
-                      border: "1px solid var(--lc-border)",
-                    }}
+                    className="lc-surface fixed left-1/2 top-16 z-[9999] max-h-[70vh] w-[90vw] max-w-md -translate-x-1/2 animate-in overflow-hidden overflow-y-auto rounded-xl fade-in zoom-in-95 duration-200"
                   >
                     <div
                       className="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
@@ -2656,7 +2937,7 @@ export default function Playground() {
                         return (
                           <div
                             key={tmpl.prefix}
-                            className="group flex items-center rounded-lg transition-colors hover:bg-white/5"
+                            className="group flex items-center rounded-lg lc-hover"
                           >
                             <button
                               onClick={() => {
@@ -2699,7 +2980,7 @@ export default function Playground() {
                                     e.stopPropagation();
                                     openEditBuiltinTemplate(tmpl);
                                   }}
-                                  className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                                  className="flex h-7 w-7 items-center justify-center rounded-md lc-hover-strong"
                                   style={{ color: "var(--lc-muted)" }}
                                   aria-label="Edit template"
                                 >
@@ -2713,7 +2994,7 @@ export default function Playground() {
                                       e.stopPropagation();
                                       handleResetBuiltinTemplate(tmpl.prefix);
                                     }}
-                                    className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                                    className="flex h-7 w-7 items-center justify-center rounded-md lc-hover-strong"
                                     style={{ color: "var(--lc-yellow)" }}
                                     aria-label="Reset to original"
                                   >
@@ -2743,7 +3024,7 @@ export default function Playground() {
                           {userTemplates.map((tmpl) => (
                             <div
                               key={tmpl.id}
-                              className="group flex items-center rounded-lg transition-colors hover:bg-white/5"
+                              className="group flex items-center rounded-lg lc-hover"
                             >
                               <button
                                 onClick={() => {
@@ -2775,7 +3056,7 @@ export default function Playground() {
                                       e.stopPropagation();
                                       openEditTemplate(tmpl);
                                     }}
-                                    className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                                    className="flex h-7 w-7 items-center justify-center rounded-md lc-hover-strong"
                                     style={{ color: "var(--lc-muted)" }}
                                     aria-label="Edit template"
                                   >
@@ -2798,7 +3079,7 @@ export default function Playground() {
                                           : tmpl.id,
                                       );
                                     }}
-                                    className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/10`}
+                                    className={`flex h-7 w-7 items-center justify-center rounded-md lc-hover-strong`}
                                     style={{
                                       color:
                                         deleteConfirmId === tmpl.id
@@ -2827,7 +3108,7 @@ export default function Playground() {
 
                     <button
                       onClick={openCreateTemplate}
-                      className="group flex w-full items-center justify-center gap-2 px-6 py-3.5 text-[12px] font-medium transition-colors hover:bg-white/5"
+                      className="group flex w-full items-center justify-center gap-2 px-6 py-3.5 text-[12px] font-medium lc-hover"
                       style={{
                         borderTop: "1px solid var(--lc-border)",
                         color: "var(--lc-accent)",
@@ -2944,7 +3225,7 @@ export default function Playground() {
                 <div
                   className="fixed inset-0 z-[9998]"
                   onClick={() => setShowSettingsMenu(false)}
-                  style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+                  style={{ background: "var(--lc-scrim)" }}
                 />
                 {SettingsDropdownContent()}
               </>
@@ -3151,19 +3432,32 @@ export default function Playground() {
               <div
                 className="flex flex-shrink-0 select-none items-stretch overflow-x-auto"
                 style={{
-                  minHeight: 38,
+                  minHeight: 42,
                   borderBottom: "1px solid var(--lc-border)",
                   background: "var(--lc-panel)",
                 }}
               >
                 {/* Mobile-only Description tab */}
                 {isMobile && practiceData && (
-                  <button
-                    onClick={() => setPracticeTab("problem")}
-                    className={`lc-tab !mr-0 flex items-center !px-4 !py-0 ${practiceTab === "problem" ? "lc-tab-active" : ""}`}
+                  <div
+                    className={`lc-filetab ${practiceTab === "problem" ? "lc-filetab-active" : ""}`}
                   >
-                    Description
-                  </button>
+                    <button
+                      onClick={() => setPracticeTab("problem")}
+                      className="lc-filetab-label"
+                    >
+                      <BookOpen
+                        size={13}
+                        style={{
+                          color:
+                            practiceTab === "problem"
+                              ? "var(--lc-accent)"
+                              : "var(--lc-faint)",
+                        }}
+                      />
+                      <span>Description</span>
+                    </button>
+                  </div>
                 )}
 
                 {codeTabs.map((tab) => {
@@ -3171,23 +3465,24 @@ export default function Playground() {
                     practiceTab !== "problem" &&
                     practiceTab !== "notes" &&
                     activeCodeTabId === tab.id;
+                  const isPracticeSolution =
+                    tab.id === "solution" && !!practiceData;
 
                   return (
                     <div
                       key={tab.id}
-                      className="flex items-center border-r"
-                      style={{ borderColor: "var(--lc-border-soft)" }}
+                      className={`lc-filetab ${isActive ? "lc-filetab-active" : ""}`}
                     >
                       <button
                         onClick={() => {
                           setActiveCodeTabId(tab.id);
                           setPracticeTab("editor");
                         }}
-                        className={`lc-tab flex items-center gap-1.5 !mr-0 !py-0 ${isActive ? "lc-tab-active" : ""}`}
+                        className="lc-filetab-label"
                         aria-label={`Switch to ${tab.title}`}
                       >
                         <Code2
-                          size={12}
+                          size={13}
                           style={{
                             color: isActive
                               ? "var(--lc-accent)"
@@ -3200,23 +3495,21 @@ export default function Playground() {
                       {!tab.protected && (
                         <button
                           onClick={() => closeCodeTab(tab.id)}
-                          className="mr-1.5 flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-white/10"
-                          style={{ color: "var(--lc-faint)" }}
+                          className="lc-filetab-close"
                           aria-label={`Close ${tab.title}`}
                         >
-                          <X size={10} />
+                          <X size={11} />
                         </button>
                       )}
 
-                      {tab.id === "solution" && practiceData && (
+                      {isPracticeSolution && (
                         <AppTooltip content="Close practice problem">
                           <button
                             onClick={() => navigate("/playground")}
-                            className="mr-1.5 flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-white/10"
-                            style={{ color: "var(--lc-faint)" }}
+                            className="lc-filetab-close"
                             aria-label="Close practice problem"
                           >
-                            <X size={10} />
+                            <X size={11} />
                           </button>
                         </AppTooltip>
                       )}
@@ -3227,16 +3520,15 @@ export default function Playground() {
                 {/* Notes tab (only when not shown in the left panel) */}
                 {!showLeftDescription && notesTabOpen && (
                   <div
-                    className="flex items-center border-r"
-                    style={{ borderColor: "var(--lc-border-soft)" }}
+                    className={`lc-filetab ${practiceTab === "notes" ? "lc-filetab-active" : ""}`}
                   >
                     <button
                       onClick={() => setPracticeTab("notes")}
-                      className={`lc-tab flex items-center gap-1.5 !mr-0 !py-0 ${practiceTab === "notes" ? "lc-tab-active" : ""}`}
+                      className="lc-filetab-label"
                       aria-label="Switch to Notes"
                     >
                       <StickyNote
-                        size={12}
+                        size={13}
                         style={{
                           color:
                             practiceTab === "notes"
@@ -3251,23 +3543,23 @@ export default function Playground() {
                         setNotesTabOpen(false);
                         if (practiceTab === "notes") setPracticeTab("editor");
                       }}
-                      className="mr-1.5 flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-white/10"
-                      style={{ color: "var(--lc-faint)" }}
+                      className="lc-filetab-close"
                       aria-label="Close Notes tab"
                     >
-                      <X size={10} />
+                      <X size={11} />
                     </button>
                   </div>
                 )}
 
-                <button
-                  onClick={openNewCodeTab}
-                  aria-label="New code tab"
-                  className="flex w-9 flex-shrink-0 items-center justify-center transition-colors hover:bg-white/5"
-                  style={{ color: "var(--lc-faint)" }}
-                >
-                  <Plus size={14} />
-                </button>
+                <AppTooltip content="New code tab" side="bottom">
+                  <button
+                    onClick={openNewCodeTab}
+                    aria-label="New code tab"
+                    className="lc-filetab-add"
+                  >
+                    <Plus size={15} />
+                  </button>
+                </AppTooltip>
 
                 <div className="flex-1" />
               </div>
@@ -3411,6 +3703,7 @@ export default function Playground() {
                     onMount={handleEditorMount}
                     options={{
                       fontSize: editorFontSize,
+                      lineHeight: Math.round(editorFontSize * 1.62),
                       fontFamily:
                         "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
                       fontLigatures: true,
@@ -3418,8 +3711,11 @@ export default function Playground() {
                       scrollBeyondLastLine: false,
                       padding: { top: 16, bottom: 16 },
                       lineNumbers: relativeLineNumbers ? "relative" : "on",
+                      lineNumbersMinChars: 3,
+                      lineDecorationsWidth: 12,
                       renderLineHighlight: "line",
                       bracketPairColorization: { enabled: true },
+                      guides: { bracketPairs: "active", indentation: true },
                       autoClosingBrackets: "always",
                       autoClosingQuotes: "always",
                       formatOnPaste: true,
@@ -3440,6 +3736,16 @@ export default function Playground() {
                       cursorBlinking: "smooth",
                       cursorSmoothCaretAnimation: "on",
                       glyphMargin: true,
+                      readOnly: editorLocked,
+                      renderWhitespace: "selection",
+                      overviewRulerBorder: false,
+                      overviewRulerLanes: 2,
+                      roundedSelection: false,
+                      scrollbar: {
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10,
+                        useShadows: false,
+                      },
                     }}
                   />
                 </div>
@@ -3501,7 +3807,7 @@ export default function Playground() {
                         )
                       }
                       aria-label="Expand console"
-                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 transition-all duration-200 hover:bg-white/5"
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 lc-hover"
                       style={{
                         borderLeft: "1px solid var(--lc-border)",
                         color: "var(--lc-accent)",
@@ -3526,7 +3832,7 @@ export default function Playground() {
                           }
                         }}
                         aria-label="Close console"
-                        className="flex h-5 w-5 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                        className="flex h-5 w-5 items-center justify-center rounded-md lc-hover-strong"
                         style={{ color: "var(--lc-muted)" }}
                       >
                         <X size={12} />
@@ -3558,20 +3864,36 @@ export default function Playground() {
                           className={`lc-tab !mb-0 flex items-center gap-2 ${consoleTab === "result" ? "lc-tab-active" : ""}`}
                         >
                           Result
-                          {isRunning && (
+                          {isRunning ? (
                             <Loader2
                               size={12}
                               className="animate-spin"
                               style={{ color: "var(--lc-accent)" }}
                             />
-                          )}
+                          ) : runMeta ? (
+                            <span
+                              className="inline-block h-[7px] w-[7px] rounded-full"
+                              style={{
+                                background:
+                                  RUN_STATUS_META[runMeta.status].tone === "pass"
+                                    ? "var(--lc-green)"
+                                    : RUN_STATUS_META[runMeta.status].tone ===
+                                        "fail"
+                                      ? "var(--lc-red)"
+                                      : "var(--lc-yellow)",
+                              }}
+                            />
+                          ) : null}
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
                         {output && !isRunning && (
                           <AppTooltip content="Clear output">
                             <button
-                              onClick={() => setOutput("")}
+                              onClick={() => {
+                                setOutput("");
+                                setRunMeta(null);
+                              }}
                               className="lc-icon-btn !h-7 !w-7"
                               aria-label="Clear output"
                             >
@@ -3586,40 +3908,20 @@ export default function Playground() {
 
                     {/* Console body */}
                     {consoleTab === "testcase" ? (
-                      <textarea
-                        value={stdin}
-                        onChange={(e) => setStdin(e.target.value)}
-                        placeholder="Enter input for your program..."
-                        className="min-h-0 flex-1 resize-none bg-transparent px-5 py-4 font-mono text-[13px] leading-relaxed outline-none"
-                        style={{ color: "var(--lc-text)" }}
-                      />
+                      <div className="min-h-0 flex-1 overflow-auto p-4">
+                        <div className="lc-io-label">stdin</div>
+                        <textarea
+                          value={stdin}
+                          onChange={(e) => setStdin(e.target.value)}
+                          placeholder="Enter input for your program…"
+                          spellCheck={false}
+                          className="lc-field min-h-[120px] w-full resize-none px-3.5 py-3 font-mono text-[13px] leading-relaxed"
+                          style={{ height: "calc(100% - 26px)" }}
+                        />
+                      </div>
                     ) : (
                       <div className="min-h-0 flex-1 overflow-auto">
-                        <pre
-                          className={`lc-console h-full min-h-full p-5 ${outputToneClass}`}
-                        >
-                          {output || (
-                            <div
-                              className="flex h-full min-h-[220px] flex-col items-center justify-center space-y-3 select-none text-center"
-                              style={{ color: "var(--lc-faint)" }}
-                            >
-                              <div
-                                className="flex h-14 w-14 items-center justify-center rounded-full"
-                                style={{ border: "1px dashed var(--lc-border)" }}
-                              >
-                                <Play size={20} className="translate-x-0.5" />
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-[12px] font-medium">
-                                  No output yet
-                                </p>
-                                <p className="text-[11px]">
-                                  Press Ctrl+Enter to run your code
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </pre>
+                        {resultView}
                       </div>
                     )}
                   </div>
@@ -3662,7 +3964,7 @@ export default function Playground() {
                         }
                       }}
                       aria-label="Expand GuruBot"
-                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 transition-all duration-200 hover:bg-white/5"
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 lc-hover"
                       style={{ color: "var(--lc-accent)" }}
                     >
                       <Bot size={18} />
@@ -3676,7 +3978,7 @@ export default function Playground() {
                           setGuruBotOpen(false);
                         }}
                         aria-label="Close GuruBot"
-                        className="flex h-5 w-5 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+                        className="flex h-5 w-5 items-center justify-center rounded-md lc-hover-strong"
                         style={{ color: "var(--lc-muted)" }}
                       >
                         <X size={12} />
@@ -3720,7 +4022,21 @@ export default function Playground() {
           </span>
           <span>Spaces: {editorTabSize}</span>
           <span>{selectedLanguage.label}</span>
-          <span className="hidden sm:inline">{currentTheme.label}</span>
+          <span className="hidden items-center gap-1 sm:inline-flex">
+            {themeChoice === THEME_AUTO && (
+              <SunMoon size={10} style={{ color: "var(--lc-accent)" }} />
+            )}
+            {currentTheme.label}
+          </span>
+          {editorLocked && (
+            <span
+              className="flex items-center gap-1"
+              style={{ color: "var(--lc-accent)" }}
+            >
+              <Lock size={10} />
+              Read-only
+            </span>
+          )}
         </div>
 
         {/* Right: actions */}
@@ -3768,7 +4084,7 @@ export default function Playground() {
                   prev === "notes" ? "editor" : "notes",
                 );
               }}
-              className="flex h-full items-center gap-1 px-3 text-[11px] font-medium transition-colors hover:bg-white/5"
+              className="flex h-full items-center gap-1 px-3 text-[11px] font-medium lc-hover"
               style={{
                 color:
                   practiceTab === "notes"
@@ -3788,11 +4104,19 @@ export default function Playground() {
           />
 
           {/* Hint */}
-          <AppTooltip content="Hint">
+          <AppTooltip content="Ask GuruBot for a hint">
             <button
-              className="flex h-full items-center gap-1 px-3 text-[11px] font-medium transition-colors hover:bg-white/5"
+              onClick={() => {
+                setGuruInitialPrompt(
+                  practiceData
+                    ? `Give me one small nudge for "${practiceData.title}" — point me at the next idea to try, but do not reveal the full solution.`
+                    : "Give me one small hint about my current code — point out the next thing to look at, without writing the solution for me.",
+                );
+                openGuruBotPanel();
+              }}
+              className="flex h-full items-center gap-1 px-3 text-[11px] font-medium lc-hover"
               style={{ color: "var(--lc-yellow)" }}
-              aria-label="Hint"
+              aria-label="Ask GuruBot for a hint"
             >
               <Lightbulb size={12} />
               <span>Hint</span>
@@ -3800,11 +4124,17 @@ export default function Playground() {
           </AppTooltip>
 
           {/* Lock */}
-          <AppTooltip content="Lock editor">
+          <AppTooltip
+            content={editorLocked ? "Unlock editor" : "Lock editor (read-only)"}
+          >
             <button
+              onClick={() => setEditorLocked((locked) => !locked)}
               className="lc-icon-btn !h-full !w-8 !rounded-none"
-              style={{ color: "var(--lc-faint)" }}
-              aria-label="Lock editor"
+              style={{
+                color: editorLocked ? "var(--lc-accent)" : "var(--lc-faint)",
+              }}
+              aria-label={editorLocked ? "Unlock editor" : "Lock editor"}
+              aria-pressed={editorLocked}
             >
               <Lock size={12} />
             </button>
@@ -3841,12 +4171,8 @@ export default function Playground() {
       {/* Create / Edit Template Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
         <DialogContent
-          className="w-[calc(100vw-2rem)] max-w-[525px] rounded-xl p-6 shadow-2xl"
-          style={{
-            backgroundColor: "var(--lc-panel-2)",
-            border: "1px solid var(--lc-border)",
-            color: "var(--lc-text)",
-          }}
+          className="lc-surface w-[calc(100vw-2rem)] max-w-[500px] rounded-xl p-6"
+          style={{ color: "var(--lc-text)" }}
         >
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">
@@ -3870,41 +4196,33 @@ export default function Playground() {
           <div className="flex flex-col gap-4 py-2">
             <div>
               <label
-                className="mb-1.5 block text-[12px] font-medium"
-                style={{ color: "var(--lc-muted)" }}
+                className="lc-io-label block"
+                htmlFor="lc-template-name"
               >
                 Template Name {editingBuiltinPrefix ? "" : "*"}
               </label>
               <Input
+                id="lc-template-name"
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="e.g. My Graph Template"
-                className="h-10 rounded-lg px-3 text-sm outline-none"
-                style={{
-                  background: "var(--lc-bg)",
-                  border: "1px solid var(--lc-border)",
-                  color: "var(--lc-text)",
-                }}
+                className="lc-field h-10 px-3 text-sm"
                 disabled={!!editingBuiltinPrefix}
               />
             </div>
             <div>
               <label
-                className="mb-1.5 block text-[12px] font-medium"
-                style={{ color: "var(--lc-muted)" }}
+                className="lc-io-label block"
+                htmlFor="lc-template-desc"
               >
                 Description (optional)
               </label>
               <Textarea
+                id="lc-template-desc"
                 value={templateDesc}
                 onChange={(e) => setTemplateDesc(e.target.value)}
                 placeholder="e.g. BFS/DFS with adjacency list"
-                className="min-h-[74px] rounded-lg px-3 py-2.5 text-sm outline-none"
-                style={{
-                  background: "var(--lc-bg)",
-                  border: "1px solid var(--lc-border)",
-                  color: "var(--lc-text)",
-                }}
+                className="lc-field min-h-[74px] px-3 py-2.5 text-sm"
                 rows={2}
               />
             </div>
