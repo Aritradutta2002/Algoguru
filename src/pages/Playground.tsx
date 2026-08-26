@@ -2446,6 +2446,7 @@ export default function Playground() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent
+                      container={playgroundShellRef.current}
                       className="z-[10000] rounded-lg"
                       style={{
                         background: "var(--lc-panel-2)",
@@ -2503,6 +2504,7 @@ export default function Playground() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent
+                      container={playgroundShellRef.current}
                       className="z-[10000] max-h-60 rounded-lg"
                       style={{
                         background: "var(--lc-panel-2)",
