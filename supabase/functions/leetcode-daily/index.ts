@@ -247,6 +247,13 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           solutionContent = await fetchOfficialSolution(String(q.titleSlug));
         }
 
+        // Guard against missing/placeholder snippets even on the happy path.
+        let snippets = Array.isArray(q.codeSnippets) ? q.codeSnippets : undefined;
+        if (!hasRealCodeSnippets(snippets)) {
+          const healed = await fetchOfficialCodeSnippets(String(q.titleSlug));
+          if (healed) snippets = healed;
+        }
+
         return {
           questionId: String(q.questionId || q.questionFrontendId || "1"),
           title: String(q.title || ""),
@@ -259,7 +266,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           acRate: typeof q.acRate === "number" ? q.acRate : undefined,
           link,
           solution: solutionContent,
-          codeSnippets: q.codeSnippets,
+          codeSnippets: snippets,
         };
       }
     }
@@ -390,9 +397,19 @@ async function writeDbCache(
   }
 }
 
+// A snippet set is only "real" if it exists and none of the entries are the
+// generic placeholder template that older broken fetch paths stored.
+function hasRealCodeSnippets(
+  snippets?: { langSlug: string; code: string }[],
+): boolean {
+  if (!Array.isArray(snippets) || snippets.length === 0) return false;
+  return snippets.some((s) => s?.code && !s.code.includes("public int solve()"));
+}
+
 // Cache rows written before the solution fetch was reliable may be missing the
-// editorial or codeSnippets. When serving such a row, try to backfill it once
-// and persist the fix so later visitors don't repeat the work.
+// editorial or codeSnippets (or contain the old generic solve() placeholder).
+// When serving such a row, try to backfill it once and persist the fix so
+// later visitors don't repeat the work.
 async function backfillMissingData(
   admin: ReturnType<typeof createClient>,
   payload: CachedPayload,
@@ -411,7 +428,7 @@ async function backfillMissingData(
     }
   }
 
-  if (!payload.problem.codeSnippets || payload.problem.codeSnippets.length === 0) {
+  if (!hasRealCodeSnippets(payload.problem.codeSnippets)) {
     try {
       const snippets = await fetchOfficialCodeSnippets(payload.problem.titleSlug);
       if (snippets) {
