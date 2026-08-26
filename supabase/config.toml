@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.leetcode-daily]
 verify_jwt = false
+
+[functions.leetcode-snippets]
+verify_jwt = false

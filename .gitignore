@@ -36,3 +36,5 @@ supabase/.temp/
 
 # Trae IDE plan documents
 .trae/documents/
+
+.vercel
