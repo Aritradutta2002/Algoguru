@@ -4,8 +4,7 @@
 // + Wandbox Java Run & Compile runner on the right). Fetches the daily challenge
 // via `useDailyChallenge`, which hits the `leetcode-daily` Supabase edge function.
 //
-// User code is persisted to Supabase `daily_challenge_user_code` for logged-in
-// users, with localStorage as a fallback for guests.
+// User code is persisted to Supabase `daily_challenge_user_code` for logged-in users.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -58,7 +57,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vs } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vs, vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
 
 /* ------------------------------------------------------------------ */
@@ -96,23 +95,6 @@ function buildStarterFromSnippet(snippet: string | undefined): string {
   if (!snippet) return DEFAULT_JAVA_TEMPLATE;
   const hasImport = /^\s*import\s+/m.test(snippet);
   return hasImport ? snippet : `import java.util.*;\n\n${snippet}`;
-}
-function migrateStaleSolveCode(questionId: string): void {
-  try {
-    const k = lsKey(questionId);
-    const raw = localStorage.getItem(k);
-    if (!raw) return;
-    let shouldPurge = false;
-    if (isGenericSolveTemplate(raw)) shouldPurge = true;
-    else if (raw.startsWith("[")) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((t: { content?: string }) => t.content && isGenericSolveTemplate(t.content))) shouldPurge = true;
-        if (Array.isArray(parsed) && parsed.length === 1 && parsed[0]?.content && isGenericSolveTemplate(parsed[0].content)) shouldPurge = true;
-      } catch {}
-    }
-    if (shouldPurge) localStorage.removeItem(k);
-  } catch {}
 }
 
 async function purgeStaleSolveCodeFromDB(questionId: string, userId: string | null): Promise<void> {
@@ -225,76 +207,45 @@ const LEETCODE_DARK_THEME = {
 } as const;
 
 /* ------------------------------------------------------------------ */
-/* Code persistence: Supabase (logged-in) + localStorage (fallback)   */
+/* Code persistence: Supabase only (logged-in users).                  */
 /* ------------------------------------------------------------------ */
 
-function lsKey(questionId: string): string {
-  return `problem_solver_java_code_${questionId}`;
-}
-
-function readLocalCode(questionId: string): string | null {
-  try {
-    return localStorage.getItem(lsKey(questionId));
-  } catch {
-    return null;
-  }
-}
-
-function writeLocalCode(questionId: string, code: string): void {
-  try {
-    localStorage.setItem(lsKey(questionId), code);
-  } catch {
-    /* quota / private mode — silently ignore */
-  }
-}
-
-const loadNumberSetting = (key: string, fallback: number) => {
-  try {
-    const val = localStorage.getItem(key);
-    if (val !== null) return Number(val);
-  } catch (e) {}
-  return fallback;
-};
-
-/** Load saved code: DB first (if logged-in), then localStorage fallback. */
+/** Load saved code: DB only (logged-in users). */
 async function loadCode(
   questionId: string,
   userId: string | null,
 ): Promise<string | null> {
-  if (userId) {
-    try {
-      const { data } = await supabase
-        .from("daily_challenge_user_code")
-        .select("code")
-        .eq("user_id", userId)
-        .eq("question_id", questionId)
-        .maybeSingle();
-      if (data?.code) return data.code;
-    } catch {
-      /* DB unavailable — fall through to localStorage */
-    }
+  if (!userId) return null;
+  try {
+    const { data } = await supabase
+      .from("daily_challenge_user_code")
+      .select("code")
+      .eq("user_id", userId)
+      .eq("question_id", questionId)
+      .maybeSingle();
+    if (data?.code) return data.code;
+  } catch {
+    /* DB unavailable */
   }
-  return readLocalCode(questionId);
+  return null;
 }
 
-/** Persist code: write to both DB (if logged-in) and localStorage. */
+/** Persist code: DB only (logged-in users). */
 async function persistCode(
   questionId: string,
   code: string,
   userId: string | null,
 ): Promise<void> {
-  writeLocalCode(questionId, code);
-  if (userId) {
-    try {
-      await supabase
-        .from("daily_challenge_user_code")
-        .upsert(
-          { user_id: userId, question_id: questionId, code, updated_at: new Date().toISOString() },
-          { onConflict: "user_id,question_id" },
-        );
-    } catch {
-      /* DB write failed — localStorage already saved above */
-    }
+  if (!userId) return;
+  try {
+    await supabase
+      .from("daily_challenge_user_code")
+      .upsert(
+        { user_id: userId, question_id: questionId, code, updated_at: new Date().toISOString() },
+        { onConflict: "user_id,question_id" },
+      );
+  } catch {
+    /* DB write failed — silently ignore */
   }
 }
 
@@ -579,12 +530,8 @@ function CodeEditorPane({
 
   const [testcaseTabs, setTestcaseTabs] = useState<{ id: string, name: string, value: string }[]>(() => buildTestTabs(exampleTestcases));
   const [activeTestcaseId, setActiveTestcaseId] = useState<string>("1");
-  const [editorFontSize, setEditorFontSize] = useState(() => loadNumberSetting("problem-solver-font-size", 14));
+  const [editorFontSize, setEditorFontSize] = useState(14);
   const [selectedCode, setSelectedCode] = useState("");
-
-  useEffect(() => {
-    localStorage.setItem("problem-solver-font-size", String(editorFontSize));
-  }, [editorFontSize]);
 
   // Update local testcases if exampleTestcases changes (e.g., new daily challenge)
   useEffect(() => {
@@ -617,11 +564,10 @@ function CodeEditorPane({
 
   // Proactively purge stale solve() cache for this question (permanent migration: local + DB)
   useEffect(() => {
-    migrateStaleSolveCode(questionId);
     void purgeStaleSolveCodeFromDB(questionId, userId);
   }, [questionId, userId]);
 
-  // Load saved code from DB / localStorage on mount or question change
+  // Load saved code from DB on mount or question change
   useEffect(() => {
     let cancelled = false;
     setCodeLoaded(false);
@@ -684,9 +630,8 @@ function CodeEditorPane({
           }
         } catch {}
 
-        // If we discarded a stale generic save in favor of a real LeetCode starter, purge it permanently from DB + localStorage
+        // If we discarded a stale generic save in favor of a real LeetCode starter, purge it permanently from DB
         if (isDefault && hasRealSnippet && saved) {
-          migrateStaleSolveCode(questionId);
           void purgeStaleSolveCodeFromDB(questionId, userId);
           // Persist the real starter so next load doesn't need to heal again
           const healedPersistence = JSON.stringify(parsedTabs);
@@ -713,7 +658,7 @@ function CodeEditorPane({
       // Replace stale generic with real LeetCode signature permanently
       const healedTabs = tabs.map((t) => (t.id === activeTabId ? { ...t, content: starter } : t));
       setTabs(healedTabs);
-      // Purge DB generic and persist healed content to both localStorage + DB
+      // Purge DB generic and persist healed content to DB
       void purgeStaleSolveCodeFromDB(questionId, userId).then(() => {
         void persistCode(questionId, JSON.stringify(healedTabs), userId);
       });
@@ -830,7 +775,6 @@ function CodeEditorPane({
     monacoRef.current = monaco;
     // LeetCode-exact theme — defined once
     try {
-      // @ts-ignore — Monaco theme API
       monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any);
       // apply immediately — force LeetCode dark regardless of isDark flash
       monaco.editor.setTheme(theme === "dark" ? "leetcode-dark" : "light");

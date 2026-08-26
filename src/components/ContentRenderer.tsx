@@ -220,8 +220,9 @@ export const ContentRenderer = memo(function ContentRenderer({ section, isPracti
       keyPoints: section.keyPoints,
       code: section.code,
     };
-    localStorage.setItem("playground-practice-problem", JSON.stringify(problemData));
-    navigate("/playground?practice=" + section.id);
+    navigate("/playground?practice=" + section.id, {
+      state: { practiceProblem: problemData },
+    });
   };
 
   return (

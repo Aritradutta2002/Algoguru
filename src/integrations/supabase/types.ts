@@ -142,6 +142,45 @@ export type Database = {
         }
         Relationships: []
       }
+      guru_chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          messages: Json
+          model: string
+          scope: string
+          session_date: number
+          session_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          model?: string
+          scope?: string
+          session_date?: number
+          session_id: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          model?: string
+          scope?: string
+          session_date?: number
+          session_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       playground_preferences: {
         Row: {
           ask_guru_on_selection: boolean

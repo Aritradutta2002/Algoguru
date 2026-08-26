@@ -30,6 +30,8 @@ import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { useSettings } from "@/contexts/SettingsContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = {
@@ -389,89 +391,114 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     const { theme } = useSettings();
     const isDark = theme === "dark";
 
-    const sessionsStorageKey = questionId ? `guru-chat-sessions:${questionId}` : "guru-chat-sessions";
-    const currentIdStorageKey = questionId ? `guru-chat-current-id:${questionId}` : "guru-chat-current-id";
+    // Chat history scope: per-question or global
+    const chatScope = questionId || "global";
 
-    const [sessions, setSessions] = useState<Session[]>(() => {
-      try {
-        const saved = localStorage.getItem(questionId ? `guru-chat-sessions:${questionId}` : "guru-chat-sessions");
-        return saved ? JSON.parse(saved) : [];
-      } catch {
-        return [];
-      }
-    });
+    const { user } = useAuth();
 
-    const [currentId, setCurrentId] = useState<string | null>(() => {
-      try {
-        const key = questionId ? `guru-chat-current-id:${questionId}` : "guru-chat-current-id";
-        const savedId = sessionStorage.getItem(key);
-        if (savedId) return savedId;
-        const s = localStorage.getItem(questionId ? `guru-chat-sessions:${questionId}` : "guru-chat-sessions");
-        if (s) {
-          const parsed = JSON.parse(s);
-          if (parsed && parsed.length > 0) return parsed[0].id;
-        }
-      } catch {}
-      return null;
-    });
+    const [sessions, setSessions] = useState<Session[]>([]);
+    const [currentId, setCurrentId] = useState<string | null>(null);
 
-    // reload sessions when questionId changes (per-problem history)
+    // Load chat history from the database (logged-in users only).
     useEffect(() => {
-      try {
-        const saved = localStorage.getItem(sessionsStorageKey);
-        const parsed = saved ? JSON.parse(saved) : [];
-        setSessions(parsed);
-        // try to restore currentId for this question
-        const savedId = sessionStorage.getItem(currentIdStorageKey);
-        if (savedId && parsed.some((s: Session) => s.id === savedId)) setCurrentId(savedId);
-        else if (parsed.length > 0) setCurrentId(parsed[0].id);
-        else setCurrentId(null);
-      } catch {
+      let cancelled = false;
+
+      if (!user) {
         setSessions([]);
         setCurrentId(null);
+        return;
       }
-    }, [sessionsStorageKey, currentIdStorageKey]);
+
+      (async () => {
+        const { data } = await supabase
+          .from("guru_chat_sessions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("scope", chatScope)
+          .order("session_date", { ascending: false })
+          .limit(10);
+
+        if (cancelled) return;
+
+        if (data && data.length > 0) {
+          const loaded: Session[] = data.map((row: any) => ({
+            id: row.session_id,
+            title: row.title ?? "",
+            messages: Array.isArray(row.messages) ? row.messages : [],
+            model: row.model ?? "openrouter",
+            date: Number(row.session_date) || 0,
+          }));
+          setSessions(loaded);
+          setCurrentId(loaded[0].id);
+        } else {
+          setSessions([]);
+          setCurrentId(null);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [user, chatScope]);
+
+    // Sync chat history to the database whenever it changes (logged-in only).
+    const syncedSessionsRef = useRef<Map<string, string>>(new Map());
+    useEffect(() => {
+      if (!user) return;
+
+      const timer = setTimeout(() => {
+        const prev = syncedSessionsRef.current;
+        const next = new Map<string, string>();
+
+        for (const s of sessions) {
+          const fingerprint = JSON.stringify([s.title, s.messages, s.model, s.date]);
+          next.set(s.id, fingerprint);
+
+          if (prev.get(s.id) !== fingerprint) {
+            supabase.from("guru_chat_sessions").upsert({
+              user_id: user.id,
+              scope: chatScope,
+              session_id: s.id,
+              title: s.title,
+              messages: s.messages,
+              model: s.model,
+              session_date: s.date,
+            });
+          }
+        }
+
+        // Delete sessions removed from the list (history cap).
+        for (const id of prev.keys()) {
+          if (!next.has(id)) {
+            supabase
+              .from("guru_chat_sessions")
+              .delete()
+              .eq("user_id", user.id)
+              .eq("scope", chatScope)
+              .eq("session_id", id);
+          }
+        }
+
+        syncedSessionsRef.current = next;
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }, [sessions, user, chatScope]);
 
     const [showHistory, setShowHistory] = useState(false);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
-    const [model, setModel] = useState(() => {
-      try {
-        const saved = localStorage.getItem("guru-chat-model") || "openrouter";
-        // force OpenRouter free route — migrate legacy keys (minimax/glm/auto) to openrouter
-        return MODELS.some((m) => m.key === saved) ? saved : "openrouter";
-      } catch {
-        return "openrouter";
-      }
-    });
+    // Single OpenRouter free route — no persisted model preference needed
+    const [model, setModel] = useState("openrouter");
 
     // enforce single route — if legacy value slipped in, correct it
     useEffect(() => {
       if (!MODELS.some((m) => m.key === model)) setModel("openrouter");
     }, [model]);
 
-    // User choice: attach current code + run context (clean toggle, default ON for problem tab)
-    const ATTACH_KEY = questionId ? `guru-attach-code:${questionId}` : "guru-attach-code:global";
-    const [attachCode, setAttachCode] = useState(() => {
-      try {
-        const v = localStorage.getItem(ATTACH_KEY);
-        // default ON when inside problem solver (questionId present), OFF otherwise
-        if (v === null) return Boolean(questionId);
-        return v === "1" || v === "true";
-      } catch { return Boolean(questionId); }
-    });
-    useEffect(() => {
-      try { localStorage.setItem(ATTACH_KEY, attachCode ? "1" : "0"); } catch {}
-    }, [ATTACH_KEY, attachCode]);
-    // re-sync when question changes
-    useEffect(() => {
-      try {
-        const k = questionId ? `guru-attach-code:${questionId}` : "guru-attach-code:global";
-        const v = localStorage.getItem(k);
-        if (v !== null) setAttachCode(v === "1" || v === "true");
-        else setAttachCode(Boolean(questionId));
-      } catch {}
-    }, [questionId]);
+    // User choice: attach current code + run context (session-only toggle,
+    // default ON for problem tab)
+    const [attachCode, setAttachCode] = useState(() => Boolean(questionId));
 
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -486,24 +513,6 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     );
     const messages = activeSession?.messages || [];
 
-    useEffect(() => {
-      localStorage.setItem(sessionsStorageKey, JSON.stringify(sessions));
-      // cap per-question history at 10 to bound storage
-      if (sessions.length > 10) {
-        const trimmed = sessions.slice(0, 10);
-        if (trimmed.length !== sessions.length) {
-          // defer to avoid loop, but keep storage capped
-          localStorage.setItem(sessionsStorageKey, JSON.stringify(trimmed));
-        }
-      }
-    }, [sessions, sessionsStorageKey]);
-    useEffect(() => {
-      if (currentId) sessionStorage.setItem(currentIdStorageKey, currentId);
-      else sessionStorage.removeItem(currentIdStorageKey);
-    }, [currentId, currentIdStorageKey]);
-    useEffect(() => {
-      localStorage.setItem("guru-chat-model", model);
-    }, [model]);
     useEffect(() => {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);

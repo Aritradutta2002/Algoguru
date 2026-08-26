@@ -1,5 +1,5 @@
 ﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 
 import {
   Play,
@@ -100,14 +100,6 @@ interface CodeTab {
   protected?: boolean;
 }
 
-const USER_TEMPLATES_KEY = "playground-user-templates";
-const BUILTIN_OVERRIDES_KEY = "playground-builtin-overrides";
-const PLAYGROUND_FONT_SIZE_KEY = "playground-editor-font-size";
-const PLAYGROUND_TAB_SIZE_KEY = "playground-editor-tab-size";
-const PLAYGROUND_RELATIVE_LINES_KEY = "playground-editor-relative-lines";
-const PLAYGROUND_ASK_GURU_SELECTION_KEY = "playground-ask-guru-selection";
-const PLAYGROUND_THEME_KEY = "playground-editor-theme";
-const PLAYGROUND_WORKSPACE_KEY = "playground-workspace";
 const IO_COLLAPSED_SIZE = 3.5;
 const IO_EXPAND_TRIGGER_SIZE = 4.25;
 const IO_DEFAULT_SIZE = 45;
@@ -117,63 +109,6 @@ const GURU_COLLAPSED_SIZE = 3.5;
 const GURU_EXPAND_TRIGGER_SIZE = 4.25;
 const GURU_DEFAULT_SIZE = 25;
 
-const loadNumberSetting = (key: string, fallback: number) => {
-  try {
-    const raw = localStorage.getItem(key);
-    const parsed = raw ? Number(raw) : fallback;
-    return Number.isFinite(parsed) ? parsed : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-const loadBooleanSetting = (key: string, fallback: boolean) => {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw === null ? fallback : raw === "true";
-  } catch {
-    return fallback;
-  }
-};
-
-const loadStringSetting = (key: string, fallback: string) => {
-  try {
-    return localStorage.getItem(key) ?? fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-const loadUserTemplates = (): UserTemplate[] => {
-  try {
-    const raw = localStorage.getItem(USER_TEMPLATES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveUserTemplates = (templates: UserTemplate[]) => {
-  localStorage.setItem(USER_TEMPLATES_KEY, JSON.stringify(templates));
-};
-
-const loadBuiltinOverrides = (): Record<
-  string,
-  { code: string; description: string }
-> => {
-  try {
-    const raw = localStorage.getItem(BUILTIN_OVERRIDES_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveBuiltinOverrides = (
-  overrides: Record<string, { code: string; description: string }>,
-) => {
-  localStorage.setItem(BUILTIN_OVERRIDES_KEY, JSON.stringify(overrides));
-};
 const WANDBOX_API = "https://wandbox.org/api/compile.json";
 
 const SUPPORTED_LANGUAGES = [
@@ -599,17 +534,14 @@ export default function Playground() {
     setIoCollapsed(false);
   }, []);
 
+  const location = useLocation();
   const practiceData = useMemo(() => {
     if (!practiceId) return null;
-    try {
-      const raw = localStorage.getItem("playground-practice-problem");
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (data.id === practiceId) return data;
-      }
-    } catch {}
+    const state = location.state as { practiceProblem?: any } | null;
+    const data = state?.practiceProblem;
+    if (data && data.id === practiceId) return data;
     return null;
-  }, [practiceId]);
+  }, [practiceId, location.state]);
 
   const initialCode = useMemo(() => {
     if (practiceData?.code?.[0]?.content) return practiceData.code[0].content;
@@ -673,12 +605,7 @@ export default function Playground() {
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(
-    () =>
-      THEMES.find(
-        (t) => t.id === loadStringSetting(PLAYGROUND_THEME_KEY, "leetcode-dark"),
-      ) || THEMES[0],
-  );
+  const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [settingsMenuType, setSettingsMenuType] = useState<"language" | "theme">("language");
@@ -689,12 +616,9 @@ export default function Playground() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const playgroundShellRef = useRef<HTMLDivElement>(null);
   const [showTemplateMenu, setShowTemplateMenu] = useState(false);
-  const [userTemplates, setUserTemplates] =
-    useState<UserTemplate[]>(loadUserTemplates);
+  const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const [builtinOverrides, setBuiltinOverrides] =
-    useState<Record<string, { code: string; description: string }>>(
-      loadBuiltinOverrides,
-    );
+    useState<Record<string, { code: string; description: string }>>({});
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(
     null,
@@ -751,19 +675,11 @@ export default function Playground() {
     });
   }, []);
 
-  // Editor preference state
-  const [editorFontSize, setEditorFontSize] = useState(() =>
-    loadNumberSetting(PLAYGROUND_FONT_SIZE_KEY, 14),
-  );
-  const [editorTabSize, setEditorTabSize] = useState(() =>
-    loadNumberSetting(PLAYGROUND_TAB_SIZE_KEY, 4),
-  );
-  const [relativeLineNumbers, setRelativeLineNumbers] = useState(() =>
-    loadBooleanSetting(PLAYGROUND_RELATIVE_LINES_KEY, false),
-  );
-  const [askGuruOnSelection, setAskGuruOnSelection] = useState(() =>
-    loadBooleanSetting(PLAYGROUND_ASK_GURU_SELECTION_KEY, true),
-  );
+  // Editor preference state (cloud-synced via playground_preferences)
+  const [editorFontSize, setEditorFontSize] = useState(14);
+  const [editorTabSize, setEditorTabSize] = useState(4);
+  const [relativeLineNumbers, setRelativeLineNumbers] = useState(false);
+  const [askGuruOnSelection, setAskGuruOnSelection] = useState(true);
   const askGuruOnSelectionRef = useRef(askGuruOnSelection);
 
   // Cursor position for VS Code-style status bar
@@ -847,12 +763,12 @@ export default function Playground() {
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Cloud persistence: preferences, templates, overrides,
-  // workspace. Falls back to localStorage for anonymous users.
+  // workspace. Database-only for logged-in users.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [cloudPrefsLoaded, setCloudPrefsLoaded] = useState(false);
   const workspaceLoadedRef = useRef(false);
 
-  // Load preferences from DB (logged-in) and migrate local-only settings up.
+  // Load preferences from DB (logged-in only).
   useEffect(() => {
     let cancelled = false;
     setCloudPrefsLoaded(false);
@@ -871,19 +787,7 @@ export default function Playground() {
 
       if (cancelled) return;
 
-      if (!data) {
-        // First cloud sync: push current local settings up.
-        try {
-          await supabase.from("playground_preferences").upsert({
-            user_id: user.id,
-            theme: currentTheme.id,
-            font_size: editorFontSize,
-            tab_size: editorTabSize,
-            relative_lines: relativeLineNumbers,
-            ask_guru_on_selection: askGuruOnSelection,
-          });
-        } catch {}
-      } else {
+      if (data) {
         const theme = THEMES.find((t) => t.id === data.theme);
         if (theme) setCurrentTheme(theme);
         if (Number.isFinite(data.font_size)) setEditorFontSize(data.font_size);
@@ -898,15 +802,12 @@ export default function Playground() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Persist preferences (debounced) to DB + local mirror.
+  // Persist preferences (debounced, DB only).
   useEffect(() => {
     if (!cloudPrefsLoaded && user) return;
-    try {
-      localStorage.setItem(PLAYGROUND_THEME_KEY, currentTheme.id);
-    } catch {}
-
     if (!user) return;
 
     const timer = setTimeout(() => {
@@ -930,8 +831,7 @@ export default function Playground() {
     askGuruOnSelection,
   ]);
 
-  // Load personal templates + built-in overrides from DB, migrating
-  // any legacy localStorage entries on first load.
+  // Load personal templates + built-in overrides from DB.
   useEffect(() => {
     let cancelled = false;
 
@@ -953,53 +853,7 @@ export default function Playground() {
 
       if (cancelled) return;
 
-      const localTemplates = loadUserTemplates();
-      const localOverrides = loadBuiltinOverrides();
-
-      // One-time migration of anonymous/local data into the cloud.
-      let effectiveTemplates: any[] = remoteTemplates || [];
-      if (
-        (remoteTemplates?.length ?? 0) === 0 &&
-        localTemplates.length > 0
-      ) {
-        try {
-          const { data: inserted } = await supabase
-            .from("playground_user_templates")
-            .insert(
-              localTemplates.map((t) => ({
-                user_id: user.id,
-                name: t.name,
-                description: t.description,
-                code: t.code,
-              })),
-            )
-            .select();
-          if (inserted) {
-            effectiveTemplates = inserted;
-          }
-        } catch {}
-      }
-
-      let effectiveOverrides: any[] = remoteOverrides || [];
-      const overrideEntries = Object.entries(localOverrides);
-      if ((remoteOverrides?.length ?? 0) === 0 && overrideEntries.length > 0) {
-        try {
-          const { data: inserted } = await supabase
-            .from("playground_template_overrides")
-            .insert(
-              overrideEntries.map(([prefix, value]) => ({
-                user_id: user.id,
-                prefix,
-                code: value.code,
-                description: value.description,
-              })),
-            )
-            .select();
-          if (inserted) {
-            effectiveOverrides = inserted;
-          }
-        } catch {}
-      }
+      const effectiveTemplates: any[] = remoteTemplates || [];
 
       if (!cancelled) {
         setUserTemplates(
@@ -1014,7 +868,7 @@ export default function Playground() {
           string,
           { code: string; description: string }
         > = {};
-        for (const row of effectiveOverrides || []) {
+        for (const row of remoteOverrides || []) {
           overrideMap[row.prefix] = {
             code: row.code ?? "",
             description: row.description ?? "",
@@ -1030,25 +884,11 @@ export default function Playground() {
     };
   }, [user]);
 
-  // Restore last workspace (open code tabs) â€” generic playground only.
+  // Restore last workspace (open code tabs) — DB only, generic playground only.
   useEffect(() => {
     let cancelled = false;
 
-    const restoreLocal = () => {
-      if (practiceId) return;
-      try {
-        const raw = localStorage.getItem(PLAYGROUND_WORKSPACE_KEY);
-        if (!raw) return;
-        const saved = JSON.parse(raw);
-        if (Array.isArray(saved?.tabs) && saved.tabs.length > 0) {
-          setCodeTabs(saved.tabs);
-          setActiveCodeTabId(saved.activeTabId || saved.tabs[0].id);
-        }
-      } catch {}
-    };
-
     if (!user) {
-      restoreLocal();
       workspaceLoadedRef.current = true;
       return;
     }
@@ -1062,24 +902,12 @@ export default function Playground() {
 
       if (cancelled) return;
 
-      if (!data) {
-        // First cloud sync: migrate local workspace if present.
-        try {
-          const raw = localStorage.getItem(PLAYGROUND_WORKSPACE_KEY);
-          const saved = raw ? JSON.parse(raw) : null;
-          if (!practiceId && Array.isArray(saved?.tabs) && saved.tabs.length) {
-            await supabase.from("playground_workspace").insert({
-              user_id: user.id,
-              tabs: saved.tabs,
-              active_tab_id: saved.activeTabId || saved.tabs[0].id,
-            });
-            if (!cancelled) {
-              setCodeTabs(saved.tabs);
-              setActiveCodeTabId(saved.activeTabId || saved.tabs[0].id);
-            }
-          }
-        } catch {}
-      } else if (!practiceId && Array.isArray(data.tabs) && data.tabs.length) {
+      if (
+        !practiceId &&
+        data &&
+        Array.isArray(data.tabs) &&
+        data.tabs.length
+      ) {
         setCodeTabs(data.tabs as unknown as CodeTab[]);
         setActiveCodeTabId(
           (data.active_tab_id as string) || (data.tabs[0] as any)?.id,
@@ -1101,23 +929,14 @@ export default function Playground() {
   useEffect(() => {
     if (!workspaceLoadedRef.current) return;
     if (practiceId) return;
-
-    const payload = JSON.stringify({
-      tabs: codeTabs,
-      activeTabId: activeCodeTabId,
-    });
+    if (!user) return;
 
     const timer = setTimeout(() => {
-      try {
-        localStorage.setItem(PLAYGROUND_WORKSPACE_KEY, payload);
-      } catch {}
-      if (user) {
-        supabase.from("playground_workspace").upsert({
-          user_id: user.id,
-          tabs: codeTabs as unknown as any[],
-          active_tab_id: activeCodeTabId,
-        });
-      }
+      supabase.from("playground_workspace").upsert({
+        user_id: user.id,
+        tabs: codeTabs as unknown as any[],
+        active_tab_id: activeCodeTabId,
+      });
     }, 1200);
 
     return () => clearTimeout(timer);
@@ -1161,13 +980,10 @@ export default function Playground() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(PLAYGROUND_FONT_SIZE_KEY, String(editorFontSize));
     editorRef.current?.updateOptions({ fontSize: editorFontSize });
   }, [editorFontSize]);
 
   useEffect(() => {
-    localStorage.setItem(PLAYGROUND_TAB_SIZE_KEY, String(editorTabSize));
-
     const editor = editorRef.current;
     editor?.updateOptions({
       tabSize: editorTabSize,
@@ -1181,10 +997,6 @@ export default function Playground() {
   }, [editorTabSize]);
 
   useEffect(() => {
-    localStorage.setItem(
-      PLAYGROUND_RELATIVE_LINES_KEY,
-      String(relativeLineNumbers),
-    );
     editorRef.current?.updateOptions({
       lineNumbers: relativeLineNumbers ? "relative" : "on",
     });
@@ -1192,10 +1004,6 @@ export default function Playground() {
 
   useEffect(() => {
     askGuruOnSelectionRef.current = askGuruOnSelection;
-    localStorage.setItem(
-      PLAYGROUND_ASK_GURU_SELECTION_KEY,
-      String(askGuruOnSelection),
-    );
     if (!askGuruOnSelection) setAskGuruPopup(null);
   }, [askGuruOnSelection]);
 
@@ -2134,7 +1942,6 @@ export default function Playground() {
         [editingBuiltinPrefix]: { code, description: templateDesc.trim() },
       };
       setBuiltinOverrides(updated);
-      saveBuiltinOverrides(updated);
       setTemplateDialogOpen(false);
 
       if (user) {
@@ -2175,7 +1982,6 @@ export default function Playground() {
       updated = [...userTemplates, newTmpl];
     }
     setUserTemplates(updated);
-    saveUserTemplates(updated);
     setTemplateDialogOpen(false);
 
     if (user && savedTemplate) {
@@ -2207,11 +2013,6 @@ export default function Playground() {
                   t.id === savedTemplate!.id ? { ...t, id: data.id } : t,
                 ),
               );
-              saveUserTemplates(
-                userTemplates.map((t) =>
-                  t.id === savedTemplate!.id ? { ...t, id: data.id } : t,
-                ),
-              );
             }
           });
       }
@@ -2222,7 +2023,6 @@ export default function Playground() {
     const updated = { ...builtinOverrides };
     delete updated[prefix];
     setBuiltinOverrides(updated);
-    saveBuiltinOverrides(updated);
 
     if (user) {
       supabase
@@ -2236,7 +2036,6 @@ export default function Playground() {
   const handleDeleteTemplate = (id: string) => {
     const updated = userTemplates.filter((t) => t.id !== id);
     setUserTemplates(updated);
-    saveUserTemplates(updated);
     setDeleteConfirmId(null);
 
     if (user) {
