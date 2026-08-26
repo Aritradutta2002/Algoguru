@@ -41,8 +41,13 @@ import {
   Target,
   ArrowRight,
   SunMoon,
+  WrapText,
+  ListTree,
+  Focus,
+  CircleDot,
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
+import { LeetCodeEditor } from "@/components/editor/LeetCodeEditor";
 import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,15 +57,42 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import type { ImperativePanelHandle } from "react-resizable-panels";
-import { ALL_SNIPPETS, PRIORITY_LABELS } from "@/data/javaSnippets";
-import {
-  STATIC_COMPLETIONS_MAP,
-  INSTANCE_COMPLETIONS_MAP,
-  ALL_INSTANCE_METHODS,
-  JAVA_KEYWORDS,
-  JAVA_TYPES,
-} from "@/data/javaAutoComplete";
 import { CP_TEMPLATES } from "@/data/cpTemplates";
+import { EditorCommandPalette } from "@/components/playground/EditorCommandPalette";
+import { EditorQuickOpen } from "@/components/playground/EditorQuickOpen";
+import { GoToLineDialog } from "@/components/playground/GoToLineDialog";
+import { GuruSelectionMenu } from "@/components/playground/GuruSelectionMenu";
+import { AiEditPreview } from "@/components/playground/AiEditPreview";
+import {
+  ProblemsList,
+  DebuggerPanel,
+  DocumentOutline,
+} from "@/components/playground/EditorSidePanels";
+import {
+  buildMonacoEditorOptions,
+  loadLocalEditorOptions,
+  parseExtraEditorOptions,
+  saveLocalEditorOptions,
+  type ExtraEditorOptions,
+} from "@/lib/playground/editorPrefs";
+import {
+  monacoSeverity,
+  parseCompilerDiagnostics,
+  type CompilerDiagnostic,
+} from "@/lib/playground/compilerDiagnostics";
+import { parseDebugTrace, type DebugFrame } from "@/lib/playground/debugTrace";
+import { parseSimpleOutline, type JavaSymbol } from "@/lib/playground/javaSymbols";
+import type { EditorCommand } from "@/components/playground/EditorCommandPalette";
+import { registerPlaygroundJavaLanguage } from "@/lib/playground/registerJavaLanguage";
+import {
+  extractProposedCode,
+  isValidProposedCode,
+} from "@/lib/playground/extractProposedCode";
+import {
+  buildGuruSelectionPrompt,
+  GURU_SELECTION_ACTIONS,
+  type GuruSelectionAction,
+} from "@/lib/playground/guruPrompts";
 import { useCPTemplates } from "@/hooks/useCPTemplates";
 import {
   Dialog,
@@ -131,6 +163,7 @@ const GURU_EXPAND_TRIGGER_SIZE = 4.25;
 const GURU_DEFAULT_SIZE = 25;
 
 const WANDBOX_API = "https://wandbox.org/api/compile.json";
+const COMPILER_MARKER_OWNER = "algoguru-compiler";
 
 const SUPPORTED_LANGUAGES = [
   {
@@ -210,46 +243,77 @@ const addAutoImports = (source: string) => {
   return `${missingImports.join("\n")}\n\n${source}`;
 };
 
-// LeetCode Dark theme definition
+// LeetCode Dark theme definition — matched to ProblemSolver for identical editor experience
 const LEETCODE_DARK_THEME = {
   base: "vs-dark" as const,
   inherit: true,
   rules: [
-    { token: "", foreground: "e1e1e1", background: "282828" },
-    { token: "comment", foreground: "6a9955", fontStyle: "italic" },
-    { token: "keyword", foreground: "569cd6" },
-    { token: "string", foreground: "ce9178" },
-    { token: "number", foreground: "b5cea8" },
-    { token: "type", foreground: "4ec9b0" },
-    { token: "class", foreground: "4ec9b0" },
-    { token: "interface", foreground: "4ec9b0" },
-    { token: "function", foreground: "dcdcaa" },
-    { token: "variable", foreground: "9cdcfe" },
-    { token: "operator", foreground: "d4d4d4" },
-    { token: "annotation", foreground: "dcdcaa" },
+    { token: "", foreground: "D4D0C8", background: "1B1A18" },
+    { token: "comment", foreground: "6A9955", fontStyle: "italic" },
+    { token: "keyword.boolean", foreground: "4EC9B0" },
+    { token: "keyword.byte", foreground: "4EC9B0" },
+    { token: "keyword.char", foreground: "4EC9B0" },
+    { token: "keyword.double", foreground: "4EC9B0" },
+    { token: "keyword.float", foreground: "4EC9B0" },
+    { token: "keyword.int", foreground: "4EC9B0" },
+    { token: "keyword.long", foreground: "4EC9B0" },
+    { token: "keyword.short", foreground: "4EC9B0" },
+    { token: "keyword.void", foreground: "4EC9B0" },
+    { token: "keyword.String", foreground: "4EC9B0" },
+    { token: "keyword.Integer", foreground: "4EC9B0" },
+    { token: "keyword.Long", foreground: "4EC9B0" },
+    { token: "keyword.Double", foreground: "4EC9B0" },
+    { token: "keyword", foreground: "569CD6" },
+    { token: "keyword.control", foreground: "569CD6" },
+    { token: "storage", foreground: "569CD6" },
+    { token: "storage.type", foreground: "4EC9B0" },
+    { token: "type", foreground: "4EC9B0" },
+    { token: "type.identifier", foreground: "4EC9B0" },
+    { token: "class", foreground: "4EC9B0", fontStyle: "bold" },
+    { token: "interface", foreground: "4EC9B0" },
+    { token: "entity.name.type", foreground: "4EC9B0" },
+    { token: "entity.name.class", foreground: "4EC9B0" },
+    { token: "identifier", foreground: "DCDCAA" },
+    { token: "entity.name.function", foreground: "DCDCAA" },
+    { token: "support.function", foreground: "DCDCAA" },
+    { token: "function", foreground: "DCDCAA" },
+    { token: "method", foreground: "DCDCAA" },
+    { token: "variable", foreground: "DCDCAA" },
+    { token: "variable.parameter", foreground: "DCDCAA" },
+    { token: "parameter", foreground: "DCDCAA" },
+    { token: "annotation", foreground: "DCDcaa" },
+    { token: "number", foreground: "B5CEA8" },
+    { token: "string", foreground: "CE9178" },
+    { token: "operator", foreground: "D4D4D4" },
+    { token: "delimiter", foreground: "D4D4D4" },
+    { token: "delimiter.bracket", foreground: "D4D4D4" },
+    { token: "delimiter.parenthesis", foreground: "D4D4D4" },
   ],
   colors: {
-    "editor.background": "#282828",
-    "editor.foreground": "#e1e1e1",
-    "editor.lineHighlightBackground": "#2f2f2f",
-    "editor.selectionBackground": "#264f78",
-    "editor.selectionHighlightBackground": "#264f7855",
-    "editorCursor.foreground": "#aeafad",
-    "editorIndentGuide.background": "#404040",
-    "editorIndentGuide.activeBackground": "#5a5a5a",
-    "editorLineNumber.foreground": "#6e7681",
-    "editorLineNumber.activeForeground": "#e1e1e1",
-    "editorBracketMatch.background": "#ffa11626",
-    "editorBracketMatch.border": "#ffa116",
-    "editorWidget.background": "#242424",
-    "editorWidget.border": "#3c3c3c",
-    "editorSuggestWidget.background": "#242424",
-    "editorSuggestWidget.border": "#3c3c3c",
-    "editorSuggestWidget.selectedBackground": "#ffa1161f",
-    "scrollbarSlider.background": "#4e4e4eaa",
-    "scrollbarSlider.hoverBackground": "#5a5a5aaa",
+    "editor.background": "#1B1A18",
+    "editor.foreground": "#D4D0C8",
+    "editorLineNumber.foreground": "#7D7A72",
+    "editorLineNumber.activeForeground": "#C9C5BC",
+    "editorGutter.background": "#1B1A18",
+    "editor.lineHighlightBackground": "#26251F",
+    "editor.lineHighlightBorder": "#00000000",
+    "editor.selectionBackground": "#4A4436AA",
+    "editor.inactiveSelectionBackground": "#3A3833AA",
+    "editorCursor.foreground": "#C9C5BC",
+    "editorIndentGuide.background": "#3B3934",
+    "editorIndentGuide.activeBackground": "#6B675E",
+    "editorBracketMatch.background": "#5C564755",
+    "editorBracketMatch.border": "#8A8578",
+    "scrollbar.shadow": "#00000000",
+    "scrollbarSlider.background": "#79766E66",
+    "scrollbarSlider.hoverBackground": "#64615AB3",
+    "scrollbarSlider.activeBackground": "#BFBBB166",
+    "editorWidget.background": "#232220",
+    "editorSuggestWidget.background": "#232220",
+    "editorSuggestWidget.foreground": "#D4D0C8",
+    "editorSuggestWidget.selectedBackground": "#33312C",
   },
-};
+} as const;
 
 // Dracula theme definition
 const DRACULA_THEME = {
@@ -655,6 +719,7 @@ export default function Playground() {
 
   const setCode = useCallback(
     (nextCode: string) => {
+      setCodeSaveStatus("Unsaved");
       setCodeTabs((tabs) =>
         tabs.map((tab) =>
           tab.id === activeCodeTabId ? { ...tab, code: nextCode } : tab,
@@ -679,15 +744,45 @@ export default function Playground() {
     setPracticeTab("editor");
   }, [codeTabs, selectedLanguage.language]);
 
+  const closedCodeTabsRef = useRef<CodeTab[]>([]);
+
   const closeCodeTab = useCallback((tabId: string) => {
     if (tabId === "solution") return;
 
-    setCodeTabs((tabs) => tabs.filter((tab) => tab.id !== tabId));
+    setCodeTabs((tabs) => {
+      const closing = tabs.find((tab) => tab.id === tabId);
+      if (closing && !closing.protected) {
+        closedCodeTabsRef.current = [closing, ...closedCodeTabsRef.current].slice(0, 12);
+      }
+      return tabs.filter((tab) => tab.id !== tabId);
+    });
     setActiveCodeTabId((currentId) =>
       currentId === tabId ? "solution" : currentId,
     );
     setPracticeTab("editor");
   }, []);
+
+  const reopenLastClosedTab = useCallback(() => {
+    const [next, ...rest] = closedCodeTabsRef.current;
+    if (!next) return;
+    closedCodeTabsRef.current = rest;
+    setCodeTabs((tabs) =>
+      tabs.some((tab) => tab.id === next.id) ? tabs : [...tabs, next],
+    );
+    setActiveCodeTabId(next.id);
+    setPracticeTab("editor");
+  }, []);
+
+  const cycleCodeTab = useCallback((direction: 1 | -1) => {
+    setPracticeTab("editor");
+    setActiveCodeTabId((current) => {
+      const ids = codeTabs.map((tab) => tab.id);
+      if (!ids.length) return current;
+      const idx = Math.max(0, ids.indexOf(current));
+      const next = (idx + direction + ids.length) % ids.length;
+      return ids[next];
+    });
+  }, [codeTabs]);
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
@@ -708,6 +803,7 @@ export default function Playground() {
         : themeChoice;
     return THEMES.find((t) => t.id === resolvedId) ?? THEMES[0];
   }, [themeChoice, appTheme]);
+  const isDark = currentTheme.id !== "light";
 
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -715,7 +811,9 @@ export default function Playground() {
   const [copied, setCopied] = useState(false);
   const [isFormatted, setIsFormatted] = useState(false);
   const [stdin, setStdin] = useState("");
-  const [consoleTab, setConsoleTab] = useState<"testcase" | "result">("testcase");
+  const [consoleTab, setConsoleTab] = useState<
+    "testcase" | "result" | "problems" | "debug"
+  >("testcase");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [editorLocked, setEditorLocked] = useState(false);
   const playgroundShellRef = useRef<HTMLDivElement>(null);
@@ -785,8 +883,48 @@ export default function Playground() {
   const [relativeLineNumbers, setRelativeLineNumbers] = useState(false);
   const [askGuruOnSelection, setAskGuruOnSelection] = useState(true);
   const askGuruOnSelectionRef = useRef(askGuruOnSelection);
+  const [extraEditorOptions, setExtraEditorOptions] = useState<ExtraEditorOptions>(
+    loadLocalEditorOptions,
+  );
+  const [zenMode, setZenMode] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [quickOpenOpen, setQuickOpenOpen] = useState(false);
+  const [goToLineOpen, setGoToLineOpen] = useState(false);
+  const [outlineOpen, setOutlineOpen] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<CompilerDiagnostic[]>([]);
+  const [debugFrames, setDebugFrames] = useState<DebugFrame[]>([]);
+  const [debugLine, setDebugLine] = useState<number | null>(null);
+  const [codeSaveStatus, setCodeSaveStatus] = useState<"Saved" | "Saving" | "Unsaved">(
+    "Saved",
+  );
+  const [outlineSymbols, setOutlineSymbols] = useState<JavaSymbol[]>([]);
+  const [aiEdit, setAiEdit] = useState<{ original: string; modified: string } | null>(
+    null,
+  );
+  const editorDisposablesRef = useRef<{ dispose: () => void }[]>([]);
+  const debugDecorationsRef = useRef<string[]>([]);
+  const runCodeRef = useRef<(debug?: boolean) => void>(() => {});
+  const formatCodeRef = useRef<() => void>(() => {});
+  const pendingGuruWantsCodeRef = useRef(false);
+  const aiSelectionRangeRef = useRef<any>(null);
+  const codeRef = useRef(code);
+  codeRef.current = code;
+  const extraEditorOptionsRef = useRef(extraEditorOptions);
+  extraEditorOptionsRef.current = extraEditorOptions;
 
-  // Cursor position for VS Code-style status bar
+  const revealLine = useCallback((line: number, column: number = 1) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.revealPositionInCenter({ lineNumber: line, column });
+    editor.setPosition({ lineNumber: line, column });
+    editor.focus();
+  }, []);
+
+  const toggleZenMode = useCallback(() => {
+    setZenMode((v) => !v);
+  }, []);
+
+  const cursorRafRef = useRef<number | null>(null);
   const [cursorPos, setCursorPos] = useState({ ln: 1, col: 1 });
 
   const [notesContent, setNotesContent] = useState("");
@@ -901,6 +1039,11 @@ export default function Playground() {
         if ([2, 4, 8].includes(data.tab_size)) setEditorTabSize(data.tab_size);
         setRelativeLineNumbers(Boolean(data.relative_lines));
         setAskGuruOnSelection(Boolean(data.ask_guru_on_selection));
+        const extras = parseExtraEditorOptions(
+          (data as { editor_options?: unknown }).editor_options,
+        );
+        setExtraEditorOptions(extras);
+        saveLocalEditorOptions(extras);
       }
       setCloudPrefsLoaded(true);
     };
@@ -925,7 +1068,8 @@ export default function Playground() {
         tab_size: editorTabSize,
         relative_lines: relativeLineNumbers,
         ask_guru_on_selection: askGuruOnSelection,
-      });
+        editor_options: extraEditorOptions,
+      } as any);
     }, 800);
     return () => clearTimeout(timer);
   }, [
@@ -935,20 +1079,23 @@ export default function Playground() {
     editorFontSize,
     editorTabSize,
     relativeLineNumbers,
+    extraEditorOptions,
     askGuruOnSelection,
   ]);
 
   const closeSettingsMenu = useCallback(() => {
     setShowSettingsMenu(false);
+    saveLocalEditorOptions(extraEditorOptions);
     if (!user || !cloudPrefsLoaded) return;
-    supabase.from("playground_preferences").upsert({
-      user_id: user.id,
-      theme: themeChoice,
-      font_size: editorFontSize,
-      tab_size: editorTabSize,
-      relative_lines: relativeLineNumbers,
-      ask_guru_on_selection: askGuruOnSelection,
-    });
+      supabase.from("playground_preferences").upsert({
+        user_id: user.id,
+        theme: themeChoice,
+        font_size: editorFontSize,
+        tab_size: editorTabSize,
+        relative_lines: relativeLineNumbers,
+        ask_guru_on_selection: askGuruOnSelection,
+        editor_options: extraEditorOptions,
+      } as any);
   }, [
     user,
     cloudPrefsLoaded,
@@ -956,8 +1103,13 @@ export default function Playground() {
     editorFontSize,
     editorTabSize,
     relativeLineNumbers,
+    extraEditorOptions,
     askGuruOnSelection,
   ]);
+
+  useEffect(() => {
+    saveLocalEditorOptions(extraEditorOptions);
+  }, [extraEditorOptions]);
 
   // Load personal templates + built-in overrides from DB.
   useEffect(() => {
@@ -1059,12 +1211,14 @@ export default function Playground() {
     if (practiceId) return;
     if (!user) return;
 
-    const timer = setTimeout(() => {
-      supabase.from("playground_workspace").upsert({
+    const timer = setTimeout(async () => {
+      setCodeSaveStatus("Saving");
+      const { error } = await supabase.from("playground_workspace").upsert({
         user_id: user.id,
         tabs: codeTabs as unknown as any[],
         active_tab_id: activeCodeTabId,
       });
+      if (!error) setCodeSaveStatus("Saved");
     }, 1200);
 
     return () => clearTimeout(timer);
@@ -1078,6 +1232,20 @@ export default function Playground() {
   dbTemplatesRef.current = dbTemplates;
 
   useEffect(() => {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.includes("lc-playground") && !k.includes("v2")) {
+          localStorage.removeItem(k);
+        }
+        if (k && k.startsWith("react-resizable-panels:lc-playground") && k && !k.includes("v2")) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(Boolean(document.fullscreenElement));
     };
@@ -1087,6 +1255,61 @@ export default function Playground() {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isMod = e.ctrlKey || e.metaKey;
+      if (e.key === "Escape" && zenMode) {
+        setZenMode(false);
+        return;
+      }
+      if (isMod && e.shiftKey && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        setCommandPaletteOpen((v) => !v);
+        return;
+      }
+      if (isMod && !e.shiftKey && e.key.toLowerCase() === "p") {
+        // Ctrl+P quick open (avoid clash with print)
+        if (!e.altKey) {
+          e.preventDefault();
+          setQuickOpenOpen(true);
+        }
+        return;
+      }
+      if (isMod && e.key.toLowerCase() === "g" && !e.shiftKey) {
+        // Ctrl+G is handled via Monaco but keep for safety when editor not focused
+        if (document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+          e.preventDefault();
+          setGoToLineOpen(true);
+        }
+        return;
+      }
+      if (isMod && e.key === "Tab") {
+        e.preventDefault();
+        cycleCodeTab(e.shiftKey ? -1 : 1);
+        return;
+      }
+      if (isMod && e.key.toLowerCase() === "w") {
+        const tab = codeTabs.find((t) => t.id === activeCodeTabId);
+        if (tab && !tab.protected) {
+          e.preventDefault();
+          closeCodeTab(activeCodeTabId);
+        }
+        return;
+      }
+      if (isMod && e.shiftKey && e.key.toLowerCase() === "t") {
+        e.preventDefault();
+        reopenLastClosedTab();
+        return;
+      }
+      if (e.key === "F12") {
+        // Let Monaco handle go-to-definition; no action
+        return;
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [zenMode, cycleCodeTab, closeCodeTab, reopenLastClosedTab, codeTabs, activeCodeTabId]);
 
   const toggleFullscreen = useCallback(async () => {
     const shell = playgroundShellRef.current;
@@ -1108,57 +1331,110 @@ export default function Playground() {
   }, []);
 
   useEffect(() => {
-    editorRef.current?.updateOptions({ fontSize: editorFontSize });
-  }, [editorFontSize]);
-
-  useEffect(() => {
     const editor = editorRef.current;
-    editor?.updateOptions({
+    if (!editor) return;
+    editor.updateOptions(
+      buildMonacoEditorOptions({
+        fontSize: editorFontSize,
+        tabSize: editorTabSize,
+        relativeLineNumbers,
+        extras: extraEditorOptions,
+        readOnly: editorLocked,
+      }),
+    );
+    editor.getModel()?.updateOptions({
       tabSize: editorTabSize,
       insertSpaces: true,
-      detectIndentation: false,
     });
-    editor?.getModel()?.updateOptions({
-      tabSize: editorTabSize,
-      insertSpaces: true,
-    });
-  }, [editorTabSize]);
+  }, [
+    editorFontSize,
+    editorTabSize,
+    relativeLineNumbers,
+    extraEditorOptions,
+    editorLocked,
+  ]);
 
   useEffect(() => {
-    editorRef.current?.updateOptions({
-      lineNumbers: relativeLineNumbers ? "relative" : "on",
-    });
-  }, [relativeLineNumbers]);
+    if (user && !practiceId) return;
+    if (codeSaveStatus !== "Unsaved") return;
+    const timer = setTimeout(() => setCodeSaveStatus("Saved"), 900);
+    return () => clearTimeout(timer);
+  }, [codeSaveStatus, user, practiceId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setOutlineSymbols(parseSimpleOutline(code, selectedLanguage.language));
+    }, 420);
+    return () => clearTimeout(timer);
+  }, [code, selectedLanguage.language]);
 
   useEffect(() => {
     askGuruOnSelectionRef.current = askGuruOnSelection;
     if (!askGuruOnSelection) setAskGuruPopup(null);
   }, [askGuruOnSelection]);
 
-  // Update breakpoint decorations whenever breakpoints change
   const updateBreakpointDecorations = useCallback(() => {
     const editor = editorRef.current;
     const monaco = monacoRef.current;
     if (!editor || !monaco) return;
 
-    const newDecorations = Array.from(breakpoints).map((line) => ({
+    const breakpointDecorations = Array.from(breakpoints).map((line) => ({
       range: new monaco.Range(line, 1, line, 1),
       options: {
         isWholeLine: true,
         linesDecorationsClassName: "breakpoint-decoration",
         className: "breakpoint-line-highlight",
+        overviewRuler: {
+          color: "#ef4444",
+          position: monaco.editor.OverviewRulerLane.Left,
+        },
       },
     }));
 
-    decorationsRef.current = editor.deltaDecorations(
-      decorationsRef.current,
-      newDecorations,
-    );
-  }, [breakpoints]);
+    const currentLine =
+      debugLine != null
+        ? [
+            {
+              range: new monaco.Range(debugLine, 1, debugLine, 1),
+              options: {
+                isWholeLine: true,
+                className: "debug-current-line",
+                glyphMarginClassName: "debug-current-glyph",
+                overviewRuler: {
+                  color: "#38bdf8",
+                  position: monaco.editor.OverviewRulerLane.Center,
+                },
+              },
+            },
+          ]
+        : [];
+
+    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
+      ...breakpointDecorations,
+      ...currentLine,
+    ]);
+  }, [breakpoints, debugLine]);
 
   useEffect(() => {
     updateBreakpointDecorations();
-  }, [breakpoints, updateBreakpointDecorations]);
+  }, [breakpoints, debugLine, updateBreakpointDecorations]);
+
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    const model = editorRef.current?.getModel();
+    if (!monaco || !model) return;
+
+    const markers = diagnostics.map((d) => ({
+      severity: monacoSeverity(monaco, d.severity),
+      message: d.message,
+      startLineNumber: d.line,
+      startColumn: d.column || 1,
+      endLineNumber: d.endLine || d.line,
+      endColumn: d.endColumn || (d.column ? d.column + 1 : model.getLineMaxColumn(d.line) || 1),
+      source: "compiler",
+    }));
+    monaco.editor.setModelMarkers(model, COMPILER_MARKER_OWNER, markers);
+  }, [diagnostics]);
 
   const handleEditorMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -1168,614 +1444,124 @@ export default function Playground() {
     monaco.editor.defineTheme("solarized-dark", SOLARIZED_DARK_THEME);
     monaco.editor.defineTheme("light", LEETCODE_LIGHT_THEME as any);
 
-    editor.updateOptions({
-      fontSize: editorFontSize,
-      tabSize: editorTabSize,
-      insertSpaces: true,
-      detectIndentation: false,
-      lineNumbers: relativeLineNumbers ? "relative" : "on",
-    });
+    editor.updateOptions(
+      buildMonacoEditorOptions({
+        fontSize: editorFontSize,
+        tabSize: editorTabSize,
+        relativeLineNumbers,
+        extras: extraEditorOptionsRef.current,
+        readOnly: editorLocked,
+      }),
+    );
     editor.getModel()?.updateOptions({
       tabSize: editorTabSize,
       insertSpaces: true,
     });
 
-    // Track cursor position for VS Code-style Ln/Col status
-    editor.onDidChangeCursorPosition((e: any) => {
-      setCursorPos({ ln: e.position.lineNumber, col: e.position.column });
-    });
+    const disposables: { dispose: () => void }[] = [];
 
-    // Show "Ask GuruBot" popup when code is highlighted
-    editor.onDidChangeCursorSelection((e: any) => {
-      if (!askGuruOnSelectionRef.current) {
-        setAskGuruPopup(null);
-        return;
-      }
+    disposables.push(
+      editor.onDidChangeCursorPosition((e: any) => {
+        if (cursorRafRef.current) cancelAnimationFrame(cursorRafRef.current);
+        cursorRafRef.current = requestAnimationFrame(() => {
+          setCursorPos({ ln: e.position.lineNumber, col: e.position.column });
+        });
+      }),
+    );
 
-      const selectedText =
-        editor.getModel()?.getValueInRange(e.selection)?.trim() || "";
-      if (!selectedText || selectedText.length < 2) {
-        setAskGuruPopup(null);
-        return;
-      }
+    disposables.push(
+      editor.onDidChangeCursorSelection((e: any) => {
+        if (!askGuruOnSelectionRef.current) {
+          setAskGuruPopup(null);
+          return;
+        }
 
-      const domNode = editor.getDomNode();
-      const endPosition = {
-        lineNumber: e.selection.endLineNumber,
-        column: e.selection.endColumn,
-      };
-      const visiblePosition = editor.getScrolledVisiblePosition(endPosition);
-      if (!domNode || !visiblePosition) return;
+        const selectedText =
+          editor.getModel()?.getValueInRange(e.selection)?.trim() || "";
+        if (!selectedText || selectedText.length < 2 || e.selection.isEmpty()) {
+          setAskGuruPopup(null);
+          return;
+        }
 
-      const rect = domNode.getBoundingClientRect();
-      setSelectedCodeForGuru(selectedText);
-      setAskGuruPopup({
-        top: rect.top + visiblePosition.top + 28,
-        left: Math.min(
-          rect.left + visiblePosition.left + 12,
-          window.innerWidth - 180,
-        ),
-      });
-    });
+        const domNode = editor.getDomNode();
+        const endPosition = {
+          lineNumber: e.selection.endLineNumber,
+          column: e.selection.endColumn,
+        };
+        const visiblePosition = editor.getScrolledVisiblePosition(endPosition);
+        if (!domNode || !visiblePosition) return;
 
-    // Explicitly apply the theme since defining it inside onMount might be too late for the initial render
+        const rect = domNode.getBoundingClientRect();
+        aiSelectionRangeRef.current = e.selection;
+        setSelectedCodeForGuru(selectedText);
+        setAskGuruPopup({
+          top: rect.top + visiblePosition.top + 22,
+          left: Math.min(
+            rect.left + visiblePosition.left + 8,
+            window.innerWidth - 196,
+          ),
+        });
+      }),
+    );
+
     monaco.editor.setTheme(currentTheme.id);
 
-    // Add breakpoint click handler on gutter (line number margin)
-    editor.onMouseDown((e: any) => {
-      if (
-        e.target?.type === monaco.editor.MouseTargetType.GUTTER_LINE_NUMBERS ||
-        e.target?.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN
-      ) {
-        const lineNumber = e.target.position?.lineNumber;
-        if (lineNumber) {
-          setBreakpoints((prev) => {
-            const next = new Set(prev);
-            if (next.has(lineNumber)) {
-              next.delete(lineNumber);
-            } else {
-              next.add(lineNumber);
-            }
-            return next;
-          });
-        }
-      }
-    });
-
-    // Register comprehensive Java auto-completions
-    // 1. Dot-notation completions (e.g., Integer.bitCount, Math.max, list.add)
-    monaco.languages.registerCompletionItemProvider("java", {
-      triggerCharacters: ["."],
-      provideCompletionItems: (model, position) => {
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: position.lineNumber,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        });
-
-        // Match ClassName. or variable.
-        const dotMatch = textUntilPosition.match(/(\w+)\.\s*(\w*)$/);
-        if (!dotMatch) return { suggestions: [] };
-
-        const className = dotMatch[1];
-        const partial = dotMatch[2] || "";
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: position.column - partial.length,
-          endColumn: position.column,
-        };
-
-        const suggestions: any[] = [];
-
-        // Check for static methods (e.g., Integer.bitCount, Math.abs)
-        const staticMethods = STATIC_COMPLETIONS_MAP.get(className);
-        if (staticMethods) {
-          for (const m of staticMethods) {
-            suggestions.push({
-              label: m.label,
-              kind:
-                m.kind === "field"
-                  ? monaco.languages.CompletionItemKind.Field
-                  : monaco.languages.CompletionItemKind.Method,
-              insertText: m.insertText,
-              insertTextRules: m.insertText.includes("$")
-                ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-                : undefined,
-              detail: m.detail,
-              documentation: m.documentation,
-              sortText: `0_${m.label}`,
-              range,
+    disposables.push(
+      editor.onMouseDown((e: any) => {
+        if (
+          e.target?.type === monaco.editor.MouseTargetType.GUTTER_LINE_NUMBERS ||
+          e.target?.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN
+        ) {
+          const lineNumber = e.target.position?.lineNumber;
+          if (lineNumber) {
+            setBreakpoints((prev) => {
+              const next = new Set(prev);
+              if (next.has(lineNumber)) {
+                next.delete(lineNumber);
+              } else {
+                next.add(lineNumber);
+              }
+              return next;
             });
           }
         }
+      }),
+    );
 
-        // Check for instance methods (e.g., list.add, map.put)
-        const instanceMethods = INSTANCE_COMPLETIONS_MAP.get(className);
-
-        if (instanceMethods) {
-          for (const m of instanceMethods) {
-            suggestions.push({
-              label: m.label,
-              kind:
-                m.kind === "field"
-                  ? monaco.languages.CompletionItemKind.Field
-                  : monaco.languages.CompletionItemKind.Method,
-              insertText: m.insertText,
-              insertTextRules: m.insertText.includes("$")
-                ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-                : undefined,
-              detail: m.detail,
-              documentation: m.documentation,
-              sortText: `0_${m.label}`,
-              range,
-            });
-          }
-        }
-
-        if (suggestions.length === 0) {
-          const fullText = model.getValue();
-          const varName = className;
-          const typePatterns = [
-            new RegExp(`(\\w+(?:<[^>]*>)?)\\s+${varName}\\s*[=;,)]`),
-            new RegExp(`(\\w+(?:<[^>]*>)?)\\s+${varName}\\s*$`, "m"),
-            new RegExp(`(\\w+(?:<[^>]*>)?)\\[\\]\\s+${varName}\\s*[=;,)]`),
-            new RegExp(
-              `for\\s*\\([^)]*?(\\w+(?:<[^>]*>)?)\\s+${varName}\\s*[;:]`,
-            ),
-          ];
-
-          let resolvedType: string | null = null;
-          for (const pattern of typePatterns) {
-            const match = fullText.match(pattern);
-            if (match) {
-              resolvedType = match[1].replace(/<.*>/, "");
-              break;
-            }
-          }
-
-          if (resolvedType) {
-            const typeMethods = INSTANCE_COMPLETIONS_MAP.get(resolvedType);
-            if (typeMethods) {
-              for (const m of typeMethods) {
-                suggestions.push({
-                  label: m.label,
-                  kind:
-                    m.kind === "field"
-                      ? monaco.languages.CompletionItemKind.Field
-                      : monaco.languages.CompletionItemKind.Method,
-                  insertText: m.insertText,
-                  insertTextRules: m.insertText.includes("$")
-                    ? monaco.languages.CompletionItemInsertTextRule
-                        .InsertAsSnippet
-                    : undefined,
-                  detail: m.detail,
-                  documentation: m.documentation,
-                  sortText: `0_${m.label}`,
-                  range,
-                });
-              }
-            }
-          }
-
-          if (
-            suggestions.length === 0 &&
-            className[0] === className[0].toLowerCase()
-          ) {
-            for (const m of ALL_INSTANCE_METHODS) {
-              suggestions.push({
-                label: m.label,
-                kind:
-                  m.kind === "field"
-                    ? monaco.languages.CompletionItemKind.Field
-                    : monaco.languages.CompletionItemKind.Method,
-                insertText: m.insertText,
-                insertTextRules: m.insertText.includes("$")
-                  ? monaco.languages.CompletionItemInsertTextRule
-                      .InsertAsSnippet
-                  : undefined,
-                detail: m.detail,
-                documentation: m.documentation,
-                sortText: `1_${m.label}`,
-                range,
-              });
-            }
-          }
-        }
-
-        return { suggestions };
-      },
-    });
-
-    // 2. Snippet & keyword completions (non-dot context)
-    monaco.languages.registerCompletionItemProvider("java", {
-      provideCompletionItems: (model, position) => {
-        const word = model.getWordUntilPosition(position);
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn,
-        };
-
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: position.lineNumber,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        });
-        if (textUntilPosition.match(/\w+\.\s*\w*$/)) {
-          return { suggestions: [] };
-        }
-
-        const suggestions: any[] = [];
-
-        for (const s of ALL_SNIPPETS) {
-          suggestions.push({
-            label: s.label,
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: s.insertText,
-            insertTextRules:
-              monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            detail: s.detail,
-            documentation: s.documentation,
-            filterText: `${s.label} ${s.detail}`,
-            sortText: `${PRIORITY_LABELS.has(s.label) ? "0" : "1"}_${s.label.toLowerCase()}`,
-            range,
-          });
-        }
-
-        for (const kw of JAVA_KEYWORDS) {
-          suggestions.push({
-            label: kw,
-            kind: monaco.languages.CompletionItemKind.Keyword,
-            insertText: kw,
-            detail: "keyword",
-            sortText: `2_${kw}`,
-            range,
-          });
-        }
-
-        for (const t of JAVA_TYPES) {
-          suggestions.push({
-            label: t,
-            kind: monaco.languages.CompletionItemKind.Class,
-            insertText: t,
-            detail: "type",
-            sortText: `3_${t}`,
-            range,
-          });
-        }
-
-        return { suggestions };
-      },
-    });
-
-    // 3. CP Templates from database - prefix-triggered snippets
-    const FULL_TEMPLATE_PREFIXES = new Set([
-      "template",
-      "cpfull",
-      "codeforces",
-      "codeforces-contest",
-      "codechef",
-      "codechef-contest",
-      "leetcode",
-      "leetcode-contest",
-      "interview",
-    ]);
-
-    monaco.languages.registerCompletionItemProvider("java", {
-      provideCompletionItems: (model, position) => {
-        const word = model.getWordUntilPosition(position);
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn,
-        };
-
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: position.lineNumber,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        });
-        if (textUntilPosition.match(/\w+\.\s*\w*$/)) {
-          return { suggestions: [] };
-        }
-
-        const suggestions: any[] = [];
-        for (const t of dbTemplatesRef.current) {
-          const isFullTemplate = FULL_TEMPLATE_PREFIXES.has(t.prefix);
-          suggestions.push({
-            label: t.prefix,
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: isFullTemplate ? t.code : t.code,
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.None,
-            detail: `Template: ${t.name}`,
-            documentation: t.description,
-            filterText: `${t.prefix} ${t.name}`,
-            sortText: `0_${t.prefix}`,
-            range: isFullTemplate
-              ? {
-                  startLineNumber: 1,
-                  endLineNumber: model.getLineCount(),
-                  startColumn: 1,
-                  endColumn: model.getLineMaxColumn(model.getLineCount()),
-                }
-              : range,
-          });
-        }
-        return { suggestions };
-      },
-    });
-
-    // 4. User-defined symbol autocomplete (IntelliSense) - parses current code for variables, methods, classes
-    const JAVA_RESERVED = new Set([
-      "abstract",
-      "assert",
-      "boolean",
-      "break",
-      "byte",
-      "case",
-      "catch",
-      "char",
-      "class",
-      "const",
-      "continue",
-      "default",
-      "do",
-      "double",
-      "else",
-      "enum",
-      "extends",
-      "final",
-      "finally",
-      "float",
-      "for",
-      "goto",
-      "if",
-      "implements",
-      "import",
-      "instanceof",
-      "int",
-      "interface",
-      "long",
-      "native",
-      "new",
-      "package",
-      "private",
-      "protected",
-      "public",
-      "return",
-      "short",
-      "static",
-      "strictfp",
-      "super",
-      "switch",
-      "synchronized",
-      "this",
-      "throw",
-      "throws",
-      "transient",
-      "try",
-      "void",
-      "volatile",
-      "while",
-      "var",
-      "record",
-      "sealed",
-      "permits",
-      "yield",
-      "true",
-      "false",
-      "null",
-      "String",
-      "System",
-      "Math",
-      "Integer",
-      "Long",
-      "Double",
-      "Boolean",
-      "Character",
-      "Object",
-      "Arrays",
-      "Collections",
-      "List",
-      "Map",
-      "Set",
-      "HashMap",
-      "ArrayList",
-      "LinkedList",
-      "TreeMap",
-      "HashSet",
-      "TreeSet",
-      "Queue",
-      "Stack",
-      "Deque",
-      "PriorityQueue",
-      "Scanner",
-      "StringBuilder",
-      "BufferedReader",
-      "InputStreamReader",
-      "PrintWriter",
-      "main",
-      "args",
-      "out",
-      "in",
-      "err",
-    ]);
-
-    monaco.languages.registerCompletionItemProvider("java", {
-      provideCompletionItems: (model, position) => {
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: position.lineNumber,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        });
-        // Skip if in dot-context
-        if (textUntilPosition.match(/\w+\.\s*\w*$/)) return { suggestions: [] };
-
-        const word = model.getWordUntilPosition(position);
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn,
-        };
-
-        const fullText = model.getValue();
-        const symbolMap = new Map<string, { kind: string; line: number }>();
-
-        const lines = fullText.split("\n");
-        for (let i = 0; i < lines.length; i++) {
-          const ln = lines[i];
-          const trimmed = ln.trim();
-          if (
-            trimmed.startsWith("//") ||
-            trimmed.startsWith("/*") ||
-            trimmed.startsWith("*")
-          )
-            continue;
-
-          // Classes: class Foo / interface Bar
-          const classMatch = trimmed.match(/(?:class|interface|enum)\s+(\w+)/);
-          if (classMatch && !JAVA_RESERVED.has(classMatch[1])) {
-            symbolMap.set(classMatch[1], { kind: "class", line: i + 1 });
-          }
-
-          // Methods: returnType methodName(
-          const methodMatch = trimmed.match(
-            /(?:(?:public|private|protected|static|final|abstract|synchronized)\s+)*(?:\w+(?:<[^>]*>)?(?:\[\])*)\s+(\w+)\s*\(/,
-          );
-          if (
-            methodMatch &&
-            !JAVA_RESERVED.has(methodMatch[1]) &&
-            methodMatch[1] !== "if" &&
-            methodMatch[1] !== "for" &&
-            methodMatch[1] !== "while" &&
-            methodMatch[1] !== "switch" &&
-            methodMatch[1] !== "catch"
-          ) {
-            symbolMap.set(methodMatch[1], { kind: "method", line: i + 1 });
-          }
-
-          // Variables: Type varName = or Type varName; or Type varName,
-          const varMatches = trimmed.matchAll(
-            /(?:(?:final)\s+)?(\w+(?:<[^>]*>)?(?:\[\])*)\s+(\w+)\s*[=;,)]/g,
-          );
-          for (const m of varMatches) {
-            const typePart = m[1];
-            const varName = m[2];
-            if (
-              !JAVA_RESERVED.has(varName) &&
-              !JAVA_RESERVED.has(typePart) &&
-              ![
-                "class",
-                "interface",
-                "enum",
-                "return",
-                "throw",
-                "new",
-                "import",
-                "package",
-              ].includes(typePart)
-            ) {
-              if (
-                !symbolMap.has(varName) ||
-                symbolMap.get(varName)!.kind !== "method"
-              ) {
-                symbolMap.set(varName, { kind: "variable", line: i + 1 });
-              }
-            }
-          }
-
-          // var declarations: var x =
-          const varDecl = trimmed.match(/(?:final\s+)?var\s+(\w+)\s*=/);
-          if (varDecl && !JAVA_RESERVED.has(varDecl[1])) {
-            symbolMap.set(varDecl[1], { kind: "variable", line: i + 1 });
-          }
-
-          // For-loop variables
-          const forMatch = trimmed.match(
-            /for\s*\(\s*(?:final\s+)?(?:\w+(?:<[^>]*>)?(?:\[\])*)\s+(\w+)\s*[=:]/,
-          );
-          if (forMatch && !JAVA_RESERVED.has(forMatch[1])) {
-            symbolMap.set(forMatch[1], { kind: "variable", line: i + 1 });
-          }
-
-          // Method parameters
-          const paramSigMatch = trimmed.match(
-            /\w+\s*\(([^)]+)\)\s*(?:throws\s+\w+(?:\s*,\s*\w+)*)?\s*\{?/,
-          );
-          if (paramSigMatch) {
-            const params = paramSigMatch[1].split(",");
-            for (const p of params) {
-              const pm = p
-                .trim()
-                .match(/(?:final\s+)?(?:\w+(?:<[^>]*>)?(?:\[\])*)\s+(\w+)$/);
-              if (pm && !JAVA_RESERVED.has(pm[1])) {
-                if (!symbolMap.has(pm[1])) {
-                  symbolMap.set(pm[1], { kind: "parameter", line: i + 1 });
-                }
-              }
-            }
-          }
-
-          // Constants: static final TYPE NAME =
-          const constMatch = trimmed.match(
-            /static\s+final\s+\w+(?:<[^>]*>)?\s+(\w+)\s*=/,
-          );
-          if (constMatch && !JAVA_RESERVED.has(constMatch[1])) {
-            symbolMap.set(constMatch[1], { kind: "constant", line: i + 1 });
-          }
-        }
-
-        const suggestions: any[] = [];
-        for (const [name, info] of symbolMap) {
-          let kind = monaco.languages.CompletionItemKind.Variable;
-          let icon = "variable";
-          if (info.kind === "method") {
-            kind = monaco.languages.CompletionItemKind.Method;
-            icon = "method";
-          } else if (info.kind === "class") {
-            kind = monaco.languages.CompletionItemKind.Class;
-            icon = "class";
-          } else if (info.kind === "constant") {
-            kind = monaco.languages.CompletionItemKind.Constant;
-            icon = "constant";
-          } else if (info.kind === "parameter") {
-            kind = monaco.languages.CompletionItemKind.Variable;
-            icon = "param";
-          }
-
-          suggestions.push({
-            label: name,
-            kind,
-            insertText: name,
-            detail: `${icon} (line ${info.line})`,
-            sortText: `0_${name.toLowerCase()}`,
-            range,
-          });
-        }
-
-        return { suggestions };
-      },
-    });
+    registerPlaygroundJavaLanguage(monaco, () => dbTemplatesRef.current);
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      runCode();
+      runCodeRef.current();
     });
-
     editor.addCommand(
       monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
       () => {
-        formatCode();
+        formatCodeRef.current();
       },
     );
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyP,
+      () => setCommandPaletteOpen(true),
+    );
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
+      setQuickOpenOpen(true);
+    });
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG, () => {
+      setGoToLineOpen(true);
+    });
+
+    editorDisposablesRef.current = disposables;
+    disposables.push(
+      editor.onDidDispose(() => {
+        disposables.forEach((d) => d.dispose());
+        editorDisposablesRef.current = [];
+        const model = editor.getModel();
+        if (model) monaco.editor.setModelMarkers(model, COMPILER_MARKER_OWNER, []);
+      }),
+    );
+    updateBreakpointDecorations();
   };
+
 
   const formatCode = useCallback(async () => {
     const raw = code;
@@ -1925,9 +1711,13 @@ export default function Playground() {
       }
 
       setIsRunning(true);
+      setIsDebugMode(debugRun);
       setOutput("");
       setRunMeta(null);
-      setConsoleTab("result");
+      setDiagnostics([]);
+      setDebugFrames([]);
+      setDebugLine(null);
+      setConsoleTab(debugRun ? "debug" : "result");
       const startedAt = performance.now();
       const stdinAtRun = stdin;
       let status: RunStatus = debugRun ? "debug" : "accepted";
@@ -1977,6 +1767,14 @@ export default function Playground() {
 
         const data = await res.json();
         const parts = [];
+        const compilerBlob = [data.compiler_error, data.compiler_message, data.program_error]
+          .filter((chunk: unknown) => typeof chunk === "string" && chunk.trim())
+          .join("\n");
+        const nextDiagnostics = parseCompilerDiagnostics(compilerBlob);
+        setDiagnostics(nextDiagnostics);
+        if (nextDiagnostics.length > 0 && !debugRun) {
+          setConsoleTab("problems");
+        }
 
         if (data.compiler_error || data.compiler_message) {
           const msg = data.compiler_error || data.compiler_message;
@@ -2004,6 +1802,9 @@ export default function Playground() {
         } else {
           setOutput(result);
         }
+        const frames = debugRun ? parseDebugTrace(result) : [];
+        setDebugFrames(frames);
+        setDebugLine(frames.length ? frames[frames.length - 1].line : null);
       } catch (err) {
         status = "service_error";
         setOutput(
@@ -2032,6 +1833,13 @@ export default function Playground() {
       expandIOPanel,
     ],
   );
+
+  useEffect(() => {
+    runCodeRef.current = runCode;
+  }, [runCode]);
+  useEffect(() => {
+    formatCodeRef.current = formatCode;
+  }, [formatCode]);
 
   const downloadCode = useCallback(() => {
     const classMatch = code.match(/public\s+class\s+(\w+)/);
@@ -2193,29 +2001,41 @@ export default function Playground() {
     }
   };
 
-  // Run button component (LC pill style)
+  // Run button — ProblemSolver rocket style
   const RunButton = ({ compact = false }: { compact?: boolean }) => (
     <AppTooltip content="Run (Ctrl+Enter)">
       <button
         onClick={() => runCode(false)}
         disabled={isRunning || !code.trim()}
-        className={`lc-pill lc-pill-green ${
-          compact ? "!px-4 !py-[5px] !text-[12px]" : "!px-6 !py-2 !text-[13px]"
-        }`}
+        className={`flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3"}`}
+        style={{
+          background: isRunning
+            ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
+            : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+          boxShadow: isRunning
+            ? "0 0 12px rgba(245,158,11,0.4), 0 2px 4px rgba(0,0,0,0.2)"
+            : "0 0 12px rgba(16,185,129,0.4), 0 2px 4px rgba(0,0,0,0.2)",
+          color: "white",
+          fontSize: compact ? 12 : 13,
+        }}
         aria-label="Run code"
         aria-busy={isRunning}
       >
         {isRunning ? (
-          <Loader2 size={14} className="animate-spin" />
+          <Loader2 size={compact ? 13 : 14} className="animate-spin" />
+        ) : compact ? (
+          <Play size={13} fill="currentColor" strokeWidth={0} />
         ) : (
-          <Play size={14} fill="currentColor" strokeWidth={0} />
+          <>
+            <Play size={13} fill="currentColor" strokeWidth={0} />
+            Run
+          </>
         )}
-        {isRunning ? "Running" : "Run"}
       </button>
     </AppTooltip>
   );
 
-  // Debug button component
+  // Debug button — ProblemSolver style (outline with accent)
   const DebugButton = ({ compact = false }: { compact?: boolean }) => {
     const tooltip =
       breakpoints.size > 0
@@ -2227,17 +2047,16 @@ export default function Playground() {
         <button
           onClick={() => runCode(true)}
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
-          className={`lc-pill lc-pill-outline ${
-            compact ? "!px-4 !py-[5px] !text-[12px]" : "!px-6 !py-2 !text-[13px]"
-          }`}
+          className={`flex items-center justify-center gap-1 rounded-md font-medium transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3 text-[12px]"}`}
+          style={{
+            background: breakpoints.size > 0 ? (isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)") : "transparent",
+            color: breakpoints.size > 0 ? (isDark ? "#a78bfa" : "#7c3aed") : isDark ? "#94a3b8" : "#64748b",
+            border: `1px solid ${breakpoints.size > 0 ? (isDark ? "rgba(139,92,246,0.3)" : "rgba(139,92,246,0.2)") : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)"}`,
+          }}
           aria-label={tooltip}
         >
-          <Bug size={14} />
-          {compact ? (
-            "Debug"
-          ) : (
-            <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>
-          )}
+          <Bug size={13} />
+          {!compact && <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>}
         </button>
       </AppTooltip>
     );
@@ -2622,6 +2441,122 @@ export default function Playground() {
                   <span />
                 </button>
               </div>
+
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
+                <div>
+                  <p className="lc-setting-title">Minimap</p>
+                  <p className="lc-setting-desc">Show overview minimap</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={extraEditorOptions.minimap}
+                  aria-label="Toggle minimap"
+                  onClick={() =>
+                    setExtraEditorOptions((prev) => ({ ...prev, minimap: !prev.minimap }))
+                  }
+                  className="lc-switch"
+                  data-on={extraEditorOptions.minimap}
+                >
+                  <span />
+                </button>
+              </div>
+
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
+                <div>
+                  <p className="lc-setting-title">Word Wrap</p>
+                  <p className="lc-setting-desc">Wrap long lines</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={extraEditorOptions.wordWrap}
+                  aria-label="Toggle word wrap"
+                  onClick={() =>
+                    setExtraEditorOptions((prev) => ({ ...prev, wordWrap: !prev.wordWrap }))
+                  }
+                  className="lc-switch"
+                  data-on={extraEditorOptions.wordWrap}
+                >
+                  <span />
+                </button>
+              </div>
+
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
+                <div>
+                  <p className="lc-setting-title">Cursor Animation</p>
+                  <p className="lc-setting-desc">Smooth cursor transition</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={extraEditorOptions.cursorSmooth}
+                  aria-label="Toggle cursor animation"
+                  onClick={() =>
+                    setExtraEditorOptions((prev) => ({ ...prev, cursorSmooth: !prev.cursorSmooth }))
+                  }
+                  className="lc-switch"
+                  data-on={extraEditorOptions.cursorSmooth}
+                >
+                  <span />
+                </button>
+              </div>
+
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
+                <div>
+                  <p className="lc-setting-title">Bracket Pair Colorization</p>
+                  <p className="lc-setting-desc">Color matching brackets</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={extraEditorOptions.bracketPairColorization}
+                  aria-label="Toggle bracket colorization"
+                  onClick={() =>
+                    setExtraEditorOptions((prev) => ({
+                      ...prev,
+                      bracketPairColorization: !prev.bracketPairColorization,
+                    }))
+                  }
+                  className="lc-switch"
+                  data-on={extraEditorOptions.bracketPairColorization}
+                >
+                  <span />
+                </button>
+              </div>
+
+              <div
+                className="lc-setting-row"
+                style={{ borderTop: "1px solid var(--lc-border-soft)" }}
+              >
+                <div>
+                  <p className="lc-setting-title">Format on Type</p>
+                  <p className="lc-setting-desc">Auto-format while typing</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={extraEditorOptions.formatOnType}
+                  aria-label="Toggle format on type"
+                  onClick={() =>
+                    setExtraEditorOptions((prev) => ({
+                      ...prev,
+                      formatOnType: !prev.formatOnType,
+                    }))
+                  }
+                  className="lc-switch"
+                  data-on={extraEditorOptions.formatOnType}
+                >
+                  <span />
+                </button>
+              </div>
             </div>
 
             {/* ── Actions ── */}
@@ -2686,7 +2621,7 @@ export default function Playground() {
   };
 
   // â”€â”€ Derived layout flags â”€â”€
-  const showLeftDescription = !isMobile && !!practiceData;
+  const showLeftDescription = !zenMode && !isMobile && !!practiceData;
   const showMobileProblemView =
     isMobile && !!practiceData && practiceTab === "problem";
   const mainNotesActive = practiceTab === "notes" && !showLeftDescription;
@@ -2805,6 +2740,16 @@ export default function Playground() {
         .breakpoint-line-highlight {
           background: hsla(var(--destructive) / 0.08) !important;
         }
+        .debug-current-line {
+          background: rgba(56, 189, 248, 0.18) !important;
+          border-left: 3px solid #38bdf8 !important;
+        }
+        .debug-current-glyph {
+          background: #38bdf8 !important;
+          width: 6px !important;
+          margin-left: 5px !important;
+          border-radius: 2px !important;
+        }
         .monaco-editor .margin {
           cursor: pointer !important;
         }
@@ -2815,12 +2760,15 @@ export default function Playground() {
         className="flex flex-shrink-0 select-none items-center justify-between px-3"
         style={{
           height: 44,
-          background: "var(--lc-panel)",
-          borderBottom: "1px solid var(--lc-border-soft)",
+          background: isDark
+            ? "linear-gradient(180deg, rgba(30,30,55,1) 0%, rgba(26,26,46,1) 100%)"
+            : "#f0f0f5",
+          borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
         }}
       >
-        {/* Left: language selector + compiler info */}
-        <div className="ml-1 flex h-full items-center gap-1">
+        {/* LEFT: language + workspace */}
+        <div className="flex h-full min-w-0 flex-1 items-center gap-1">
+          <div className="ml-1 flex h-full items-center gap-1">
           <div className="relative flex-shrink-0">
             <AppTooltip content="Change Language" side="bottom">
               <button
@@ -2833,11 +2781,17 @@ export default function Playground() {
                   }
                 }}
                 aria-label="Change Language"
-                className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium lc-hover"
-                style={{ color: "var(--lc-text)" }}
+                className="flex h-7 items-center gap-1.5 px-3 rounded-md text-xs font-semibold transition-all hover:scale-[1.02]"
+                style={{
+                  background: isDark
+                    ? "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.12) 100%)"
+                    : "rgba(99,102,241,0.08)",
+                  color: isDark ? "#a5b4fc" : "#6366f1",
+                  border: `1px solid ${isDark ? "rgba(99,102,241,0.2)" : "rgba(99,102,241,0.15)"}`,
+                }}
               >
-                <Code2 size={15} style={{ color: "var(--lc-accent)" }} />
-                <span>{selectedLanguage.label}</span>
+                <Code2 size={13} />
+                <span>{selectedLanguage.label} 21</span>
                 <ChevronDown
                   size={14}
                   className={`transition-transform duration-200 ${
@@ -2915,10 +2869,30 @@ export default function Playground() {
               </span>
             </div>
           </div>
+          <span
+            className="hidden sm:inline-flex max-w-[140px] truncate text-[11px] font-medium"
+            style={{ color: "var(--lc-muted)" }}
+            title={activeCodeTab?.title}
+          >
+            · {activeCodeTab?.title}
+          </span>
+          </div>
         </div>
 
-        {/* Right: icon toolbar */}
-        <div className="mr-2 flex h-full items-center gap-1">
+        {/* CENTER: primary Run + Debug */}
+        <div className="hidden md:flex flex-shrink-0 items-center gap-2">
+          <RunButton />
+          <DebugButton />
+          {diagnostics.length > 0 && (
+            <span className="ml-1 hidden lg:inline-flex items-center gap-1 text-[11px]" style={{ color: "var(--lc-red)" }}>
+              {diagnostics.length} problem{diagnostics.length === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
+
+        {/* RIGHT: secondary actions */}
+        <div className="flex h-full min-w-0 flex-1 items-center justify-end gap-1">
+          <div className="mr-1 flex h-full items-center gap-1">
           <TooltipProvider delayDuration={300}>
             {/* Templates */}
             <div className="relative flex h-full items-center">
@@ -3217,6 +3191,54 @@ export default function Playground() {
               </TooltipContent>
             </Tooltip>
 
+            {/* Outline */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setOutlineOpen((v) => !v)}
+                  className={`lc-icon-btn ${outlineOpen ? "!text-[color:var(--lc-accent)]" : ""}`}
+                  aria-label="Toggle outline"
+                >
+                  <ListTree size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs font-medium">
+                <p>Outline</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Zen Mode */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleZenMode}
+                  className={`lc-icon-btn ${zenMode ? "!text-[color:var(--lc-accent)]" : ""}`}
+                  aria-label={zenMode ? "Exit Zen Mode" : "Enter Zen Mode"}
+                >
+                  <Focus size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs font-medium">
+                <p>{zenMode ? "Exit Zen Mode (Esc)" : "Zen Mode"}</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Word Wrap quick toggle */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setExtraEditorOptions((p) => ({ ...p, wordWrap: !p.wordWrap }))}
+                  className={`lc-icon-btn ${extraEditorOptions.wordWrap ? "!text-[color:var(--lc-accent)]" : ""}`}
+                  aria-label="Toggle word wrap"
+                >
+                  <WrapText size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs font-medium">
+                <p>{extraEditorOptions.wordWrap ? "Disable Word Wrap" : "Enable Word Wrap"}</p>
+              </TooltipContent>
+            </Tooltip>
+
             {/* Settings */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -3250,22 +3272,24 @@ export default function Playground() {
               settingsMenuType === "theme" &&
               SettingsDropdownContent()}
           </TooltipProvider>
+          </div>
         </div>
       </div>
 
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MAIN REGION â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div className="min-h-0 flex-1">
         <ResizablePanelGroup
+          key={showLeftDescription ? "with-left" : "no-left"}
           direction={isMobile ? "vertical" : "horizontal"}
           className="h-full"
           autoSaveId={
             ioPanelOpen
               ? guruBotOpen && !isMobile
-                ? "lc-playground-editor-io-guru-layout"
-                : "lc-playground-editor-io-layout"
+                ? "lc-playground-editor-io-guru-layout-v2"
+                : "lc-playground-editor-io-layout-v2"
               : guruBotOpen && !isMobile
-                ? "lc-playground-editor-guru-layout"
-                : "lc-playground-editor-layout"
+                ? "lc-playground-editor-guru-layout-v2"
+                : "lc-playground-editor-layout-v2"
           }
           onLayout={(sizes) => {
             if (isMobile || !ioPanelOpen) return;
@@ -3281,7 +3305,7 @@ export default function Playground() {
           }}
         >
           {/* â”€â”€ Left: Description / Notes (desktop + practice problem) â”€â”€ */}
-          {!isMobile && practiceData && (
+          {!zenMode && !isMobile && practiceData && (
             <>
               <ResizablePanel
                 defaultSize={34}
@@ -3290,7 +3314,7 @@ export default function Playground() {
                 className="overflow-hidden"
                 style={{ background: "var(--lc-panel)" }}
               >
-                <div className="flex h-full min-h-0 flex-col">
+                <div className="flex h-full min-h-0 flex-col rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, background: isDark ? "#1A1A1A" : "#ffffff" }}>
                   {/* Panel tabs */}
                   <div
                     className="flex flex-shrink-0 items-center px-5 select-none"
@@ -3443,17 +3467,18 @@ export default function Playground() {
               isMobile ? 60 : showLeftDescription ? 66 : guruBotOpen ? 75 : 100
             }
             minSize={30}
-            className="overflow-hidden"
-            style={{ background: "var(--lc-panel)" }}
+            className="overflow-hidden flex flex-col p-1 sm:p-2"
+            style={{ background: "transparent" }}
           >
-            <div className="flex h-full min-h-0 flex-col">
-              {/* File tab strip */}
+            <div className="flex h-full min-h-0 flex-col rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, background: isDark ? "#1A1A1A" : "#ffffff" }}>
+              {/* File tab strip — ProblemSolver style */}
               <div
-                className="flex flex-shrink-0 select-none items-stretch overflow-x-auto"
+                className="flex flex-shrink-0 select-none items-center px-2 py-1 overflow-x-auto"
                 style={{
-                  minHeight: 42,
-                  borderBottom: "1px solid var(--lc-border)",
-                  background: "var(--lc-panel)",
+                  minHeight: 34,
+                  background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
+                  borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
+                  scrollbarWidth: "none",
                 }}
               >
                 {/* Mobile-only Description tab */}
@@ -3904,6 +3929,40 @@ export default function Playground() {
                             />
                           ) : null}
                         </button>
+                        <button
+                          onClick={() => setConsoleTab("problems")}
+                          className={`lc-tab !mb-0 flex items-center gap-1.5 ${consoleTab === "problems" ? "lc-tab-active" : ""}`}
+                          aria-label={`Problems ${diagnostics.length ? `(${diagnostics.length})` : ""}`}
+                        >
+                          Problems
+                          {diagnostics.length > 0 && (
+                            <span
+                              className="inline-flex min-w-[16px] justify-center rounded-full px-1 text-[10px] font-semibold leading-none py-0.5"
+                              style={{
+                                background: diagnostics.some((d) => d.severity === "error")
+                                  ? "var(--lc-red)"
+                                  : "var(--lc-yellow)",
+                                color: "#fff",
+                              }}
+                            >
+                              {diagnostics.length}
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setConsoleTab("debug")}
+                          className={`lc-tab !mb-0 flex items-center gap-1.5 ${consoleTab === "debug" ? "lc-tab-active" : ""}`}
+                        >
+                          Debug
+                          {breakpoints.size > 0 && (
+                            <span
+                              className="inline-flex min-w-[16px] justify-center rounded-full px-1 text-[10px] font-semibold leading-none py-0.5"
+                              style={{ background: "var(--lc-red)", color: "#fff" }}
+                            >
+                              {breakpoints.size}
+                            </span>
+                          )}
+                        </button>
                       </div>
                       <div className="flex items-center gap-2">
                         {output && !isRunning && (
@@ -3936,6 +3995,33 @@ export default function Playground() {
                           spellCheck={false}
                           className="lc-field min-h-[120px] w-full resize-none px-3.5 py-3 font-mono text-[13px] leading-relaxed"
                           style={{ height: "calc(100% - 26px)" }}
+                        />
+                      </div>
+                    ) : consoleTab === "problems" ? (
+                      <div className="min-h-0 flex-1 overflow-auto">
+                        <ProblemsList
+                          diagnostics={diagnostics}
+                          onJump={(line, col) => {
+                            const editor = editorRef.current;
+                            if (!editor) return;
+                            editor.revealPositionInCenter({ lineNumber: line, column: col });
+                            editor.setPosition({ lineNumber: line, column: col });
+                            editor.focus();
+                          }}
+                        />
+                      </div>
+                    ) : consoleTab === "debug" ? (
+                      <div className="min-h-0 flex-1 overflow-auto">
+                        <DebuggerPanel
+                          frames={debugFrames}
+                          breakpointCount={breakpoints.size}
+                          onJump={(line) => {
+                            const editor = editorRef.current;
+                            if (!editor) return;
+                            editor.revealLineInCenter(line);
+                            editor.setPosition({ lineNumber: line, column: 1 });
+                            editor.focus();
+                          }}
                         />
                       </div>
                     ) : (
@@ -4013,6 +4099,27 @@ export default function Playground() {
                       initialContext={guruBotContext}
                       initialPrompt={guruInitialPrompt}
                       embedded={true}
+                      onAssistantComplete={(text) => {
+                        if (!pendingGuruWantsCodeRef.current) return;
+                        const proposed = extractProposedCode(text);
+                        if (isValidProposedCode(proposed) && selectedCodeForGuru) {
+                          setAiEdit({ original: selectedCodeForGuru, modified: proposed });
+                        }
+                        pendingGuruWantsCodeRef.current = false;
+                      }}
+                      onInsertCode={(code) => {
+                        if (aiSelectionRangeRef.current && isValidProposedCode(code)) {
+                          const editor = editorRef.current;
+                          const monaco = monacoRef.current;
+                          if (editor && monaco) {
+                            const range = aiSelectionRangeRef.current;
+                            editor.executeEdits("guru-insert", [
+                              { range: new monaco.Range(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn), text: code },
+                            ]);
+                            return;
+                          }
+                        }
+                      }}
                     />
                   </div>
                 )}
@@ -4027,13 +4134,13 @@ export default function Playground() {
         className="flex select-none flex-shrink-0 items-center justify-between px-3"
         style={{
           height: 30,
-          background: "var(--lc-panel)",
-          borderTop: "1px solid var(--lc-border-soft)",
+          background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
+          borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
         }}
       >
         {/* Left: cursor + editor info */}
         <div
-          className="flex items-center gap-4 font-mono text-[11px]"
+          className="flex items-center gap-3 font-mono text-[11px]"
           style={{ color: "var(--lc-muted)" }}
         >
           <span>
@@ -4041,12 +4148,35 @@ export default function Playground() {
           </span>
           <span>Spaces: {editorTabSize}</span>
           <span>{selectedLanguage.label}</span>
+          <span className="hidden sm:inline-flex">UTF-8</span>
           <span className="hidden items-center gap-1 sm:inline-flex">
             {themeChoice === THEME_AUTO && (
               <SunMoon size={10} style={{ color: "var(--lc-accent)" }} />
             )}
             {currentTheme.label}
           </span>
+          <span
+            className="hidden sm:inline-flex items-center gap-1"
+            style={{
+              color:
+                codeSaveStatus === "Unsaved"
+                  ? "var(--lc-yellow)"
+                  : codeSaveStatus === "Saving"
+                    ? "var(--lc-accent)"
+                    : "var(--lc-muted)",
+            }}
+            aria-live="polite"
+            aria-label={`Save status: ${codeSaveStatus}`}
+          >
+            <CircleDot size={10} />
+            {codeSaveStatus}
+          </span>
+          {runMeta?.ms != null && (
+            <span className="hidden sm:inline-flex items-center gap-1" style={{ color: "var(--lc-muted)" }}>
+              <Clock size={10} />
+              {runMeta.ms} ms
+            </span>
+          )}
           {editorLocked && (
             <span
               className="flex items-center gap-1"
@@ -4161,30 +4291,24 @@ export default function Playground() {
         </div>
       </div>
 
-      {/* Ask GuruBot on Selection popup */}
-      {askGuruPopup && askGuruOnSelection && (
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            setGuruInitialPrompt(
-              `Guide me through this selected code step by step. Help me spot bugs or understand what to improve without giving the final answer.\n\nSelected code:\n${selectedCodeForGuru}`,
-            );
-            setGuruBotOpen(true);
+      {/* GuruBot selection menu */}
+      {askGuruPopup && askGuruOnSelection && !aiEdit && (
+        <GuruSelectionMenu
+          top={askGuruPopup.top}
+          left={askGuruPopup.left}
+          onDismiss={() => setAskGuruPopup(null)}
+          onAction={(action: GuruSelectionAction) => {
+            const prompt = buildGuruSelectionPrompt(action, selectedCodeForGuru, selectedLanguage.label);
+            const info = GURU_SELECTION_ACTIONS.find((a) => a.id === action);
+            pendingGuruWantsCodeRef.current = Boolean(info?.wantsCode);
+            if (info?.wantsCode) {
+              aiSelectionRangeRef.current = editorRef.current?.getSelection() ?? null;
+            }
+            setGuruInitialPrompt(prompt);
+            openGuruBotPanel();
             setAskGuruPopup(null);
           }}
-          className="lc-pill fixed z-[70] !py-2 shadow-xl"
-          style={{
-            top: askGuruPopup.top,
-            left: askGuruPopup.left,
-            background: "var(--lc-panel-2)",
-            border: "1px solid var(--lc-border)",
-            color: "var(--lc-accent)",
-          }}
-        >
-          <Bot size={13} />
-          Ask GuruBot
-        </button>
+        />
       )}
 
       {/* Create / Edit Template Dialog */}
@@ -4276,6 +4400,121 @@ export default function Playground() {
         </DialogContent>
       </Dialog>
 
+      {/* AI diff preview */}
+      {aiEdit && (
+        <AiEditPreview
+          original={aiEdit.original}
+          modified={aiEdit.modified}
+          language={selectedLanguage.language}
+          theme={currentTheme.id}
+          onReject={() => setAiEdit(null)}
+          onAccept={() => {
+            const editor = editorRef.current;
+            const monaco = monacoRef.current;
+            if (!editor || !monaco) {
+              setAiEdit(null);
+              return;
+            }
+            const range = aiSelectionRangeRef.current;
+            const model = editor.getModel();
+            if (model && range && isValidProposedCode(aiEdit.modified)) {
+              // Replace selected range with proposed code, preserving undo
+              editor.executeEdits("guru-accept", [
+                {
+                  range: new monaco.Range(
+                    range.startLineNumber,
+                    range.startColumn,
+                    range.endLineNumber,
+                    range.endColumn,
+                  ),
+                  text: aiEdit.modified,
+                },
+              ]);
+              // Fallback: if range empty or selection lost, replace whole model content where original matches
+              // Keep cursor at start of inserted block
+              editor.focus();
+            } else if (isValidProposedCode(aiEdit.modified)) {
+              setCode(aiEdit.modified);
+            }
+            setAiEdit(null);
+            aiSelectionRangeRef.current = null;
+            pendingGuruWantsCodeRef.current = false;
+          }}
+        />
+      )}
+
+      {/* Command Palette */}
+      {(() => {
+        const commands: EditorCommand[] = [
+          { id: "run", label: "Run Code", shortcut: "Ctrl+Enter", run: () => runCode(false) },
+          { id: "debug", label: "Debug", shortcut: breakpoints.size ? `Debug (${breakpoints.size})` : "Debug", run: () => runCode(true) },
+          { id: "format", label: "Format Code", shortcut: "Shift+Alt+F", run: () => formatCode() },
+          { id: "reset", label: "Reset Code", run: () => resetCode() },
+          { id: "copy", label: "Copy Code", shortcut: "Ctrl+C", run: () => copyCode() },
+          { id: "fullscreen", label: isFullscreen ? "Exit Fullscreen" : "Toggle Fullscreen", shortcut: "F11", run: () => toggleFullscreen() },
+          { id: "wordwrap", label: extraEditorOptions.wordWrap ? "Disable Word Wrap" : "Enable Word Wrap", run: () => setExtraEditorOptions((p) => ({ ...p, wordWrap: !p.wordWrap })) },
+          { id: "minimap", label: extraEditorOptions.minimap ? "Disable Minimap" : "Enable Minimap", run: () => setExtraEditorOptions((p) => ({ ...p, minimap: !p.minimap })) },
+          { id: "relative", label: relativeLineNumbers ? "Disable Relative Line Numbers" : "Enable Relative Line Numbers", run: () => setRelativeLineNumbers((v) => !v) },
+          { id: "font-inc", label: "Increase Font Size", shortcut: "Ctrl+=", run: () => setEditorFontSize((s) => Math.min(24, s + 1)) },
+          { id: "font-dec", label: "Decrease Font Size", shortcut: "Ctrl+-", run: () => setEditorFontSize((s) => Math.max(10, s - 1)) },
+          { id: "settings", label: "Open Editor Settings", run: () => { setSettingsMenuType("theme"); setShowSettingsMenu(true); } },
+          { id: "new-tab", label: "New Code Tab", shortcut: "Ctrl+N", run: () => openNewCodeTab() },
+          { id: "close-tab", label: "Close Current Tab", shortcut: "Ctrl+W", run: () => { if (activeCodeTabId !== "solution") closeCodeTab(activeCodeTabId); } },
+          { id: "zen", label: zenMode ? "Exit Zen Mode" : "Enter Zen Mode", shortcut: "Esc", run: () => toggleZenMode() },
+          { id: "outline", label: outlineOpen ? "Close Outline" : "Show Outline", run: () => setOutlineOpen((v) => !v) },
+          { id: "goto", label: "Go to Line", shortcut: "Ctrl+G", run: () => setGoToLineOpen(true) },
+          { id: "quickopen", label: "Quick Open Tabs", shortcut: "Ctrl+P", run: () => setQuickOpenOpen(true) },
+        ];
+        return <EditorCommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} commands={commands} />;
+      })()}
+
+      <EditorQuickOpen
+        open={quickOpenOpen}
+        onOpenChange={setQuickOpenOpen}
+        tabs={codeTabs}
+        activeId={activeCodeTabId}
+        onSelect={(id) => {
+          setActiveCodeTabId(id);
+          setPracticeTab("editor");
+        }}
+      />
+
+      <GoToLineDialog
+        open={goToLineOpen}
+        onOpenChange={setGoToLineOpen}
+        maxLine={code.split("\n").length}
+        onGo={(line) => revealLine(line)}
+      />
+
+      {/* Outline drawer */}
+      {outlineOpen && (
+        <div className="fixed inset-0 z-[60] flex justify-end">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setOutlineOpen(false)} aria-label="Close outline" />
+          <div
+            className="relative w-[320px] max-w-[85vw] h-full overflow-hidden lc-surface flex flex-col"
+            style={{ background: "var(--lc-panel)" }}
+          >
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--lc-border)" }}>
+              <span className="text-[13px] font-semibold flex items-center gap-2" style={{ color: "var(--lc-text)" }}>
+                <ListTree size={14} /> Outline
+              </span>
+              <button onClick={() => setOutlineOpen(false)} className="lc-icon-btn !h-7 !w-7" aria-label="Close outline">
+                <X size={14} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <DocumentOutline
+                symbols={outlineSymbols}
+                onJump={(line, col) => {
+                  revealLine(line, col);
+                  setOutlineOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile GuruBot fallback */}
       {guruBotOpen && isMobile && (
         <GuruBot
@@ -4284,6 +4523,29 @@ export default function Playground() {
           debugMode={true}
           initialContext={guruBotContext}
           initialPrompt={guruInitialPrompt}
+          onAssistantComplete={(text) => {
+            if (!pendingGuruWantsCodeRef.current) return;
+            const proposed = extractProposedCode(text);
+            if (isValidProposedCode(proposed) && selectedCodeForGuru) {
+              setAiEdit({ original: selectedCodeForGuru, modified: proposed });
+            }
+            pendingGuruWantsCodeRef.current = false;
+          }}
+          onInsertCode={(code) => {
+            // fallback insert for non-selection edits
+            if (aiSelectionRangeRef.current && isValidProposedCode(code)) {
+              const editor = editorRef.current;
+              const monaco = monacoRef.current;
+              if (editor && monaco) {
+                const range = aiSelectionRangeRef.current;
+                editor.executeEdits("guru-insert", [
+                  { range: new monaco.Range(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn), text: code },
+                ]);
+                return;
+              }
+            }
+            // else ignore, user can Use in editor via CodeBlock button
+          }}
         />
       )}
     </div>

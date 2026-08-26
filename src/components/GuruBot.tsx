@@ -358,6 +358,8 @@ interface GuruBotProps {
   suggestedPrompts?: string[];
   /** Called when user clicks "Use in editor" on a code block — inserts into Monaco */
   onInsertCode?: (code: string) => void;
+  /** Fired once a streamed assistant reply completes (not on abort/error). */
+  onAssistantComplete?: (content: string) => void;
   /** Hide internal header (used when parent provides combined GURU AI row) */
   hideHeader?: boolean;
   /** Show GURU AI label in header (for single-row Tab Guru) */
@@ -379,6 +381,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       questionId,
       suggestedPrompts,
       onInsertCode,
+      onAssistantComplete,
       hideHeader = false,
       showGuruTitle = false,
       onToggleFullscreen,
@@ -664,6 +667,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           onDone: () => {
             setLoading(false);
             sendingLockRef.current = false;
+            if (assistantSoFar.trim()) {
+              onAssistantComplete?.(assistantSoFar);
+            }
           },
           signal: controller.signal,
         });
