@@ -56,7 +56,9 @@ const PROGRESS_KEY = (rm: RoadmapId, uid: string | "anon") =>
   `cp-roadmap:${uid}:${rm}`;
 
 const POSITION_KEY = (rm: RoadmapId, uid: string | "anon") =>
-  `cp-roadmap-positions:${uid}:${rm}`;
+  // v3 deliberately starts a fresh position store: earlier offsets were
+  // measured against retired layouts and scatter the ranked roadmap trees.
+  `cp-roadmap-positions-v3:${uid}:${rm}`;
 
 export type PositionMap = Record<string, { x: number; y: number }>;
 

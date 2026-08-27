@@ -58,12 +58,12 @@ function RoadmapEdgeImpl(props: EdgeProps) {
 
   const stroke =
     isHovered
-      ? "hsl(var(--primary))" // Blue flowing stroke when hovered
+      ? "hsl(var(--primary))" // Roadmap accent flowing stroke when hovered
       : targetStatus === "completed"
       ? "hsl(var(--success))"
       : targetStatus === "in-progress"
       ? "hsl(var(--primary))"
-      : "hsl(var(--muted-foreground))"; // More visible bolder grey
+      : "#666668";
 
   const opacity =
     isHovered ? 1 : targetStatus === "not-started" ? 0.6 : targetStatus === "in-progress" ? 0.9 : 1;
@@ -81,7 +81,7 @@ function RoadmapEdgeImpl(props: EdgeProps) {
         path={edgePath}
         style={{
           stroke,
-          strokeWidth: selected || isHovered ? 4.5 : 3,
+          strokeWidth: selected || isHovered ? 3.8 : 2.1,
           opacity,
           transition:
             "stroke 200ms ease, opacity 200ms ease, stroke-width 200ms ease",

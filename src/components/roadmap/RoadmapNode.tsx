@@ -48,32 +48,32 @@ function RoadmapNodeImpl({ data, id, selected }: RoadmapNodeProps) {
       }}
       aria-label={`${data.title} — ${status}. Click for details.`}
       className={cn(
-        "group relative flex items-center justify-center min-w-[120px] px-5 py-2.5 cursor-pointer select-none rounded-[6px] bg-[#3a3f58] text-slate-50 transition-all duration-200 shadow-sm",
-        "hover:shadow-md hover:-translate-y-0.5",
+        "group relative flex min-h-[39px] w-[120px] items-center justify-center px-2 pb-2 pt-1.5 cursor-pointer select-none rounded-[5px] bg-[#50558b] text-slate-50 transition-all duration-200 shadow-[0_2px_0_rgba(0,0,0,0.25)]",
+        "hover:bg-[#5c629b] hover:-translate-y-0.5",
         selected ? "ring-2 ring-primary/40" : "",
         isCompleted && "opacity-95"
       )}
       style={{
-        border: `1px solid ${selected ? accentColor : accentColor + "59"}`,
+        border: `1px solid ${selected ? accentColor : "#61689f"}`,
       }}
     >
-      <h3 className="text-[14px] font-bold tracking-wide text-center whitespace-nowrap">
+      <h3 className="max-w-full text-center text-[13px] font-bold leading-[15px] tracking-[-0.02em]">
         {data.title}
       </h3>
 
-      {/* Bottom progress strip */}
-      {(isCompleted || isInProgress) && (
-        <div className="absolute bottom-0 left-0 h-1 w-full overflow-hidden rounded-b-[6px]">
+      {/* The pale rail is always visible; progress fills it in from the left. */}
+      <div className="absolute bottom-[5px] left-[7px] h-[3px] w-[106px] overflow-hidden rounded-full bg-[#f4f4f6]">
+        {(isCompleted || isInProgress) && (
           <div
             className="h-full transition-all duration-500 ease-out"
             style={{
               width: isCompleted ? "100%" : "50%",
-              background: isCompleted ? "hsl(var(--success))" : accentColor,
+              background: "#21d4a0",
             }}
             aria-hidden="true"
           />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Connection handles — invisible but present for React Flow. */}
       <Handle

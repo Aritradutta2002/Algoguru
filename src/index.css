@@ -2135,7 +2135,7 @@
    The line is broken into 10px dashes with 10px gaps, and the dash offset
    shifts continuously so it appears to "march" toward the target. */
 @keyframes rm-edge-dash {
-  from { stroke-dashoffset: 20; }
+  from { stroke-dashoffset: 12; }
   to   { stroke-dashoffset: 0; }
 }
 
@@ -2143,10 +2143,12 @@
    component when its source or target node is hovered. Targeting the path
    directly avoids relying on the wrapper <g> having the same class. */
 .react-flow__edge-path.animated {
-  stroke-dasharray: 10 10;
-  animation: rm-edge-dash 0.5s linear infinite;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+  animation: rm-edge-dash 0.42s linear infinite;
   stroke: hsl(var(--primary)) !important;
-  stroke-width: 4.5 !important;
+  stroke-width: 3.8 !important;
   opacity: 1 !important;
+  filter: drop-shadow(0 0 3px hsl(var(--primary) / 0.75));
 }
 

@@ -47,78 +47,60 @@ interface RoadmapEngineProps {
 const NODE_TYPES = { roadmap: RoadmapNode };
 const EDGE_TYPES = { roadmap: RoadmapEdge };
 
-// ─── Tidy-tree layout ───────────────────────────────────────────────────
-// Arranges the roadmap as a top-down tree: a node's depth (row) is the length
-// of the longest prerequisite chain to it, and each parent is centred over its
-// children. DAGs (a child with multiple prerequisites) are handled by giving the
-// first-encountered parent ownership of the node so the layout stays a tree.
+/**
+ * Places large roadmaps in ranked layers: every topic sits beneath its latest
+ * prerequisite, and topics in a layer are ordered by the position of their
+ * parents. This keeps long learning paths vertical while related branches stay
+ * close together instead of following the arbitrary order in the data file.
+ */
+function computeRankedLayout(nodes: RoadmapNodeT[], edges: RoadmapEdgeT[]): RoadmapNodeT[] {
+  const parents = new Map(nodes.map((node) => [node.id, [] as string[]]));
+  for (const edge of edges) parents.get(edge.target)?.push(edge.source);
 
-const TREE_COL_W = 240;
-const TREE_ROW_H = 180;
-const TREE_ORIGIN_X = 80;
-const TREE_ORIGIN_Y = 80;
-
-function computeTreeLayout(
-  nodes: RoadmapNodeT[],
-  edges: RoadmapEdgeT[],
-): RoadmapNodeT[] {
-  const childrenOf: Record<string, string[]> = {};
-  const parentsOf: Record<string, string[]> = {};
-  for (const n of nodes) {
-    childrenOf[n.id] = [];
-    parentsOf[n.id] = [];
-  }
-  for (const e of edges) {
-    if (childrenOf[e.source] && parentsOf[e.target]) {
-      childrenOf[e.source].push(e.target);
-      parentsOf[e.target].push(e.source);
-    }
-  }
-
-  const visited = new Set<string>();
-  const pos: Record<string, { x: number; y: number }> = {};
-  let cursor = 0;
-
-  const layout = (id: string, depth: number) => {
-    visited.add(id);
-    const kids = childrenOf[id];
-    const xs: number[] = [];
-    for (const k of kids) {
-      if (!visited.has(k)) layout(k, depth + 1);
-      if (pos[k]) xs.push(pos[k].x);
-    }
-    if (xs.length === 0) {
-      pos[id] = { x: cursor * TREE_COL_W, y: depth * TREE_ROW_H };
-      cursor += 1;
-    } else {
-      pos[id] = {
-        x: (Math.min(...xs) + Math.max(...xs)) / 2,
-        y: depth * TREE_ROW_H,
-      };
-    }
+  const rank = new Map<string, number>();
+  const visiting = new Set<string>();
+  const getRank = (id: string): number => {
+    const known = rank.get(id);
+    if (known !== undefined) return known;
+    if (visiting.has(id)) return 0;
+    visiting.add(id);
+    const parentRanks = (parents.get(id) ?? []).map(getRank);
+    visiting.delete(id);
+    const result = parentRanks.length ? Math.max(...parentRanks) + 1 : 0;
+    rank.set(id, result);
+    return result;
   };
+  nodes.forEach((node) => getRank(node.id));
 
-  const roots = nodes
-    .filter((n) => parentsOf[n.id].length === 0)
-    .map((n) => n.id);
-  for (const r of roots) {
-    if (!visited.has(r)) layout(r, 0);
-  }
-  // Any node not reachable (e.g. a cycle) — place it on its own row.
-  for (const n of nodes) {
-    if (!visited.has(n.id)) {
-      pos[n.id] = { x: cursor * TREE_COL_W, y: 0 };
-      cursor += 1;
-      visited.add(n.id);
-    }
+  const layers = new Map<number, RoadmapNodeT[]>();
+  for (const node of nodes) {
+    const level = rank.get(node.id) ?? 0;
+    const layer = layers.get(level) ?? [];
+    layer.push(node);
+    layers.set(level, layer);
   }
 
-  return nodes.map((n) => ({
-    ...n,
-    position: {
-      x: pos[n.id].x + TREE_ORIGIN_X,
-      y: pos[n.id].y + TREE_ORIGIN_Y,
-    },
+  const x = new Map<string, number>();
+  [...layers.keys()].sort((a, b) => a - b).forEach((level) => {
+    const layer = layers.get(level)!;
+    layer.sort((a, b) => {
+      const centre = (node: RoadmapNodeT) => {
+        const parentXs = (parents.get(node.id) ?? [])
+          .map((id) => x.get(id))
+          .filter((value): value is number => value !== undefined);
+        return parentXs.length
+          ? parentXs.reduce((sum, value) => sum + value, 0) / parentXs.length
+          : 0;
+      };
+      return centre(a) - centre(b) || a.data.recommendedOrder - b.data.recommendedOrder;
+    });
+    const start = 640 - ((layer.length - 1) * 175) / 2;
+    layer.forEach((node, index) => x.set(node.id, start + index * 175));
+  });
+
+  return nodes.map((node) => ({
+    ...node,
+    position: { x: x.get(node.id) ?? 640, y: 70 + (rank.get(node.id) ?? 0) * 105 },
   }));
 }
 
@@ -149,7 +131,6 @@ function RoadmapEngineInner({ roadmap, compact, resetSignal }: RoadmapEngineProp
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const [panOnDrag, setPanOnDrag] = useState(true);
 
   // Build a category → color lookup for fast accent resolution.
   const categoryColors = useMemo(() => {
@@ -158,10 +139,12 @@ function RoadmapEngineInner({ roadmap, compact, resetSignal }: RoadmapEngineProp
     return map;
   }, [roadmap.categories]);
 
-  // Lay the roadmap out as a top-down tree (parent centred over its children).
+  // The concise DSA roadmap uses its hand-authored NeetCode-style shape. The
+  // larger roadmaps are ranked from their prerequisites to prevent grid rows
+  // from sending edges sideways and crossing through unrelated topics.
   const layoutedElements = useMemo(
-    () => computeTreeLayout(roadmap.nodes, roadmap.edges),
-    [roadmap.nodes, roadmap.edges],
+    () => roadmap.id === "dsa" ? roadmap.nodes : computeRankedLayout(roadmap.nodes, roadmap.edges),
+    [roadmap.id, roadmap.nodes, roadmap.edges],
   );
 
   // Convert Roadmap → React Flow nodes (with current status + accent).
@@ -371,10 +354,13 @@ function RoadmapEngineInner({ roadmap, compact, resetSignal }: RoadmapEngineProp
           onNodeMouseEnter={onNodeMouseEnter}
           onNodeMouseLeave={onNodeMouseLeave}
           onInit={onInit}
-          nodesDraggable
+          // The roadmap is an authored learning tree, not a diagram editor.
+          // Keeping nodes fixed prevents accidental drags from breaking its
+          // visual hierarchy; the user can still pan and zoom the canvas.
+          nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable
-          panOnDrag={panOnDrag}
+          panOnDrag
           panOnScroll={false}
           zoomOnDoubleClick={false}
           minZoom={0.25}
@@ -383,13 +369,10 @@ function RoadmapEngineInner({ roadmap, compact, resetSignal }: RoadmapEngineProp
           proOptions={{ hideAttribution: true }}
           fitView
           fitViewOptions={{ padding: 0.18 }}
-          className="!bg-background"
+          className="!bg-[#19191b]"
         >
           <RoadmapBackground />
-          <RoadmapControls
-            panOnDrag={panOnDrag}
-            onTogglePan={() => setPanOnDrag((v) => !v)}
-          />
+          <RoadmapControls />
         </ReactFlow>
 
         {/* Detail panel */}
