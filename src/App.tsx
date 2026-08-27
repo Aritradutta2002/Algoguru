@@ -34,8 +34,8 @@ import { Footer } from "@/components/Footer";
 import Profile from "./pages/Profile";
 import NotesDashboard from "./pages/NotesDashboard";
 import Admin from "./pages/Admin";
-import JavaRoadmapPage from "./pages/JavaRoadmapPage";
 import BuyMeACoffee from "./pages/BuyMeACoffee";
+import { RoadmapFullscreenRoute } from "./components/roadmap/RoadmapFullscreenRoute";
 import InterviewDataStructurePage from "./pages/interview/InterviewDataStructurePage";
 import InterviewCoreJavaQuestionsPage from "./pages/interview/InterviewCoreJavaQuestionsPage";
 import InterviewCoreJavaQuestionDetailPage from "./pages/interview/InterviewCoreJavaQuestionDetailPage";
@@ -243,8 +243,8 @@ function SearchButton() {
                   {totalResults}
                 </span>
               )}
-              <button 
-                onClick={() => setOpen(false)} 
+              <button
+                onClick={() => setOpen(false)}
                 className="touch-manipulation w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
               >
                 <X size={18} />
@@ -341,8 +341,8 @@ function SearchResultItem({ item, onSelect }: { item: typeof allSearchItems[numb
       {item.difficulty && (
         <span
           className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border"
-          style={{ 
-            color: difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))", 
+          style={{
+            color: difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))",
             background: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}10`,
             borderColor: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}20`
           }}
@@ -412,11 +412,10 @@ function HeaderControls() {
         <button
           onClick={toggleTheme}
           aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          className={`touch-manipulation relative flex items-center gap-2 px-3 py-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border active:scale-95 ${
-            isDark 
-              ? "bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]" 
+          className={`touch-manipulation relative flex items-center gap-2 px-3 py-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border active:scale-95 ${isDark
+              ? "bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]"
               : "bg-[#1a1a1a] border-white/10 text-white shadow-xl shadow-black/20"
-          }`}
+            }`}
         >
           {isDark ? (
             <div className="flex items-center gap-2">
@@ -531,11 +530,17 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isTiny = guruPct < 22;
   const isPlaygroundRoute = location.pathname === "/playground";
   const isProblemSolverRoute = location.pathname === "/problem-solver";
+  // Roadmap pages need to fill the viewport so the React Flow canvas has
+  // a real height. Without this, `min-h-full` collapses to 0 and the
+  // graph is invisible.
+  const isRoadmapRoute =
+    location.pathname === "/roadmap" ||
+    location.pathname.startsWith("/roadmap/");
   const contentBottomPaddingClass =
-    location.pathname === "/" || isPlaygroundRoute || isProblemSolverRoute
+    location.pathname === "/" || isPlaygroundRoute || isProblemSolverRoute || isRoadmapRoute
       ? "pb-0"
       : "pb-10";
-  const contentSurfaceClass = isPlaygroundRoute || isProblemSolverRoute
+  const contentSurfaceClass = isPlaygroundRoute || isProblemSolverRoute || isRoadmapRoute
     ? "h-full min-h-0 pb-0"
     : `min-h-full ${contentBottomPaddingClass}`;
 
@@ -595,10 +600,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 <Menu size={18} />
               </SidebarTrigger>
             </AppTooltip>
-            
+
             <AppTooltip content="Go to Home">
               <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95 flex-shrink-0"
-                onClick={() => window.location.href="/"}
+                onClick={() => window.location.href = "/"}
                 role="button"
                 tabIndex={0}
                 aria-label="Go to Home"
@@ -618,7 +623,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
             </AppTooltip>
-            
+
             <div className="flex-1 min-w-0" />
 
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
@@ -656,11 +661,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   <button
                     onClick={toggleGuruPanel}
                     aria-label={guruOpen ? "Close Guru" : "Open Guru"}
-                    className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${
-                      guruOpen 
-                        ? "bg-primary border-primary text-primary-foreground shadow-primary/20" 
+                    className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${guruOpen
+                        ? "bg-primary border-primary text-primary-foreground shadow-primary/20"
                         : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
-                    }`}
+                      }`}
                   >
                     <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
                     <span className="hidden sm:inline">Guru</span>
@@ -783,35 +787,35 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 >
                   {guruCollapsed ? (
                     <AppTooltip content="Expand Guru AI Assistant" side="left">
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => expandGuruPanel()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          expandGuruPanel();
-                        }
-                      }}
-                      aria-label="Expand Guru AI Assistant"
-                      className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
-                    >
-                      <Sparkles size={18} className="text-primary" />
-                      <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
-                        Guru AI Assistant
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setGuruOpen(false);
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => expandGuruPanel()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            expandGuruPanel();
+                          }
                         }}
-                        aria-label="Close Guru"
-                        className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                        aria-label="Expand Guru AI Assistant"
+                        className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
                       >
-                        <X size={12} />
-                      </button>
-                    </div>
+                        <Sparkles size={18} className="text-primary" />
+                        <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+                          Guru AI Assistant
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setGuruOpen(false);
+                          }}
+                          aria-label="Close Guru"
+                          className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
                     </AppTooltip>
                   ) : (
                     <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border/30 bg-background">
@@ -845,7 +849,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
-      
+
       {/* Mobile floating menu button (only on small screens where HeaderControls is hidden) */}
       {isSmallMobile && !guruOpen && (
         <>
@@ -858,9 +862,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               {mobileMenuOpen ? <X size={20} /> : <Sun size={20} />}
             </button>
           </AppTooltip>
-          
+
           {mobileMenuOpen && (
-            <div 
+            <div
               className="md:hidden fixed bottom-24 right-6 z-50 bg-card border border-border/50 rounded-3xl shadow-2xl p-4 animate-in slide-in-from-bottom-4 fade-in duration-200"
               onClick={(e) => e.stopPropagation()}
             >
@@ -886,12 +890,20 @@ const App = () => (
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                {/* Chrome-free fullscreen roadmap routes — no AppLayout, no
+                    sidebar, no header, no footer. Just the roadmaps. */}
+                <Route path="/roadmap" element={
+                  <ProtectedRoute><RoadmapFullscreenRoute /></ProtectedRoute>
+                } />
+                <Route path="/roadmap/:roadmapId" element={
+                  <ProtectedRoute><RoadmapFullscreenRoute /></ProtectedRoute>
+                } />
+                <Route path="/java-roadmap" element={<Navigate to="/roadmap/java" replace />} />
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <AppLayout>
                       <Routes>
                         <Route path="/" element={<Index />} />
-                        <Route path="/java-roadmap" element={<JavaRoadmapPage />} />
                         <Route path="/buy-me-a-coffee" element={<BuyMeACoffee />} />
                         <Route path="/support" element={<BuyMeACoffee />} />
                         <Route path="/playground" element={<Playground />} />

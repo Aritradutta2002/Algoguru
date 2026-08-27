@@ -3,8 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";import { Coffee, Code2, Trophy, BrainCircuit, Target,
   ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays, Map as MapIcon, X
 } from "lucide-react";
+import { RoadmapFullscreenOverlay } from "@/components/roadmap/RoadmapFullscreenOverlay";
 
 const SECTIONS = [
+  {
+    id: "roadmaps",
+    title: "Roadmaps",
+    subtitle: "Interactive mind-maps",
+    desc: "Full-screen, distraction-free interactive mind-maps for DSA, Java, and System Design. Pan, zoom, drag, and track your progress.",
+    icon: <MapIcon size={24} />,
+    color: "#A78BFA",
+    tag: "Roadmaps",
+    pillClass: "bg-violet-500/10 text-violet-500 border-transparent",
+    accentClass: "border-[#A78BFA] group-hover:text-[#A78BFA]",
+    route: "__open_roadmap__",
+    stats: "3 Learning Paths",
+  },
   {
     id: "java",
     title: "Core CS Subjects",
@@ -94,10 +108,13 @@ const TICKER_ITEMS = [
 export default function Index() {
   const navigate = useNavigate();
   const [showFab, setShowFab] = useState(true);
+  const [roadmapOpen, setRoadmapOpen] = useState(false);
   useEffect(() => {
     const hidden = localStorage.getItem("hide-java-roadmap-fab");
     if (hidden === "1") setShowFab(false);
   }, []);
+
+  const openRoadmap = () => setRoadmapOpen(true);
   const dismissFab = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowFab(false);
@@ -178,15 +195,15 @@ export default function Index() {
         </div>
       </section>
 
-      {/* ── JAVA ROADMAP — small, accessible from current position ────────────── */}
+      {/* ── ROADMAP — small, accessible from current position ────────────── */}
       {/* Hero inline small link */}
       <div className="mx-auto max-w-7xl px-4 md:px-10 lg:px-16 -mt-2 md:-mt-4 mb-6 flex justify-center md:justify-start">
         <button
-          onClick={() => navigate("/java-roadmap")}
+          onClick={openRoadmap}
           className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-muted-foreground hover:text-primary transition-colors group"
         >
           <MapIcon size={13} className="text-primary" />
-          View <span className="text-foreground group-hover:text-primary">Java Roadmap</span>
+          View <span className="text-foreground group-hover:text-primary">Roadmap</span>
           <ArrowRight size={12} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
         </button>
       </div>
@@ -202,15 +219,15 @@ export default function Index() {
             className="fixed bottom-5 right-4 md:bottom-6 md:right-6 z-50 flex items-center gap-1.5"
           >
             <motion.button
-              onClick={() => navigate("/java-roadmap")}
-              aria-label="Open Java Roadmap"
+              onClick={openRoadmap}
+              aria-label="Open Roadmap"
               className="group inline-flex items-center gap-2 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg shadow-zinc-900/10 hover:shadow-xl px-3 py-2 md:px-3.5 md:py-2.5 transition-all"
             >
               <span className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center text-white shadow-sm">
                 <MapIcon size={14} />
               </span>
               <span className="hidden sm:inline text-xs font-black tracking-wide text-zinc-700 dark:text-zinc-200">Roadmap</span>
-              <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">Java</span>
+              <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">3 paths</span>
               <ArrowRight size={12} className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all hidden sm:block" />
             </motion.button>
             <button
@@ -266,7 +283,13 @@ export default function Index() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
               whileHover={{ y: -5 }}
-              onClick={() => navigate(sec.route)}
+              onClick={() => {
+                if (sec.route === "__open_roadmap__") {
+                  openRoadmap();
+                } else {
+                  navigate(sec.route);
+                }
+              }}
               className="group relative bg-card border rounded-[32px] p-8 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
             >
               {/* Card Accent Glow */}
@@ -315,6 +338,12 @@ export default function Index() {
       </section>
 
       <div className="h-10" />
+
+      {/* ── Fullscreen roadmap overlay (no chrome, all 3 roadmaps as tabs) ── */}
+      <RoadmapFullscreenOverlay
+        open={roadmapOpen}
+        onClose={() => setRoadmapOpen(false)}
+      />
     </div>
   );
 }

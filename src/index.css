@@ -828,6 +828,32 @@
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     Roadmap edge flowing animation
+
+     The @keyframes (`rm-edge-dash`) and the `.react-flow__edge-path.animated`
+     rule that consume it are defined at the very bottom of this file,
+     OUTSIDE any @layer — so they aren't weakened by Tailwind's
+     utility-layer specificity ordering. The roadmap edge component
+     simply adds the `.animated` class to the path when its source or
+     target node is hovered.
+     ═══════════════════════════════════════════════════════════════════ */
+  @keyframes roadmap-flow-forward {
+    from { stroke-dashoffset: 20; }
+    to   { stroke-dashoffset: 0; }
+  }
+
+  @keyframes roadmap-flow-backward {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: 20; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .react-flow__edge-path[style*="roadmap-flow"] {
+      animation: none !important;
+    }
+  }
 }
 
 /* Note markdown rendering styles */
@@ -2047,3 +2073,80 @@
     transition: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   NeetCode-style Roadmap (React Flow) overrides
+   ═══════════════════════════════════════════════════════════════════ */
+.react-flow {
+  background: transparent;
+}
+.react-flow__attribution { display: none !important; }
+.react-flow__handle {
+  width: 6px !important;
+  height: 6px !important;
+  border: 0 !important;
+  background: hsl(var(--primary) / 0.6) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+.react-flow__node-roadmap {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+.react-flow__edge-path {
+  transition: stroke 200ms ease, opacity 200ms ease, stroke-width 200ms ease;
+}
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:focus .react-flow__edge-path,
+.react-flow__edge:focus-visible .react-flow__edge-path {
+  stroke-width: 2.5 !important;
+}
+.react-flow__background {
+  background-color: transparent;
+}
+.react-flow__minimap {
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 0.75rem;
+}
+.react-flow__minimap-mask {
+  fill: hsl(var(--primary) / 0.08);
+}
+.react-flow__controls {
+  box-shadow: none !important;
+}
+.react-flow__controls-button {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border) / 0.6) !important;
+  border-bottom: 0 !important;
+}
+.react-flow__controls-button:last-child { border-bottom: 1px solid hsl(var(--border) / 0.6) !important; }
+.react-flow__controls-button:hover {
+  background: hsl(var(--muted)) !important;
+}
+.react-flow__controls-button svg { fill: currentColor; }
+
+/* Animated dashed flow for edges when their source/target node is hovered.
+   The line is broken into 10px dashes with 10px gaps, and the dash offset
+   shifts continuously so it appears to "march" toward the target. */
+@keyframes rm-edge-dash {
+  from { stroke-dashoffset: 20; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* The `.animated` class is added to the path element by the roadmap edge
+   component when its source or target node is hovered. Targeting the path
+   directly avoids relying on the wrapper <g> having the same class. */
+.react-flow__edge-path.animated {
+  stroke-dasharray: 10 10;
+  animation: rm-edge-dash 0.5s linear infinite;
+  stroke: hsl(var(--primary)) !important;
+  stroke-width: 4.5 !important;
+  opacity: 1 !important;
+}
+
