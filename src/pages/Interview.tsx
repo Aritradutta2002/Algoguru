@@ -38,7 +38,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
   {
     id: "java",
     label: "Java",
-    subtitle: "Strong OOP + backend interview focus",
+    subtitle: "Strong OOP and backend interview focus",
     icon: <Coffee size={24} />,
     color: "hsl(var(--primary))",
   },
@@ -152,7 +152,6 @@ export default function Interview() {
     }
   }, [language, selectedLanguage, navigate]);
 
-  // Dedicated hubs
   if (selectedLanguage === "java") {
     return <JavaInterviewHub />;
   }
@@ -164,167 +163,134 @@ export default function Interview() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
-      
-      {/* Header Section */}
-      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+    <div className="bg-background text-foreground selection:bg-primary/25">
 
-        <div className="relative z-10 text-center md:text-left space-y-6">
+      <section className="relative border-b border-border/60">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_35%)]" />
+        <div className="relative mx-auto max-w-7xl px-5 py-16 md:px-10 md:py-24 lg:px-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-6">
-              <Target size={12} className="text-primary" />
-              <span className="text-muted-foreground">Comprehensive Interview Preparation</span>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
+              <Target size={13} className="text-primary" /> Comprehensive interview preparation
             </div>
-            
-            <h1 className="text-3xl md:text-4xl lg:text-6xl font-black uppercase tracking-tighter mb-6">
-              Interview <span className="text-primary">Roadmap</span>
+
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.045em] md:text-6xl">
+              Interview <span className="text-primary">roadmap</span>
             </h1>
-            
-            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
-              Start by selecting your preferred programming language. Then, pick a focused learning path to jump into the interview track you need.
+
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+              Start by selecting your preferred programming language. Then pick a focused learning path to jump into the interview track you need.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full space-y-9 lg:space-y-12">
-        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-          <div
-            className={`px-4 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${
-              selectedLanguage ? "bg-muted/50 text-muted-foreground" : "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20"
-            }`}
-          >
-            1. Select Language
-          </div>
+      <section className="mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-20 lg:px-16 space-y-10">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${!selectedLanguage ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+            <span className="h-1.5 w-1.5 rounded-full bg-current" /> 1. Select language
+          </span>
           <ArrowRight size={14} className="text-muted-foreground/40" />
-          <div
-            className={`px-4 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${
-              selectedLanguage ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-muted/50 text-muted-foreground"
-            }`}
-          >
-            2. Choose Learning Path
-          </div>
+          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${selectedLanguage ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+            <span className="h-1.5 w-1.5 rounded-full bg-current" /> 2. Choose learning path
+          </span>
         </div>
 
         {!selectedLanguage ? (
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             {LANGUAGE_OPTIONS.map((option, index) => (
               <motion.div
                 key={option.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ y: -2 }}
                 onClick={() => navigate(`/interview/${option.id}`)}
-                className="group relative bg-card border rounded-[32px] p-8 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
+                className="group relative flex min-h-[260px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/35 hover:shadow-lg hover:shadow-black/5"
               >
-                <div 
-                  className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity"
-                  style={{ background: option.color }}
-                />
-                
-                <div className="relative z-10 flex flex-col h-full">
-                  <div className="flex items-center justify-between mb-8">
-                    <div 
-                      className="p-3.5 rounded-2xl border transition-colors"
-                      style={{ background: `${option.color}10`, borderColor: `${option.color}20`, color: option.color }}
+                <div className="flex h-full flex-col">
+                  <div className="mb-7 flex items-center justify-between">
+                    <div
+                      className="rounded-xl border p-3"
+                      style={{ background: `${option.color}10`, borderColor: `${option.color}25`, color: option.color }}
                     >
                       {option.icon}
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted border text-muted-foreground">
+                    <span className="text-xs font-medium text-muted-foreground">
                       Step 1
                     </span>
                   </div>
-
                   <div className="flex-1">
-                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">
+                    <h3 className="text-xl font-bold tracking-tight mb-2 group-hover:text-primary transition-colors">
                       {option.label}
                     </h3>
-                    <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
+                    <p className="text-sm leading-6 text-muted-foreground">
                       {option.subtitle}
                     </p>
                   </div>
-
-                  <div className="flex items-center justify-between pt-6 border-t border-border/50">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      {option.label}
-                    </span>
-                    <div className="flex items-center gap-1.5 font-bold text-xs uppercase text-primary opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
-                      Select <ArrowRight size={14} />
-                    </div>
+                  <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4">
+                    <span className="text-xs text-muted-foreground">{option.label}</span>
+                    <ArrowRight size={16} className="text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
         ) : (
-          <div className="space-y-10">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <button
                 onClick={() => navigate("/interview")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
-                <ChevronLeft size={16} />
-                Change Language
+                <ChevronLeft size={15} />
+                Change language
               </button>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-primary/10 border-primary/20 text-[11px] font-bold uppercase tracking-widest text-primary">
+              <div className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3.5 py-2 text-sm font-medium text-primary">
                 <Check size={14} />
                 Selected: {selectedLanguageOption?.label}
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               {learningPathOptions.map((path, index) => (
                 <motion.div
                   key={path.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ y: -2 }}
                   onClick={() => navigate(`/interview/${selectedLanguage}/${path.route}`)}
-                  className="group relative bg-card border rounded-[32px] p-8 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
+                  className="group relative flex min-h-[240px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/35 hover:shadow-lg hover:shadow-black/5"
                 >
-                  <div 
-                    className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity"
-                    style={{ background: path.color }}
-                  />
-
-                  <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-8">
-                      <div 
-                        className="p-3.5 rounded-2xl border transition-colors"
-                        style={{ background: `${path.color}10`, borderColor: `${path.color}20`, color: path.color }}
+                  <div className="flex h-full flex-col">
+                    <div className="mb-7 flex items-center justify-between">
+                      <div
+                        className="rounded-xl border p-3"
+                        style={{ background: `${path.color}10`, borderColor: `${path.color}25`, color: path.color }}
                       >
                         {path.icon}
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted border text-muted-foreground">
+                      <span className="text-xs font-medium text-muted-foreground">
                         Step 2
                       </span>
                     </div>
-
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">
+                      <h3 className="text-xl font-bold tracking-tight mb-2 group-hover:text-primary transition-colors">
                         {path.title}
                       </h3>
-                      <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
+                      <p className="text-sm leading-6 text-muted-foreground">
                         {path.subtitle}
                       </p>
                     </div>
-
-                    <div className="flex items-center justify-between pt-6 border-t border-border/50">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4">
+                      <span className="text-xs text-muted-foreground">
                         {selectedLanguageOption?.label}
                       </span>
-                      <div className="flex items-center gap-1.5 font-bold text-xs uppercase text-primary opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
-                        Enter <ArrowRight size={14} />
-                      </div>
+                      <ArrowRight size={16} className="text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
                     </div>
                   </div>
                 </motion.div>

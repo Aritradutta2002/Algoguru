@@ -137,7 +137,7 @@ function Field({
 }) {
   return (
     <div className="w-full">
-      <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+      <label className="block text-xs font-medium text-muted-foreground mb-1.5">
         {label}
       </label>
       <div className="relative">
@@ -148,18 +148,18 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           autoComplete="new-password"
           className={cn(
-            "w-full px-4 py-3.5 rounded-xl border bg-card text-sm font-medium outline-none transition-all duration-200 placeholder:text-muted-foreground/40",
+            "w-full h-10 px-3.5 rounded-lg border bg-card text-sm outline-none transition-colors placeholder:text-muted-foreground/60",
             error
-              ? "border-destructive/60 focus:border-destructive focus:ring-4 focus:ring-destructive/10"
-              : "border-border hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/10",
-            rightSlot && "pr-12"
+              ? "border-destructive/60 focus:border-destructive"
+              : "border-border hover:border-primary/40 focus:border-primary",
+            rightSlot && "pr-11"
           )}
         />
         {rightSlot && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2">{rightSlot}</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2">{rightSlot}</span>
         )}
       </div>
-      {error && <p className="text-xs font-bold text-destructive mt-1.5">{error}</p>}
+      {error && <p className="text-xs text-destructive mt-1.5">{error}</p>}
     </div>
   );
 }
@@ -266,39 +266,38 @@ export default function Auth() {
       <AppTooltip content={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
         <button
           onClick={toggleTheme}
-          className="absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full border bg-card text-foreground hover:bg-muted transition-colors shadow-sm z-50"
+          className="absolute top-5 right-5 md:top-6 md:right-6 p-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted transition-colors z-50"
           aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
         >
-          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
         </button>
       </AppTooltip>
 
       {/* Subtle background glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" aria-hidden="true" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/5 blur-[120px] rounded-full pointer-events-none" aria-hidden="true" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" aria-hidden="true" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-5xl flex flex-col md:flex-row bg-card border rounded-[32px] overflow-hidden shadow-2xl shadow-primary/5 relative z-10"
+        className="w-full max-w-5xl flex flex-col md:flex-row bg-card border border-border rounded-2xl overflow-hidden shadow-xl relative z-10"
       >
         {/* ── LEFT PANEL (Form) ── */}
-        <div className="flex-1 flex flex-col justify-center px-8 py-12 md:px-14 bg-card relative z-10 order-2 md:order-1">
+        <div className="flex-1 flex flex-col justify-center px-6 py-10 md:px-12 md:py-14 bg-card relative z-10 order-2 md:order-1">
           {/* Title */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-6">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
               <ShieldCheck size={12} className="text-primary" />
-              <span className="text-muted-foreground">{isLogin ? "Secure Login" : "Join Platform"}</span>
+              {isLogin ? "Secure login" : "Join platform"}
             </div>
-            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-[-0.035em] mb-2">
               {isLogin ? (
-                <>Welcome <span className="text-primary">Back</span></>
+                <>Welcome <span className="text-primary">back</span></>
               ) : (
-                <>Create <span className="text-accent">Account</span></>
+                <>Create <span className="text-primary">account</span></>
               )}
             </h1>
-            <p className="text-sm font-medium text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {isLogin
                 ? "Sign in to continue your coding journey."
                 : "Let's get you set up with a new account in just a few steps."}
@@ -364,12 +363,12 @@ export default function Auth() {
             )}
 
             {error && (
-              <div className="text-xs font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
+              <div className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-3.5 py-2.5">
                 {error}
               </div>
             )}
             {message && (
-              <div className="text-xs font-bold text-success bg-success/10 border border-success/20 rounded-xl px-4 py-3">
+              <div className="text-sm text-success bg-success/10 border border-success/30 rounded-lg px-3.5 py-2.5">
                 {message}
               </div>
             )}
@@ -378,20 +377,20 @@ export default function Auth() {
               <motion.button
                 type="submit"
                 disabled={isDisabled}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-60"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all hover:brightness-95 disabled:opacity-60"
               >
-                {loading ? "Please wait..." : cooldown ? "Try again shortly..." : isLogin ? "Sign In" : "Sign Up"}
+                {loading ? "Please wait…" : cooldown ? "Try again shortly…" : isLogin ? "Sign in" : "Sign up"}
               </motion.button>
             </div>
           </form>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-border/60" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Or</span>
-            <div className="flex-1 h-px bg-border/60" />
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs font-medium text-muted-foreground">Or</span>
+            <div className="flex-1 h-px bg-border" />
           </div>
 
           {/* Social Buttons */}
@@ -401,12 +400,12 @@ export default function Auth() {
               <motion.button
                 onClick={handleGoogleSignIn}
                 disabled={isDisabled}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 aria-label="Sign in with Google"
-                className="w-14 h-14 rounded-xl flex items-center justify-center border bg-muted/20 hover:bg-muted/50 disabled:opacity-60 transition-all group"
+                className="w-12 h-12 rounded-lg flex items-center justify-center border border-border bg-card hover:bg-muted disabled:opacity-60 transition-colors group"
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" className="grayscale group-hover:grayscale-0 transition-all duration-300">
+                <svg width="20" height="20" viewBox="0 0 24 24" className="grayscale group-hover:grayscale-0 transition-all duration-300">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -417,44 +416,34 @@ export default function Auth() {
           </div>
 
           {/* Toggle */}
-          <p className="text-center mt-8 text-sm font-medium text-muted-foreground">
+          <p className="text-center mt-7 text-sm text-muted-foreground">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={handleToggle}
-              className="font-bold text-foreground hover:text-primary transition-colors hover:underline underline-offset-4"
+              className="font-semibold text-foreground hover:text-primary transition-colors"
             >
-              {isLogin ? "Sign Up" : "Sign In"}
+              {isLogin ? "Sign up" : "Sign in"}
             </button>
           </p>
         </div>
 
         {/* ── RIGHT PANEL (Mascot / Art) ── */}
-        <div className="hidden md:flex w-[45%] flex-col items-center justify-center p-8 relative overflow-hidden bg-muted/20 border-l order-1 md:order-2">
-          {/* Subtle grid pattern background */}
-          <div 
-            className="absolute inset-0 opacity-[0.05] pointer-events-none" 
-            style={{ 
-              backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)", 
-              backgroundSize: "24px 24px" 
-            }} 
-            aria-hidden="true" 
-          />
-
+        <div className="hidden md:flex w-[45%] flex-col items-center justify-center p-8 relative overflow-hidden bg-muted/30 border-l border-border order-1 md:order-2">
           <motion.div
-            animate={{ y: [0, -10, 0] }}
+            animate={{ y: [0, -8, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full max-w-[280px] drop-shadow-2xl relative z-10"
+            className="w-full max-w-[260px] relative z-10"
           >
             <MascotSVG />
           </motion.div>
 
           {/* Caption */}
-          <div className="mt-12 text-center relative z-10">
-            <h3 className="text-xl font-black uppercase tracking-tight mb-2">
+          <div className="mt-10 text-center relative z-10">
+            <h3 className="text-lg font-semibold tracking-tight">
               Learn. <span className="text-primary">Adapt</span>. Grow.
             </h3>
-            <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-widest">
-              Master the Craft With Us
+            <p className="text-xs text-muted-foreground mt-1">
+              Master the craft with us
             </p>
           </div>
         </div>

@@ -59,31 +59,29 @@ export function JavaTreeBanner() {
   ];
 
   return (
-    <div className="w-full bg-gradient-to-br from-gray-50 via-white to-purple-50 border-b-4 border-purple-200 overflow-hidden py-12 md:py-16">
-      <div className="max-w-[1800px] mx-auto px-6 md:px-12">
+    <div className="w-full border-b border-border/60 overflow-hidden py-10 md:py-14 bg-background">
+      <div className="max-w-[1800px] mx-auto px-5 md:px-10">
         {/* Banner Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8"
+          transition={{ duration: 0.5 }}
+          className="text-center mb-6"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-bold uppercase tracking-widest mb-3 shadow-lg">
-            <Sparkles size={14} />
-            Complete Learning Path
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
+            <Sparkles size={12} className="text-primary" />
+            Complete learning path
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter">
-            <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Java Mastery Tree
-            </span>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-[-0.035em] text-foreground">
+            Java mastery tree
           </h2>
-          <p className="text-sm md:text-base text-gray-600 mt-2 max-w-3xl mx-auto">
-            Click any topic to start learning • 11 comprehensive modules • From basics to advanced
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl mx-auto">
+            Click any topic to start learning · 11 comprehensive modules · From basics to advanced
           </p>
         </motion.div>
 
         {/* Full-Width Horizontal Tree */}
-        <div className="relative bg-white rounded-3xl shadow-2xl border-2 border-purple-100 p-6 md:p-10 overflow-x-auto">
+        <div className="relative bg-card rounded-2xl border border-border p-5 md:p-8 overflow-x-auto">
           <svg
             viewBox="0 0 1700 280"
             className="w-full"

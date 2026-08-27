@@ -30,9 +30,9 @@ export function AlgoGuruLogo({ size = 80, showText = true, className = "" }: Alg
       role="img"
     >
       {/* Shadow ellipse */}
-      <ellipse cx="200" cy="205" rx="70" ry="12" fill="#f0f2f5" />
+      <ellipse cx="200" cy="205" rx="70" ry="12" fill="currentColor" opacity="0.08" />
 
-      <g stroke="#1b1b1b" strokeWidth={showText ? 3 : 5} strokeLinecap="round" strokeLinejoin="round">
+      <g stroke="currentColor" strokeWidth={showText ? 3 : 5} strokeLinecap="round" strokeLinejoin="round">
         {/* White robe / sleeves — hide if not showText to keep head focus */}
         {showText && (
           <>

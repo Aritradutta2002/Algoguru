@@ -26,16 +26,16 @@ export function RoadmapControls() {
   return (
     <Panel position="bottom-left" className="!m-4">
       <div
-        className="flex flex-col overflow-hidden rounded-[14px] border border-white/10 bg-[#1d1d20]/95 p-0 shadow-2xl backdrop-blur-xl"
+        className="flex flex-col overflow-hidden rounded-lg border border-border bg-card/95 shadow-lg backdrop-blur-md"
         role="toolbar"
         aria-label="Roadmap viewport controls"
       >
-        <CtrlButton onClick={handleZoomIn} label="Zoom in" icon={<ZoomIn size={18} />} />
-        <CtrlButton onClick={handleZoomOut} label="Zoom out" icon={<ZoomOut size={18} />} />
+        <CtrlButton onClick={handleZoomIn} label="Zoom in" icon={<ZoomIn size={16} />} />
+        <CtrlButton onClick={handleZoomOut} label="Zoom out" icon={<ZoomOut size={16} />} />
         <CtrlButton
           onClick={handleFit}
           label="Fit view"
-          icon={<Maximize size={17} />}
+          icon={<Maximize size={15} />}
         />
       </div>
     </Panel>
@@ -57,8 +57,7 @@ function CtrlButton({ onClick, label, icon, active = false }: CtrlButtonProps) {
       title={label}
       aria-label={label}
       className={cn(
-        "touch-manipulation flex h-11 w-11 items-center justify-center transition-all duration-150",
-        "border-b border-white/8 last:border-b-0 text-slate-200 hover:bg-white/5 hover:text-white active:scale-95",
+        "flex h-9 w-9 items-center justify-center transition-colors border-b border-border/40 last:border-b-0 text-muted-foreground hover:bg-muted hover:text-foreground",
         "focus:outline-none focus:ring-2 focus:ring-primary/40",
         active && "bg-primary/15 text-primary"
       )}

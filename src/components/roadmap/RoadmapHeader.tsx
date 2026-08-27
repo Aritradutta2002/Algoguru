@@ -37,42 +37,37 @@ export function RoadmapHeader({ roadmap, stats, activeId, compact }: RoadmapHead
   return (
     <header
       className={cn(
-        "relative z-30 flex flex-col gap-3 border-b border-border/40 bg-background/90 backdrop-blur-xl px-4 sm:px-6 lg:px-8 pt-4 pb-3"
+        "relative z-30 flex flex-col gap-3 border-b border-border bg-background/90 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 pb-3"
       )}
     >
-      {/* Top row: back / title / actions */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <button
           type="button"
           onClick={() => navigate("/roadmap")}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-xl border border-border/40 bg-card/60 px-3 py-1.5",
-            "text-[11px] font-bold uppercase tracking-widest text-muted-foreground",
-            "hover:text-foreground hover:bg-muted transition-all active:scale-95"
-          )}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           aria-label="Back to all roadmaps"
         >
           <ArrowLeft size={12} />
-          All Roadmaps
+          All roadmaps
         </button>
 
         <div className="min-w-0 flex-1">
           <div
-            className="text-[10px] font-black uppercase tracking-[0.25em]"
+            className="text-[11px] font-semibold uppercase tracking-wider"
             style={{ color: roadmap.accent }}
           >
             Roadmap
           </div>
-          <h1 className="text-lg sm:text-xl lg:text-2xl font-black uppercase tracking-tight leading-none">
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight leading-none">
             {roadmap.title}
           </h1>
-          <p className="hidden sm:block text-[11px] text-muted-foreground mt-0.5">
+          <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
             {roadmap.subtitle}
           </p>
         </div>
 
         <div className="hidden md:flex flex-col items-end gap-1 min-w-[180px]">
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
             <span>Overall progress</span>
             <span className="text-foreground">
               {stats.completed} / {stats.total} · {stats.percent}%
@@ -80,18 +75,17 @@ export function RoadmapHeader({ roadmap, stats, activeId, compact }: RoadmapHead
           </div>
           <Progress
             value={stats.percent}
-            className="h-1.5 w-[180px] bg-muted/60"
+            className="h-1.5 w-[180px] bg-muted"
             aria-label="Overall roadmap progress"
           />
         </div>
       </div>
 
-      {/* Bottom row: switcher + legend */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div
           role="tablist"
           aria-label="Roadmap"
-          className="inline-flex items-center gap-1 rounded-xl border border-border/40 bg-muted/40 p-1"
+          className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1"
         >
           {TABS.map((t) => {
             const active = t.id === activeId;
@@ -102,11 +96,11 @@ export function RoadmapHeader({ roadmap, stats, activeId, compact }: RoadmapHead
                 aria-selected={active}
                 onClick={() => navigate(`/roadmap/${t.id}`)}
                 className={cn(
-                  "rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all",
+                  "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
                   "focus:outline-none focus:ring-2 focus:ring-primary/40",
                   active
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {t.label}
@@ -118,10 +112,9 @@ export function RoadmapHeader({ roadmap, stats, activeId, compact }: RoadmapHead
         <RoadmapLegend className="hidden sm:flex" />
       </div>
 
-      {/* Mobile progress bar (md-) */}
-      <div className="md:hidden flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="md:hidden flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
         <span>Progress</span>
-        <Progress value={stats.percent} className="h-1.5 flex-1 bg-muted/60" />
+        <Progress value={stats.percent} className="h-1.5 flex-1 bg-muted" />
         <span className="text-foreground">{stats.percent}%</span>
       </div>
     </header>

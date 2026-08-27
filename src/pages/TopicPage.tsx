@@ -156,54 +156,52 @@ export default function TopicPage() {
   const color = topicColorVars[topic.id] || "hsl(var(--primary))";
 
   return (
-    <div className="flex min-h-screen relative bg-background selection:bg-primary selection:text-black animate-in fade-in duration-700" ref={mainRef}>
+    <div className="flex min-h-screen relative bg-background selection:bg-primary/25" ref={mainRef}>
       <div className="flex-1 min-w-0">
         <motion.div
-          className="relative overflow-hidden border-b border-border/50"
+          className="relative overflow-hidden border-b border-border/60"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Subtle background glow removed for performance */}
-
-          <div className="relative z-10 px-4 md:px-12 lg:px-16 py-12 md:py-20">
-            <div className="flex items-center gap-2 mb-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="relative z-10 px-4 md:px-10 lg:px-16 py-12 md:py-20">
+            <div className="flex items-center gap-2 mb-5 text-xs font-medium text-muted-foreground">
               <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/")}>
                 Home
               </span>
-              <ChevronRight size={10} className="opacity-40" />
+              <ChevronRight size={12} className="opacity-40" />
               <span style={{ color }}>{topic.title}</span>
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div className="flex flex-col md:flex-row md:items-center gap-5">
               <div
-                className="flex items-center justify-center w-16 h-16 rounded-[24px] text-2xl font-bold border shrink-0 transition-all shadow-lg shadow-primary/5"
-                style={{ background: `${color}10`, borderColor: `${color}20`, color: color }}
+                className="flex items-center justify-center w-14 h-14 rounded-2xl text-2xl font-semibold border shrink-0"
+                style={{ background: `${color}10`, borderColor: `${color}25`, color: color }}
               >
                 {topic.icon}
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl lg:text-5xl font-black uppercase tracking-tighter text-foreground">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-[-0.035em] text-foreground">
                   {topic.title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 mt-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted border text-muted-foreground">
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-muted border border-border text-muted-foreground">
                     {detectedMode === "lang" ? "Java" : detectedMode === "practice" ? "Practice" : "Data Structure"}
                   </span>
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {content.length} sections · Comprehensive guide
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mt-8">
+            <div className="flex items-center gap-2 mt-7">
               {content.map((s, i) => (
                 <AppTooltip key={i} content={s.title}>
                   <div
                     className="h-1 rounded-full transition-all duration-300 cursor-pointer"
                     style={{
-                      background: activeSection === s.id ? color : "hsl(var(--muted)/50%)",
+                      background: activeSection === s.id ? color : "hsl(var(--muted))",
                       width: activeSection === s.id ? "32px" : "8px",
                     }}
                     onClick={() => {
@@ -236,35 +234,35 @@ export default function TopicPage() {
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-20 pt-12 border-t border-border/50">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-16 pt-8 border-t border-border">
             {prevTopic ? (
               <motion.button
-                whileHover={{ x: -5 }}
+                whileHover={{ x: -3 }}
                 onClick={() => navigate(`/${prevTopic.id}`)}
-                className="flex items-center gap-4 p-6 rounded-[28px] border bg-card text-left transition-all hover:shadow-xl hover:shadow-primary/5"
+                className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card text-left transition-colors hover:bg-muted"
               >
-                <div className="p-3 rounded-2xl bg-muted border border-border/50 text-muted-foreground">
-                  <ChevronLeft size={18} />
+                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+                  <ChevronLeft size={16} />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Previous</div>
-                  <div className="text-sm font-black uppercase tracking-tight text-foreground">{prevTopic.title}</div>
+                  <div className="text-[10px] font-medium text-muted-foreground">Previous</div>
+                  <div className="text-sm font-semibold text-foreground">{prevTopic.title}</div>
                 </div>
               </motion.button>
             ) : <div />}
 
             {nextTopic && (
               <motion.button
-                whileHover={{ x: 5 }}
+                whileHover={{ x: 3 }}
                 onClick={() => navigate(`/${nextTopic.id}`)}
-                className="flex items-center gap-4 p-6 rounded-[28px] border bg-card text-right transition-all hover:shadow-xl hover:shadow-primary/5 group"
+                className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card text-right transition-colors hover:bg-muted group"
               >
                 <div className="flex-1">
-                  <div className="text-[10px] uppercase tracking-widest font-bold text-primary/60 mb-1">Next</div>
-                  <div className="text-sm font-black uppercase tracking-tight text-foreground">{nextTopic.title}</div>
+                  <div className="text-[10px] font-medium text-primary">Next</div>
+                  <div className="text-sm font-semibold text-foreground">{nextTopic.title}</div>
                 </div>
-                <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                  <ChevronRight size={18} />
+                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <ChevronRight size={16} />
                 </div>
               </motion.button>
             )}
@@ -273,9 +271,8 @@ export default function TopicPage() {
       </div>
 
       {/* Right TOC */}
-      <div className="hidden xl:flex flex-col w-56 flex-shrink-0 border-l sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-8 px-5"
-        style={{ borderColor: "hsl(var(--border))" }}>
-        <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-5 font-mono" style={{ color: "hsl(var(--muted-foreground))" }}>
+      <div className="hidden xl:flex flex-col w-56 flex-shrink-0 border-l border-border sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-8 px-5">
+        <div className="text-[11px] font-semibold uppercase tracking-wider mb-4 text-muted-foreground">
           On this page
         </div>
         <nav className="space-y-0.5">
@@ -285,9 +282,9 @@ export default function TopicPage() {
               <button
                 key={s.id}
                 onClick={() => navigate(`/${topicId}#${s.id}`)}
-                className="flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg text-xs transition-all duration-200"
+                className="flex items-center gap-2.5 w-full text-left px-3 py-1.5 rounded-md text-xs transition-colors"
                 style={{
-                  background: isActive ? `${color}08` : "transparent",
+                  background: isActive ? `${color}10` : "transparent",
                   color: isActive ? color : "hsl(var(--muted-foreground))",
                   fontWeight: isActive ? 600 : 400,
                   borderLeft: isActive ? `2px solid ${color}` : "2px solid transparent",
@@ -302,10 +299,9 @@ export default function TopicPage() {
 
       {/* Mobile TOC */}
       <motion.button
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.97 }}
         onClick={() => setTocOpen(!tocOpen)}
-        className="xl:hidden fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-semibold shadow-xl"
-        style={{ background: color, color: "hsl(var(--background))", boxShadow: `0 4px 20px ${color}40` }}
+        className="xl:hidden fixed bottom-5 right-5 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-medium shadow-lg bg-card border border-border text-foreground"
       >
         {tocOpen ? <X size={14} /> : <List size={14} />}
         {tocOpen ? "Close" : "Contents"}
@@ -314,14 +310,13 @@ export default function TopicPage() {
       <AnimatePresence>
         {tocOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="xl:hidden fixed bottom-20 right-6 z-50 w-72 rounded-2xl shadow-2xl p-5 border glass-panel"
-            style={{ borderColor: "hsl(var(--border))" }}
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.18 }}
+            className="xl:hidden fixed bottom-16 right-5 z-50 w-72 rounded-xl shadow-xl p-4 bg-card border border-border"
           >
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-4 font-mono" style={{ color: "hsl(var(--muted-foreground))" }}>
+            <div className="text-xs font-semibold text-muted-foreground mb-3">
               Sections
             </div>
             <nav className="space-y-0.5 max-h-72 overflow-y-auto">
@@ -329,7 +324,7 @@ export default function TopicPage() {
                 <button
                   key={s.id}
                   onClick={() => { navigate(`/${topicId}#${s.id}`); setTocOpen(false); }}
-                  className="flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg text-xs transition-all"
+                  className="flex items-center gap-2.5 w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors hover:bg-muted"
                   style={{ color: activeSection === s.id ? color : "hsl(var(--foreground))" }}
                 >
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: activeSection === s.id ? color : "hsl(var(--border))" }} />

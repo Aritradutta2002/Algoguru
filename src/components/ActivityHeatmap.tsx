@@ -385,14 +385,14 @@ export function ActivityHeatmap({
       {/* ── Header ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-muted/60 border border-border/40">
-            <Activity size={16} className={cn(activeModeColor, "opacity-80")} />
+          <div className="p-2 rounded-lg bg-muted border border-border">
+            <Activity size={15} className={cn(activeModeColor, "opacity-80")} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-foreground tracking-tight">
-              Contribution Activity
+            <h3 className="text-sm font-semibold text-foreground tracking-tight">
+              Contribution activity
             </h3>
-            <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {totalSubmissions.toLocaleString()}{" "}
               {totalSubmissions === 1 ? "submission" : "submissions"} in{" "}
               {selectedYear === "Last 12 months"
@@ -403,11 +403,10 @@ export function ActivityHeatmap({
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          {/* Year Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex w-full sm:w-auto items-center justify-center gap-2 text-[11px] font-semibold text-muted-foreground bg-muted/50 border border-border/40 px-3 py-2 rounded-xl hover:bg-muted hover:text-foreground transition-all duration-200 active:scale-95"
+              className="flex w-full sm:w-auto items-center justify-center gap-2 text-xs font-medium text-foreground bg-card border border-border px-3 h-8 rounded-md hover:bg-muted transition-colors"
             >
               {selectedYear === "Last 12 months" ? "12 months" : selectedYear}
               <ChevronDown
@@ -420,9 +419,9 @@ export function ActivityHeatmap({
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 bg-popover text-popover-foreground border border-border/60 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border/40">
-                  Select Range
+              <div className="absolute top-full right-0 mt-2 w-44 bg-popover text-popover-foreground border border-border rounded-lg shadow-xl overflow-hidden z-50">
+                <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground border-b border-border">
+                  Select range
                 </div>
                 {yearOptions.map((year) => (
                   <button
@@ -451,7 +450,7 @@ export function ActivityHeatmap({
           </div>
 
           {/* Mode Toggle */}
-          <div className="grid grid-cols-3 bg-muted/50 rounded-2xl p-0.5 border border-border/40 shadow-inner">
+          <div className="grid grid-cols-3 bg-muted rounded-lg p-0.5 border border-border">
             {(Object.keys(modeConfig) as HeatmapMode[]).map((mode) => {
               const cfg = modeConfig[mode];
               const isActive = dataMode === mode;
@@ -460,7 +459,7 @@ export function ActivityHeatmap({
                   key={mode}
                   onClick={() => onModeChange(mode)}
                   className={cn(
-                    "min-w-0 text-[10px] font-bold px-2.5 sm:px-3.5 py-2 rounded-xl transition-all duration-300 tracking-wider uppercase",
+                    "min-w-0 text-xs font-medium px-3 sm:px-3.5 py-1.5 rounded-md transition-colors",
                     isActive
                       ? `${cfg.activeBg} ${cfg.color} shadow-sm`
                       : "text-muted-foreground hover:text-foreground",
@@ -477,21 +476,18 @@ export function ActivityHeatmap({
       {/* ── Heatmap Grid ── */}
       <div
         ref={containerRef}
-        className="relative overflow-x-auto overflow-y-hidden rounded-2xl border border-border/40 bg-card/50 dark:bg-[#141414] p-4 shadow-inner scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+        className="relative overflow-x-auto overflow-y-hidden rounded-xl border border-border bg-card p-4"
         style={{ minHeight: `${cellSize * 7 + cellGap * 8 + 56}px` }}
       >
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/75 backdrop-blur-[2px] rounded-2xl">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/75 backdrop-blur-sm rounded-xl">
             <div className="flex flex-col items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full animate-pulse" />
-                <Loader2
-                  className="animate-spin text-emerald-500/60 dark:text-emerald-400/60 relative"
-                  size={24}
-                />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Loading activity...
+              <Loader2
+                className="animate-spin text-primary/70"
+                size={22}
+              />
+              <span className="text-xs text-muted-foreground">
+                Loading activity…
               </span>
             </div>
           </div>

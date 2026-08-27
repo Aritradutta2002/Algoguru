@@ -200,71 +200,60 @@ function SearchButton() {
           onClick={() => setOpen(true)}
           aria-label="Search topics"
           data-search-trigger="true"
-          className="touch-manipulation flex items-center gap-2.5 px-4 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 border border-border/40 bg-muted/30 text-foreground rounded-[20px] transition-all duration-300 hover:bg-muted/50 hover:border-primary/30 active:scale-95 w-auto sm:w-48 md:w-64 group justify-center sm:justify-start"
+          className="touch-manipulation flex items-center gap-2.5 px-3 py-1.5 h-9 border border-border bg-muted/40 text-foreground rounded-lg transition-colors hover:bg-muted w-44 md:w-64 group"
         >
-          <Search size={14} strokeWidth={2.5} className="text-muted-foreground group-hover:text-primary transition-colors" />
-          <span className="hidden sm:inline-block flex-1 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
-            <span className="sm:inline md:hidden">Search...</span>
-            <span className="hidden md:inline">Search AlgoGuru...</span>
+          <Search size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+          <span className="hidden sm:inline-block flex-1 text-left text-[13px] text-muted-foreground group-hover:text-foreground transition-colors truncate">
+            Search AlgoGuru...
           </span>
-          <kbd
-            className="hidden md:flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border border-border/30 bg-background/50 text-muted-foreground/40"
-          >
+          <kbd className="hidden md:flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded border border-border bg-background text-muted-foreground">
             ⌘K
           </kbd>
         </button>
       </AppTooltip>
 
       {open && createPortal(
-        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999 }} onClick={() => setOpen(false)}>
-          <div className="fixed inset-0" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)" }} />
+        <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-24" onClick={() => setOpen(false)}>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="relative w-full max-w-lg mx-4 overflow-hidden flex flex-col rounded-[32px] border border-border/50 bg-card shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)]"
+            className="relative w-full max-w-lg mx-4 overflow-hidden flex flex-col rounded-2xl border border-border bg-card shadow-2xl"
             style={{ maxHeight: "70vh" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Subtle background glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-primary/5 blur-[80px] rounded-full pointer-events-none" />
-
-            {/* Search header */}
-            <div className="relative z-10 flex items-center gap-4 px-6 py-5 border-b border-border/30">
-              <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20">
-                <Search size={20} strokeWidth={2.5} className="text-primary" />
-              </div>
+            <div className="relative z-10 flex items-center gap-3 px-4 py-3 border-b border-border">
+              <Search size={18} className="text-muted-foreground" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search topics, algorithms, problems..."
-                className="flex-1 bg-transparent text-lg font-bold tracking-tight outline-none placeholder:text-muted-foreground/30 text-foreground"
+                className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground text-foreground"
               />
               {query && (
-                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground/60">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
                   {totalResults}
                 </span>
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="touch-manipulation w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 border bg-muted/30 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95"
+                className="touch-manipulation w-8 h-8 rounded-md flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground"
+                aria-label="Close search"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            {/* Results */}
             <div className="max-h-[400px] overflow-y-auto">
               {totalResults === 0 ? (
-                <div className="px-5 py-10 text-center">
-                  <div className="text-2xl mb-2">🔍</div>
-                  <div className="text-sm font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>No results for "{query}"</div>
-                  <div className="text-xs mt-1" style={{ color: "hsl(var(--muted-foreground)/0.6)" }}>Try searching for "Two Sum", "DFS", or "Backtracking"</div>
+                <div className="px-6 py-10 text-center">
+                  <div className="text-sm text-muted-foreground">No results for "{query}"</div>
+                  <div className="text-xs mt-1 text-muted-foreground/70">Try "Two Sum", "DFS", or "Backtracking"</div>
                 </div>
               ) : (
                 <>
-                  {/* Topics */}
                   {grouped.topics.length > 0 && (
                     <div>
-                      <div className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))", background: "hsl(var(--muted)/0.3)" }}>
+                      <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40">
                         Topics
                       </div>
                       {grouped.topics.slice(0, 8).map((item) => (
@@ -272,10 +261,9 @@ function SearchButton() {
                       ))}
                     </div>
                   )}
-                  {/* Subtopics / Sections */}
                   {grouped.subtopics.length > 0 && (
                     <div>
-                      <div className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))", background: "hsl(var(--muted)/0.3)" }}>
+                      <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40">
                         Sections
                       </div>
                       {grouped.subtopics.slice(0, 10).map((item) => (
@@ -283,10 +271,9 @@ function SearchButton() {
                       ))}
                     </div>
                   )}
-                  {/* Problems / Algorithms */}
                   {grouped.problems.length > 0 && (
                     <div>
-                      <div className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--muted-foreground))", background: "hsl(var(--muted)/0.3)" }}>
+                      <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40">
                         Problems & Algorithms ({grouped.problems.length})
                       </div>
                       {grouped.problems.slice(0, 20).map((item) => (
@@ -298,21 +285,17 @@ function SearchButton() {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="relative z-10 flex items-center justify-between px-6 py-4 border-t border-border/30 bg-muted/20">
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{allSearchItems.length} items indexed</span>
-              <div className="hidden md:flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">↑↓</kbd>
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">navigate</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">esc</kbd>
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">close</span>
-                </div>
-              </div>
-              <div className="md:hidden flex items-center gap-2">
-                <kbd className="px-1.5 py-0.5 rounded-md font-mono text-[9px] bg-background border border-border/50 text-muted-foreground/40">esc</kbd>
+            <div className="relative z-10 flex items-center justify-between px-4 py-2.5 border-t border-border bg-muted/30 text-xs text-muted-foreground">
+              <span>{allSearchItems.length} items indexed</span>
+              <div className="flex items-center gap-3">
+                <span className="hidden sm:flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-background border border-border">↑↓</kbd>
+                  <span>navigate</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-background border border-border">esc</kbd>
+                  <span>close</span>
+                </span>
               </div>
             </div>
           </div>
@@ -327,30 +310,30 @@ function SearchResultItem({ item, onSelect }: { item: typeof allSearchItems[numb
   return (
     <button
       onClick={onSelect}
-      className="touch-manipulation w-full flex items-center gap-4 px-6 py-4 md:py-3 min-h-[44px] text-left transition-all hover:bg-muted/50 active:bg-muted/70 group border-b border-border/10 last:border-0"
+      className="touch-manipulation w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/60 group"
     >
-      <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center text-xl flex-shrink-0 border border-border/20 transition-transform group-hover:scale-110 group-hover:bg-primary/5 group-hover:border-primary/20">
+      <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-sm flex-shrink-0">
         {item.icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">{item.title}</div>
-        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mt-0.5">
+        <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{item.title}</div>
+        <div className="text-xs text-muted-foreground mt-0.5 truncate">
           {item.type === "topic" ? `${item.subtopicCount} sections` : item.parent}
         </div>
       </div>
       {item.difficulty && (
         <span
-          className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border"
+          className="text-[10px] font-semibold px-2 py-0.5 rounded-md border"
           style={{
             color: difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))",
             background: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}10`,
-            borderColor: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}20`
+            borderColor: `${difficultyColors[item.difficulty] || "hsl(var(--muted-foreground))"}25`
           }}
         >
           {item.difficulty}
         </span>
       )}
-      <ChevronRight size={14} className="flex-shrink-0 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+      <ChevronRight size={14} className="flex-shrink-0 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
     </button>
   );
 }
@@ -377,20 +360,19 @@ function HeaderControls() {
   const isMax = fontSize === "xl";
 
   return (
-    <div className="flex items-center gap-1 md:gap-3">
-      {/* Zoom controls */}
-      <div className="flex items-center gap-0.5 p-1 rounded-xl bg-muted/20 border border-border/30">
+    <div className="flex items-center gap-1 md:gap-2">
+      <div className="hidden md:flex items-center rounded-lg border border-border bg-muted/40">
         <AppTooltip content="Zoom out">
           <button
             onClick={decreaseFontSize}
             disabled={isMin}
             aria-label="Zoom out"
-            className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
+            className="touch-manipulation flex items-center justify-center w-8 h-8 rounded-l-lg transition-colors disabled:opacity-30 hover:bg-muted text-muted-foreground hover:text-foreground"
           >
             <ZoomOut size={14} />
           </button>
         </AppTooltip>
-        <span className="hidden md:inline-block text-[10px] font-black min-w-[32px] text-center text-foreground/60">
+        <span className="text-[11px] font-medium min-w-[36px] text-center text-foreground/70 tabular-nums">
           {ZOOM_MAP[fontSize] || "100%"}
         </span>
         <AppTooltip content="Zoom in">
@@ -398,40 +380,20 @@ function HeaderControls() {
             onClick={increaseFontSize}
             disabled={isMax}
             aria-label="Zoom in"
-            className="touch-manipulation flex items-center justify-center w-11 h-11 md:w-7 md:h-7 rounded-lg transition-all duration-150 disabled:opacity-25 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
+            className="touch-manipulation flex items-center justify-center w-8 h-8 rounded-r-lg transition-colors disabled:opacity-30 hover:bg-muted text-muted-foreground hover:text-foreground"
           >
             <ZoomIn size={14} />
           </button>
         </AppTooltip>
       </div>
 
-      <div className="w-px h-4 mx-1.5 bg-border/30" />
-
-      {/* Day/Night Toggle */}
-      <AppTooltip content={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+      <AppTooltip content={isDark ? "Switch to light mode" : "Switch to dark mode"}>
         <button
           onClick={toggleTheme}
-          aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          className={`touch-manipulation relative flex items-center gap-2 px-3 py-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border active:scale-95 ${isDark
-              ? "bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]"
-              : "bg-[#1a1a1a] border-white/10 text-white shadow-xl shadow-black/20"
-            }`}
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          className="touch-manipulation flex items-center justify-center w-9 h-9 md:w-8 md:h-8 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
         >
-          {isDark ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] flex items-center justify-center">
-                <span className="text-[8px]">☀️</span>
-              </div>
-              <span className="hidden md:inline">Day</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
-                <span className="text-[8px]">🌙</span>
-              </div>
-              <span className="hidden md:inline">Night</span>
-            </div>
-          )}
+          {isDark ? <Sun size={15} /> : <Moon size={15} />}
         </button>
       </AppTooltip>
     </div>
@@ -452,34 +414,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
   if (loading) return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{ background: "hsl(var(--background))" }}
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-background"
     >
-      {/* Subtle dot grid background */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: "radial-gradient(circle, hsl(var(--foreground) / 0.06) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-      {/* Glowing orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] sm:w-[38rem] sm:h-[38rem] bg-primary/10 blur-[90px] rounded-full pointer-events-none" />
-
-      {/* Logo — SVG includes the Algo / Guru text already */}
-      <div className="z-10 drop-shadow-2xl animate-in zoom-in-95 fade-in duration-700 ease-out">
-        <AlgoGuruLogo size={320} showText={true} className="text-foreground" />
+      <div className="z-10">
+        <AlgoGuruLogo size={180} showText={true} className="text-foreground" />
       </div>
 
-      {/* Animated progress bar */}
-      <div className="w-36 h-[3px] mt-6 rounded-full overflow-hidden z-10" style={{ background: "hsl(var(--muted))" }}>
-        <div
-          className="h-full rounded-full animate-pulse"
-          style={{ background: "hsl(var(--primary))" }}
-        />
+      <div className="w-32 h-[2px] mt-6 rounded-full overflow-hidden z-10 bg-muted">
+        <div className="h-full rounded-full animate-pulse bg-primary" />
       </div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.25em] mt-5 z-10" style={{ color: "hsl(var(--muted-foreground))" }}>
-        Initializing…
+      <p className="text-xs text-muted-foreground mt-4 z-10">
+        Loading…
       </p>
     </div>
   );
@@ -585,28 +530,23 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top bar */}
           <header
-            className="h-16 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 border-b flex-shrink-0 sticky top-0 z-40 header"
-            style={{
-              borderColor: "hsl(var(--border) / 0.3)",
-              background: "hsl(var(--background) / 0.98)",
-            }}
+            className="h-14 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 border-b border-border flex-shrink-0 sticky top-0 z-40 bg-background/95 backdrop-blur header"
           >
-            <AppTooltip content="Toggle Sidebar (Ctrl+B)">
+            <AppTooltip content="Toggle sidebar (Ctrl+B)">
               <SidebarTrigger
-                className="flex items-center justify-center w-11 h-11 hover:bg-muted/80 rounded-2xl transition-all duration-300 border border-border/30 flex-shrink-0"
-                style={{ color: "hsl(var(--foreground))" }}
-                aria-label="Toggle Sidebar"
+                className="flex items-center justify-center w-9 h-9 hover:bg-muted rounded-lg transition-colors text-foreground flex-shrink-0"
+                aria-label="Toggle sidebar"
               >
                 <Menu size={18} />
               </SidebarTrigger>
             </AppTooltip>
 
-            <AppTooltip content="Go to Home">
-              <div className="flex items-center gap-2 group cursor-pointer transition-transform hover:scale-[1.02] active:scale-95 flex-shrink-0"
+            <AppTooltip content="Go to home">
+              <div className="flex items-center gap-2 group cursor-pointer flex-shrink-0"
                 onClick={() => window.location.href = "/"}
                 role="button"
                 tabIndex={0}
-                aria-label="Go to Home"
+                aria-label="Go to home"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -614,11 +554,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   }
                 }}
               >
-                <div className="relative flex-shrink-0 w-8 h-8">
-                  <div className="absolute inset-0 bg-primary/20 blur-md rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <AlgoGuruLogo size={32} showText={false} className="relative z-10 block w-full h-auto" />
-                </div>
-                <span className="hidden sm:inline text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-primary" style={{ color: "hsl(var(--foreground))" }}>
+                <AlgoGuruLogo size={28} showText={false} className="block" />
+                <span className="hidden sm:inline text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
                   AlgoGuru
                 </span>
               </div>
@@ -626,34 +563,29 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
             <div className="flex-1 min-w-0" />
 
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
-              {/* Mobile: Show search icon button only */}
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <AppTooltip content="Search">
                 <button
                   onClick={() => document.querySelector<HTMLButtonElement>('[data-search-trigger="true"]')?.click()}
-                  className="sm:hidden touch-manipulation flex items-center justify-center w-11 h-11 rounded-2xl transition-all duration-300 border border-border/30 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground active:scale-95"
+                  className="sm:hidden touch-manipulation flex items-center justify-center w-9 h-9 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="Search"
                 >
-                  <Search size={18} />
+                  <Search size={17} />
                 </button>
               </AppTooltip>
-              {/* Desktop: Show full search bar */}
               <div className="hidden sm:block">
                 <SearchButton />
               </div>
-              <div className="hidden md:block h-6 w-px bg-border/20" />
+              <div className="hidden md:block h-5 w-px bg-border mx-1" />
               <div className="hidden md:block">
                 <HeaderControls />
               </div>
-              <div className="hidden sm:block h-6 w-px bg-border/20" />
               <UserMenu />
-              <div className="h-6 w-px bg-border/20" />
               {isProblemSolverRoute ? (
-                <AppTooltip content="Guru AI is inside the Description panel → Guru AI tab (auto-attached to your code)">
-                  <div className="flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-widest rounded-2xl border bg-primary/10 border-primary/20 text-primary">
-                    <Sparkles size={14} />
-                    <span className="hidden sm:inline">Guru in tab</span>
-                    <span className="sm:hidden">Tab</span>
+                <AppTooltip content="Guru AI is in the description panel — Guru AI tab.">
+                  <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-primary/30 bg-primary/10 text-primary">
+                    <Sparkles size={13} />
+                    <span>Guru in tab</span>
                   </div>
                 </AppTooltip>
               ) : (
@@ -661,9 +593,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   <button
                     onClick={toggleGuruPanel}
                     aria-label={guruOpen ? "Close Guru" : "Open Guru"}
-                    className={`touch-manipulation flex items-center gap-2 px-3 py-2 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all duration-300 border shadow-lg justify-center active:scale-95 flex-shrink-0 ${guruOpen
-                        ? "bg-primary border-primary text-primary-foreground shadow-primary/20"
-                        : "bg-card border-border/50 text-foreground hover:bg-muted shadow-black/5"
+                    className={`touch-manipulation flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium rounded-lg transition-colors ${guruOpen
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                   >
                     <Sparkles size={14} className={guruOpen ? "text-primary-foreground" : "text-primary"} />
@@ -786,7 +718,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   {guruCollapsed ? (
-                    <AppTooltip content="Expand Guru AI Assistant" side="left">
+                    <AppTooltip content="Expand Guru AI" side="left">
                       <div
                         role="button"
                         tabIndex={0}
@@ -797,12 +729,12 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                             expandGuruPanel();
                           }
                         }}
-                        aria-label="Expand Guru AI Assistant"
-                        className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-primary/40 bg-muted/70 px-0 py-4 text-primary transition-all duration-200 hover:bg-muted"
+                        aria-label="Expand Guru AI"
+                        className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-border bg-muted px-0 py-4 transition-colors hover:bg-muted/70"
                       >
-                        <Sparkles size={18} className="text-primary" />
-                        <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
-                          Guru AI Assistant
+                        <Sparkles size={16} className="text-primary" />
+                        <span className="[writing-mode:vertical-rl] rotate-180 text-xs font-medium text-foreground">
+                          Guru AI
                         </span>
                         <button
                           type="button"
@@ -811,14 +743,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                             setGuruOpen(false);
                           }}
                           aria-label="Close Guru"
-                          className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-background/60 hover:text-foreground"
+                          className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                         >
-                          <X size={12} />
+                          <X size={11} />
                         </button>
                       </div>
                     </AppTooltip>
                   ) : (
-                    <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border/30 bg-background">
+                    <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border bg-background">
                       <GuruBot
                         open={guruOpen}
                         onClose={() => setGuruOpen(false)}
@@ -853,19 +785,17 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile floating menu button (only on small screens where HeaderControls is hidden) */}
       {isSmallMobile && !guruOpen && (
         <>
-          <AppTooltip content="Settings" side="left">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/30 flex items-center justify-center transition-all duration-300 active:scale-95 border-2 border-primary/20"
-              aria-label="Settings"
-            >
-              {mobileMenuOpen ? <X size={20} /> : <Sun size={20} />}
-            </button>
-          </AppTooltip>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Settings"
+          >
+            {mobileMenuOpen ? <X size={18} /> : <Sun size={18} />}
+          </button>
 
           {mobileMenuOpen && (
             <div
-              className="md:hidden fixed bottom-24 right-6 z-50 bg-card border border-border/50 rounded-3xl shadow-2xl p-4 animate-in slide-in-from-bottom-4 fade-in duration-200"
+              className="md:hidden fixed bottom-20 right-6 z-50 bg-card border border-border rounded-2xl shadow-xl p-3"
               onClick={(e) => e.stopPropagation()}
             >
               <HeaderControls />

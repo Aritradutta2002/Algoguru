@@ -621,104 +621,100 @@ export default function NotesDashboard() {
   }
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
-      
-      {/* Header Section */}
-      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary/25">
 
-        <div className="relative z-10 text-center md:text-left space-y-6">
+      <section className="relative border-b border-border/60">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" />
+        <div className="relative mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20 lg:px-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.5 }}
           >
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-6">
+            <div className="flex flex-wrap items-center gap-3 mb-5">
               <button
                 onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <ArrowLeft size={12} />
                 Back
               </button>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-primary/10 border-primary/20 text-[10px] font-bold uppercase tracking-widest text-primary">
+              <div className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-primary/30 bg-primary/10 text-xs font-medium text-primary">
                 <BookOpen size={12} />
-                <span>Knowledge Base</span>
+                Knowledge base
               </div>
             </div>
-            
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
-              My <span className="text-primary">Notes</span>
+
+            <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
+              My <span className="text-primary">notes</span>
             </h1>
-            
-            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
+
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
               Manage your personal study material. {notesCount} note{notesCount !== 1 ? "s" : ""} saved across your journey. Persists across all your devices.
             </p>
 
-            <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-8">
+            <div className="flex flex-wrap gap-2 mt-7">
               <button
                 onClick={downloadAllNotesPDF}
                 disabled={filteredNotes.length === 0}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40"
               >
                 <Download size={14} />
-                Merge All PDF
+                Merge all PDF
               </button>
               <button
                 onClick={downloadSelectedNotesPDF}
                 disabled={selectedFilteredNotes.length === 0}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40"
               >
                 <Download size={14} />
                 Selected PDF
               </button>
               <button
                 onClick={() => navigate("/interview/java/core-java-qa")}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:brightness-95"
               >
                 <StickyNote size={14} />
-                Add Interview Notes
+                Add interview notes
               </button>
               <button
                 onClick={() => navigate("/practice")}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted"
               >
                 <StickyNote size={14} />
-                Add Practice Notes
+                Add practice notes
               </button>
               <button
                 onClick={() => navigate("/interview/java/system-design")}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted"
               >
                 <StickyNote size={14} />
-                Add System Design Notes
+                Add system design notes
               </button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full space-y-6 lg:space-y-8">
-        {/* Filters Bar */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 p-4 rounded-[28px] border bg-card/50 backdrop-blur-sm">
+      <section className="mx-auto max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16 space-y-6">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3 rounded-2xl border border-border bg-card">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search through your notes..."
+              placeholder="Search through your notes…"
               value={searchNotes}
               onChange={(e) => setSearchNotes(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-[20px] bg-muted/20 border border-border/50 text-sm font-bold text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
+              className="w-full h-9 pl-10 pr-3 rounded-md bg-muted/40 border border-transparent text-sm outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/60"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <select
               value={filterTopic}
               onChange={(e) => setFilterTopic(e.target.value)}
-              className="px-5 py-3 rounded-[20px] bg-muted/20 border border-border/50 text-xs font-bold uppercase tracking-widest text-muted-foreground outline-none focus:border-primary/50 transition-all cursor-pointer"
+              className="h-9 px-3 rounded-md bg-muted/40 border border-border text-sm text-foreground outline-none focus:border-primary cursor-pointer"
             >
-              <option value="all">All Notes</option>
+              <option value="all">All notes</option>
               <option value="practice">Practice</option>
               <option value="core-java">Interview (Core Java)</option>
               <option value="system-design">Interview (System Design)</option>

@@ -121,46 +121,42 @@ export default function Admin() {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary selection:text-black animate-in fade-in duration-700">
-      
-      {/* Header Section */}
-      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-20 max-w-7xl mx-auto relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary/25">
 
-        <div className="relative z-10 text-center md:text-left space-y-6">
+      <section className="relative border-b border-border/60">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" />
+        <div className="relative mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20 lg:px-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-primary/10 border-primary/20 text-[10px] font-bold uppercase tracking-widest text-primary mb-6">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
               <Shield size={12} />
-              <span>Admin Privileges</span>
+              Admin privileges
             </div>
-            
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
-              Platform <span className="text-primary">Control</span>
+
+            <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
+              Platform <span className="text-primary">control</span>
             </h1>
-            
-            <p className="text-base md:text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed mx-auto md:mx-0">
+
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
               Manage user accounts, monitor platform growth, and oversee roles. This dashboard is for authorized administrators only.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="px-4 md:px-12 lg:px-20 pb-18 lg:pb-24 max-w-7xl mx-auto w-full space-y-6 lg:space-y-8">
-        {/* Tabs Bar */}
-        <div className="flex p-1.5 rounded-[24px] bg-muted/30 border border-border/30 w-full max-w-md">
+      <section className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-16 lg:px-16 space-y-6">
+        <div className="flex p-1 rounded-lg bg-muted border border-border w-full max-w-sm">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                tab === t.id 
-                  ? "bg-card border border-border/50 text-foreground shadow-xl shadow-black/10" 
-                  : "text-muted-foreground/50 hover:text-muted-foreground"
+              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-md text-sm font-medium transition-colors ${
+                tab === t.id
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <t.icon size={14} />
@@ -170,16 +166,16 @@ export default function Admin() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <Loader2 className="animate-spin text-primary" size={32} />
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Fetching records...</p>
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <Loader2 className="animate-spin text-primary" size={28} />
+            <p className="text-xs text-muted-foreground">Fetching records…</p>
           </div>
         ) : (
           <motion.div
             key={tab}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.25 }}
           >
             {tab === "users" ? (
               <UsersTab users={users} onDelete={handleDelete} onSetRole={handleSetRole} onBan={handleBan} onUnban={handleUnban} />
@@ -207,118 +203,109 @@ function UsersTab({
   onUnban: (id: string) => void;
 }) {
   return (
-    <div className="rounded-[32px] overflow-hidden border border-border/50 bg-card shadow-2xl shadow-primary/5">
+    <div className="rounded-2xl overflow-hidden border border-border bg-card">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-muted/30 border-b border-border/30">
-              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">User Identity</th>
-              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Access Status</th>
-              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Platform Role</th>
-              <th className="text-left px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Activity</th>
-              <th className="text-right px-8 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">Operations</th>
+            <tr className="bg-muted/30 border-b border-border">
+              <th className="text-left px-6 py-3 font-semibold text-xs text-muted-foreground">User identity</th>
+              <th className="text-left px-6 py-3 font-semibold text-xs text-muted-foreground">Access status</th>
+              <th className="text-left px-6 py-3 font-semibold text-xs text-muted-foreground">Platform role</th>
+              <th className="text-left px-6 py-3 font-semibold text-xs text-muted-foreground">Activity</th>
+              <th className="text-right px-6 py-3 font-semibold text-xs text-muted-foreground">Operations</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/10">
+          <tbody className="divide-y divide-border">
             {users.map((user) => {
               const banned = isBanned(user);
               const isAdminUser = user.roles.includes("admin");
               return (
                 <tr
                   key={user.id}
-                  className="transition-all hover:bg-muted/20 group"
+                  className="transition-colors hover:bg-muted/30"
                   style={{ opacity: banned ? 0.6 : 1 }}
                 >
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <div className={`absolute inset-0 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${banned ? "bg-destructive/20" : "bg-primary/20"}`} />
-                        {user.profile?.avatar_url ? (
-                          <img src={user.profile.avatar_url} alt="" className="relative w-10 h-10 rounded-xl object-cover border border-border/50 shadow-sm max-w-full" style={{ aspectRatio: '1/1' }} loading="lazy" />
-                        ) : (
-                          <div
-                            className={`relative w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black border transition-all ${banned ? "bg-destructive/10 border-destructive/20 text-destructive" : "bg-primary/10 border-primary/20 text-primary"}`}
-                          >
-                            {(user.profile?.display_name?.[0] || user.email[0]).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-bold text-foreground tracking-tight truncate">
-                          {user.profile?.display_name || "Guest Learner"}
+                  <td className="px-6 py-3.5">
+                    <div className="flex items-center gap-3">
+                      {user.profile?.avatar_url ? (
+                        <img src={user.profile.avatar_url} alt="" className="w-9 h-9 rounded-lg object-cover border border-border" style={{ aspectRatio: '1/1' }} loading="lazy" />
+                      ) : (
+                        <div
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold border ${banned ? "bg-destructive/10 border-destructive/20 text-destructive" : "bg-primary/10 border-primary/20 text-primary"}`}
+                        >
+                          {(user.profile?.display_name?.[0] || user.email[0]).toUpperCase()}
                         </div>
-                        <div className="text-[10px] font-medium text-muted-foreground/50 truncate">
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-medium text-foreground truncate">
+                          {user.profile?.display_name || "Guest learner"}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
                           {user.email}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-6 py-3.5">
                     {banned ? (
-                      <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-destructive/10 border border-destructive/20 text-destructive shadow-sm shadow-destructive/5">
-                        <Ban size={10} /> Banned
+                      <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-md bg-destructive/10 border border-destructive/30 text-destructive">
+                        <Ban size={11} /> Banned
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-success/10 border border-success/20 text-success shadow-sm shadow-success/5">
-                        <ShieldCheck size={10} /> Active
+                      <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-md bg-success/10 border border-success/30 text-success">
+                        <ShieldCheck size={11} /> Active
                       </span>
                     )}
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-6 py-3.5">
                     <select
                       value={user.roles[0] || "user"}
                       onChange={(e) => onSetRole(user.id, e.target.value)}
                       disabled={isAdminUser}
-                      className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl outline-none transition-all cursor-pointer bg-muted/30 border border-border/30 hover:border-primary/30 focus:border-primary/50 disabled:opacity-40"
+                      className="text-xs px-2 py-1 rounded-md outline-none cursor-pointer bg-muted/40 border border-border hover:border-primary/40 focus:border-primary disabled:opacity-40"
                     >
                       <option value="user">User</option>
                       <option value="moderator">Moderator</option>
                       <option value="admin">Admin</option>
                     </select>
                   </td>
-                  <td className="px-8 py-5">
-                    <div className="space-y-1">
-                      <div className="text-[10px] font-bold text-muted-foreground/60 flex items-center gap-1.5">
-                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                        Joined {new Date(user.created_at).toLocaleDateString()}
-                      </div>
-                      <div className="text-[10px] font-bold text-muted-foreground/40 flex items-center gap-1.5">
-                        <span className="w-1 h-1 rounded-full bg-muted-foreground/10" />
-                        Last {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : "Never"}
-                      </div>
+                  <td className="px-6 py-3.5">
+                    <div className="space-y-0.5 text-xs text-muted-foreground">
+                      <div>Joined {new Date(user.created_at).toLocaleDateString()}</div>
+                      <div>Last {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : "Never"}</div>
                     </div>
                   </td>
-                  <td className="px-8 py-5 text-right">
+                  <td className="px-6 py-3.5 text-right">
                     {!isAdminUser && (
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         {banned ? (
                           <AppTooltip content="Unban user">
                             <button
                               onClick={() => onUnban(user.id)}
-                              className="p-2.5 rounded-xl transition-all bg-success/5 text-success hover:bg-success/20 border border-success/10"
+                              className="p-2 rounded-md transition-colors bg-success/10 text-success hover:bg-success/20 border border-success/20"
                               aria-label="Unban user"
                             >
-                              <ShieldCheck size={16} />
+                              <ShieldCheck size={15} />
                             </button>
                           </AppTooltip>
                         ) : (
                           <AppTooltip content="Ban user">
                             <button
                               onClick={() => onBan(user.id, user.email)}
-                              className="p-2.5 rounded-xl transition-all bg-warning/5 text-warning hover:bg-warning/20 border border-warning/10"
+                              className="p-2 rounded-md transition-colors bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20"
                               aria-label="Ban user"
                             >
-                              <Ban size={16} />
+                              <Ban size={15} />
                             </button>
                           </AppTooltip>
                         )}
                         <AppTooltip content="Delete user">
                           <button
                             onClick={() => onDelete(user.id, user.email)}
-                            className="p-2.5 rounded-xl transition-all bg-destructive/5 text-destructive hover:bg-destructive/20 border border-destructive/10"
+                            className="p-2 rounded-md transition-colors bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20"
                             aria-label="Delete user"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={15} />
                           </button>
                         </AppTooltip>
                       </div>
@@ -331,11 +318,11 @@ function UsersTab({
         </table>
       </div>
       {users.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-          <div className="w-16 h-16 rounded-[24px] bg-muted/20 flex items-center justify-center text-muted-foreground/20">
-            <Users size={32} />
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground/50">
+            <Users size={24} />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">No records discovered</p>
+          <p className="text-xs text-muted-foreground">No records discovered</p>
         </div>
       )}
     </div>
@@ -352,32 +339,27 @@ function AnalyticsTab({ stats }: { stats: Stats | null }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {cards.map((card) => (
         <div
           key={card.label}
-          className="group relative p-8 rounded-[32px] bg-card border border-border/50 overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
+          className="relative rounded-2xl bg-card border border-border p-6 transition-colors hover:bg-muted/30"
         >
-          <div 
-            className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity"
-            style={{ background: card.color }}
-          />
-
-          <div className="relative z-10 space-y-4">
+          <div className="space-y-3">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center border transition-all"
-              style={{ background: `${card.color}10`, borderColor: `${card.color}20`, color: card.color }}
+              className="w-10 h-10 rounded-lg flex items-center justify-center border"
+              style={{ background: `${card.color}10`, borderColor: `${card.color}25`, color: card.color }}
             >
-              <card.icon size={24} />
+              <card.icon size={20} />
             </div>
             <div>
-              <div className="text-3xl font-black tracking-tighter text-foreground mb-1">
+              <div className="text-2xl font-bold tracking-tight text-foreground">
                 {card.value}
               </div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              <div className="text-sm font-medium text-muted-foreground mt-0.5">
                 {card.label}
               </div>
-              <p className="text-[9px] font-bold text-muted-foreground/40 mt-3 border-t border-border/10 pt-3">
+              <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
                 {card.desc}
               </p>
             </div>

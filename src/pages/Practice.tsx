@@ -165,10 +165,10 @@ export default function Practice() {
 
   const getDifficultyColor = (diff: string) => {
     switch (diff) {
-      case "Easy": return "bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-500/20";
-      case "Medium": return "bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/20";
-      case "Hard": return "bg-rose-500 text-white border-rose-500 shadow-sm shadow-rose-500/20";
-      default: return "bg-zinc-500 text-white";
+      case "Easy": return "bg-success/10 text-success border-success/30";
+      case "Medium": return "bg-warning/10 text-warning border-warning/30";
+      case "Hard": return "bg-destructive/10 text-destructive border-destructive/30";
+      default: return "bg-muted text-muted-foreground border-border";
     }
   };
 
@@ -177,62 +177,56 @@ export default function Practice() {
   const progressPct = totalProblems ? Math.round((solvedCount / totalProblems) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] dark:bg-[#08080a] selection:bg-amber-500/20 selection:text-amber-900 dark:selection:bg-amber-500/30 dark:selection:text-amber-100">
-      <div className="h-1 w-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500" />
-
-      {/* HERO — larger fonts, better contrast */}
-      <div className="relative overflow-hidden border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.07] via-transparent to-rose-500/[0.06] dark:from-amber-500/[0.08] dark:to-rose-500/[0.06]" />
-        <div className="absolute -top-24 -right-24 w-[520px] h-[520px] bg-amber-500/10 blur-[80px] rounded-full pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-[520px] h-[520px] bg-orange-500/10 blur-[80px] rounded-full pointer-events-none" />
-        <div className="relative mx-auto max-w-[1600px] px-4 md:px-6 lg:px-8 py-10 md:py-12">
+    <div className="min-h-screen bg-background text-foreground">
+      <section className="relative border-b border-border/60">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,hsl(var(--primary)/0.12),transparent_35%),radial-gradient(circle_at_15%_50%,hsl(var(--accent)/0.06),transparent_30%)]" />
+        <div className="relative mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-20 lg:px-16">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-black tracking-widest uppercase shadow-sm">
-                <TrendingUp size={13} className="text-amber-400 dark:text-amber-600" /> Master Data Structures & Algorithms
+            <div className="max-w-2xl">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
+                <TrendingUp size={13} className="text-primary" /> Master data structures & algorithms
               </div>
-              <h1 className="mt-4 text-[32px] md:text-[46px] lg:text-[54px] font-black tracking-tight leading-[0.95]">
-                <span className="text-zinc-900 dark:text-white">Master</span> <span className="text-amber-500">Code.</span> <span className="text-zinc-900 dark:text-white">Ace</span> <span className="text-zinc-400 dark:text-zinc-500">Interviews.</span>
+              <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
+                Master code. <span className="text-primary">Ace interviews.</span>
               </h1>
-              <p className="mt-4 text-[16px] md:text-[17px] leading-7 text-zinc-700 dark:text-zinc-300 max-w-2xl font-medium">
+              <p className="mt-5 text-base leading-7 text-muted-foreground md:text-lg">
                 Curated by pattern — Array, String, Binary Search, Stack, Linked List, Heap, Tree & more. Track progress, save notes, and solve with editorial.
               </p>
-              {loadingState && <div className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-amber-600"><Loader2 size={15} className="animate-spin" /> Syncing your progress...</div>}
+              {loadingState && <div className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={15} className="animate-spin" /> Syncing your progress…</div>}
             </div>
 
-            <div className="w-full lg:w-[380px] shrink-0 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6">
+            <div className="w-full lg:w-[340px] shrink-0 rounded-2xl border border-border bg-card p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[15px] font-bold text-zinc-900 dark:text-white"><Target size={17} className="text-amber-500" /> Your Progress</div>
-                <span className="text-sm font-black px-2.5 py-1 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900">{solvedCount}/{totalProblems}</span>
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground"><Target size={16} className="text-primary" /> Your progress</div>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-muted text-foreground">{solvedCount}/{totalProblems}</span>
               </div>
-              <div className="mt-4 h-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all" style={{ width: `${progressPct}%` }} />
+              <div className="mt-4 h-2 rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-primary transition-all" style={{ width: `${progressPct}%` }} />
               </div>
-              <div className="mt-2.5 flex items-center justify-between text-sm font-medium">
-                <span className="font-bold text-zinc-900 dark:text-white">{progressPct}% completed</span>
-                <span className="text-zinc-600 dark:text-zinc-400">{totalProblems - solvedCount} remaining</span>
+              <div className="mt-2.5 flex items-center justify-between text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{progressPct}% completed</span>
+                <span>{totalProblems - solvedCount} remaining</span>
               </div>
-              <div className="mt-5 grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-3">
-                  <div className="text-xs font-bold tracking-widest uppercase text-zinc-600 dark:text-zinc-400">Solved</div>
-                  <div className="text-base font-black text-zinc-900 dark:text-white mt-1">{solvedCount}</div>
+              <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-lg bg-muted/40 border border-border p-2.5">
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Solved</div>
+                  <div className="text-sm font-semibold text-foreground mt-1">{solvedCount}</div>
                 </div>
-                <div className="rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-3">
-                  <div className="text-xs font-bold tracking-widest uppercase text-zinc-600 dark:text-zinc-400">Saved</div>
-                  <div className="text-base font-black text-zinc-900 dark:text-white mt-1">{savedForRevision.size}</div>
+                <div className="rounded-lg bg-muted/40 border border-border p-2.5">
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Saved</div>
+                  <div className="text-sm font-semibold text-foreground mt-1">{savedForRevision.size}</div>
                 </div>
-                <div className="rounded-xl bg-amber-500 text-white p-3 shadow-sm">
-                  <div className="text-xs font-bold tracking-widest uppercase opacity-90">Total</div>
-                  <div className="text-base font-black mt-1">{totalProblems}</div>
+                <div className="rounded-lg bg-primary text-primary-foreground p-2.5">
+                  <div className="text-[10px] font-medium uppercase tracking-wider opacity-90">Total</div>
+                  <div className="text-sm font-semibold mt-1">{totalProblems}</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* CONTENT — full width, larger fonts */}
-      <div className="mx-auto max-w-[1600px] px-4 md:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16">
         <div className="space-y-12">
           {practiceData.map((topic) => {
             const accent = TOPIC_ACCENTS[topic.id] ?? { bg: "bg-zinc-900", text: "text-zinc-900", border: "border-zinc-200", soft: "bg-zinc-50" };
@@ -240,57 +234,56 @@ export default function Practice() {
             const topicSolved = topic.subtopics.reduce((a, s) => a + s.problems.filter((p) => completed.has(p.id)).length, 0);
             const topicPct = topicTotal ? Math.round((topicSolved / topicTotal) * 100) : 0;
             return (
-              <div key={topic.id} className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-5">
+              <div key={topic.id} className="space-y-5">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border pb-4">
                   <div className="flex items-start gap-4">
-                    <div className={`hidden md:flex w-11 h-11 rounded-xl ${accent.bg} text-white items-center justify-center shadow-sm shrink-0`}>
-                      <Layers size={19} />
+                    <div className={`hidden md:flex w-10 h-10 rounded-lg ${accent.bg} text-white items-center justify-center shrink-0`}>
+                      <Layers size={18} />
                     </div>
                     <div>
-                      <h2 className="text-[22px] md:text-[26px] font-black tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
+                      <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
                         {topic.title}
-                        <span className={`hidden md:inline-flex px-2.5 py-1 rounded-full text-xs font-black tracking-widest uppercase border ${accent.border} ${accent.soft} ${accent.text}`}>{topicSolved}/{topicTotal}</span>
+                        <span className={`hidden md:inline-flex px-2 py-0.5 rounded-md text-xs font-semibold border ${accent.border} ${accent.soft} ${accent.text}`}>{topicSolved}/{topicTotal}</span>
                       </h2>
-                      <p className="mt-1.5 text-[15px] leading-7 text-zinc-700 dark:text-zinc-300 max-w-3xl font-medium">{topic.description}</p>
+                      <p className="mt-1.5 text-sm leading-6 text-muted-foreground max-w-3xl">{topic.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="hidden md:flex items-center gap-2 text-sm font-bold text-zinc-600 dark:text-zinc-300">
-                      <Code2 size={15} className={accent.text} /> {topicPct}% done
+                    <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
+                      <Code2 size={13} className={accent.text} /> {topicPct}% done
                     </div>
-                    <div className="md:hidden px-3 py-1.5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-black">{topicSolved}/{topicTotal}</div>
                   </div>
                 </div>
 
-                <div className="grid gap-6 grid-cols-1">
+                <div className="grid gap-4 grid-cols-1">
                   {topic.subtopics.map((sub) => {
                     const total = sub.problems.length;
                     const done = sub.problems.filter((p) => completed.has(p.id)).length;
                     const progress = total ? (done / total) * 100 : 0;
                     const isDone = done === total && total > 0;
                     return (
-                      <div key={sub.id} className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col">
-                        <div className={`h-1 w-full ${isDone ? "bg-emerald-500" : `bg-gradient-to-r ${accent.bg === "bg-blue-500" ? "from-blue-500 to-cyan-500" : accent.bg === "bg-emerald-500" ? "from-emerald-500 to-teal-500" : accent.bg === "bg-amber-500" ? "from-amber-500 to-orange-500" : accent.bg === "bg-purple-500" ? "from-purple-500 to-pink-500" : accent.bg === "bg-rose-500" ? "from-rose-500 to-pink-500" : "from-zinc-900 to-zinc-700"}`}`} />
+                      <div key={sub.id} className="group bg-card border border-border rounded-2xl overflow-hidden transition-all flex flex-col hover:border-primary/30">
+                        <div className={`h-0.5 w-full ${isDone ? "bg-success" : "bg-muted"}`} />
                         <Accordion type="single" collapsible value={openSubtopicId === sub.id ? sub.id : undefined} onValueChange={(v) => setOpenSubtopicId(v === sub.id ? sub.id : null)} className="w-full">
                           <AccordionItem value={sub.id} className="border-none">
-                            <AccordionTrigger className="hover:no-underline p-6 group/trigger">
+                            <AccordionTrigger className="hover:no-underline px-6 py-5 group/trigger">
                               <div className="flex flex-col items-start text-left gap-2.5 w-full pr-2">
                                 <div className="flex items-center justify-between w-full gap-3">
-                                  <h3 className="text-[16px] md:text-[17px] font-black tracking-tight text-zinc-900 dark:text-white group-hover/trigger:text-amber-600 transition-colors line-clamp-1">
+                                  <h3 className="text-base font-semibold tracking-tight text-foreground group-hover/trigger:text-primary transition-colors line-clamp-1">
                                     {sub.title}
                                   </h3>
-                                  <div className={`shrink-0 px-3 py-1 text-sm font-black rounded-full border flex items-center gap-1.5 ${isDone ? "bg-emerald-500 border-emerald-500 text-white" : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"}`}>
-                                    {isDone && <CheckCircle2 size={13} />} {done}/{total}
+                                  <div className={`shrink-0 px-2.5 py-0.5 text-xs font-semibold rounded-md border flex items-center gap-1.5 ${isDone ? "bg-success/10 border-success/30 text-success" : "bg-muted/40 border-border text-muted-foreground"}`}>
+                                    {isDone && <CheckCircle2 size={12} />} {done}/{total}
                                   </div>
                                 </div>
-                                <p className="text-[14px] leading-6 text-zinc-700 dark:text-zinc-300 line-clamp-2 max-w-[95%] font-medium">{sub.description}</p>
-                                <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden mt-2">
-                                  <motion.div className={`h-full ${isDone ? "bg-emerald-500" : "bg-zinc-900 dark:bg-white"}`} initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
+                                <p className="text-sm leading-6 text-muted-foreground line-clamp-2 max-w-[95%]">{sub.description}</p>
+                                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mt-2">
+                                  <motion.div className={`h-full ${isDone ? "bg-success" : "bg-primary"}`} initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
                                 </div>
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-6 pb-6 pt-0">
-                              <div className="space-y-3.5">
+                              <div className="space-y-2.5">
                                 {sub.problems.map((prob) => {
                                   const checked = completed.has(prob.id);
                                   const isRevisionSaved = savedForRevision.has(prob.id);
@@ -298,53 +291,53 @@ export default function Practice() {
                                   const hasNotes = (notesByProblem[prob.id] ?? "").trim().length > 0;
                                   const rowBusy = upsertingProblemId === prob.id;
                                   return (
-                                    <div key={prob.id} className={`group/row p-4 md:p-5 rounded-xl border transition-all ${checked ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/20" : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/30 hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm"}`}>
+                                    <div key={prob.id} className={`group/row p-4 rounded-xl border transition-colors ${checked ? "border-success/40 bg-success/5" : "border-border bg-card hover:bg-muted/30"}`}>
                                       <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-center gap-3.5 min-w-0">
-                                          <Checkbox id={prob.id} checked={checked} onCheckedChange={() => void toggleProblem(prob.id)} className="h-5 w-5 rounded-md border-2 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 shrink-0" />
-                                          <label htmlFor={prob.id} className={`text-[15px] font-bold cursor-pointer select-none truncate leading-5 ${checked ? "text-zinc-500 line-through" : "text-zinc-900 dark:text-white"}`}>
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          <Checkbox id={prob.id} checked={checked} onCheckedChange={() => void toggleProblem(prob.id)} className="h-4 w-4 rounded border-border data-[state=checked]:bg-success data-[state=checked]:border-success shrink-0" />
+                                          <label htmlFor={prob.id} className={`text-sm font-medium cursor-pointer select-none truncate leading-5 ${checked ? "text-muted-foreground line-through" : "text-foreground"}`}>
                                             {prob.title}
                                           </label>
-                                          {checked && <CheckCircle2 size={15} className="text-emerald-500 hidden sm:block" />}
+                                          {checked && <CheckCircle2 size={14} className="text-success hidden sm:block" />}
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
-                                          <span className={`text-xs font-black px-2.5 py-1 rounded-full border ${getDifficultyColor(prob.difficulty)}`}>{prob.difficulty}</span>
-                                          {rowBusy && <Loader2 size={15} className="animate-spin text-zinc-500" />}
+                                          <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${getDifficultyColor(prob.difficulty)}`}>{prob.difficulty}</span>
+                                          {rowBusy && <Loader2 size={13} className="animate-spin text-muted-foreground" />}
                                         </div>
                                       </div>
 
-                                      <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                                      <div className="mt-3 flex flex-wrap items-center gap-2">
                                         <div className="flex flex-wrap gap-1.5 mr-auto">
                                           {prob.companies.slice(0, 4).map((c) => (
-                                            <span key={`${prob.id}-${c}`} className="text-xs font-bold px-2.5 py-1 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300">
+                                            <span key={`${prob.id}-${c}`} className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted border border-border text-muted-foreground">
                                               {c}
                                             </span>
                                           ))}
-                                          {prob.companies.length > 4 && <span className="text-xs font-bold text-zinc-500">+{prob.companies.length - 4}</span>}
+                                          {prob.companies.length > 4 && <span className="text-xs text-muted-foreground">+{prob.companies.length - 4}</span>}
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1.5">
                                           <AppTooltip content="LeetCode">
-                                            <a href={prob.leetcodeLink} target="_blank" rel="noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-zinc-900 transition-colors">
-                                              <span className="text-xs font-black">LC</span>
+                                            <a href={prob.leetcodeLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-muted border border-border text-xs font-medium text-muted-foreground hover:bg-foreground hover:text-background transition-colors">
+                                              LC
                                             </a>
                                           </AppTooltip>
                                           <AppTooltip content="GeeksforGeeks">
-                                            <a href={prob.gfgLink} target="_blank" rel="noreferrer" className="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors">
-                                              <span className="text-xs font-black">GFG</span>
+                                            <a href={prob.gfgLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-muted border border-border text-xs font-medium text-muted-foreground hover:bg-success hover:text-success-foreground hover:border-success transition-colors">
+                                              GFG
                                             </a>
                                           </AppTooltip>
-                                          <Link to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`} className="px-4 py-2 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-black hover:opacity-90 inline-flex items-center gap-1.5">
-                                            Solution <ArrowRight size={13} />
+                                          <Link to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`} className="h-7 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:brightness-95 inline-flex items-center gap-1">
+                                            Solution <ArrowRight size={12} />
                                           </Link>
                                         </div>
                                       </div>
 
-                                      <div className="mt-3.5 flex flex-wrap items-center gap-2 pt-3.5 border-t border-zinc-200 dark:border-zinc-700/50">
-                                        <button type="button" onClick={() => openNotesPopup(prob.id)} disabled={isSavingNotes} className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold border transition-colors ${hasNotes ? "bg-amber-500 border-amber-500 text-white" : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50"}`}>
-                                          {isSavingNotes ? <Loader2 size={13} className="animate-spin" /> : <StickyNote size={13} />} {hasNotes ? "Edit Note" : "Add Note"}
+                                      <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-border">
+                                        <button type="button" onClick={() => openNotesPopup(prob.id)} disabled={isSavingNotes} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${hasNotes ? "bg-primary/10 border-primary/30 text-primary" : "bg-card border-border text-muted-foreground hover:bg-muted"}`}>
+                                          {isSavingNotes ? <Loader2 size={12} className="animate-spin" /> : <StickyNote size={12} />} {hasNotes ? "Edit note" : "Add note"}
                                         </button>
-                                        <button type="button" onClick={() => void toggleSaveForRevision(prob.id)} className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold border ${isRevisionSaved ? "bg-amber-500 border-amber-500 text-white" : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900"}`}>
-                                          <Sparkles size={13} /> {isRevisionSaved ? "Saved" : "Save"}
+                                        <button type="button" onClick={() => void toggleSaveForRevision(prob.id)} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${isRevisionSaved ? "bg-primary/10 border-primary/30 text-primary" : "bg-card border-border text-muted-foreground hover:bg-muted"}`}>
+                                          <Sparkles size={12} /> {isRevisionSaved ? "Saved" : "Save"}
                                         </button>
                                       </div>
                                     </div>

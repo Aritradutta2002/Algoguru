@@ -11,31 +11,27 @@ const ITEMS: { status: NodeStatus; label: string; icon: React.ReactNode; cls: st
     status: "completed",
     label: "Completed",
     icon: <Check size={11} strokeWidth={3} />,
-    cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
+    cls: "border-success/30 bg-success/10 text-success",
   },
   {
     status: "in-progress",
     label: "In progress",
     icon: <CircleDot size={11} />,
-    cls: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+    cls: "border-warning/30 bg-warning/10 text-warning",
   },
   {
     status: "not-started",
     label: "Not started",
     icon: <CircleDashed size={11} />,
-    cls: "border-border/40 bg-muted/40 text-muted-foreground",
+    cls: "border-border bg-muted/40 text-muted-foreground",
   },
 ];
 
-/**
- * Compact legend showing the three node statuses.
- * Used inside `RoadmapHeader` so users always know what the colours mean.
- */
 export function RoadmapLegend({ className }: RoadmapLegendProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest",
+        "flex items-center gap-1.5 text-[11px] font-medium",
         className
       )}
       role="list"
@@ -46,7 +42,7 @@ export function RoadmapLegend({ className }: RoadmapLegendProps) {
           key={it.status}
           role="listitem"
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
+            "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5",
             it.cls
           )}
         >

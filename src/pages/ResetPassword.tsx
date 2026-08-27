@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Lock, ArrowRight } from "lucide-react";
+import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
@@ -51,31 +51,38 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "hsl(var(--background))" }}>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold" style={{ color: "hsl(var(--foreground))" }}>Reset Password</h1>
-          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Enter your new password</p>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-foreground">Reset password</h1>
+          <p className="text-sm mt-1 text-muted-foreground">Enter your new password</p>
         </div>
-        <div className="p-6 rounded-2xl" style={{ background: "var(--gradient-card)", border: "1px solid hsl(var(--border))" }}>
+        <div className="p-6 rounded-2xl bg-card border border-border">
           {success ? (
-            <div className="text-center text-sm py-4" style={{ color: "hsl(var(--success))" }}>Password updated! Redirecting...</div>
+            <div className="text-center text-sm py-4 text-success">Password updated! Redirecting…</div>
           ) : (
             <form onSubmit={handleReset} className="space-y-4">
               <div>
                 <div className="relative">
-                  <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
-                  <input type="password" placeholder="New password" value={password} onChange={(e) => { setPassword(e.target.value); setFieldError(""); }} required minLength={8}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none" style={{ background: "hsl(var(--muted)/0.4)", border: `1px solid hsl(var(--${fieldError ? "destructive" : "border"}))`, color: "hsl(var(--foreground))" }} />
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="password"
+                    placeholder="New password"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setFieldError(""); }}
+                    required
+                    minLength={8}
+                    className={`w-full h-10 pl-9 pr-3 rounded-lg bg-muted/40 text-sm outline-none border transition-colors focus:border-primary ${fieldError ? "border-destructive/60" : "border-border hover:border-primary/40"}`}
+                  />
                 </div>
-                {fieldError && <p className="text-xs mt-1.5 px-1" style={{ color: "hsl(var(--destructive))" }}>{fieldError}</p>}
-                <p className="text-[10px] mt-1.5 px-1" style={{ color: "hsl(var(--muted-foreground))" }}>
+                {fieldError && <p className="text-xs mt-1.5 px-1 text-destructive">{fieldError}</p>}
+                <p className="text-xs mt-1.5 px-1 text-muted-foreground">
                   Min 8 chars, uppercase, lowercase, and a number
                 </p>
               </div>
-              {error && <div className="text-xs px-3 py-2 rounded-lg" style={{ background: "hsl(var(--destructive)/0.1)", color: "hsl(var(--destructive))" }}>{error}</div>}
-              <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-sm font-bold" style={{ background: "var(--gradient-primary)", color: "hsl(var(--primary-foreground))" }}>
-                {loading ? "Updating..." : "Update Password"}
+              {error && <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2">{error}</div>}
+              <button type="submit" disabled={loading} className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:brightness-95 disabled:opacity-60">
+                {loading ? "Updating…" : "Update password"}
               </button>
             </form>
           )}

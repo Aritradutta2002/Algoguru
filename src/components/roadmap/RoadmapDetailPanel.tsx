@@ -57,32 +57,31 @@ export function RoadmapDetailPanel({
       aria-labelledby="rm-detail-title"
       className={cn(
         "pointer-events-auto absolute right-0 top-0 z-30 h-full w-full max-w-md",
-        "border-l border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl",
-        "flex flex-col animate-in slide-in-from-right-4 fade-in duration-300"
+        "border-l border-border bg-card shadow-xl",
+        "flex flex-col"
       )}
     >
-      {/* Header */}
       <div
-        className="h-1.5 w-full shrink-0"
+        className="h-1 w-full shrink-0"
         style={{ background: accent }}
         aria-hidden="true"
       />
-      <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-4 border-b border-border/40">
+      <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3 border-b border-border">
         <div className="min-w-0">
           <div
-            className="text-[10px] font-black uppercase tracking-[0.25em]"
+            className="text-[11px] font-semibold uppercase tracking-wider"
             style={{ color: accent }}
           >
             {node.category}
           </div>
           <h2
             id="rm-detail-title"
-            className="text-xl font-black uppercase tracking-tight leading-tight mt-1"
+            className="text-lg font-bold tracking-tight leading-tight mt-0.5"
           >
             {node.title}
           </h2>
           {node.subtitle && (
-            <p className="text-[11px] text-muted-foreground mt-1 font-medium">
+            <p className="text-xs text-muted-foreground mt-1">
               {node.subtitle}
             </p>
           )}
@@ -91,29 +90,22 @@ export function RoadmapDetailPanel({
           type="button"
           onClick={onClose}
           aria-label="Close detail panel"
-          className={cn(
-            "shrink-0 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground",
-            "hover:bg-muted hover:text-foreground transition-all active:scale-95",
-            "focus:outline-none focus:ring-2 focus:ring-primary/40"
-          )}
+          className="shrink-0 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
         >
-          <X size={16} />
+          <X size={15} />
         </button>
       </div>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-        {/* Description */}
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
         <section>
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
             About this topic
           </h3>
-          <p className="text-sm leading-relaxed text-foreground/90">
+          <p className="text-sm leading-6 text-foreground/90">
             {node.description}
           </p>
         </section>
 
-        {/* Stats */}
         <section className="grid grid-cols-2 gap-3">
           <StatTile
             label="Resources"
@@ -127,9 +119,8 @@ export function RoadmapDetailPanel({
           />
         </section>
 
-        {/* Prerequisites */}
         <section>
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1.5">
             <ListChecks size={11} />
             Prerequisites
           </h3>
@@ -144,12 +135,7 @@ export function RoadmapDetailPanel({
                   <button
                     type="button"
                     onClick={() => onSelectPrereq(id)}
-                    className={cn(
-                      "w-full flex items-center gap-2 rounded-lg border border-border/40 bg-muted/30",
-                      "px-3 py-2 text-left text-xs font-semibold text-foreground",
-                      "hover:border-primary/40 hover:bg-primary/5 transition-all active:scale-[0.99]",
-                      "focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    )}
+                    className="w-full flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-left text-xs font-medium text-foreground hover:border-primary/40 hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
                   >
                     <ArrowRight size={12} className="text-muted-foreground" />
                     <span className="flex-1">{titleOf(id)}</span>
@@ -214,14 +200,14 @@ function StatTile({
   sub: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-muted/30 px-3 py-2.5">
-      <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
-      <div className="text-xl font-black tracking-tight leading-none mt-1">
+      <div className="text-xl font-bold tracking-tight leading-none mt-1">
         {value}
       </div>
-      <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>
+      <div className="text-xs text-muted-foreground mt-1">{sub}</div>
     </div>
   );
 }
@@ -240,14 +226,14 @@ function StatusButton({
   tone: "muted" | "amber" | "emerald";
 }) {
   const toneCls = {
-    muted: "border-border/40 text-muted-foreground hover:bg-muted",
-    amber: "border-amber-500/40 text-amber-400 hover:bg-amber-500/10",
-    emerald: "border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10",
+    muted: "border-border text-muted-foreground hover:bg-muted",
+    amber: "border-warning/30 text-warning hover:bg-warning/10",
+    emerald: "border-success/30 text-success hover:bg-success/10",
   }[tone];
   const activeCls = {
     muted: "bg-muted text-foreground",
-    amber: "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/40",
-    emerald: "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/40",
+    amber: "bg-warning/15 text-warning ring-1 ring-warning/40",
+    emerald: "bg-success/15 text-success ring-1 ring-success/40",
   }[tone];
   return (
     <button
@@ -255,7 +241,7 @@ function StatusButton({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "inline-flex flex-col items-center justify-center gap-1.5 rounded-xl border bg-card/40 px-2 py-3 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95",
+        "inline-flex flex-col items-center justify-center gap-1 rounded-lg border bg-card px-2 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors",
         "focus:outline-none focus:ring-2 focus:ring-primary/40",
         toneCls,
         active && activeCls

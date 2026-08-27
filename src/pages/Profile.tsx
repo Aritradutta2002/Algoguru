@@ -682,12 +682,12 @@ export default function Profile() {
   }, [currentEasySolved, currentMediumSolved, currentHardSolved, dataMode, leetcodeData]);
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 animate-in fade-in duration-700 relative">
+    <div className="flex-1 min-h-screen bg-background text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 relative">
       {showLeetcodePrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-card text-card-foreground border border-border/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
-            <h3 className="text-lg font-bold text-foreground">
-              Link LeetCode Account
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">
+              Link LeetCode account
             </h3>
             <p className="text-sm text-muted-foreground">
               Enter your LeetCode username to sync your progress and heatmap.
@@ -696,20 +696,20 @@ export default function Profile() {
               value={promptUsername}
               onChange={(e) => setPromptUsername(e.target.value)}
               placeholder="e.g. aritr_dutta"
-              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm text-foreground outline-none focus:border-primary/50"
+              className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
               autoFocus
             />
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setShowLeetcodePrompt(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="px-3.5 py-2 rounded-lg text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
               >
                 Cancel
               </button>
               <button
                 onClick={saveLeetcodePrompt}
                 disabled={isLeetcodeLoading || !promptUsername.trim()}
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center gap-2 disabled:opacity-50"
+                className="px-3.5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 disabled:opacity-50 hover:brightness-95"
               >
                 {isLeetcodeLoading && (
                   <Loader2 size={14} className="animate-spin" />
@@ -722,10 +722,10 @@ export default function Profile() {
       )}
 
       {showCodechefPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-card text-card-foreground border border-border/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 zoom-in-95 animate-in">
-            <h3 className="text-lg font-bold text-foreground">
-              Link CodeChef Account
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">
+              Link CodeChef account
             </h3>
             <p className="text-sm text-muted-foreground">
               Enter your CodeChef handle to sync your stats.
@@ -734,20 +734,20 @@ export default function Profile() {
               value={codechefPromptUsername}
               onChange={(e) => setCodechefPromptUsername(e.target.value)}
               placeholder="e.g. codechef_user"
-              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm text-foreground outline-none focus:border-primary/50"
+              className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
               autoFocus
             />
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setShowCodechefPrompt(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="px-3.5 py-2 rounded-lg text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
               >
                 Cancel
               </button>
               <button
                 onClick={saveCodechefPrompt}
                 disabled={isCodechefLoading || !codechefPromptUsername.trim()}
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center gap-2 disabled:opacity-50"
+                className="px-3.5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium flex items-center gap-2 disabled:opacity-50 hover:brightness-95"
               >
                 {isCodechefLoading && (
                   <Loader2 size={14} className="animate-spin" />
@@ -760,17 +760,17 @@ export default function Profile() {
       )}
 
       <div className="w-full lg:w-[320px] shrink-0 space-y-6">
-        <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col">
+        <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative group">
               {resolvedAvatar ? (
                 <img
                   src={resolvedAvatar}
                   alt="Avatar"
-                  className="w-16 h-16 rounded-xl object-cover border border-white/10"
+                  className="w-16 h-16 rounded-xl object-cover border border-border"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold bg-primary/20 text-primary border border-primary/20">
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-semibold bg-primary/10 text-primary border border-primary/20">
                   {displayName?.[0]?.toUpperCase() ||
                     user?.email?.[0]?.toUpperCase() ||
                     "?"}
@@ -810,20 +810,20 @@ export default function Profile() {
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 transition-colors text-xs font-semibold"
+              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors text-xs font-medium"
             >
               <Edit2 size={14} />
-              {isEditing ? "Cancel" : "Edit Profile"}
+              {isEditing ? "Cancel" : "Edit profile"}
             </button>
-            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 transition-colors text-xs font-semibold">
+            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors text-xs font-medium">
               <Share2 size={14} />
               Share
             </button>
           </div>
 
           <div className="space-y-4 text-xs font-medium text-muted-foreground">
-            <h3 className="text-sm font-bold text-foreground mb-2">
-              Basic Information
+            <h3 className="text-sm font-semibold text-foreground mb-2">
+              Basic information
             </h3>
             {roleTitle && (
               <div className="flex items-center gap-3">
@@ -882,136 +882,136 @@ export default function Profile() {
 
       <div className="flex-1 min-w-0 space-y-6">
         {isEditing ? (
-          <div className="bg-card text-card-foreground rounded-2xl p-6 md:p-10 border border-border/40 shadow-xl space-y-8 animate-in fade-in zoom-in-95">
-            <h2 className="text-xl font-bold">Edit Profile</h2>
+          <div className="bg-card text-card-foreground rounded-2xl p-6 md:p-10 border border-border space-y-8">
+            <h2 className="text-xl font-semibold">Edit profile</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Display Name
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Display name
                 </label>
                 <input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="John Doe"
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Role / Title
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Role / title
                 </label>
                 <input
                   value={roleTitle}
                   onChange={(e) => setRoleTitle(e.target.value)}
                   placeholder="Software Engineer"
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Education / University
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Education / university
                 </label>
                 <input
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
                   placeholder="E.g. Academy of Technology"
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                About Me (Bio)
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">
+                About me
               </label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Tell us about yourself..."
-                className="w-full px-4 py-3 min-h-[100px] rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all resize-y"
+                className="w-full px-3.5 py-2.5 min-h-[100px] rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors resize-y"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  LeetCode Username
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  LeetCode username
                 </label>
                 <input
                   value={leetcodeUsername}
                   onChange={(e) => setLeetcodeUsername(e.target.value)}
                   placeholder="e.g. aritr_dutta"
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  CodeChef Handle
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  CodeChef handle
                 </label>
                 <input
                   value={codechefUsername}
                   onChange={(e) => setCodechefUsername(e.target.value)}
                   placeholder="e.g. codechef_user"
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
                   GitHub
                 </label>
                 <input
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/..."
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
                   LinkedIn
                 </label>
                 <input
                   value={linkedinUrl}
                   onChange={(e) => setLinkedinUrl(e.target.value)}
                   placeholder="https://linkedin.com/in/..."
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
-              <div className="space-y-2 lg:col-span-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <div className="space-y-1.5 lg:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground">
                   Website
                 </label>
                 <input
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-sm font-medium outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-sm outline-none focus:border-primary transition-colors"
                 />
               </div>
             </div>
 
-            <div className="pt-6 flex justify-end">
+            <div className="pt-4 flex justify-end">
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:brightness-95 transition-all disabled:opacity-50"
               >
                 {saving ? (
                   <Loader2 className="animate-spin w-4 h-4" />
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                Save Changes
+                Save changes
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in zoom-in-95">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
-              <div ref={dsaCardRef} className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1">
+              <div ref={dsaCardRef} className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1">
                 <div className="flex flex-col items-start gap-4 w-full mb-8 relative z-10">
-                  <h3 className="text-[16px] font-bold tracking-wide text-foreground/90 shrink-0">
-                    DSA Progress
+                  <h3 className="text-base font-semibold text-foreground shrink-0">
+                    DSA progress
                   </h3>
 
                   {/* ── Adaptive toggle: inline pills when wide, dropdown when narrow ── */}
@@ -1020,7 +1020,7 @@ export default function Profile() {
                       <select
                         value={dataMode}
                         onChange={(e) => handleModeToggle(e.target.value as "website" | "leetcode" | "codechef")}
-                        className="appearance-none w-full px-3 py-2 bg-muted rounded-xl border border-border/50 shadow-inner text-[12px] font-semibold text-foreground transition-all hover:bg-muted/80 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="appearance-none w-full px-3 py-2 bg-muted rounded-lg border border-border text-xs font-medium text-foreground transition-colors hover:bg-muted/80 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
                       >
                         <option value="website">Algoguru</option>
                         <option value="leetcode">LeetCode</option>
@@ -1032,14 +1032,14 @@ export default function Profile() {
                       />
                     </div>
                   ) : (
-                    <div className="flex p-1 bg-muted rounded-full min-w-0 border border-border/50 shadow-inner">
+                    <div className="flex p-1 bg-muted rounded-lg min-w-0 border border-border">
                       <button
                         onClick={() => handleModeToggle("website")}
                         className={cn(
-                          "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
+                          "whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-center",
                           dataMode === "website"
-                            ? "bg-background text-foreground shadow-sm border border-border"
-                            : "text-muted-foreground hover:text-foreground border border-transparent",
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground",
                         )}
                       >
                         Algoguru
@@ -1047,10 +1047,10 @@ export default function Profile() {
                       <button
                         onClick={() => handleModeToggle("leetcode")}
                         className={cn(
-                          "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
+                          "whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-center",
                           dataMode === "leetcode"
-                            ? "bg-background text-foreground shadow-sm border border-border"
-                            : "text-muted-foreground hover:text-foreground border border-transparent",
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground",
                         )}
                       >
                         LeetCode
@@ -1058,10 +1058,10 @@ export default function Profile() {
                       <button
                         onClick={() => handleModeToggle("codechef")}
                         className={cn(
-                          "whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all text-center",
+                          "whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-center",
                           dataMode === "codechef"
-                            ? "bg-background text-foreground shadow-sm border border-border"
-                            : "text-muted-foreground hover:text-foreground border border-transparent",
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground",
                         )}
                       >
                         CodeChef
@@ -1137,7 +1137,7 @@ export default function Profile() {
                            </>
                         )}
                         {dataMode === "codechef" && (
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-1">
+                          <span className="text-[10px] font-medium text-muted-foreground mt-1">
                             Rating
                           </span>
                         )}
@@ -1161,7 +1161,7 @@ export default function Profile() {
                                 isActive ? "opacity-100" : "opacity-40"
                               )}
                             >
-                              <div className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: segment.stroke, color: segment.stroke }} />
+                              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: segment.stroke }} />
                               <span className="text-xs text-muted-foreground font-medium">
                                 {segment.label}
                               </span>
@@ -1198,9 +1198,9 @@ export default function Profile() {
               </div>
 
               {/* Subject Progress */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[240px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col relative min-h-[240px]">
                 <h3 className="text-sm font-semibold mb-auto">
-                  Subject Progress
+                  Subject progress
                 </h3>
                 <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
                   <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
@@ -1214,7 +1214,7 @@ export default function Profile() {
               </div>
 
               {/* Skills */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col relative min-h-[240px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col relative min-h-[240px]">
                 <h3 className="text-sm font-semibold mb-auto">Skills</h3>
                 <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
                   <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
@@ -1222,14 +1222,14 @@ export default function Profile() {
                     <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Edit Profile to add skills
+                    Edit profile to add skills
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Heatmap Area */}
-            <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl w-full overflow-hidden">
+            <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border w-full overflow-hidden">
               <ActivityHeatmap
                 websiteCalendar={websiteData?.submissionCalendar || {}}
                 leetcodeCalendar={leetcodeData?.submissionCalendar || {}}
@@ -1248,9 +1248,9 @@ export default function Profile() {
             {/* Bottom Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coding Profiles */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col min-h-[200px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col min-h-[200px]">
                 <h3 className="text-sm font-semibold mb-auto">
-                  Coding Profiles
+                  Coding profiles
                 </h3>
                 <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
                   <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
@@ -1261,7 +1261,7 @@ export default function Profile() {
               </div>
 
               {/* Contests */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border/40 shadow-xl flex flex-col min-h-[200px]">
+              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col min-h-[200px]">
                 <h3 className="text-sm font-semibold mb-auto">Contests</h3>
                 <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
                   <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";import { Coffee, Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, Zap, Terminal, ChevronRight, Star, CalendarDays, Map as MapIcon, X
+import { motion } from "framer-motion";import { Code2, Trophy, BrainCircuit, Target,
+  ArrowRight, Check, CalendarDays, Map as MapIcon, Play, Sparkles
 } from "lucide-react";
 import { RoadmapFullscreenOverlay } from "@/components/roadmap/RoadmapFullscreenOverlay";
 
@@ -18,19 +18,6 @@ const SECTIONS = [
     accentClass: "border-[#A78BFA] group-hover:text-[#A78BFA]",
     route: "__open_roadmap__",
     stats: "3 Learning Paths",
-  },
-  {
-    id: "java",
-    title: "Core CS Subjects",
-    subtitle: "From basics to OS",
-    desc: "Complete CS from fundamentals through advanced topics like OS, DBMS, Networks, and Multithreading.",
-    icon: <Coffee size={24} />,
-    color: "#A8A4F5",
-    tag: "Core CS",
-    pillClass: "bg-category-core text-gray-900 border-transparent",
-    accentClass: "border-accentLine-core group-hover:text-accentLine-core",
-    route: "/java-basics",
-    stats: "9 Full Modules",
   },
   {
     id: "interview",
@@ -99,182 +86,60 @@ const SECTIONS = [
   },
 ];
 
-const TICKER_ITEMS = [
-  "ALGORITHMS", "INTERVIEW PREP", "LEETCODE PATTERNS", "CODECHEF",
-  "CORE JAVA", "COMPETITIVE PROGRAMMING", "DSA MASTERY", "GRAPH THEORY",
-  "DYNAMIC PROGRAMMING", "SYSTEM DESIGN", "DATA STRUCTURES", "PROBLEM SOLVING",
-];
-
 export default function Index() {
   const navigate = useNavigate();
-  const [showFab, setShowFab] = useState(true);
   const [roadmapOpen, setRoadmapOpen] = useState(false);
-  useEffect(() => {
-    const hidden = localStorage.getItem("hide-java-roadmap-fab");
-    if (hidden === "1") setShowFab(false);
-  }, []);
-
   const openRoadmap = () => setRoadmapOpen(true);
-  const dismissFab = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowFab(false);
-    localStorage.setItem("hide-java-roadmap-fab", "1");
-  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
-
-      {/* ── MARQUEE TICKER TAPE ─────────────────────────── */}
-      <div
-        className="w-full overflow-hidden border-b border-border/40 py-3 bg-muted/20 backdrop-blur-sm"
-        aria-hidden="true"
-      >
-        <motion.div
-          className="flex gap-0 whitespace-nowrap"
-          animate={{ x: [0, -2400] }}
-          transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
-        >
-          {[...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
-            <span key={i} className="text-muted-foreground/50 text-[10px] font-black uppercase tracking-[0.3em] mr-16 flex items-center gap-4">
-              <Star size={10} className="inline text-primary/30" fill="currentColor" />
-              {item}
-            </span>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="px-4 md:px-10 lg:px-16 py-12 md:py-24 max-w-7xl mx-auto relative overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-
-        <div className="relative z-10 text-center md:text-left">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-6">
-              <Zap size={12} className="text-primary" />
-              <span className="text-muted-foreground">The ultimate platform for modern developers</span>
+    <main className="min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
+      <section className="relative border-b border-border/60">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,hsl(var(--primary)/0.14),transparent_30%),radial-gradient(circle_at_15%_30%,hsl(var(--accent)/0.08),transparent_26%)]" />
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-20 md:px-10 md:py-28 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:px-16">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
+              <Sparkles size={14} className="text-primary" /> Built for deliberate practice
             </div>
-
-            {/* Hero Title */}
-            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black uppercase leading-[1.1] tracking-tighter mb-8">
-              Master <span className="text-primary">Code</span>.{" "}
-              Ace <span className="text-accent">Interviews</span>.
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.045em] md:text-6xl lg:text-7xl">
+              Become the engineer teams want to hire.
             </h1>
-
-            <p className="text-sm md:text-base font-medium text-muted-foreground max-w-xl leading-relaxed mb-10 mx-auto md:mx-0">
-              The straight-to-the-point platform built for developers who want
-              to crack DSA, ace interviews, and understand Java deeply. No fluff. Just high-quality content.
+            <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
+              A focused workspace for mastering data structures, system design, and the interviews that move your career forward.
             </p>
-
-            <div className="flex flex-wrap justify-center md:justify-start gap-4">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="bg-[#F3F4F6] text-[#111827] px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg transition-all hover:bg-[#E5E7EB]"
-              >
-                Start Learning
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate("/playground")}
-                className="bg-card text-foreground border px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-muted"
-              >
-                Try Playground
-              </motion.button>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <button onClick={() => document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                Explore learning paths <ArrowRight size={16} />
+              </button>
+              <button onClick={() => navigate("/playground")} className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                <Play size={15} fill="currentColor" /> Open playground
+              </button>
             </div>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground">
+              {["Structured paths", "Interview-ready practice", "Learn at your pace"].map((item) => <span key={item} className="flex items-center gap-2"><Check size={15} className="text-primary" />{item}</span>)}
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1, duration: 0.5 }} className="rounded-2xl border border-border bg-card p-5 shadow-xl shadow-black/5 md:p-7">
+            <div className="flex items-center justify-between border-b border-border pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Start here</p><h2 className="mt-1 text-xl font-bold">Your learning plan</h2></div><span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">Curated</span></div>
+            <div className="space-y-4 py-6">
+              {["Build your DSA foundation", "Learn system design patterns", "Practice under interview conditions"].map((item, index) => <div key={item} className="flex items-center gap-4"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-xs font-bold">0{index + 1}</span><p className="font-medium">{item}</p></div>)}
+            </div>
+            <button onClick={openRoadmap} className="flex w-full items-center justify-between rounded-xl bg-muted/60 p-4 text-left transition hover:bg-muted"><span className="flex items-center gap-3 text-sm font-semibold"><MapIcon size={18} className="text-primary" /> Browse the full roadmap</span><ArrowRight size={17} className="text-muted-foreground" /></button>
           </motion.div>
         </div>
       </section>
 
-      {/* ── ROADMAP — small, accessible from current position ────────────── */}
-      {/* Hero inline small link */}
-      <div className="mx-auto max-w-7xl px-4 md:px-10 lg:px-16 -mt-2 md:-mt-4 mb-6 flex justify-center md:justify-start">
-        <button
-          onClick={openRoadmap}
-          className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-muted-foreground hover:text-primary transition-colors group"
-        >
-          <MapIcon size={13} className="text-primary" />
-          View <span className="text-foreground group-hover:text-primary">Roadmap</span>
-          <ArrowRight size={12} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-        </button>
-      </div>
-
-      {/* Small floating FAB — dismissible, visible from any scroll position */}
-      <AnimatePresence>
-        {showFab && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
-            className="fixed bottom-5 right-4 md:bottom-6 md:right-6 z-50 flex items-center gap-1.5"
-          >
-            <motion.button
-              onClick={openRoadmap}
-              aria-label="Open Roadmap"
-              className="group inline-flex items-center gap-2 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg shadow-zinc-900/10 hover:shadow-xl px-3 py-2 md:px-3.5 md:py-2.5 transition-all"
-            >
-              <span className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center text-white shadow-sm">
-                <MapIcon size={14} />
-              </span>
-              <span className="hidden sm:inline text-xs font-black tracking-wide text-zinc-700 dark:text-zinc-200">Roadmap</span>
-              <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">3 paths</span>
-              <ArrowRight size={12} className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all hidden sm:block" />
-            </motion.button>
-            <button
-              onClick={dismissFab}
-              aria-label="Dismiss roadmap shortcut"
-              className="w-7 h-7 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-md flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-              title="Remove"
-            >
-              <X size={12} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── SECOND TICKER (Subtle) ────────────── */}
-      <div className="w-full overflow-hidden border-y border-border py-2.5 bg-background">
-        <motion.div
-          className="flex gap-0 whitespace-nowrap"
-          animate={{ x: [-2400, 0] }}
-          transition={{ repeat: Infinity, duration: 35, ease: "linear" }}
-        >
-          {[...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
-            <span key={i} className="text-muted-foreground/60 text-[10px] font-bold uppercase tracking-[0.2em] mr-12 flex items-center gap-3">
-              <ChevronRight size={10} className="inline opacity-40" />
-              {item}
-            </span>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* ── MODULES GRID ─────────────────────────────────── */}
-      <section id="modules" className="px-4 md:px-12 lg:px-20 py-18 lg:py-24 max-w-7xl mx-auto w-full">
+      <section id="modules" className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-24 lg:px-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16 text-center md:text-left"
+          className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end"
         >
-          <div className="inline-block px-3 py-1 rounded-full border bg-muted/50 text-[10px] font-bold uppercase tracking-widest mb-4">
-            Curated Learning Paths
-          </div>
-          <h2 className="text-3xl md:text-4xl lg:text-6xl font-black uppercase tracking-tighter">
-            Select Your <span className="text-primary">Module</span>
-          </h2>
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Learning paths</p><h2 className="mt-3 text-3xl font-bold tracking-[-0.035em] md:text-5xl">Choose where to focus next.</h2></div>
+          <p className="max-w-sm text-sm leading-6 text-muted-foreground">Concise, practical material built around the skills that matter in real interviews.</p>
         </motion.div>
 
-        <div className="grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {SECTIONS.map((sec, i) => (
             <motion.div
               key={sec.id}
@@ -282,7 +147,7 @@ export default function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              whileHover={{ y: -5 }}
+              whileHover={{ y: -3 }}
               onClick={() => {
                 if (sec.route === "__open_roadmap__") {
                   openRoadmap();
@@ -290,46 +155,27 @@ export default function Index() {
                   navigate(sec.route);
                 }
               }}
-              className="group relative bg-card border rounded-[32px] p-8 cursor-pointer overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
+              className="group relative flex min-h-[270px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/35 hover:shadow-lg hover:shadow-black/5"
             >
-              {/* Card Accent Glow */}
-              <div 
-                className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity"
-                style={{ background: sec.color }}
-              />
-
-              <div className="relative z-10 flex flex-col h-full">
-                {/* Icon & Tag */}
-                <div className="flex items-center justify-between mb-8">
-                  <div 
-                    className="p-3.5 rounded-2xl border transition-colors"
+              <div className="flex h-full flex-col">
+                <div className="mb-7 flex items-center justify-between">
+                  <div className="rounded-xl border p-3"
                     style={{ background: `${sec.color}10`, borderColor: `${sec.color}20`, color: sec.color }}
                   >
                     {sec.icon}
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${sec.pillClass || "bg-muted text-muted-foreground"}`}>
+                  <span className="text-xs font-semibold text-muted-foreground">
                     {sec.tag}
                   </span>
                 </div>
-
-                {/* Content */}
                 <div className="flex-1">
-                  <h3 className={`text-xl md:text-2xl font-black uppercase tracking-tight mb-3 transition-colors ${sec.accentClass ? `border-l-4 pl-3 ${sec.accentClass}` : 'group-hover:text-primary'}`}>
-                    {sec.title}
-                  </h3>
-                  <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
-                    {sec.desc}
-                  </p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{sec.subtitle}</p>
+                  <h3 className="text-xl font-bold tracking-[-0.02em]">{sec.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{sec.desc}</p>
                 </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-6 border-t border-border/50">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    {sec.stats}
-                  </span>
-                  <div className="flex items-center gap-1.5 font-bold text-xs uppercase text-primary opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
-                    Enter <ArrowRight size={14} />
-                  </div>
+                <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4">
+                  <span className="text-xs font-medium text-muted-foreground">{sec.stats}</span>
+                  <ArrowRight size={17} className="text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
                 </div>
               </div>
             </motion.div>
@@ -337,13 +183,10 @@ export default function Index() {
         </div>
       </section>
 
-      <div className="h-10" />
-
-      {/* ── Fullscreen roadmap overlay (no chrome, all 3 roadmaps as tabs) ── */}
       <RoadmapFullscreenOverlay
         open={roadmapOpen}
         onClose={() => setRoadmapOpen(false)}
       />
-    </div>
+    </main>
   );
 }

@@ -84,33 +84,28 @@ export function RoadmapFullscreenOverlay({
           aria-modal="true"
           aria-label="Roadmaps"
         >
-          {/* Minimal top bar: back button + tab switcher (centered) + close */}
           <div
             className={cn(
               "flex items-center gap-2 sm:gap-3 px-3 sm:px-5 h-14 flex-shrink-0",
-              "border-b border-border/40 bg-background/95 backdrop-blur-xl"
+              "border-b border-border bg-background/95 backdrop-blur-md"
             )}
           >
             <div className="basis-2/5 flex justify-start">
               <button
                 type="button"
                 onClick={onClose}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-xl border border-border/40 bg-card/60 px-3 py-1.5",
-                  "text-[11px] font-bold uppercase tracking-widest text-muted-foreground",
-                  "hover:text-foreground hover:bg-muted transition-all active:scale-95"
-                )}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="Back to home"
               >
                 <ArrowLeft size={12} />
-                <span className="hidden sm:inline">Back to Home</span>
+                <span className="hidden sm:inline">Back home</span>
               </button>
             </div>
 
             <div
               role="tablist"
               aria-label="Roadmap"
-              className="inline-flex items-center gap-1 rounded-xl border border-border/40 bg-muted/40 p-1"
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1"
             >
               {TAB_ORDER.map((id) => {
                 const active = id === activeId;
@@ -122,11 +117,11 @@ export function RoadmapFullscreenOverlay({
                     aria-selected={active}
                     onClick={() => setActiveId(id)}
                     className={cn(
-                      "rounded-lg px-4 sm:px-6 py-1.5 whitespace-nowrap text-[11px] font-bold uppercase tracking-widest transition-all",
+                      "rounded-md px-4 sm:px-5 py-1.5 whitespace-nowrap text-xs font-medium transition-colors",
                       "focus:outline-none focus:ring-2 focus:ring-primary/40",
                       active
                         ? "text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                     style={active ? { background: meta?.accent } : undefined}
                   >
@@ -140,12 +135,7 @@ export function RoadmapFullscreenOverlay({
               <button
                 type="button"
                 onClick={() => setResetSignal((n) => n + 1)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-xl border border-border/40 bg-card/60 px-3 py-1.5",
-                  "text-[11px] font-bold uppercase tracking-widest text-muted-foreground",
-                  "hover:text-foreground hover:bg-muted transition-all active:scale-95",
-                  "focus:outline-none focus:ring-2 focus:ring-primary/40"
-                )}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
                 aria-label="Reset roadmap to original stage"
                 title="Reset progress and node positions to the original stage"
               >
@@ -156,10 +146,7 @@ export function RoadmapFullscreenOverlay({
               <button
                 type="button"
                 onClick={onClose}
-                className={cn(
-                  "inline-flex items-center justify-center w-9 h-9 rounded-xl border border-border/40 bg-card/60",
-                  "text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95"
-                )}
+                className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="Close"
               >
                 <X size={14} />
