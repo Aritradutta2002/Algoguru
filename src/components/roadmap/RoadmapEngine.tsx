@@ -315,7 +315,7 @@ function RoadmapEngineInner({ roadmap, compact, resetSignal }: RoadmapEngineProp
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/40 text-muted-foreground">
           <MapIcon size={26} />
         </div>
-        <h2 className="text-xl font-black uppercase tracking-tight">Coming soon</h2>
+        <h2 className="text-xl font-semibold tracking-[-0.02em]">Coming soon</h2>
         <p className="text-sm text-muted-foreground max-w-md">
           This roadmap doesn't have any topics yet. Add some nodes to{" "}
           <code className="px-1.5 py-0.5 rounded bg-muted text-foreground">

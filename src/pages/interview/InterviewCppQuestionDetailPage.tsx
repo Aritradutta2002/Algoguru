@@ -231,7 +231,7 @@ export default function InterviewCppQuestionDetailPage() {
           <div className="cjd-sidebar-inner sticky top-[57px] max-h-[calc(100vh-116px)] overflow-y-auto pr-2">
             <div className="flex items-center gap-2 mb-4">
               <BookOpen size={14} className="text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground font-mono">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground font-mono">
                 C++ Interview
               </span>
             </div>
@@ -292,7 +292,7 @@ export default function InterviewCppQuestionDetailPage() {
             {/* ── Question header ─────────────────────────────────── */}
             <header className="cjd-question-header mb-8">
               <div className="flex items-center gap-2.5 flex-wrap mb-4">
-                <span className="font-mono text-xs font-black px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary">
+                <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary">
                   Q{String(entry.index + 1).padStart(2, "0")}
                 </span>
                 <span className="text-[11px] font-semibold text-muted-foreground">{topic?.icon} {topic?.title}</span>
@@ -457,7 +457,7 @@ export default function InterviewCppQuestionDetailPage() {
         {/* Right TOC */}
         <aside className="cjd-toc hidden xl:block">
           <div className="sticky top-[57px]">
-            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground font-mono block mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground font-mono block mb-3">
               On This Page
             </span>
             <nav aria-label="On this page" className="space-y-0.5">
@@ -487,7 +487,7 @@ export default function InterviewCppQuestionDetailPage() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
           <div
             ref={drawerRef}
-            className="absolute left-0 top-0 bottom-0 w-[300px] max-w-[85vw] bg-card border-r border-border/50 shadow-2xl flex flex-col animate-in slide-in-from-left duration-200"
+            className="absolute left-0 top-0 bottom-0 w-[300px] max-w-[85vw] bg-card border-r border-border/50 shadow-overlay flex flex-col animate-in slide-in-from-left duration-200"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
               <span className="text-sm font-bold flex items-center gap-2">

@@ -299,7 +299,6 @@ export default function TopicPage() {
 
       {/* Mobile TOC */}
       <motion.button
-        whileTap={{ scale: 0.97 }}
         onClick={() => setTocOpen(!tocOpen)}
         className="xl:hidden fixed bottom-5 right-5 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-medium shadow-lg bg-card border border-border text-foreground"
       >

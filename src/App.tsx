@@ -213,30 +213,30 @@ function SearchButton() {
       </AppTooltip>
 
       {open && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-24" onClick={() => setOpen(false)}>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 z-[9999] flex items-start justify-center px-4 pt-[12vh]" onClick={() => setOpen(false)}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           <div
-            className="relative w-full max-w-lg mx-4 overflow-hidden flex flex-col rounded-2xl border border-border bg-card shadow-2xl"
+            className="relative w-full max-w-xl overflow-hidden flex flex-col rounded-2xl border border-border bg-card shadow-overlay"
             style={{ maxHeight: "70vh" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative z-10 flex items-center gap-3 px-4 py-3 border-b border-border">
-              <Search size={18} className="text-muted-foreground" />
+            <div className="relative z-10 flex items-center gap-3 border-b border-border px-4 py-3">
+              <Search size={17} className="shrink-0 text-muted-foreground" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search topics, algorithms, problems..."
-                className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground text-foreground"
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground text-foreground"
               />
               {query && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
+                <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                   {totalResults}
                 </span>
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="touch-manipulation w-8 h-8 rounded-md flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="flex h-8 w-8 touch-manipulation items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                 aria-label="Close search"
               >
                 <X size={16} />
@@ -245,15 +245,17 @@ function SearchButton() {
 
             <div className="max-h-[400px] overflow-y-auto">
               {totalResults === 0 ? (
-                <div className="px-6 py-10 text-center">
-                  <div className="text-sm text-muted-foreground">No results for "{query}"</div>
-                  <div className="text-xs mt-1 text-muted-foreground/70">Try "Two Sum", "DFS", or "Backtracking"</div>
+                <div className="px-6 py-12 text-center">
+                  <div className="text-sm font-medium text-foreground">No results for “{query}”</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Try “Two Sum”, “DFS”, or “Backtracking”
+                  </div>
                 </div>
               ) : (
                 <>
                   {grouped.topics.length > 0 && (
                     <div>
-                      <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40">
+                      <div className="bg-muted/40 px-4 py-1.5 text-[11px] font-semibold text-muted-foreground">
                         Topics
                       </div>
                       {grouped.topics.slice(0, 8).map((item) => (
@@ -263,7 +265,7 @@ function SearchButton() {
                   )}
                   {grouped.subtopics.length > 0 && (
                     <div>
-                      <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40">
+                      <div className="bg-muted/40 px-4 py-1.5 text-[11px] font-semibold text-muted-foreground">
                         Sections
                       </div>
                       {grouped.subtopics.slice(0, 10).map((item) => (
@@ -273,8 +275,8 @@ function SearchButton() {
                   )}
                   {grouped.problems.length > 0 && (
                     <div>
-                      <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40">
-                        Problems & Algorithms ({grouped.problems.length})
+                      <div className="bg-muted/40 px-4 py-1.5 text-[11px] font-semibold text-muted-foreground">
+                        Problems & algorithms · {grouped.problems.length}
                       </div>
                       {grouped.problems.slice(0, 20).map((item) => (
                         <SearchResultItem key={item.path} item={item} onSelect={() => { navigate(item.path); setOpen(false); }} />
@@ -285,15 +287,11 @@ function SearchButton() {
               )}
             </div>
 
-            <div className="relative z-10 flex items-center justify-between px-4 py-2.5 border-t border-border bg-muted/30 text-xs text-muted-foreground">
+            <div className="relative z-10 flex items-center justify-between border-t border-border bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
               <span>{allSearchItems.length} items indexed</span>
               <div className="flex items-center gap-3">
-                <span className="hidden sm:flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-background border border-border">↑↓</kbd>
-                  <span>navigate</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-background border border-border">esc</kbd>
+                <span className="hidden items-center gap-1.5 sm:flex">
+                  <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px]">esc</kbd>
                   <span>close</span>
                 </span>
               </div>
@@ -310,9 +308,9 @@ function SearchResultItem({ item, onSelect }: { item: typeof allSearchItems[numb
   return (
     <button
       onClick={onSelect}
-      className="touch-manipulation w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/60 group"
+      className="touch-manipulation flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/60 group"
     >
-      <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-sm flex-shrink-0">
+      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-sm">
         {item.icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -391,7 +389,7 @@ function HeaderControls() {
         <button
           onClick={toggleTheme}
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          className="touch-manipulation flex items-center justify-center w-9 h-9 md:w-8 md:h-8 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          className="touch-manipulation flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
         >
           {isDark ? <Sun size={15} /> : <Moon size={15} />}
         </button>
@@ -450,7 +448,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   const [guruCollapsed, setGuruCollapsed] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const guruPanelRef = useRef<ImperativePanelHandle>(null);
   const guruPanelSizeRef = useRef(
     clamp(100 - splitPct, GURU_PANEL_MIN_SIZE, GURU_PANEL_MAX_SIZE),
@@ -458,7 +455,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
-  const isSmallMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
     localStorage.setItem("guru-split-pct", splitPct.toString());
@@ -576,10 +572,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="hidden sm:block">
                 <SearchButton />
               </div>
-              <div className="hidden md:block h-5 w-px bg-border mx-1" />
-              <div className="hidden md:block">
-                <HeaderControls />
-              </div>
+              <div className="hidden sm:block h-5 w-px bg-border mx-0.5" />
+              <HeaderControls />
               <UserMenu />
               {isProblemSolverRoute ? (
                 <AppTooltip content="Guru AI is in the description panel — Guru AI tab.">
@@ -781,28 +775,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
-
-      {/* Mobile floating menu button (only on small screens where HeaderControls is hidden) */}
-      {isSmallMobile && !guruOpen && (
-        <>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Settings"
-          >
-            {mobileMenuOpen ? <X size={18} /> : <Sun size={18} />}
-          </button>
-
-          {mobileMenuOpen && (
-            <div
-              className="md:hidden fixed bottom-20 right-6 z-50 bg-card border border-border rounded-2xl shadow-xl p-3"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <HeaderControls />
-            </div>
-          )}
-        </>
-      )}
     </SidebarProvider>
   );
 }

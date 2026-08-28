@@ -9,7 +9,7 @@ const DIFFICULTY_STYLES: Record<Difficulty, string> = {
 
 export function CppDifficultyBadge({ difficulty, className }: { difficulty: Difficulty; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider font-mono", DIFFICULTY_STYLES[difficulty], className)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-medium capitalize", DIFFICULTY_STYLES[difficulty], className)}>
       <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
       {difficulty}
     </span>
@@ -30,7 +30,7 @@ const PRIORITY_LABELS: Record<InterviewPriority, string> = {
 };
 export function CppPriorityBadge({ priority, className }: { priority: InterviewPriority; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider font-mono", PRIORITY_STYLES[priority], className)}>
+    <span className={cn("inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium", PRIORITY_STYLES[priority], className)}>
       {(priority === "very-high" || priority === "high") && <span aria-hidden="true">🔥</span>}
       {PRIORITY_LABELS[priority]}
     </span>
@@ -38,7 +38,7 @@ export function CppPriorityBadge({ priority, className }: { priority: InterviewP
 }
 export function CppVersionBadge({ version, className }: { version: string; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider font-mono bg-info/10 text-info border-info/25", className)}>
+    <span className={cn("inline-flex items-center rounded-md border border-info/25 bg-info/10 px-2 py-0.5 text-[11px] font-medium text-info", className)}>
       {version}
     </span>
   );

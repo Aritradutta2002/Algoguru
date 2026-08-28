@@ -104,7 +104,7 @@ const _QuestionCard = ({
             title={isDone ? "Mark undone" : "Mark as learned"}
             aria-pressed={isDone}
             aria-label={isDone ? "Mark as not learned" : "Mark as learned"}
-            className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all active:scale-95 ${
+            className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
               isDone
                 ? "bg-success border-success text-white shadow-sm"
                 : "border-border/50 hover:border-success/60 bg-card hover:bg-success/10"
@@ -875,7 +875,7 @@ export default function InterviewCppQuestionsPage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "-100%", opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-0 top-0 bottom-0 w-[280px] sm:w-[320px] z-[70] bg-card border-r border-border/50 shadow-2xl flex flex-col lg:hidden"
+              className="fixed left-0 top-0 bottom-0 w-[280px] sm:w-[320px] z-[70] bg-card border-r border-border/50 shadow-overlay flex flex-col lg:hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Topics"
@@ -985,7 +985,7 @@ export default function InterviewCppQuestionsPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-lg h-full bg-card border-l border-border/50 shadow-2xl flex flex-col"
+              className="relative w-full max-w-lg h-full bg-card border-l border-border/50 shadow-overlay flex flex-col"
               role="dialog"
               aria-labelledby="notes-panel-title"
               aria-modal="true"

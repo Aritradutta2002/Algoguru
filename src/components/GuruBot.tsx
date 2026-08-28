@@ -29,7 +29,6 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { AppTooltip } from "@/components/ui/tooltip";
-import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -250,13 +249,13 @@ function ModelSelector({
   // Single-route mode: show static badge, no dropdown needed
   if (MODELS.length === 1) {
     return (
-      <div className={`flex items-center gap-2.5 px-4 py-2 min-h-[44px] rounded-2xl border border-border/30 bg-muted/20 ${isMobile ? "w-full justify-center" : ""}`}>
-        <div className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80 truncate">
+      <div className={`flex min-h-[44px] items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-2 ${isMobile ? "w-full justify-center" : ""}`}>
+        <div className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-primary" />
+        <span className="truncate text-[11px] font-semibold tracking-tight text-foreground">
           {activeModel.label}
         </span>
-        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border bg-emerald-500/10 border-emerald-500/20 text-emerald-600">
-          Free • OpenRouter
+        <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-primary">
+          Free · OpenRouter
         </span>
       </div>
     );
@@ -267,11 +266,11 @@ function ModelSelector({
       <button
         ref={triggerRef}
         onClick={() => setOpen(!open)}
-        className={`touch-manipulation flex items-center gap-2.5 px-4 py-2 min-h-[44px] rounded-2xl transition-all duration-300 border border-border/30 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 group active:scale-95 ${isMobile ? "w-full justify-between" : ""}`}
+        className={`touch-manipulation flex min-h-[44px] items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-2 transition-colors hover:border-primary/30 hover:bg-muted/70 group ${isMobile ? "w-full justify-between" : ""}`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.15em] text-foreground/80 group-hover:text-foreground truncate">
+          <div className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-primary" />
+          <span className="truncate text-[11px] font-semibold tracking-tight text-foreground">
             {activeModel.label}
           </span>
         </div>
@@ -285,7 +284,7 @@ function ModelSelector({
         createPortal(
           <div
             ref={dropRef}
-            className="fixed rounded-[28px] overflow-hidden border border-border/30 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] bg-card/95 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
+            className="fixed animate-in fade-in zoom-in-95 overflow-hidden rounded-xl border border-border bg-card shadow-overlay duration-200"
             style={{
               top: pos.top,
               left: pos.left,
@@ -293,12 +292,10 @@ function ModelSelector({
               zIndex: 9999,
             }}
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-24 bg-primary/5 blur-[40px] rounded-full pointer-events-none" />
-
-            <div className="relative z-10 px-5 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 border-b border-border/10 bg-muted/10">
-              Intelligence Engine
+            <div className="border-b border-border bg-muted/40 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Intelligence engine
             </div>
-            <div className="relative z-10 p-2 space-y-1">
+            <div className="relative z-10 space-y-0.5 p-1.5">
               {MODELS.map((m) => (
                 <button
                   key={m.key}
@@ -306,27 +303,27 @@ function ModelSelector({
                     onSelect(m.key);
                     setOpen(false);
                   }}
-                  className={`touch-manipulation w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-left rounded-2xl transition-all duration-300 group active:scale-95 ${
+                  className={`touch-manipulation flex w-full min-h-[44px] items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors group ${
                     m.key === selected
-                      ? "bg-primary/10 border-primary/20"
-                      : "hover:bg-muted/50 border-transparent"
-                  } border`}
+                      ? "border-primary/20 bg-primary/10"
+                      : "border-transparent hover:bg-muted"
+                  }`}
                 >
                   <div
-                    className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${m.key === selected ? "bg-primary scale-125 shadow-[0_0_12px_hsl(var(--primary))]" : "bg-muted-foreground/20"}`}
+                    className={`h-1.5 w-1.5 rounded-full transition-colors ${m.key === selected ? "bg-primary" : "bg-muted-foreground/30"}`}
                   />
                   <div className="flex-1 min-w-0">
                     <span
-                      className={`text-[12px] font-bold tracking-tight transition-colors ${m.key === selected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}
+                      className={`text-[12px] font-semibold tracking-tight transition-colors ${m.key === selected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}
                     >
                       {m.label}
                     </span>
                   </div>
                   <span
-                    className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border transition-colors ${
+                    className={`rounded-md border px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide transition-colors ${
                       m.key === selected
-                        ? "bg-primary/20 border-primary/30 text-primary"
-                        : "bg-muted/50 border-border/20 text-muted-foreground/40 group-hover:text-muted-foreground/60"
+                        ? "border-primary/30 bg-primary/15 text-primary"
+                        : "border-border bg-muted text-muted-foreground"
                     }`}
                   >
                     {m.tag}
@@ -391,8 +388,6 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
   ) {
     // Detect mobile viewport (< lg breakpoint = 1024px)
     const isMobile = useMediaQuery("(max-width: 1023px)");
-    const { theme } = useSettings();
-    const isDark = theme === "dark";
 
     // Chat history scope: per-question or global
     const chatScope = questionId || "global";
@@ -726,22 +721,30 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     if (!open) return null;
 
     // Mobile: full-screen overlay unless GuruBot is embedded in a parent drawer
-    // Desktop/embedded: flex container fills the parent panel - theme-aware
+    // Desktop/embedded: flex container fills the parent panel.
     const shouldUseFixedOverlay = isMobile && !embedded;
     const containerClasses = shouldUseFixedOverlay
-      ? `fixed inset-0 z-50 flex flex-col h-full font-sans ${isDark ? "bg-[#0F0F0F] text-zinc-100" : "bg-white text-zinc-900"}`
-      : `flex flex-col h-full font-sans relative overflow-hidden ${isDark ? "bg-[#0F0F0F] text-zinc-100" : "bg-white text-zinc-900"}`;
+      ? "fixed inset-0 z-50 flex h-full flex-col bg-background text-foreground"
+      : "relative flex h-full flex-col overflow-hidden bg-background text-foreground";
 
     return (
       <div ref={ref} className={containerClasses}>
-        {/* ─── Header — theme-aware ─── */}
+        {/* ─── Header ─── */}
         {!hideHeader && (
-        <div className={`flex items-center justify-between px-3 py-3 border-b z-20 sticky top-0 ${isDark ? "border-[#262626] bg-[#0F0F0F]" : "border-zinc-200 bg-white"}`}>
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background px-3 py-3">
           <div className="flex items-center gap-2">
-            {showGuruTitle && <span className={`text-[11px] font-bold tracking-[0.12em] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>GURU AI</span>}
+            {showGuruTitle && (
+              <span className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground">
+                GURU AI
+              </span>
+            )}
             <button
               onClick={() => setShowHistory((o) => !o)}
-              className={`h-8 w-8 rounded-lg flex items-center justify-center border ${showHistory ? (isDark ? "bg-white text-black border-white" : "bg-zinc-900 text-white border-zinc-900") : (isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200")}`}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
+                showHistory
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+              }`}
               aria-label="Chat History"
             >
               {showHistory ? <X size={14} /> : <History size={14} />}
@@ -753,7 +756,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               <AppTooltip content={isFullscreen ? "Exit fullscreen" : "Fullscreen"}>
                 <button
                   onClick={onToggleFullscreen}
-                  className={`h-8 w-8 rounded-lg flex items-center justify-center border active:scale-95 ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626]" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200"}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                   aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
                 >
                   {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
@@ -763,7 +766,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             <AppTooltip content="New Chat">
               <button
                 onClick={startNewChat}
-                className={`h-8 w-8 rounded-lg flex items-center justify-center border active:scale-95 ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626]" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200"}`}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                 aria-label="New Chat"
               >
                 <MessageSquarePlus size={14} />
@@ -772,7 +775,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             <AppTooltip content="Close Guru">
               <button
                 onClick={handleClose}
-                className={`h-8 w-8 rounded-lg flex items-center justify-center border active:scale-95 ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400 hover:text-white hover:bg-[#262626]" : "bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200"}`}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                 aria-label="Close Guru"
               >
                 <X size={16} />
@@ -782,23 +785,27 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         </div>
         )}
 
-        {/* ─── Body — theme-aware ─── */}
-        <div className={`flex-1 overflow-hidden relative ${isDark ? "bg-[#0F0F0F]" : "bg-zinc-50"}`}>
+        {/* ─── Body ─── */}
+        <div className="relative flex-1 overflow-hidden bg-background">
           {/* Chat History Sidebar */}
           {showHistory ? (
-            <div className={`absolute inset-0 z-10 overflow-y-auto animate-in slide-in-from-left-2 duration-300 border-r ${isDark ? "bg-[#0F0F0F] border-[#262626]" : "bg-white border-zinc-200"}`}>
+            <div className="absolute inset-0 z-10 animate-in slide-in-from-left-2 overflow-y-auto border-r border-border bg-background duration-300">
               <div className="p-5">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-[11px] font-bold tracking-widest text-zinc-500 uppercase">Chat History</h3>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-zinc-400" : "bg-zinc-100 border-zinc-200 text-zinc-600"}`}>{sessions.length}</span>
+                <div className="mb-6 flex items-center justify-between">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Chat history
+                  </h3>
+                  <span className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+                    {sessions.length}
+                  </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {sessions.length === 0 ? (
-                    <div className="text-center py-16">
-                      <div className={`w-12 h-12 rounded-xl border flex items-center justify-center mx-auto mb-3 ${isDark ? "bg-[#1A1A1A] border-[#262626]" : "bg-zinc-100 border-zinc-200"}`}>
-                        <MessageSquare size={18} className={isDark ? "text-zinc-600" : "text-zinc-400"} />
+                    <div className="py-16 text-center">
+                      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted">
+                        <MessageSquare size={18} className="text-muted-foreground" />
                       </div>
-                      <p className="text-zinc-500 text-[11px] font-medium">No chats yet</p>
+                      <p className="text-xs font-medium text-muted-foreground">No chats yet</p>
                     </div>
                   ) : (
                     sessions.map((s) => (
@@ -809,17 +816,28 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setShowHistory(false);
                           setModel(s.model || "openrouter");
                         }}
-                        className={`touch-manipulation group flex items-center justify-between p-3 rounded-xl cursor-pointer border ${s.id === currentId ? (isDark ? "bg-[#1A1A1A] border-[#333] text-white" : "bg-zinc-900 border-zinc-900 text-white") : (isDark ? "bg-transparent border-transparent text-zinc-400 hover:bg-[#1A1A1A] hover:text-white" : "bg-transparent border-transparent text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900")}`}
+                        className={`group flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-colors ${
+                          s.id === currentId
+                            ? "border-primary/25 bg-primary/10 text-foreground"
+                            : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
                       >
                         <div className="flex items-center gap-3 overflow-hidden">
-                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${s.id === currentId ? (isDark ? "bg-white text-black" : "bg-zinc-900 text-white") : (isDark ? "bg-[#262626] text-zinc-400" : "bg-zinc-200 text-zinc-500")}`}>
+                          <div
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                              s.id === currentId
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
                             <MessageSquare size={12} />
                           </div>
                           <div className="truncate text-[13px] font-medium">{s.title}</div>
                         </div>
                         <button
                           onClick={(e) => deleteSession(s.id, e)}
-                          className="opacity-0 group-hover:opacity-100 h-7 w-7 rounded-lg flex items-center justify-center hover:bg-red-500/10 hover:text-red-400 text-zinc-500"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                          aria-label="Delete chat"
                         >
                           <Trash2 size={12} />
                         </button>
@@ -831,26 +849,30 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             </div>
           ) : (
             <div
-              className={`h-full overflow-y-auto p-4 space-y-4 ${isDark ? "bg-[#0F0F0F]" : "bg-white"}`}
+              className="h-full space-y-4 overflow-y-auto bg-background p-4"
               style={{ overscrollBehavior: "contain" }}
             >
               {messages.length === 0 && (
-                <div className="flex flex-col gap-4 py-2">
+                <div className="flex flex-col gap-5 py-2">
                   <div className="space-y-3">
-                    <h2 className={`text-[22px] font-bold leading-tight ${isDark ? "text-white" : "text-zinc-900"}`}>Hello!</h2>
-                    <p className={`text-[13px] leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+                    <h2 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-foreground">
+                      Hello!
+                    </h2>
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">
                       I am your DSA teaching assistant. I am here to help you master algorithms and data structures through clear, structured, and efficient code implementations.
                     </p>
-                    <p className={`text-[13px] leading-relaxed ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">
                       If you have a specific problem you are working on, feel free to share it. I can assist with:
                     </p>
-                    <div className="space-y-2 text-[13px] leading-relaxed">
-                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Algorithm Design:</span> Breaking down complex problems into logical steps.</p>
-                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Complexity Analysis:</span> Understanding Big O notation for time and space.</p>
-                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Code Optimization:</span> Writing clean, efficient, and idiomatic code.</p>
-                      <p className={isDark ? "text-zinc-300" : "text-zinc-700"}><span className={`font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>Debugging:</span> Identifying common pitfalls and edge cases in your implementations.</p>
+                    <div className="space-y-2 text-[13px] leading-relaxed text-muted-foreground">
+                      <p><span className="font-semibold text-foreground">Algorithm design:</span> Breaking down complex problems into logical steps.</p>
+                      <p><span className="font-semibold text-foreground">Complexity analysis:</span> Understanding Big O notation for time and space.</p>
+                      <p><span className="font-semibold text-foreground">Code optimization:</span> Writing clean, efficient, and idiomatic code.</p>
+                      <p><span className="font-semibold text-foreground">Debugging:</span> Identifying common pitfalls and edge cases in your implementations.</p>
                     </div>
-                    <p className={`text-[13px] pt-2 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>How can I help you with your coding journey today?</p>
+                    <p className="pt-2 text-[13px] leading-relaxed text-muted-foreground">
+                      How can I help you with your coding journey today?
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-2">
@@ -866,10 +888,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setInput(item.q);
                           setTimeout(() => inputRef.current?.focus(), 50);
                         }}
-                        className={`flex items-center justify-between text-left px-4 py-3 rounded-xl border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${isDark ? "bg-[#1A1A1A] border-[#262626] hover:border-[#333] hover:bg-[#1F1F1F] text-zinc-300 hover:text-white" : "bg-zinc-50 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900"}`}
+                        className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <span className="text-[13px] font-medium">{item.q}</span>
-                        <ArrowRight size={14} className={isDark ? "text-zinc-500" : "text-zinc-400"} />
+                        <span className="text-[13px] font-medium text-foreground">{item.q}</span>
+                        <ArrowRight size={14} className="shrink-0 text-muted-foreground" />
                       </button>
                     ))}
                   </div>
@@ -879,13 +901,13 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   {m.role === "assistant" ? (
-                    <div className={`max-w-[92%] text-[13px] leading-relaxed ${isDark ? "text-zinc-200 prose prose-invert prose-p:my-2 prose-headings:text-white prose-strong:text-white prose-code:text-sky-300 prose-pre:my-3" : "text-zinc-800 prose prose-p:my-2 prose-headings:text-zinc-900 prose-strong:text-zinc-900 prose-code:text-sky-700 prose-pre:my-3"}`}>
+                    <div className="prose prose-sm max-w-[92%] text-[13px] leading-relaxed text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-p:my-2 prose-pre:my-3 dark:prose-invert">
                       <ReactMarkdown
                         components={{
                           code({ className, children, ...props }) {
                             const isBlock = className?.startsWith("language-") || String(children).includes("\n");
                             if (isBlock) return <CodeBlock className={className} onInsert={onInsertCode}>{String(children).replace(/\n$/, "")}</CodeBlock>;
-                            return <code className={`px-1.5 py-0.5 rounded border text-[12px] font-mono ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-sky-300" : "bg-zinc-100 border-zinc-200 text-sky-700"}`} {...props}>{children}</code>;
+                            return <code className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[12px] text-foreground" {...props}>{children}</code>;
                           },
                           pre({ children }) { return <>{children}</>; },
                         }}
@@ -894,7 +916,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <div className={`max-w-[78%] rounded-xl px-4 py-2.5 text-[13px] leading-relaxed ${isDark ? "bg-[#1E1E1E] border border-[#2A2A2A] text-white" : "bg-sky-600 border border-sky-600 text-white"}`}>
+                    <div className="max-w-[78%] rounded-xl bg-primary px-4 py-2.5 text-[13px] leading-relaxed text-primary-foreground">
                       {m.content}
                     </div>
                   )}
@@ -905,7 +927,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 <div className="flex justify-center">
                   <button
                     onClick={() => { setInput("Give me the full corrected code and explain the fix vs my version"); setTimeout(() => inputRef.current?.focus(), 50); }}
-                    className={`text-[11px] font-bold px-4 py-2 rounded-full border transition-colors ${isDark ? "bg-[#1A1A1A] border-[#2A2A2A] text-amber-400 hover:bg-[#262626]" : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"}`}
+                    className="rounded-lg border border-border bg-card px-4 py-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     Still stuck? → Get full answer
                   </button>
@@ -916,9 +938,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="flex justify-start">
                     <div className="flex items-center gap-2 px-3 py-2">
-                      <span className={`h-1.5 w-1.5 rounded-full animate-bounce ${isDark ? "bg-zinc-500" : "bg-zinc-400"}`} style={{ animationDelay: "0ms" }} />
-                      <span className={`h-1.5 w-1.5 rounded-full animate-bounce ${isDark ? "bg-zinc-500" : "bg-zinc-400"}`} style={{ animationDelay: "150ms" }} />
-                      <span className={`h-1.5 w-1.5 rounded-full animate-bounce ${isDark ? "bg-zinc-500" : "bg-zinc-400"}`} style={{ animationDelay: "300ms" }} />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "0ms" }} />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "150ms" }} />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 )}
@@ -927,24 +949,32 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           )}
         </div>
 
-        {/* ─── Input — theme-aware ─── */}
+        {/* ─── Input ─── */}
         <div
-          className={`p-3 border-t z-20 ${isDark ? "border-[#262626] bg-[#0F0F0F]" : "border-zinc-200 bg-white"}`}
+          className="z-20 border-t border-border bg-background p-3"
           style={{
             paddingBottom: isMobile ? "max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))" : undefined,
           }}
         >
-          <div className={`relative rounded-xl border transition-colors p-2.5 pt-2 ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] focus-within:border-[#3A3A3A] focus-within:bg-[#1F1F1F]" : "border-zinc-200 bg-zinc-50 focus-within:border-zinc-300 focus-within:bg-white"}`}>
-            {/* Attach Code — dashed pill like screenshot */}
+          <div className="relative rounded-xl border border-border bg-muted/40 p-2.5 pt-2 transition-colors focus-within:border-primary/50 focus-within:bg-background">
+            {/* Attach Code toggle */}
             <button
               onClick={() => setAttachCode((v) => !v)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-medium border transition-colors mb-2 ${attachCode ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-300" : (isDark ? "bg-transparent border-dashed border-[#3A3A3A] text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 hover:bg-white/[0.03]" : "bg-transparent border-dashed border-zinc-300 text-zinc-600 hover:text-zinc-800 hover:border-zinc-400 hover:bg-zinc-100")}`}
+              className={`mb-2 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
+                attachCode
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-dashed border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
               title={attachCode ? "Code will be sent with your message (click to detach)" : "Attach your current editor code to Guru"}
             >
-              {attachCode ? <Check size={12} className="text-emerald-500" /> : <span className="text-[14px] leading-none font-light">+</span>}
-              <Code2 size={12} className={attachCode ? "text-emerald-500" : (isDark ? "text-zinc-500" : "text-zinc-400")} />
+              {attachCode ? <Check size={12} className="text-primary" /> : <span className="text-[14px] font-light leading-none">+</span>}
+              <Code2 size={12} className={attachCode ? "text-primary" : "text-muted-foreground"} />
               <span>{attachCode ? "Code attached" : "Attach Code"}</span>
-              {attachCode && <span className={`ml-1 h-4 w-4 rounded-full flex items-center justify-center ${isDark ? "bg-white/10 hover:bg-white/15" : "bg-zinc-200 hover:bg-zinc-300"}`}><X size={10} /></span>}
+              {attachCode && (
+                <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-muted hover:bg-muted/70">
+                  <X size={10} />
+                </span>
+              )}
             </button>
             <textarea
               ref={inputRef}
@@ -962,24 +992,28 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               }}
               placeholder={attachCode ? "Describe what to build — code is attached..." : "Describe what to build"}
               disabled={loading && !input}
-              className={`w-full bg-transparent text-[13px] outline-none resize-none min-h-[44px] max-h-[96px] md:max-h-[120px] pr-12 py-1 leading-relaxed ${isDark ? "placeholder:text-zinc-500 text-white" : "placeholder:text-zinc-400 text-zinc-900"}`}
+              className="w-full resize-none bg-transparent py-1 pr-12 text-[13px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground min-h-[44px] max-h-[96px] md:max-h-[120px]"
               rows={1}
             />
             <button
               onClick={loading ? stopChat : send}
               disabled={(!input.trim() && !loading) || (loading && !input && messages.length === 0)}
-              className={`absolute right-3 bottom-3 h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${loading ? "bg-red-500/20 text-red-400" : (isDark ? "bg-[#2A2A2A] text-zinc-400 hover:bg-[#333] hover:text-white disabled:opacity-30" : "bg-zinc-900 text-white hover:bg-zinc-800 disabled:opacity-30")}`}
+              className={`absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-lg transition-colors disabled:opacity-30 ${
+                loading
+                  ? "bg-destructive/15 text-destructive"
+                  : "bg-primary text-primary-foreground hover:brightness-95"
+              }`}
               aria-label={loading ? "Stop" : "Send"}
             >
               {loading ? <Square size={12} fill="currentColor" /> : <span className="text-[16px] leading-none">↵</span>}
             </button>
           </div>
-          <div className={`flex items-center gap-1 mt-2 px-1 text-[11px] ${isDark ? "text-zinc-500" : "text-zinc-500"}`}>
+          <div className="mt-2 flex items-center gap-1 px-1 text-[11px] text-muted-foreground">
             <span>Press</span>
-            <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300" : "border-zinc-200 bg-zinc-100 text-zinc-700"}`}>Enter</span>
+            <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">Enter</span>
             <span>to send •</span>
-            <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300" : "border-zinc-200 bg-zinc-100 text-zinc-700"}`}>Shift</span>
-            <span className={`px-1 py-0.5 rounded border text-[10px] font-mono ${isDark ? "border-[#2A2A2A] bg-[#1A1A1A] text-zinc-300" : "border-zinc-200 bg-zinc-100 text-zinc-700"}`}>Enter</span>
+            <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">Shift</span>
+            <span className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px] text-muted-foreground">Enter</span>
             <span>for newline</span>
           </div>
 

@@ -251,14 +251,14 @@ export default function JavaInterviewHub() {
                   <TrendingUp size={16} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider">Your Progress</h2>
+                  <h2 className="text-sm font-semibold tracking-tight">Your Progress</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {doneCount} of {totalQuestions} questions completed
                     {bookmarkedCount > 0 && ` · ${bookmarkedCount} bookmarked`}
                   </p>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-primary font-mono">{progressPct}%</span>
+              <span className="text-2xl font-semibold tracking-[-0.02em] text-primary">{progressPct}%</span>
             </div>
             <div
               className="cjh-progress-track"
@@ -438,7 +438,7 @@ export default function JavaInterviewHub() {
                   className="cjh-question-card group"
                 >
                   <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-                    <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary">
+                    <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary">
                       Q{String(entry.index + 1).padStart(2, "0")}
                     </span>
                     {entry.meta.difficulty && <DifficultyBadge difficulty={entry.meta.difficulty} />}

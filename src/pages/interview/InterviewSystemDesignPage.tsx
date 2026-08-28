@@ -89,7 +89,7 @@ const _QuestionCard = ({
           <button
             onClick={() => onToggleDone(question.id)}
             title={isDone ? "Mark undone" : "Mark as done"}
-            className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all active:scale-95 ${
+            className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
               isDone ? "bg-success border-success text-white shadow-sm"
                 : "border-border/50 hover:border-success/60 bg-card hover:bg-success/10"
             }`}
@@ -692,7 +692,7 @@ export default function InterviewSystemDesignPage() {
                         {topic.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h2 className="text-[22px] font-black tracking-tight">{topic.title}</h2>
+                        <h2 className="text-[22px] font-semibold tracking-tight">{topic.title}</h2>
                         <p className="text-[14px] text-muted-foreground font-medium">
                           {topicDone}/{topic.questions.length} completed
                         </p>
@@ -763,7 +763,7 @@ export default function InterviewSystemDesignPage() {
             <motion.div
               initial={{ x: 400 }} animate={{ x: 0 }} exit={{ x: 400 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-md bg-card border-l border-border/40 shadow-2xl flex flex-col overflow-hidden"
+              className="w-full max-w-md bg-card border-l border-border/40 shadow-overlay flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 shrink-0">

@@ -131,7 +131,7 @@ export function JavaTreeBanner() {
                   y1={fromNode.y + 20}
                   x2={toNode.x + 65}
                   y2={toNode.y + 20}
-                  stroke="#E5E7EB"
+                  stroke="currentColor" className="text-border"
                   strokeWidth="2"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
@@ -166,14 +166,13 @@ export function JavaTreeBanner() {
                   cx={node.x + 65}
                   cy={node.y + 20}
                   r="35"
-                  fill="white"
+                  fill="hsl(var(--card))"
                   stroke={node.color}
                   strokeWidth="3"
-                  filter="url(#glow)"
-                  initial={{ scale: 0 }}
+                                    initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.08, type: "spring", bounce: 0.5 }}
-                  className="group-hover:scale-110 transition-transform duration-300 drop-shadow-lg"
+                  className="group-transition-transform duration-300 drop-shadow-lg"
                 />
 
                 {/* Icon */}
@@ -196,13 +195,13 @@ export function JavaTreeBanner() {
                   width="110"
                   height="50"
                   rx="10"
-                  fill="white"
+                  fill="hsl(var(--card))"
                   stroke={node.color}
                   strokeWidth="2"
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08 + 0.3 }}
-                  className="group-hover:fill-gray-50 transition-colors duration-300"
+                  className="group-hover:opacity-80 transition-opacity duration-300"
                 />
 
                 {/* Title Text */}
@@ -212,8 +211,8 @@ export function JavaTreeBanner() {
                   textAnchor="middle"
                   fontSize="10"
                   fontWeight="700"
-                  fill="#1f2937"
-                  className="uppercase tracking-wide"
+                  fill="currentColor"
+                  className="text-foreground"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.08 + 0.4 }}
@@ -241,7 +240,7 @@ export function JavaTreeBanner() {
                   textAnchor="middle"
                   fontSize="9"
                   fontWeight="700"
-                  fill="white"
+                  fill="hsl(var(--primary-foreground))"
                 >
                   {node.subtopics}
                 </text>
@@ -257,7 +256,7 @@ export function JavaTreeBanner() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 0.6 }}
                   transition={{ delay: index * 0.08 + 0.6 }}
-                  className="uppercase tracking-wider"
+                  className="tracking-wider"
                 >
                   Level {node.level}
                 </motion.text>
@@ -270,7 +269,7 @@ export function JavaTreeBanner() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 2, duration: 0.5 }}
             >
-              <text x="10" y="145" fontSize="11" fontWeight="700" fill="#9333ea" className="uppercase tracking-wider">
+              <text x="10" y="145" fontSize="11" fontWeight="700" fill="currentColor" className="text-primary">
                 Start →
               </text>
             </motion.g>
@@ -281,14 +280,14 @@ export function JavaTreeBanner() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 2, duration: 0.5 }}
             >
-              <text x="1620" y="145" fontSize="11" fontWeight="700" fill="#9333ea" className="uppercase tracking-wider">
+              <text x="1620" y="145" fontSize="11" fontWeight="700" fill="currentColor" className="text-primary">
                 → Master
               </text>
             </motion.g>
           </svg>
 
           {/* Mobile Scroll Hint */}
-          <div className="md:hidden flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground md:hidden">
             <ArrowRight size={12} />
             <span>Scroll right to see all topics</span>
             <ArrowRight size={12} />
@@ -304,18 +303,18 @@ export function JavaTreeBanner() {
         >
           <button
             onClick={() => navigate("/java-basics")}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-bold text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:brightness-95"
           >
-            Start Learning
+            Start learning
             <ArrowRight size={16} />
           </button>
           <button
             onClick={() => {
               document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" });
             }}
-            className="px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-purple-50 transition-all flex items-center gap-2"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
           >
-            Explore All Modules
+            Explore all modules
           </button>
         </motion.div>
       </div>

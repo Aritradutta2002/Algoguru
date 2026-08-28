@@ -93,15 +93,15 @@ export function DraggableNoteEditor({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.92, y: 16 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="fixed z-[300] rounded-2xl overflow-hidden shadow-2xl border border-border/60"
+      className="fixed z-[300] rounded-2xl overflow-hidden shadow-overlay border border-border/60"
       style={{
         left: pos.x,
         top: pos.y,
         width: PANEL_W,
         userSelect: isDragging ? "none" : "auto",
         boxShadow: isDragging
-          ? "0 32px 64px -12px rgba(0,0,0,0.5), 0 0 0 1px hsl(var(--primary)/0.3)"
-          : "0 20px 48px -12px rgba(0,0,0,0.45), 0 0 0 1px hsl(var(--border)/0.6)",
+          ? "var(--shadow-overlay), 0 0 0 1px hsl(var(--primary)/0.3)"
+          : "var(--shadow-overlay), 0 0 0 1px hsl(var(--border))",
       }}
     >
       {/* ── Title / Drag Bar ─────────────────────────── */}
@@ -177,14 +177,14 @@ export function DraggableNoteEditor({
               <div className="flex items-center gap-2">
                 <button
                   onClick={onClose}
-                  className="px-4 py-1.5 rounded-full text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="rounded-lg px-4 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={onSave}
                   disabled={isSaving}
-                  className="px-5 py-1.5 rounded-full text-[13px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center gap-1.5 shadow-md shadow-primary/20"
+                  className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-1.5 text-[13px] font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-primary/90 disabled:opacity-60"
                 >
                   {isSaving && <Loader2 size={13} className="animate-spin" />}
                   Save Note

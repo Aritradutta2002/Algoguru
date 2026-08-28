@@ -93,11 +93,11 @@ export default function CppInterviewHub(){
               <div className="flex items-center gap-3">
                 <div className="cjh-section-icon"><TrendingUp size={16}/></div>
                 <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider">Your Progress</h2>
+                  <h2 className="text-sm font-semibold tracking-tight">Your Progress</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">{doneCount} of {totalQuestions} questions completed{bookmarkedCount>0 && ` · ${bookmarkedCount} bookmarked`}</p>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-primary font-mono">{progressPct}%</span>
+              <span className="text-2xl font-semibold tracking-[-0.02em] text-primary">{progressPct}%</span>
             </div>
             <div className="cjh-progress-track" role="progressbar" aria-label="Overall progress" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}><div className="cjh-progress-fill" style={{width:`${progressPct}%`}}/></div>
             {continueQuestion && <button type="button" onClick={()=> navigate(getCppQuestionDetailPath(continueQuestion.question))} className="mt-4 cjh-btn-primary text-xs py-2 px-4 min-h-0">Pick up where you left off <ArrowRight size={13}/></button>}
@@ -153,7 +153,7 @@ export default function CppInterviewHub(){
               <motion.div key={entry.question.id} variants={fadeUp} transition={{delay:i*0.05}}>
                 <Link to={getCppQuestionDetailPath(entry.question)} className="cjh-question-card group">
                   <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-                    <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary">Q{String(entry.index+1).padStart(2,"0")}</span>
+                    <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary">Q{String(entry.index+1).padStart(2,"0")}</span>
                     {entry.meta.difficulty && <CppDifficultyBadge difficulty={entry.meta.difficulty}/>}
                   </div>
                   <h3 className="text-[14px] font-semibold leading-snug mb-3 group-hover:text-primary transition-colors line-clamp-2 flex-1">{entry.question.question}</h3>

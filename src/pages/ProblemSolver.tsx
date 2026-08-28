@@ -664,7 +664,7 @@ function CodeEditorPane({
       });
       setRunResult(null);
     }
-  }, [initialJavaSnippet, hasRealStarter, codeLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialJavaSnippet, hasRealStarter, codeLoaded]);
 
   const handleChange = useCallback(
     (value: string | undefined) => {
@@ -922,7 +922,7 @@ function CodeEditorPane({
             {/* Copy */}
             <button
               onClick={handleCopyCode}
-              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-105"
+              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 "
               style={{
                 color: copied ? "#34d399" : isDark ? "#94a3b8" : "#64748b",
                 background: copied
@@ -937,7 +937,7 @@ function CodeEditorPane({
             {/* Format */}
             <button
               onClick={() => { void formatCode(); }}
-              className="h-7 px-2 rounded-md flex items-center justify-center gap-1.5 transition-all duration-200 hover:scale-[1.02]"
+              className="h-7 px-2 rounded-md flex items-center justify-center gap-1.5 transition-all duration-200 "
               style={{
                 color: isFormatted ? "#34d399" : isDark ? "#94a3b8" : "#64748b",
                 background: isFormatted
@@ -965,7 +965,7 @@ function CodeEditorPane({
             <button
               onClick={handleResetCode}
               disabled={!codeLoaded || !hasRealStarter}
-              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:"
               style={{ color: isDark ? "#94a3b8" : "#64748b" }}
               title={
                 !codeLoaded
@@ -987,7 +987,7 @@ function CodeEditorPane({
             <button
               onClick={() => { void handleRunCode(); }}
               disabled={isRunning}
-              className="h-7 w-7 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-7 w-7 rounded-lg flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: isRunning
                   ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
@@ -1272,10 +1272,10 @@ function CodeEditorPane({
                 {/* title with shimmer + typing dots */}
                 <div className="relative z-10 flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-black tracking-[0.14em] uppercase" style={{ background: isDark ? "linear-gradient(90deg, #a5b4fc 0%, #c4b5fd 45%, #fbbf24 100%)" : "linear-gradient(90deg, #6366f1 0%, #8b5cf6 55%, #f59e0b 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                    <span className="text-[13px] font-semibold tracking-[0.08em]" style={{ color: isDark ? "#c4b5fd" : "#8b5cf6" }}>
                       Compiling & Running
                     </span>
-                    <span className="hidden sm:inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black tracking-widest uppercase" style={{ background: isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.08)", color: "#818cf8", border: `1px solid ${isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.14)"}` }}>
+                    <span className="hidden sm:inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-widest uppercase" style={{ background: isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.08)", color: "#818cf8", border: `1px solid ${isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.14)"}` }}>
                       <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#10b981" }} /> Java 21
                     </span>
                   </div>
@@ -1327,7 +1327,7 @@ function CodeEditorPane({
                         <span className="flex items-center gap-1.5 text-sm font-bold" style={{ color: runResult.status === "compile_error" ? "#f87171" : "#fbbf24" }}>
                           {runResult.status === "compile_error" ? <><XCircle className="h-4 w-4" /> Compile Error</> : <><AlertTriangle className="h-4 w-4" /> Runtime Error</>}
                         </span>
-                        <button onClick={() => setRunResult(null)} className="flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-medium transition-all hover:scale-105" style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
+                        <button onClick={() => setRunResult(null)} className="flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-medium transition-all " style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
                           <RotateCcw className="h-3.5 w-3.5" /> Reset
                         </button>
                       </div>
@@ -1386,7 +1386,7 @@ function CodeEditorPane({
                       <button onClick={() => { const newId = String(Date.now()); const name = `Case ${testcaseTabs.length + 1}`; const newTabs = [...testcaseTabs, { id: newId, name, value: "" }]; setTestcaseTabs(newTabs); setActiveTestcaseId(newId); }} className="ml-1 p-1.5 rounded-full border border-dashed transition-colors hover:bg-black/5 dark:hover:bg-white/5" style={{ color: isDark ? "#64748b" : "#94a3b8", borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)" }} title="Add custom testcase">
                         <Plus className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => setRunResult(null)} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105" style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}>
+                      <button onClick={() => setRunResult(null)} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all " style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}>
                         <RotateCcw className="h-3.5 w-3.5" /> Reset
                       </button>
                     </div>
@@ -1517,7 +1517,7 @@ function CodeEditorPane({
             role="dialog"
             aria-modal="true"
             aria-labelledby="reset-confirm-title"
-            className="relative w-full max-w-[420px] rounded-2xl border shadow-2xl flex items-start gap-4 p-5 sm:p-6"
+            className="relative w-full max-w-[420px] rounded-2xl border shadow-overlay flex items-start gap-4 p-5 sm:p-6"
             style={{
               background: "#2a2a2a",
               borderColor: "rgba(255,255,255,0.08)",
@@ -1789,7 +1789,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                   {problem.hints && problem.hints.length > 0 && (
                     <button
                       onClick={() => setHintsOpen(!hintsOpen)}
-                      className="inline-flex items-center gap-1 h-6 px-3 rounded-full text-xs font-semibold transition-all duration-200 hover:scale-[1.03]"
+                      className="inline-flex items-center gap-1 h-6 px-3 rounded-full text-xs font-semibold transition-all duration-200 "
                       style={{
                         background: hintsOpen
                           ? isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.1)"
@@ -2021,7 +2021,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
 
           {activeTab === 2 && (
             <>
-              <motion.div {...fadeIn} className={`flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border relative shadow-sm ${isFullscreen ? "hidden" : (isDark ? "border-[#262626] bg-[#0F0F0F]" : "border-zinc-200 bg-white")}`}>
+              <motion.div {...fadeIn} className={`flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border relative shadow-sm ${isFullscreen ? "hidden" : "border-border bg-card"}`}>
                 <GuruBot
                   open={true}
                   onClose={() => setActiveTab(0)}
@@ -2037,7 +2037,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                 />
               </motion.div>
               {isFullscreen && createPortal(
-                <div className={`fixed inset-0 z-[100] flex flex-col animate-in fade-in duration-200 ${isDark ? "bg-[#0F0F0F]" : "bg-white"}`}>
+                <div className={`fixed inset-0 z-[100] flex flex-col animate-in fade-in duration-200 bg-background`}>
                   <GuruBot
                     open={true}
                     onClose={() => setIsFullscreen(false)}
@@ -2072,7 +2072,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
         {/* Back to home */}
         <Link
           to="/"
-          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-[1.03]"
+          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 "
           style={{
             color: isDark ? "#94a3b8" : "#64748b",
             background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
@@ -2087,7 +2087,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
           href={problem.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold transition-all duration-200 hover:scale-[1.03]"
+          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold transition-all duration-200 "
           style={{
             color: isDark ? "#fbbf24" : "#d97706",
             background: isDark ? "rgba(251,191,36,0.06)" : "rgba(217,119,6,0.04)",

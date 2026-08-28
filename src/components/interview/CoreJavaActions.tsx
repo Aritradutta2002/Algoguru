@@ -26,7 +26,7 @@ export const CoreJavaBookmarkButton = memo(function CoreJavaBookmarkButton({
         aria-pressed={isBookmarked}
         aria-label={isBookmarked ? "Remove bookmark" : "Bookmark question"}
         className={cn(
-          "inline-flex items-center gap-2 rounded-lg border font-semibold transition-all duration-200 active:scale-95",
+          "inline-flex items-center gap-2 rounded-lg border font-semibold transition-all duration-200 ",
           compact ? "px-2.5 py-1.5 min-h-[36px]" : "px-3.5 py-2 min-h-[40px]",
           isBookmarked
             ? "bg-primary/15 border-primary/40 text-primary"
@@ -66,7 +66,7 @@ export const CoreJavaLearnedButton = memo(function CoreJavaLearnedButton({
         aria-pressed={isLearned}
         aria-label={isLearned ? "Mark as not learned" : "Mark as learned"}
         className={cn(
-          "inline-flex items-center gap-2 rounded-lg border font-semibold transition-all duration-200 active:scale-95 disabled:opacity-60",
+          "inline-flex items-center gap-2 rounded-lg border font-semibold transition-all duration-200 disabled:opacity-60",
           compact ? "px-2.5 py-1.5 min-h-[36px]" : "px-3.5 py-2 min-h-[40px]",
           isLearned
             ? "bg-success/15 border-success/40 text-success"
@@ -122,7 +122,7 @@ export const CoreJavaShareButton = memo(function CoreJavaShareButton({
         onClick={handleShare}
         aria-label="Share question"
         className={cn(
-          "inline-flex items-center gap-2 rounded-lg border bg-card border-border/50 text-muted-foreground hover:bg-muted/60 hover:text-foreground font-semibold transition-all duration-200 active:scale-95",
+          "inline-flex items-center gap-2 rounded-lg border bg-card border-border/50 text-muted-foreground hover:bg-muted/60 hover:text-foreground font-semibold transition-all duration-200 ",
           compact ? "px-2.5 py-1.5 min-h-[36px]" : "px-3.5 py-2 min-h-[40px]"
         )}
       >
@@ -159,7 +159,7 @@ export const CoreJavaCopyTextButton = memo(function CoreJavaCopyTextButton({
       type="button"
       onClick={handleCopy}
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg border font-medium text-[11px] transition-all duration-200 active:scale-95",
+        "inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg border font-medium text-[11px] transition-all duration-200 ",
         copied
           ? "bg-success/10 border-success/30 text-success"
           : "bg-card border-border/50 text-muted-foreground hover:bg-muted/60 hover:text-foreground"

@@ -90,6 +90,17 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        /* Restrained elevation ladder, driven by theme tokens */
+        card: "var(--shadow-card)",
+        soft: "var(--shadow-soft)",
+        accent: "var(--shadow-accent)",
+        overlay: "var(--shadow-overlay)",
+        cardHover: "var(--shadow-accent)",
+      },
+      transitionTimingFunction: {
+        premium: "cubic-bezier(0.22, 1, 0.36, 1)",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

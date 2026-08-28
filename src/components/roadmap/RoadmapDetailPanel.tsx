@@ -151,7 +151,7 @@ export function RoadmapDetailPanel({
 
         {/* Status actions */}
         <section>
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
             Update status
           </h3>
           <div className="grid grid-cols-3 gap-2">

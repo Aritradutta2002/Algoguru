@@ -3,6 +3,10 @@
    Imported only by: JavaInterviewHub, InterviewCoreJavaQuestionsPage,
    InterviewCoreJavaQuestionDetailPage.
    Uses existing AlgoGuru design tokens only — no global overrides.
+
+   Design language matches the home page: restrained shadows, subtle
+   borders, rounded-xl / rounded-2xl surfaces, no gradients, no shimmer,
+   no transform-based hover effects.
    ══════════════════════════════════════════════════════════════════════ */
 
 /* ── Question Detail Page ─────────────────────────────────────────── */
@@ -11,7 +15,7 @@
 }
 
 .cjd-sticky-bar {
-  border-color: hsl(var(--border) / 0.3);
+  border-color: hsl(var(--border));
 }
 
 .cjd-grid {
@@ -46,10 +50,9 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
   margin-bottom: 1rem;
@@ -61,15 +64,17 @@
   justify-content: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0.5rem;
+  border-radius: 0.625rem;
   background: hsl(var(--primary) / 0.1);
   border: 1px solid hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
   font-size: 0.85rem;
 }
 
 .cjd-surface {
   background: hsl(var(--card));
-  border: 1px solid hsl(var(--border) / 0.4);
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.875rem;
 }
 
 .cjd-mental-model {
@@ -78,11 +83,11 @@
 
 /* ── Hub Page ─────────────────────────────────────────────────────── */
 .cjh-page {
-  --cjh-glow: hsl(var(--primary) / 0.12);
+  --cjh-glow: hsl(var(--primary) / 0.1);
   --cjh-surface: hsl(var(--card));
-  --cjh-border: hsl(var(--border) / 0.45);
+  --cjh-border: hsl(var(--border));
   background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.08), transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.06), transparent 60%),
     hsl(var(--background));
 }
 
@@ -92,28 +97,27 @@
   gap: 0.35rem;
   padding: 0.35rem 0.75rem;
   border-radius: 9999px;
-  border: 1px solid hsl(var(--border) / 0.35);
-  background: hsl(var(--card) / 0.6);
-  backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
 }
 
 .cjh-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 1.5rem;
-  border: 1px solid hsl(var(--border) / 0.4);
-  background:
-    linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.25) 100%);
-  box-shadow: 0 8px 40px hsl(var(--foreground) / 0.07);
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
 }
 
+/* Subtle grid texture, masked so it never competes with content */
 .cjh-hero::before {
   content: "";
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(hsl(var(--border) / 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--border) / 0.07) 1px, transparent 1px);
+    linear-gradient(hsl(var(--border) / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.06) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: radial-gradient(ellipse 70% 80% at 30% 20%, black 20%, transparent 75%);
   pointer-events: none;
@@ -135,24 +139,21 @@
   left: -10%;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, hsl(var(--accent) / 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, hsl(var(--accent) / 0.05) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .cjh-hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.85rem;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 9999px;
-  border: 1px solid hsl(var(--primary) / 0.25);
-  background: hsl(var(--primary) / 0.08);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
 }
 
 .cjh-hero-title {
@@ -160,155 +161,114 @@
   letter-spacing: -0.03em;
 }
 
+/* Solid accent — no gradient text clip */
 .cjh-hero-title span {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: hsl(var(--primary));
 }
 
 .cjh-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.35rem;
-  min-height: 2.75rem;
-  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  min-height: 2.5rem;
+  border-radius: 0.625rem;
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.875rem;
-  box-shadow: 0 4px 14px hsl(var(--primary) / 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  box-shadow: var(--shadow-soft);
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .cjh-btn-primary:hover {
   opacity: 0.92;
-  box-shadow: 0 6px 20px hsl(var(--primary) / 0.45);
-  transform: translateY(-1px);
-}
-
-.cjh-btn-primary:active {
-  transform: scale(0.98);
 }
 
 .cjh-btn-secondary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.35rem;
-  min-height: 2.75rem;
-  border-radius: 0.75rem;
-  border: 1px solid hsl(var(--border) / 0.5);
-  background: hsl(var(--card) / 0.8);
+  padding: 0.625rem 1.25rem;
+  min-height: 2.5rem;
+  border-radius: 0.625rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
   font-weight: 600;
   font-size: 0.875rem;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .cjh-btn-secondary:hover {
-  background: hsl(var(--muted) / 0.5);
+  background: hsl(var(--muted));
   border-color: hsl(var(--primary) / 0.35);
-  transform: translateY(-1px);
 }
 
 .cjh-stat-card {
   position: relative;
   overflow: hidden;
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border) / 0.4);
-  background: hsl(var(--background) / 0.7);
-  backdrop-filter: blur(6px);
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
   padding: 1rem 1.1rem;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.15s ease;
 }
 
 .cjh-stat-card:hover {
-  border-color: hsl(var(--primary) / 0.3);
-  transform: translateY(-2px);
-}
-
-.cjh-stat-card::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.cjh-stat-card:hover::after {
-  opacity: 1;
+  border-color: hsl(var(--primary) / 0.35);
 }
 
 .cjh-progress-card {
-  border-radius: 1.25rem;
-  border: 1px solid hsl(var(--primary) / 0.18);
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  box-shadow: 0 4px 24px hsl(var(--foreground) / 0.05);
+  box-shadow: var(--shadow-card);
 }
 
-/* Dark mode — deep, soft elevation instead of light-mode hard shadows */
+/* Dark mode — soft elevation via theme tokens */
 .dark .cjh-hero {
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-card);
 }
 
 .dark .cjh-progress-card {
-  border-color: hsl(var(--primary) / 0.22);
-  background:
-    linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 55%, hsl(var(--card)) 100%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  border-color: hsl(var(--border));
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
 }
 
 .dark .cjh-path-card {
   background: hsl(var(--card));
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-card);
 }
 
 .dark .cjh-path-card:hover,
 .dark .cjh-topic-card:hover,
 .dark .cjh-question-card:hover {
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-accent);
 }
 
 .dark .cjh-stat-card {
-  background: hsl(var(--background) / 0.5);
+  background: hsl(var(--card));
 }
 
 .dark .cjh-revision-banner {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-card);
 }
 
 .cjh-progress-track {
-  height: 0.5rem;
+  height: 0.375rem;
   border-radius: 9999px;
-  background: hsl(var(--muted) / 0.6);
+  background: hsl(var(--muted));
   overflow: hidden;
 }
 
 .cjh-progress-fill {
-  position: relative;
   height: 100%;
   border-radius: 9999px;
-  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
+  background: hsl(var(--primary));
   transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  overflow: hidden;
-}
-
-.cjh-progress-fill::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, hsl(var(--primary-foreground) / 0.35), transparent);
-  transform: translateX(-100%);
-  animation: cjh-shimmer 2.6s ease-in-out infinite;
-}
-
-@keyframes cjh-shimmer {
-  to { transform: translateX(100%); }
 }
 
 .cjh-section-header {
@@ -325,8 +285,8 @@
   align-items: center;
   gap: 0.6rem;
   font-family: "Outfit", "Space Grotesk", system-ui, sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
@@ -336,15 +296,14 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 0.6rem;
+  border-radius: 0.625rem;
   background: hsl(var(--primary) / 0.12);
   border: 1px solid hsl(var(--primary) / 0.2);
   color: hsl(var(--primary));
 }
 
 .cjh-section-meta {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: hsl(var(--muted-foreground));
 }
 
@@ -353,36 +312,18 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 1.35rem;
-  border-radius: 1.15rem;
-  border: 1px solid hsl(var(--border) / 0.4);
+  padding: 1.25rem;
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
   overflow: hidden;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-
-.cjh-path-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  pointer-events: none;
-}
-
-.cjh-path-card--primary::before { background: linear-gradient(135deg, hsl(var(--primary) / 0.06), transparent 60%); }
-.cjh-path-card--accent::before { background: linear-gradient(135deg, hsl(var(--accent) / 0.06), transparent 60%); }
-.cjh-path-card--destructive::before { background: linear-gradient(135deg, hsl(var(--destructive) / 0.06), transparent 60%); }
-.cjh-path-card--info::before { background: linear-gradient(135deg, hsl(var(--info) / 0.06), transparent 60%); }
 
 .cjh-path-card:hover {
-  transform: translateY(-4px);
   border-color: hsl(var(--primary) / 0.35);
-  box-shadow: 0 12px 32px hsl(var(--foreground) / 0.06);
-}
-
-.cjh-path-card:hover::before {
-  opacity: 1;
+  box-shadow: var(--shadow-accent);
 }
 
 .cjh-path-icon {
@@ -402,12 +343,10 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: hsl(var(--muted-foreground));
-  transition: color 0.2s ease, gap 0.2s ease;
+  transition: color 0.15s ease, gap 0.15s ease;
 }
 
 .cjh-path-card:hover .cjh-path-arrow {
@@ -423,21 +362,21 @@
   position: relative;
   display: block;
   padding: 1.1rem 1.15rem;
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border) / 0.4);
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .cjh-topic-card:hover {
-  transform: translateY(-2px);
   border-color: hsl(var(--primary) / 0.35);
-  box-shadow: 0 8px 24px hsl(var(--foreground) / 0.05);
+  box-shadow: var(--shadow-accent);
 }
 
 .cjh-topic-card--complete {
   border-color: hsl(var(--success) / 0.35);
-  background: linear-gradient(135deg, hsl(var(--success) / 0.04), hsl(var(--card)));
+  background: hsl(var(--success) / 0.04);
 }
 
 .cjh-topic-emoji {
@@ -450,8 +389,8 @@
   flex-shrink: 0;
   font-size: 1.15rem;
   line-height: 1;
-  background: hsl(var(--muted) / 0.35);
-  border: 1px solid hsl(var(--border) / 0.3);
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
 }
 
 .cjh-question-card {
@@ -460,10 +399,11 @@
   flex-direction: column;
   height: 100%;
   padding: 1.15rem 1.2rem;
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border) / 0.4);
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .cjh-question-card::before {
@@ -476,13 +416,12 @@
   border-radius: 0 4px 4px 0;
   background: hsl(var(--primary));
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .cjh-question-card:hover {
-  transform: translateY(-3px);
   border-color: hsl(var(--primary) / 0.35);
-  box-shadow: 0 10px 28px hsl(var(--foreground) / 0.06);
+  box-shadow: var(--shadow-accent);
 }
 
 .cjh-question-card:hover::before {
@@ -492,30 +431,19 @@
 .cjh-revision-banner {
   position: relative;
   overflow: hidden;
-  border-radius: 1.25rem;
-  border: 1px solid hsl(var(--primary) / 0.25);
-  background:
-    linear-gradient(120deg, hsl(var(--primary) / 0.12) 0%, hsl(var(--card)) 40%, hsl(var(--accent) / 0.08) 100%);
-  box-shadow: 0 8px 32px hsl(var(--primary) / 0.1);
-}
-
-.cjh-revision-banner::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle, hsl(var(--primary) / 0.15), transparent 70%);
-  pointer-events: none;
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
 }
 
 .cjh-footer-stat {
   padding: 1.15rem 1.2rem;
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border) / 0.4);
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  transition: border-color 0.2s ease;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease;
 }
 
 .cjh-footer-stat:hover {
@@ -562,13 +490,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .cjh-path-card:hover,
-  .cjh-topic-card:hover,
-  .cjh-question-card:hover,
-  .cjh-stat-card:hover,
-  .cjh-btn-primary:hover {
-    transform: none;
   }
 }

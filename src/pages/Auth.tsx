@@ -29,104 +29,6 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
-/* ── Cartoon Mascot SVG ──────────────────────────────────── */
-function MascotSVG() {
-  return (
-    <svg viewBox="0 0 320 420" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xs mx-auto drop-shadow-2xl">
-      {/* Shadow */}
-      <ellipse cx="160" cy="400" rx="85" ry="14" fill="currentColor" className="text-muted-foreground/20" />
-
-      {/* LEFT ARM */}
-      <rect x="48" y="160" width="28" height="80" rx="14" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2"/>
-      {/* Left glove */}
-      <circle cx="58" cy="248" r="20" fill="#fff" stroke="#1a1a1a" strokeWidth="3"/>
-      <circle cx="48" cy="240" r="10" fill="#fff" stroke="#1a1a1a" strokeWidth="2.5"/>
-      <circle cx="70" cy="238" r="9" fill="#fff" stroke="#1a1a1a" strokeWidth="2.5"/>
-      <circle cx="56" cy="260" r="9" fill="#fff" stroke="#1a1a1a" strokeWidth="2.5"/>
-
-      {/* RIGHT ARM */}
-      <rect x="244" y="160" width="28" height="80" rx="14" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2"/>
-      {/* Right glove */}
-      <circle cx="262" cy="248" r="20" fill="#fff" stroke="#1a1a1a" strokeWidth="3"/>
-      <circle cx="252" cy="240" r="10" fill="#fff" stroke="#1a1a1a" strokeWidth="2.5"/>
-      <circle cx="274" cy="240" r="9" fill="#fff" stroke="#1a1a1a" strokeWidth="2.5"/>
-      <circle cx="264" cy="260" r="9" fill="#fff" stroke="#1a1a1a" strokeWidth="2.5"/>
-
-      {/* LAPTOP BODY */}
-      <rect x="60" y="80" width="200" height="200" rx="18" fill="var(--color-primary, #4DA6FF)" stroke="#1a1a1a" strokeWidth="4" className="text-primary" style={{ fill: "currentColor" }} />
-
-      {/* Screen bezel */}
-      <rect x="75" y="95" width="170" height="150" rx="10" fill="#1a2a4a" stroke="#1a1a1a" strokeWidth="2.5"/>
-
-      {/* Screen content - code lines */}
-      <rect x="88" y="112" width="80" height="7" rx="3.5" fill="#FFD500" opacity="0.9"/>
-      <rect x="88" y="126" width="120" height="7" rx="3.5" fill="#A3E635" opacity="0.7"/>
-      <rect x="88" y="140" width="60" height="7" rx="3.5" fill="#FF3366" opacity="0.7"/>
-      <rect x="88" y="154" width="100" height="7" rx="3.5" fill="#4DA6FF" opacity="0.9"/>
-      <rect x="88" y="168" width="90" height="7" rx="3.5" fill="#FFD500" opacity="0.6"/>
-      <rect x="88" y="182" width="70" height="7" rx="3.5" fill="#A3E635" opacity="0.8"/>
-      <rect x="88" y="196" width="110" height="7" rx="3.5" fill="#FF3366" opacity="0.6"/>
-      <rect x="88" y="210" width="50" height="7" rx="3.5" fill="#fff" opacity="0.4"/>
-
-      {/* Cursor blink */}
-      <rect x="144" y="210" width="4" height="9" rx="1" fill="#fff" opacity="0.9"/>
-
-      {/* Side buttons */}
-      <rect x="255" y="105" width="10" height="22" rx="5" fill="#FFD500" stroke="#1a1a1a" strokeWidth="2"/>
-      <rect x="255" y="135" width="10" height="22" rx="5" fill="#FF3366" stroke="#1a1a1a" strokeWidth="2"/>
-      <rect x="255" y="165" width="10" height="22" rx="5" fill="#A3E635" stroke="#1a1a1a" strokeWidth="2"/>
-
-      {/* EYES on top of laptop */}
-      {/* Left eye */}
-      <circle cx="126" cy="76" r="24" fill="#fff" stroke="#1a1a1a" strokeWidth="3.5"/>
-      <circle cx="124" cy="75" r="14" fill="#1a1a1a"/>
-      <circle cx="120" cy="71" r="5" fill="#fff"/>
-      {/* Right eye */}
-      <circle cx="194" cy="76" r="24" fill="#fff" stroke="#1a1a1a" strokeWidth="3.5"/>
-      <circle cx="196" cy="75" r="14" fill="#1a1a1a"/>
-      <circle cx="192" cy="71" r="5" fill="#fff"/>
-
-      {/* Eyebrows */}
-      <path d="M108 55 Q126 46 144 55" stroke="#1a1a1a" strokeWidth="4" strokeLinecap="round" fill="none"/>
-      <path d="M176 55 Q194 46 212 55" stroke="#1a1a1a" strokeWidth="4" strokeLinecap="round" fill="none"/>
-
-      {/* Smile */}
-      <path d="M118 275 Q160 305 202 275" stroke="#1a1a1a" strokeWidth="4" strokeLinecap="round" fill="none"/>
-      {/* Teeth */}
-      <path d="M130 285 Q160 308 190 285" stroke="none" fill="#fff"/>
-      <path d="M130 285 Q160 308 190 285 Q160 308 130 285Z" fill="#fff" stroke="#1a1a1a" strokeWidth="2"/>
-
-      {/* Blush circles */}
-      <circle cx="105" cy="285" r="14" fill="#FF8FA3" opacity="0.5"/>
-      <circle cx="215" cy="285" r="14" fill="#FF8FA3" opacity="0.5"/>
-
-      {/* LEFT LEG */}
-      <rect x="108" y="275" width="32" height="80" rx="16" fill="#1a1a1a"/>
-      {/* Left shoe */}
-      <rect x="90" y="343" width="60" height="28" rx="14" fill="#FF3366" stroke="#1a1a1a" strokeWidth="3"/>
-      <rect x="88" y="350" width="22" height="18" rx="9" fill="#f0f0f0" stroke="#1a1a1a" strokeWidth="2"/>
-
-      {/* RIGHT LEG */}
-      <rect x="180" y="275" width="32" height="70" rx="16" fill="#1a1a1a"/>
-      {/* Right shoe */}
-      <rect x="168" y="333" width="60" height="28" rx="14" fill="#FF3366" stroke="#1a1a1a" strokeWidth="3"/>
-      <rect x="170" y="340" width="22" height="18" rx="9" fill="#f0f0f0" stroke="#1a1a1a" strokeWidth="2"/>
-
-      {/* Star sparkles */}
-      <g opacity="0.85">
-        <path d="M42 80 L44 72 L46 80 L54 82 L46 84 L44 92 L42 84 L34 82Z" fill="#1a1a1a"/>
-        <path d="M272 60 L274 52 L276 60 L284 62 L276 64 L274 72 L272 64 L264 62Z" fill="#1a1a1a"/>
-        <path d="M60 340 L61.5 334 L63 340 L69 341.5 L63 343 L61.5 349 L60 343 L54 341.5Z" fill="#1a1a1a"/>
-        <path d="M280 310 L281.5 304 L283 310 L289 311.5 L283 313 L281.5 319 L280 313 L274 311.5Z" fill="#1a1a1a"/>
-        <circle cx="290" cy="100" r="5" fill="none" stroke="#1a1a1a" strokeWidth="2.5"/>
-        <circle cx="38" cy="190" r="4" fill="none" stroke="#1a1a1a" strokeWidth="2"/>
-        <circle cx="298" cy="220" r="3.5" fill="#1a1a1a"/>
-        <circle cx="50" cy="130" r="3" fill="#1a1a1a"/>
-      </g>
-    </svg>
-  );
-}
-
 /* ── Field Component ─────────────────────────────────────── */
 function Field({
   label, type, placeholder, value, onChange, error, rightSlot,
@@ -377,9 +279,7 @@ export default function Auth() {
               <motion.button
                 type="submit"
                 disabled={isDisabled}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all hover:brightness-95 disabled:opacity-60"
+                className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-colors hover:brightness-95 disabled:opacity-60"
               >
                 {loading ? "Please wait…" : cooldown ? "Try again shortly…" : isLogin ? "Sign in" : "Sign up"}
               </motion.button>
@@ -400,10 +300,8 @@ export default function Auth() {
               <motion.button
                 onClick={handleGoogleSignIn}
                 disabled={isDisabled}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
                 aria-label="Sign in with Google"
-                className="w-12 h-12 rounded-lg flex items-center justify-center border border-border bg-card hover:bg-muted disabled:opacity-60 transition-colors group"
+                className="flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-muted disabled:opacity-60 group"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" className="grayscale group-hover:grayscale-0 transition-all duration-300">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -427,24 +325,45 @@ export default function Auth() {
           </p>
         </div>
 
-        {/* ── RIGHT PANEL (Mascot / Art) ── */}
-        <div className="hidden md:flex w-[45%] flex-col items-center justify-center p-8 relative overflow-hidden bg-muted/30 border-l border-border order-1 md:order-2">
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full max-w-[260px] relative z-10"
-          >
-            <MascotSVG />
-          </motion.div>
-
-          {/* Caption */}
-          <div className="mt-10 text-center relative z-10">
-            <h3 className="text-lg font-semibold tracking-tight">
-              Learn. <span className="text-primary">Adapt</span>. Grow.
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Master the craft with us
+        {/* ── RIGHT PANEL (Value proposition) ── */}
+        <div className="hidden w-[45%] flex-col justify-center border-l border-border bg-muted/30 p-10 md:flex order-1 md:order-2">
+          <div className="relative z-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              Why AlgoGuru
             </p>
+            <h3 className="mt-3 text-2xl font-bold leading-snug tracking-[-0.03em] text-foreground">
+              Learn. Adapt. Grow.
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Master the craft with a workspace built around deliberate practice.
+            </p>
+
+            <ul className="mt-8 space-y-4">
+              {[
+                {
+                  title: "Structured learning paths",
+                  body: "Interactive roadmaps for DSA, Java, and system design.",
+                },
+                {
+                  title: "Interview-ready practice",
+                  body: "Curated company questions with editorials in three languages.",
+                },
+                {
+                  title: "Practice in the browser",
+                  body: "A full editor with test cases, so you can solve without setup.",
+                },
+              ].map((item, index) => (
+                <li key={item.title} className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-[11px] font-semibold text-primary">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                    <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{item.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </motion.div>

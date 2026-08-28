@@ -339,12 +339,12 @@ export default function Profile() {
         }
       }
 
-      let parsedCalendar = mergeLeetcodeCalendars([
+      const parsedCalendar = mergeLeetcodeCalendars([
         baseCalendar.calendar,
         ...yearlyCalendars
       ]);
 
-      let activeYears =
+      const activeYears =
         baseCalendar.activeYears.length > 0
           ? baseCalendar.activeYears
           : Array.from(
@@ -682,10 +682,10 @@ export default function Profile() {
   }, [currentEasySolved, currentMediumSolved, currentHardSolved, dataMode, leetcodeData]);
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground p-4 lg:p-8 flex flex-col lg:flex-row gap-6 pb-20 relative">
+    <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 bg-background p-5 pb-20 text-foreground md:px-10 lg:flex-row lg:p-8 lg:px-16">
       {showLeetcodePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 w-full max-w-sm shadow-overlay space-y-4">
             <h3 className="text-lg font-semibold text-foreground">
               Link LeetCode account
             </h3>
@@ -723,7 +723,7 @@ export default function Profile() {
 
       {showCodechefPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+          <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 w-full max-w-sm shadow-overlay space-y-4">
             <h3 className="text-lg font-semibold text-foreground">
               Link CodeChef account
             </h3>
@@ -760,7 +760,7 @@ export default function Profile() {
       )}
 
       <div className="w-full lg:w-[320px] shrink-0 space-y-6">
-        <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col">
+        <div className="flex flex-col rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-card">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative group">
               {resolvedAvatar ? (
@@ -780,7 +780,7 @@ export default function Profile() {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="absolute -bottom-2 -right-2 w-7 h-7 rounded-lg bg-foreground text-background flex items-center justify-center border-2 border-background shadow-xl hover:scale-110 active:scale-95 disabled:opacity-50 z-10"
+                  className="absolute -bottom-2 -right-2 w-7 h-7 rounded-lg bg-foreground text-background flex items-center justify-center border-2 border-background shadow-soft disabled:opacity-50 z-10"
                 >
                   {uploading ? (
                     <Loader2 className="animate-spin w-3 h-3" />
@@ -882,7 +882,7 @@ export default function Profile() {
 
       <div className="flex-1 min-w-0 space-y-6">
         {isEditing ? (
-          <div className="bg-card text-card-foreground rounded-2xl p-6 md:p-10 border border-border space-y-8">
+          <div className="space-y-8 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-card md:p-10">
             <h2 className="text-xl font-semibold">Edit profile</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">

@@ -371,7 +371,7 @@ const Sidebar = React.forwardRef<
             )}
           >
             <PanelLeft size={18} className="text-primary" />
-            <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-black tracking-widest text-foreground">
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold tracking-widest text-foreground">
               Navigation
             </span>
             <button

@@ -725,7 +725,7 @@ export default function NotesDashboard() {
             <button
               onClick={toggleSelectAllFiltered}
               disabled={filteredNotes.length === 0}
-              className="px-5 py-3 rounded-[20px] bg-muted/20 border border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all disabled:opacity-40"
+              className="px-5 py-3 rounded-xl bg-muted/20 border border-border/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all disabled:opacity-40"
             >
               {allFilteredSelected ? "Clear Selection" : "Select All"}
             </button>
@@ -735,7 +735,7 @@ export default function NotesDashboard() {
         {filteredNotes.length > 0 && (
           <div className="flex items-center gap-2 px-2">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
               {filteredNotes.length} visible · {selectedFilteredNotes.length} selected
             </span>
           </div>
@@ -743,12 +743,12 @@ export default function NotesDashboard() {
 
         {/* Notes Grid */}
         {filteredNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-card/30 border border-dashed rounded-[40px]">
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-card/30 border border-dashed rounded-2xl">
             <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center text-muted-foreground/20">
               <FileText size={40} />
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-black uppercase tracking-tight text-foreground">
+              <h3 className="text-xl font-semibold tracking-[-0.02em] text-foreground">
                 {notesCount === 0 ? "No notes yet" : "No matches found"}
               </h3>
               <p className="text-sm font-medium text-muted-foreground max-w-[300px] leading-relaxed">
@@ -760,7 +760,7 @@ export default function NotesDashboard() {
             {notesCount === 0 && (
               <button
                 onClick={() => navigate("/practice")}
-                className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-primary/90"
+                className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-primary/90"
               >
                 Go to Practice
               </button>
@@ -779,7 +779,7 @@ export default function NotesDashboard() {
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="group bg-card border rounded-[32px] overflow-hidden transition-all hover:shadow-2xl hover:shadow-primary/5"
+                  className="group bg-card border rounded-[32px] overflow-hidden transition-all hover:shadow-overlay hover:shadow-primary/5"
                 >
                   <div className="p-8 md:p-10 space-y-6">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
@@ -801,7 +801,7 @@ export default function NotesDashboard() {
                             {new Date(entry.updatedAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight text-foreground leading-tight group-hover:text-primary transition-colors">
+                        <h3 className="text-xl md:text-2xl font-semibold uppercase tracking-tight text-foreground leading-tight group-hover:text-primary transition-colors">
                           {noteMeta.title}
                         </h3>
                       </div>
@@ -843,7 +843,7 @@ export default function NotesDashboard() {
                       {entry.notes.length > 300 && (
                         <button
                           onClick={() => setExpandedNote(isExpanded ? null : noteId)}
-                          className="mt-4 text-[11px] font-black uppercase tracking-widest text-primary hover:underline flex items-center gap-1.5"
+                          className="mt-4 text-[11px] font-semibold uppercase tracking-widest text-primary hover:underline flex items-center gap-1.5"
                         >
                           {isExpanded ? "Show Less" : "Read Full Note"}
                           {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -860,7 +860,7 @@ export default function NotesDashboard() {
         {notesCount > 0 && (
           <div className="flex items-center justify-center gap-2 pt-12 border-t border-border/30">
             <div className="w-1.5 h-1.5 rounded-full bg-success" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/40">
               Cloud Synced • Persists across devices
             </p>
           </div>
@@ -881,7 +881,7 @@ export default function NotesDashboard() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-[40px] border border-border/50 shadow-2xl bg-card"
+              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-border/50 shadow-overlay bg-card"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-6 px-8 py-8 border-b border-border/50">
@@ -901,7 +901,7 @@ export default function NotesDashboard() {
                       {isEditingNote ? "Editing Note" : "Viewing Note"}
                     </span>
                   </div>
-                  <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-tight text-foreground">
+                  <h2 className="text-xl font-semibold leading-tight tracking-[-0.02em] text-foreground md:text-2xl">
                     {activeMeta?.title ?? activeNoteEntry.questionId}
                   </h2>
                 </div>

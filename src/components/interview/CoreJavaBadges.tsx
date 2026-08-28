@@ -16,7 +16,7 @@ export function DifficultyBadge({ difficulty, className }: DifficultyBadgeProps)
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider font-mono",
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-medium capitalize",
         DIFFICULTY_STYLES[difficulty],
         className
       )}
@@ -50,7 +50,7 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider font-mono",
+        "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium",
         PRIORITY_STYLES[priority],
         className
       )}
@@ -70,7 +70,7 @@ export function JavaVersionBadge({ version, className }: JavaVersionBadgeProps) 
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider font-mono bg-info/10 text-info border-info/25",
+        "inline-flex items-center rounded-md border border-info/25 bg-info/10 px-2 py-0.5 text-[11px] font-medium text-info",
         className
       )}
     >

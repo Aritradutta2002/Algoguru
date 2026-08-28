@@ -28,7 +28,7 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
           <div className="flex justify-center md:justify-start">
             <button
               onClick={() => navigate(backRoute)}
-              className="group flex items-center gap-2.5 px-6 py-3 rounded-2xl border border-border/30 bg-muted/30 text-[11px] font-black uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:border-primary/30 hover:text-foreground"
+              className="group flex items-center gap-2.5 px-6 py-3 rounded-2xl border border-border/30 bg-muted/30 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:border-primary/30 hover:text-foreground"
             >
               <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
               Back to Roadmap
@@ -45,13 +45,13 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
             <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full blur-[120px] bg-primary/10 opacity-50 pointer-events-none group-hover:bg-primary/20 transition-colors" />
             
             <div className="relative z-10 flex flex-col items-center md:items-start text-center md:text-left space-y-8">
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border bg-primary/10 border-primary/20 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border bg-primary/10 border-primary/20 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
                 <Clock3 size={14} className="animate-pulse" />
                 Under Development
               </div>
 
               <div className="space-y-4">
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tighter leading-[1.1]">
+                <h1 className="text-4xl font-bold leading-[1.08] tracking-[-0.035em] md:text-6xl lg:text-7xl">
                   {title.split(' ').map((word, i) => (
                     <span key={i} className={i % 2 === 1 ? "text-primary" : ""}>
                       {word}{' '}
@@ -60,7 +60,7 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
                 </h1>
                 
                 {languageLabel && (
-                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl border border-border/30 bg-muted/20 text-[11px] font-black uppercase tracking-widest text-muted-foreground/60">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl border border-border/30 bg-muted/20 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                     Target Language: {languageLabel}
                   </div>

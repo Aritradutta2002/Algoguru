@@ -237,13 +237,13 @@ export default function Practice() {
               <div key={topic.id} className="space-y-5">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border pb-4">
                   <div className="flex items-start gap-4">
-                    <div className={`hidden md:flex w-10 h-10 rounded-lg ${accent.bg} text-white items-center justify-center shrink-0`}>
+                    <div className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${accent.border} ${accent.soft} ${accent.text} md:flex`}>
                       <Layers size={18} />
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
                         {topic.title}
-                        <span className={`hidden md:inline-flex px-2 py-0.5 rounded-md text-xs font-semibold border ${accent.border} ${accent.soft} ${accent.text}`}>{topicSolved}/{topicTotal}</span>
+                        <span className={`hidden md:inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${accent.border} ${accent.soft} ${accent.text}`}>{topicSolved}/{topicTotal}</span>
                       </h2>
                       <p className="mt-1.5 text-sm leading-6 text-muted-foreground max-w-3xl">{topic.description}</p>
                     </div>

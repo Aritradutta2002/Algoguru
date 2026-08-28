@@ -219,7 +219,7 @@ export function AppSidebar() {
           <AlgoGuruLogo
             size={36}
             showText={false}
-            className="relative z-10 transition-transform duration-200 group-hover:scale-105"
+            className="relative z-10 transition-transform duration-200 group-"
           />
           <div className="flex flex-col">
             <span className="text-sm font-bold tracking-tight text-foreground">

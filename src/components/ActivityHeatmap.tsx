@@ -636,7 +636,7 @@ export function ActivityHeatmap({
                               isFuture && "opacity-15",
                               !isFuture &&
                                 count > 0 &&
-                                `cursor-pointer hover:scale-[1.35] hover:shadow-lg ${hoverShadow}`,
+                                `cursor-pointer hover:shadow-lg ${hoverShadow}`,
                               !isFuture &&
                                 count === 0 &&
                                 "hover:ring-1 hover:ring-border dark:hover:ring-white/[0.12]",

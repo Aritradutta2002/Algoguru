@@ -1179,7 +1179,6 @@ export default function Playground() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Persist preferences (debounced, DB only).
@@ -2188,7 +2187,7 @@ export default function Playground() {
       <button
         onClick={() => runCode(false)}
         disabled={isRunning || !code.trim()}
-        className={`flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3"}`}
+        className={`flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3"}`}
         style={{
           background: isRunning
             ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
@@ -2228,7 +2227,7 @@ export default function Playground() {
         <button
           onClick={() => runCode(true)}
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
-          className={`flex items-center justify-center gap-1 rounded-md font-medium transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3 text-[12px]"}`}
+          className={`flex items-center justify-center gap-1 rounded-md font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3 text-[12px]"}`}
           style={{
             background: breakpoints.size > 0 ? (isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)") : "transparent",
             color: breakpoints.size > 0 ? (isDark ? "#a78bfa" : "#7c3aed") : isDark ? "#94a3b8" : "#64748b",
@@ -3085,7 +3084,7 @@ export default function Playground() {
                   }
                 }}
                 aria-label="Change Language"
-                className="flex h-7 items-center gap-1.5 px-3 rounded-md text-xs font-semibold transition-all hover:scale-[1.02]"
+                className="flex h-7 items-center gap-1.5 px-3 rounded-md text-xs font-semibold transition-all "
                 style={{
                   background: isDark
                     ? "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.12) 100%)"
