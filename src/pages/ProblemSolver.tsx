@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -17,32 +18,32 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
-  ChevronDown,
   ChevronLeft,
   Clock,
   Code,
   Copy,
   ExternalLink,
+  BookOpen,
+  FileText,
   Lightbulb,
   Loader2,
-  Maximize,
-  Minimize,
   Plus,
   RefreshCw,
   Rocket,
   RotateCcw,
-  Trash2,
   X,
   XCircle,
   BrainCircuit,
+  Sparkles,
 } from "lucide-react";
 
 import { useDailyChallenge } from "@/hooks/useDailyChallenge";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { GuruBot } from "@/components/GuruBot";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { SegmentedControl } from "@/components/layout/PagePrimitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -130,12 +131,19 @@ const JAVA_AUTO_IMPORTS = [
   "import java.math.*;",
 ];
 
-// LeetCode-exact 3-color dark theme — blue (keywords) + green (types) + cream (identifiers) like LeetCode screenshot
+/**
+ * Editor themes.
+ *
+ * Both themes keep the LeetCode-style tri-colour syntax (blue keywords,
+ * teal types, cream identifiers) but every surface colour is drawn from the
+ * app's own palette so the editor reads as part of the same product as the
+ * rest of the workspace instead of a foreign widget bolted on.
+ */
 const LEETCODE_DARK_THEME = {
   base: "vs-dark" as const,
   inherit: true,
   rules: [
-    { token: "", foreground: "D4D0C8", background: "1B1A18" },
+    { token: "", foreground: "D4D0C8", background: "0E1016" },
     { token: "comment", foreground: "6A9955", fontStyle: "italic" },
     // Java primitive / type keywords → green (int, void, boolean, char, etc) — must come BEFORE generic keyword
     { token: "keyword.boolean", foreground: "4EC9B0" },
@@ -181,28 +189,79 @@ const LEETCODE_DARK_THEME = {
     { token: "delimiter.parenthesis", foreground: "D4D4D4" },
   ],
   colors: {
-    "editor.background": "#1B1A18",
+    "editor.background": "#0E1016",
     "editor.foreground": "#D4D0C8",
-    "editorLineNumber.foreground": "#7D7A72",
+    "editorLineNumber.foreground": "#5B6070",
     "editorLineNumber.activeForeground": "#C9C5BC",
-    "editorGutter.background": "#1B1A18",
-    "editor.lineHighlightBackground": "#26251F",
+    "editorGutter.background": "#0E1016",
+    "editor.lineHighlightBackground": "#171A22",
     "editor.lineHighlightBorder": "#00000000",
-    "editor.selectionBackground": "#4A4436AA",
-    "editor.inactiveSelectionBackground": "#3A3833AA",
+    "editor.selectionBackground": "#3B4258AA",
+    "editor.inactiveSelectionBackground": "#2A2F3DAA",
     "editorCursor.foreground": "#C9C5BC",
-    "editorIndentGuide.background": "#3B3934",
-    "editorIndentGuide.activeBackground": "#6B675E",
-    "editorBracketMatch.background": "#5C564755",
-    "editorBracketMatch.border": "#8A8578",
+    "editorIndentGuide.background": "#262B36",
+    "editorIndentGuide.activeBackground": "#4A5164",
+    "editorBracketMatch.background": "#4A516455",
+    "editorBracketMatch.border": "#7A8499",
     "scrollbar.shadow": "#00000000",
-    "scrollbarSlider.background": "#79766E66",
-    "scrollbarSlider.hoverBackground": "#64615AB3",
-    "scrollbarSlider.activeBackground": "#BFBBB166",
-    "editorWidget.background": "#232220",
-    "editorSuggestWidget.background": "#232220",
+    "scrollbarSlider.background": "#5B607066",
+    "scrollbarSlider.hoverBackground": "#7A8499B3",
+    "scrollbarSlider.activeBackground": "#AEB6C666",
+    "editorWidget.background": "#171A22",
+    "editorSuggestWidget.background": "#171A22",
     "editorSuggestWidget.foreground": "#D4D0C8",
-    "editorSuggestWidget.selectedBackground": "#33312C",
+    "editorSuggestWidget.selectedBackground": "#262B36",
+  },
+} as const;
+
+/** Light counterpart — matches the app's white card surface. */
+const ALGOGURU_LIGHT_THEME = {
+  base: "vs" as const,
+  inherit: true,
+  rules: [
+    { token: "", foreground: "1F2937", background: "FFFFFF" },
+    { token: "comment", foreground: "6B7280", fontStyle: "italic" },
+    { token: "keyword", foreground: "B45309" },
+    { token: "keyword.control", foreground: "B45309" },
+    { token: "storage", foreground: "B45309" },
+    { token: "storage.type", foreground: "0F766E" },
+    { token: "type", foreground: "0F766E" },
+    { token: "type.identifier", foreground: "0F766E" },
+    { token: "entity.name.type", foreground: "0F766E" },
+    { token: "entity.name.class", foreground: "0F766E" },
+    { token: "identifier", foreground: "1F2937" },
+    { token: "entity.name.function", foreground: "1D4ED8" },
+    { token: "support.function", foreground: "1D4ED8" },
+    { token: "variable", foreground: "1F2937" },
+    { token: "variable.parameter", foreground: "1F2937" },
+    { token: "number", foreground: "047857" },
+    { token: "string", foreground: "A1541F" },
+    { token: "operator", foreground: "4B5563" },
+    { token: "delimiter", foreground: "4B5563" },
+  ],
+  colors: {
+    "editor.background": "#FFFFFF",
+    "editor.foreground": "#1F2937",
+    "editorLineNumber.foreground": "#9CA3AF",
+    "editorLineNumber.activeForeground": "#4B5563",
+    "editorGutter.background": "#FFFFFF",
+    "editor.lineHighlightBackground": "#F5F6F8",
+    "editor.lineHighlightBorder": "#00000000",
+    "editor.selectionBackground": "#FCD9B6",
+    "editor.inactiveSelectionBackground": "#F1F2F5",
+    "editorCursor.foreground": "#1F2937",
+    "editorIndentGuide.background": "#E6E8EC",
+    "editorIndentGuide.activeBackground": "#C3C8D0",
+    "editorBracketMatch.background": "#FDE3C2",
+    "editorBracketMatch.border": "#D6A66A",
+    "scrollbar.shadow": "#00000000",
+    "scrollbarSlider.background": "#C3C8D080",
+    "scrollbarSlider.hoverBackground": "#9CA3AFB3",
+    "scrollbarSlider.activeBackground": "#6B728066",
+    "editorWidget.background": "#FFFFFF",
+    "editorSuggestWidget.background": "#FFFFFF",
+    "editorSuggestWidget.foreground": "#1F2937",
+    "editorSuggestWidget.selectedBackground": "#F1F2F5",
   },
 } as const;
 
@@ -409,8 +468,27 @@ function EditorialCodeBlock({
 const fadeIn = {
   initial: { opacity: 0, y: 6 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
 };
+
+/* ------------------------------------------------------------------ */
+/* Shared pane surface — the app-wide card treatment                   */
+/* ------------------------------------------------------------------ */
+
+/** Rounded card shell used by every pane of the workspace. */
+function PaneShell({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-card",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Code Editor + Test Cases (Right Pane)                               */
@@ -773,11 +851,11 @@ function CodeEditorPane({
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
-    // LeetCode-exact theme — defined once
+    // Editor themes — defined once, then applied for the active mode
     try {
-      monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any);
-      // apply immediately — force LeetCode dark regardless of isDark flash
-      monaco.editor.setTheme(theme === "dark" ? "leetcode-dark" : "light");
+      monaco.editor.defineTheme("algoguru-dark", LEETCODE_DARK_THEME as any);
+      monaco.editor.defineTheme("algoguru-light", ALGOGURU_LIGHT_THEME as any);
+      monaco.editor.setTheme(theme === "dark" ? "algoguru-dark" : "algoguru-light");
     } catch {}
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
       void handleRunCode();
@@ -795,15 +873,21 @@ function CodeEditorPane({
     });
   };
 
-  // Keep Monaco theme in sync with app theme (LeetCode dark vs light)
+  // Keep Monaco theme in sync with the app theme
   useEffect(() => {
+    const nextTheme = theme === "dark" ? "algoguru-dark" : "algoguru-light";
     try {
       const m: any = monacoRef.current;
-      if (m?.editor) m.editor.setTheme(theme === "dark" ? "leetcode-dark" : "light");
-      // also ensure defined if mount hasn't happened yet
-      if (!m && typeof window !== "undefined" && (window as any).monaco?.editor) {
-        (window as any).monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any);
-        (window as any).monaco.editor.setTheme(theme === "dark" ? "leetcode-dark" : "light");
+      if (m?.editor) {
+        m.editor.setTheme(nextTheme);
+        return;
+      }
+      // Fallback: editor not mounted yet — apply through the global Monaco instance
+      if (typeof window !== "undefined" && (window as any).monaco?.editor) {
+        const g = (window as any).monaco.editor;
+        g.defineTheme("algoguru-dark", LEETCODE_DARK_THEME as any);
+        g.defineTheme("algoguru-light", ALGOGURU_LIGHT_THEME as any);
+        g.setTheme(nextTheme);
       }
     } catch {}
   }, [theme]);
@@ -883,35 +967,17 @@ function CodeEditorPane({
     <>
     <PanelGroup
       direction="vertical"
-      autoSaveId="editor-testcases-split-v3"
+      autoSaveId="editor-testcases-split-v4"
       className="h-full"
-      style={{ background: "transparent" }}
     >
       {/* ═════════ Editor Panel ═════════ */}
-      <Panel defaultSize={62} minSize={30} className="flex flex-col min-h-0 rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
-        <div className="flex flex-col h-full" style={{ background: isDark ? "#1A1A1A" : "#ffffff" }}>
+      <Panel defaultSize={62} minSize={30} className="min-h-0">
+        <PaneShell className="p-0">
         {/* --- Editor Top Bar --- */}
-        <div
-          className="flex items-center justify-between px-3 py-1.5 shrink-0"
-          style={{
-            background: isDark
-              ? "linear-gradient(180deg, rgba(30,30,55,1) 0%, rgba(26,26,46,1) 100%)"
-              : "#f0f0f5",
-            borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
-          }}
-        >
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-1.5">
           {/* Language label (static — only Java supported) */}
           <div className="flex items-center gap-2">
-            <span
-              className="flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-semibold"
-              style={{
-                background: isDark
-                  ? "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.12) 100%)"
-                  : "rgba(99,102,241,0.08)",
-                color: isDark ? "#a5b4fc" : "#6366f1",
-                border: `1px solid ${isDark ? "rgba(99,102,241,0.2)" : "rgba(99,102,241,0.15)"}`,
-              }}
-            >
+            <span className="flex h-7 items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-3 text-xs font-semibold text-primary">
               <Code className="h-3.5 w-3.5" />
               Java 21
             </span>
@@ -921,29 +987,30 @@ function CodeEditorPane({
           <div className="flex items-center gap-1">
             {/* Copy */}
             <button
+              type="button"
               onClick={handleCopyCode}
-              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 "
-              style={{
-                color: copied ? "#34d399" : isDark ? "#94a3b8" : "#64748b",
-                background: copied
-                  ? isDark ? "rgba(52,211,153,0.1)" : "rgba(52,211,153,0.08)"
-                  : "transparent",
-              }}
+              className={cn(
+                "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+                copied
+                  ? "bg-success/10 text-success"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
               title="Copy code to clipboard"
+              aria-label="Copy code to clipboard"
             >
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
 
             {/* Format */}
             <button
+              type="button"
               onClick={() => { void formatCode(); }}
-              className="h-7 px-2 rounded-md flex items-center justify-center gap-1.5 transition-all duration-200 "
-              style={{
-                color: isFormatted ? "#34d399" : isDark ? "#94a3b8" : "#64748b",
-                background: isFormatted
-                  ? isDark ? "rgba(52,211,153,0.1)" : "rgba(52,211,153,0.08)"
-                  : "transparent",
-              }}
+              className={cn(
+                "flex h-7 items-center justify-center gap-1.5 rounded-md px-2 transition-colors",
+                isFormatted
+                  ? "bg-success/10 text-success"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
               title="Format Code (Shift+Alt+F)"
             >
               {isFormatted ? (
@@ -963,10 +1030,10 @@ function CodeEditorPane({
 
             {/* Reset */}
             <button
+              type="button"
               onClick={handleResetCode}
               disabled={!codeLoaded || !hasRealStarter}
-              className="h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:"
-              style={{ color: isDark ? "#94a3b8" : "#64748b" }}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
               title={
                 !codeLoaded
                   ? "Loading saved code..."
@@ -974,29 +1041,24 @@ function CodeEditorPane({
                     ? "Daily challenge still loading — reset available once LeetCode signature is loaded"
                     : "Reset to starter template (today's LeetCode signature)"
               }
+              aria-label="Reset to starter template"
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
 
-            <div
-              className="w-px h-4 mx-1"
-              style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)" }}
-            />
+            <div className="mx-1 h-4 w-px bg-border" />
 
-            {/* Run (Rocket) */}
+            {/* Run */}
             <button
+              type="button"
               onClick={() => { void handleRunCode(); }}
               disabled={isRunning}
-              className="h-7 w-7 rounded-lg flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: isRunning
-                  ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
-                  : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                boxShadow: isRunning
-                  ? "0 0 12px rgba(245,158,11,0.4), 0 2px 4px rgba(0,0,0,0.2)"
-                  : "0 0 12px rgba(16,185,129,0.4), 0 2px 4px rgba(0,0,0,0.2)",
-                color: "white",
-              }}
+              className={cn(
+                "flex h-7 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold shadow-soft transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+                isRunning
+                  ? "bg-warning text-warning-foreground"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90",
+              )}
               title="Run Code (Ctrl + Enter)"
             >
               {isRunning ? (
@@ -1004,37 +1066,32 @@ function CodeEditorPane({
               ) : (
                 <Rocket className="h-3.5 w-3.5" />
               )}
+              <span className="hidden sm:inline">{isRunning ? "Running" : "Run"}</span>
             </button>
           </div>
         </div>
 
         {/* --- File Tabs --- */}
         <div
-          className="flex items-center px-2 py-1 shrink-0 select-none overflow-x-auto"
-          style={{
-            background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
-            borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
-            scrollbarWidth: "none",
-          }}
+          className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border bg-card px-2 py-1 select-none"
+          style={{ scrollbarWidth: "none" }}
         >
           {tabs.map((tab) => (
             <div
               key={tab.id}
               onClick={() => setActiveTabId(tab.id)}
-              className="group flex items-center gap-1.5 px-3 py-1 rounded-t-md text-xs font-medium cursor-pointer transition-all min-w-max"
-              style={{
-                background: activeTabId === tab.id
-                  ? isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
-                  : "transparent",
-                color: activeTabId === tab.id
-                  ? isDark ? "#e2e8f0" : "#1e293b"
-                  : isDark ? "#94a3b8" : "#64748b",
-                borderBottom: activeTabId === tab.id ? `2px solid ${isDark ? "#818cf8" : "#6366f1"}` : "2px solid transparent",
-              }}
+              className={cn(
+                "group flex min-w-max cursor-pointer items-center gap-1.5 rounded-t-md px-3 py-1 text-xs font-medium transition-colors",
+                activeTabId === tab.id
+                  ? "border-b-2 border-primary text-foreground"
+                  : "border-b-2 border-transparent text-muted-foreground hover:text-foreground",
+              )}
             >
               {tab.name}
               {tabs.length > 1 && (
                 <button
+                  type="button"
+                  aria-label={`Close ${tab.name}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     const newTabs = tabs.filter((t) => t.id !== tab.id);
@@ -1044,7 +1101,7 @@ function CodeEditorPane({
                     }
                     void persistCode(questionId, JSON.stringify(newTabs), userId);
                   }}
-                  className="p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/10 dark:hover:bg-white/10"
+                  className="rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -1053,6 +1110,8 @@ function CodeEditorPane({
           ))}
 
           <button
+            type="button"
+            aria-label="Add file"
             onClick={() => {
               const newId = String(Date.now());
               const name = `Helper${tabs.length}.java`;
@@ -1061,28 +1120,30 @@ function CodeEditorPane({
               setActiveTabId(newId);
               void persistCode(questionId, JSON.stringify(newTabs), userId);
             }}
-            className="ml-2 p-1 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-            style={{ color: isDark ? "#94a3b8" : "#64748b" }}
+            className="ml-2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
 
         {/* --- Monaco Editor --- */}
-        <div className="flex-1 min-h-0 relative">
+        <div className="relative min-h-0 flex-1 bg-code-bg">
           {!codeLoaded && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: isDark ? "#1B1A18" : "#fafafa" }}>
-              <Loader2 className="h-6 w-6 animate-spin" style={{ color: isDark ? "#64748b" : "#94a3b8" }} />
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-code-bg">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           )}
           <Editor
             height="100%"
             language="java"
-            theme={isDark ? "leetcode-dark" : "light"}
+            theme={isDark ? "algoguru-dark" : "algoguru-light"}
             value={code}
             onChange={handleChange}
             beforeMount={(monaco) => {
-              try { monaco.editor.defineTheme("leetcode-dark", LEETCODE_DARK_THEME as any); } catch {}
+              try {
+                monaco.editor.defineTheme("algoguru-dark", LEETCODE_DARK_THEME as any);
+                monaco.editor.defineTheme("algoguru-light", ALGOGURU_LIGHT_THEME as any);
+              } catch {}
             }}
             onMount={handleMount}
             options={{
@@ -1134,65 +1195,40 @@ function CodeEditorPane({
         </div>
 
         {/* --- Editor Footer --- */}
-        <div
-          className="flex items-center justify-between px-3 py-1 shrink-0 select-none"
-          style={{
-            background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
-            borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
-          }}
-        >
+        <div className="flex shrink-0 items-center justify-between border-t border-border bg-muted/40 px-3 py-1 select-none">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Font Size
             </span>
             <select
               value={editorFontSize}
               onChange={(e) => setEditorFontSize(Number(e.target.value))}
-              className="h-5 px-1 rounded text-[10px] font-mono outline-none dark:bg-zinc-800 dark:text-zinc-200 bg-white text-zinc-800"
-              style={{
-                border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-              }}
+              aria-label="Editor font size"
+              className="h-5 rounded border border-input bg-background px-1 font-mono text-[10px] text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               {[12, 14, 16, 18, 20].map((size) => (
-                <option key={size} value={size} className="dark:bg-zinc-800 dark:text-zinc-200 bg-white text-zinc-800">{size}px</option>
+                <option key={size} value={size} className="bg-background text-foreground">{size}px</option>
               ))}
             </select>
           </div>
         </div>
-        </div>
+        </PaneShell>
       </Panel>
 
       {/* ═════════ Resize Handle ═════════ */}
       <PanelResizeHandle
-        className="group shrink-0 flex items-center justify-center relative z-50 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-        style={{ height: 16, cursor: "row-resize", background: "transparent" }}
+        className="group relative z-50 flex h-3 shrink-0 items-center justify-center cursor-row-resize"
       >
-        <div
-          className="w-12 h-1.5 rounded-full transition-all duration-300 group-hover:w-16 group-hover:bg-primary/50"
-          style={{ background: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.2)" }}
-        />
+        <div className="h-1.5 w-12 rounded-full bg-border transition-all duration-300 group-hover:w-16 group-hover:bg-primary/60 group-active:bg-primary" />
       </PanelResizeHandle>
 
       {/* ═════════ Test Cases / Output Panel ═════════ */}
-      <Panel defaultSize={38} minSize={15} className="flex flex-col min-h-0 rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
-        <div className="flex flex-col h-full" style={{ background: isDark ? "#16162a" : "#ffffff" }}>
+      <Panel defaultSize={38} minSize={15} className="min-h-0">
+        <PaneShell className="p-0">
         {/* Header */}
-        <div
-          className="flex items-center gap-3 px-3 pt-2 pb-0 shrink-0"
-          style={{
-            background: isDark ? "rgba(26,26,46,0.9)" : "#f5f5f8",
-            borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
-          }}
-        >
-          <span
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs font-bold"
-            style={{
-              background: isDark ? "rgba(139,92,246,0.1)" : "rgba(139,92,246,0.06)",
-              color: isDark ? "#c4b5fd" : "#7c3aed",
-              borderBottom: `2px solid ${isDark ? "#8b5cf6" : "#7c3aed"}`,
-            }}
-          >
-            <CheckCircle2 className="h-3.5 w-3.5" style={{ color: isDark ? "#a78bfa" : "#8b5cf6" }} />
+        <div className="flex shrink-0 items-center gap-3 border-b border-border bg-muted/40 px-3 py-1.5">
+          <span className="flex items-center gap-1.5 text-xs font-bold text-primary">
+            <CheckCircle2 className="h-3.5 w-3.5" />
             Test Cases
           </span>
 
@@ -1201,25 +1237,22 @@ function CodeEditorPane({
             <motion.div {...fadeIn} className="ml-auto">
               <Badge
                 variant="outline"
-                className="gap-1 text-[10px] font-semibold animate-pulse"
-                style={{ background: "rgba(245,158,11,0.08)", color: "#f59e0b", borderColor: "rgba(245,158,11,0.2)" }}
+                className="animate-pulse gap-1 border-warning/30 bg-warning/10 text-[10px] font-semibold text-warning"
               >
                 <Loader2 className="h-3 w-3 animate-spin" /> Compiling…
               </Badge>
             </motion.div>
           )}
           {!isRunning && runResult && (
-            <motion.div {...fadeIn} className="flex items-center gap-2 ml-auto">
+            <motion.div {...fadeIn} className="ml-auto flex items-center gap-2">
               <Badge
                 variant="outline"
-                className="gap-1 text-[10px] font-semibold"
-                style={
-                  runResult.status === "success"
-                    ? { background: "rgba(16,185,129,0.08)", color: "#34d399", borderColor: "rgba(16,185,129,0.2)" }
-                    : runResult.status === "compile_error" || runResult.status === "error"
-                      ? { background: "rgba(239,68,68,0.08)", color: "#f87171", borderColor: "rgba(239,68,68,0.2)" }
-                      : { background: "rgba(245,158,11,0.08)", color: "#fbbf24", borderColor: "rgba(245,158,11,0.2)" }
-                }
+                className={cn(
+                  "gap-1 text-[10px] font-semibold",
+                  runResult.status === "success" && "border-success/30 bg-success/10 text-success",
+                  (runResult.status === "compile_error" || runResult.status === "error") && "border-destructive/30 bg-destructive/10 text-destructive",
+                  runResult.status === "runtime_error" && "border-warning/30 bg-warning/10 text-warning",
+                )}
               >
                 {runResult.status === "success" ? (
                   <><CheckCircle2 className="h-3 w-3" /> Accepted</>
@@ -1231,7 +1264,7 @@ function CodeEditorPane({
                   <><XCircle className="h-3 w-3" /> Error</>
                 )}
               </Badge>
-              <span className="flex items-center gap-1 text-[10px] font-mono" style={{ color: "#64748b" }}>
+              <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
                 <Clock className="h-3 w-3" /> {runResult.executionTimeMs}ms
               </span>
             </motion.div>
@@ -1239,82 +1272,74 @@ function CodeEditorPane({
         </div>
 
         {/* Body */}
-        <div
-          className="flex-1 overflow-y-auto p-4"
-          style={{ background: isDark ? "#16162a" : "#fafafa" }}
-        >
+        <div className="min-h-0 flex-1 overflow-y-auto bg-background p-4">
           <AnimatePresence mode="wait">
             {isRunning ? (
-              <motion.div key="running" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center justify-center gap-5 py-10 relative overflow-hidden">
+              <motion.div key="running" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="relative flex flex-col items-center justify-center gap-4 overflow-hidden py-10">
                 {/* soft ambient glow */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <motion.div animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.05, 1] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-32 rounded-full blur-3xl" style={{ background: isDark ? "radial-gradient(ellipse at center, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.12) 35%, transparent 75%)" : "radial-gradient(ellipse at center, rgba(99,102,241,0.10) 0%, transparent 70%)" }} />
+                <div className="pointer-events-none absolute inset-0">
+                  <motion.div animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.05, 1] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} className="absolute left-1/2 top-1/2 h-32 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
                 </div>
 
                 {/* orbital icon */}
                 <div className="relative">
-                  {/* outer orbit */}
-                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute -inset-3 rounded-2xl" style={{ border: `1px dashed ${isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.18)"}`, borderTopColor: isDark ? "rgba(99,102,241,0.45)" : "rgba(99,102,241,0.35)" }} />
-                  {/* ping ring */}
-                  <motion.div animate={{ scale: [1, 1.35, 1], opacity: [0.25, 0, 0.25] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }} className="absolute -inset-2 rounded-2xl" style={{ border: `1px solid ${isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.2)"}` }} />
-                  <div className="relative h-14 w-14 rounded-2xl flex items-center justify-center overflow-hidden shadow-lg" style={{ background: isDark ? "linear-gradient(135deg, #1e1e3f 0%, #1a1a2e 55%, #16162a 100%)" : "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)", border: `1px solid ${isDark ? "rgba(99,102,241,0.22)" : "rgba(99,102,241,0.14)"}`, boxShadow: isDark ? "0 8px 32px rgba(99,102,241,0.20), inset 0 1px 0 rgba(255,255,255,0.06)" : "0 8px 24px rgba(99,102,241,0.12)" }}>
-                    {/* shimmer sweep */}
-                    <motion.div animate={{ x: ["-120%", "120%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }} className="absolute inset-0" style={{ background: `linear-gradient(100deg, transparent 20%, ${isDark ? "rgba(255,255,255,0.08)" : "rgba(99,102,241,0.08)"} 30%, transparent 42%)` }} />
-                    <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} style={{ display: "flex" }}>
-                      <Code className="h-6 w-6" style={{ color: "#6366f1" }} />
-                    </motion.div>
-                    <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full flex items-center justify-center shadow-md" style={{ background: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)", border: `2px solid ${isDark ? "#16162a" : "#ffffff"}` }}>
-                      <Rocket className="h-2.5 w-2.5 text-white" />
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute -inset-3 rounded-2xl border border-dashed border-primary/25 border-t-primary/60" />
+                  <motion.div animate={{ scale: [1, 1.35, 1], opacity: [0.25, 0, 0.25] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }} className="absolute -inset-2 rounded-2xl border border-primary/30" />
+                  <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+                    <motion.div animate={{ x: ["-120%", "120%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }} className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.06] to-transparent" />
+                    <Loader2 className="relative h-6 w-6 animate-spin text-primary" />
+                    <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-card bg-warning">
+                      <Rocket className="h-2.5 w-2.5 text-warning-foreground" />
                     </span>
                   </div>
                 </div>
 
-                {/* title with shimmer + typing dots */}
+                {/* title + typing dots */}
                 <div className="relative z-10 flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold tracking-[0.08em]" style={{ color: isDark ? "#c4b5fd" : "#8b5cf6" }}>
-                      Compiling & Running
+                    <span className="text-[13px] font-semibold tracking-tight text-foreground">
+                      Compiling &amp; Running
                     </span>
-                    <span className="hidden sm:inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-widest uppercase" style={{ background: isDark ? "rgba(99,102,241,0.12)" : "rgba(99,102,241,0.08)", color: "#818cf8", border: `1px solid ${isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.14)"}` }}>
-                      <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#10b981" }} /> Java 21
+                    <span className="hidden items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground sm:inline-flex">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Java 21
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold tracking-wide" style={{ color: isDark ? "#94a3b8" : "#64748b" }}>javac • java • wandbox</span>
-                    <span className="flex gap-1 ml-1">
+                    <span className="text-xs font-medium text-muted-foreground">javac • java • wandbox</span>
+                    <span className="ml-1 flex gap-1">
                       {[0, 1, 2].map((i) => (
-                        <motion.span key={i} animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ duration: 0.85, repeat: Infinity, delay: i * 0.16, ease: "easeInOut" }} className="h-1.5 w-1.5 rounded-full" style={{ background: isDark ? "#6366f1" : "#6366f1" }} />
+                        <motion.span key={i} animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ duration: 0.85, repeat: Infinity, delay: i * 0.16, ease: "easeInOut" }} className="h-1.5 w-1.5 rounded-full bg-primary" />
                       ))}
                     </span>
                   </div>
                 </div>
 
                 {/* faux terminal */}
-                <div className="relative z-10 w-full max-w-[320px] rounded-xl overflow-hidden" style={{ background: isDark ? "rgba(13,13,22,0.85)" : "rgba(255,255,255,0.9)", border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, boxShadow: isDark ? "0 10px 40px rgba(0,0,0,0.35)" : "0 10px 30px rgba(0,0,0,0.08)", backdropFilter: "blur(10px)" }}>
-                  <div className="flex items-center gap-1.5 px-3 py-2" style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#ef4444" }} />
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#f59e0b" }} />
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#10b981" }} />
-                    <span className="ml-auto text-[10px] font-mono tracking-wide" style={{ color: isDark ? "#475569" : "#94a3b8" }}>prog.java</span>
+                <div className="relative z-10 w-full max-w-[320px] overflow-hidden rounded-xl border border-border bg-card shadow-soft">
+                  <div className="flex items-center gap-1.5 border-b border-border bg-muted/40 px-3 py-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-destructive/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-warning/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
+                    <span className="ml-auto font-mono text-[10px] tracking-wide text-muted-foreground">prog.java</span>
                   </div>
-                  <div className="px-3 py-2.5 font-mono text-[11px] leading-4 space-y-1">
-                    <div className="flex gap-2"><span style={{ color: "#f59e0b" }}>$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ color: isDark ? "#cbd5e1" : "#334155" }}>javac -cp . Solution.java</motion.span></div>
-                    <div className="flex gap-2"><span style={{ color: "#10b981" }}>✓</span><span style={{ color: isDark ? "#64748b" : "#94a3b8" }}>compiled in 0.42s</span></div>
-                    <div className="flex gap-2"><span style={{ color: "#f59e0b" }}>$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ color: isDark ? "#cbd5e1" : "#334155" }}>java Main • {testcaseTabs.length} case{testcaseTabs.length > 1 ? "s" : ""}</motion.span><motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.7, repeat: Infinity }} style={{ color: "#6366f1" }}>▌</motion.span></div>
+                  <div className="space-y-1 px-3 py-2.5 font-mono text-[11px] leading-4">
+                    <div className="flex gap-2"><span className="text-primary">$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-foreground">javac -cp . Solution.java</motion.span></div>
+                    <div className="flex gap-2"><span className="text-success">✓</span><span className="text-muted-foreground">compiled in 0.42s</span></div>
+                    <div className="flex gap-2"><span className="text-primary">$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-foreground">java Main • {testcaseTabs.length} case{testcaseTabs.length > 1 ? "s" : ""}</motion.span><motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.7, repeat: Infinity }} className="text-primary">▌</motion.span></div>
                   </div>
                   {/* progress bar */}
-                  <div className="h-[2px] w-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
-                    <motion.div className="h-full" style={{ background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 45%, #f59e0b 100%)" }} initial={{ x: "-100%" }} animate={{ x: "0%" }} transition={{ duration: 1.8, repeat: Infinity, ease: [0.4, 0, 0.2, 1], repeatDelay: 0.15 }} />
+                  <div className="h-[2px] w-full overflow-hidden bg-border">
+                    <motion.div className="h-full bg-gradient-to-r from-primary via-accent to-warning" initial={{ x: "-100%" }} animate={{ x: "0%" }} transition={{ duration: 1.8, repeat: Infinity, ease: [0.4, 0, 0.2, 1], repeatDelay: 0.15 }} />
                   </div>
                 </div>
 
                 {/* stepper */}
-                <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase" style={{ color: isDark ? "#475569" : "#94a3b8" }}>
-                  <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full" style={{ background: "#10b981", boxShadow: "0 0 8px rgba(16,185,129,0.5)" }} /> Compile</span>
-                  <span style={{ color: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" }}>—</span>
-                  <span className="flex items-center gap-1.5" style={{ color: "#f59e0b" }}><motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }} className="h-1.5 w-1.5 rounded-full" style={{ background: "#f59e0b", boxShadow: "0 0 8px rgba(245,158,11,0.5)" }} /> Run</span>
-                  <span style={{ color: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" }}>—</span>
-                  <span className="flex items-center gap-1.5 opacity-60"><span className="h-1.5 w-1.5 rounded-full border" style={{ borderColor: isDark ? "#475569" : "#94a3b8" }} /> Verify</span>
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                  <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-success" /> Compile</span>
+                  <span className="text-border">—</span>
+                  <span className="flex items-center gap-1.5 text-warning"><motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }} className="h-1.5 w-1.5 rounded-full bg-warning" /> Run</span>
+                  <span className="text-border">—</span>
+                  <span className="flex items-center gap-1.5 opacity-60"><span className="h-1.5 w-1.5 rounded-full border border-muted-foreground/50" /> Verify</span>
                 </div>
               </motion.div>
             ) : runResult ? (
@@ -1323,15 +1348,24 @@ function CodeEditorPane({
                 if (runResult.status === "compile_error" || runResult.status === "runtime_error" || runResult.status === "error") {
                   return (
                     <motion.div key="result-error" {...fadeIn} className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 text-sm font-bold" style={{ color: runResult.status === "compile_error" ? "#f87171" : "#fbbf24" }}>
+                      <div className="flex items-center justify-between gap-3">
+                        <span
+                          className={cn(
+                            "flex items-center gap-1.5 text-sm font-bold",
+                            runResult.status === "compile_error" ? "text-destructive" : "text-warning",
+                          )}
+                        >
                           {runResult.status === "compile_error" ? <><XCircle className="h-4 w-4" /> Compile Error</> : <><AlertTriangle className="h-4 w-4" /> Runtime Error</>}
                         </span>
-                        <button onClick={() => setRunResult(null)} className="flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-medium transition-all " style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
+                        <button
+                          type="button"
+                          onClick={() => setRunResult(null)}
+                          className="flex h-7 items-center gap-1 rounded-lg border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        >
                           <RotateCcw className="h-3.5 w-3.5" /> Reset
                         </button>
                       </div>
-                      <div className="p-4 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap overflow-x-auto" style={{ background: isDark ? "rgba(239,68,68,0.08)" : "rgba(239,68,68,0.06)", border: `1px solid ${isDark ? "rgba(239,68,68,0.15)" : "rgba(239,68,68,0.12)"}`, color: "#f87171" }}>
+                      <div className="overflow-x-auto whitespace-pre-wrap rounded-xl border border-destructive/30 bg-destructive/5 p-4 font-mono text-xs leading-relaxed text-destructive">
                         {runResult.output}
                       </div>
                     </motion.div>
@@ -1360,7 +1394,7 @@ function CodeEditorPane({
                 const overallStatus = hasExpected ? (allPassed ? "Accepted" : "Wrong Answer") : "Executed";
                 return (
                   <motion.div key="result-success" {...fadeIn} className="space-y-4">
-                    {/* Tabs row with pass/fail icons like screenshot */}
+                    {/* Tabs row with pass/fail icons */}
                     <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
                       {testcaseTabs.map((tc, i) => {
                         const st = caseStatuses[i];
@@ -1368,57 +1402,95 @@ function CodeEditorPane({
                         const isPassed = st.passed;
                         const isFailed = !st.passed && !st.isCustom;
                         return (
-                          <div key={tc.id} onClick={() => setActiveTestcaseId(tc.id)} className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all min-w-max select-none border" style={{
-                            background: isActive ? (isFailed ? "rgba(239,68,68,0.1)" : isPassed && !st.isCustom ? "rgba(16,185,129,0.12)" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)") : "transparent",
-                            color: isFailed ? "#f87171" : isPassed && !st.isCustom ? "#10b981" : isActive ? (isDark ? "#e2e8f0" : "#1e293b") : (isDark ? "#64748b" : "#94a3b8"),
-                            borderColor: isActive ? (isFailed ? "rgba(239,68,68,0.18)" : isPassed && !st.isCustom ? "rgba(16,185,129,0.18)" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)") : "transparent",
-                          }}>
+                          <div
+                            key={tc.id}
+                            onClick={() => setActiveTestcaseId(tc.id)}
+                            className={cn(
+                              "group flex min-w-max cursor-pointer select-none items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
+                              isFailed && (isActive ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-transparent text-destructive hover:bg-destructive/5"),
+                              !isFailed && isPassed && !st.isCustom && (isActive ? "border-success/30 bg-success/10 text-success" : "border-transparent text-success hover:bg-success/5"),
+                              !isFailed && !(isPassed && !st.isCustom) && (isActive ? "border-border bg-muted text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"),
+                            )}
+                          >
                             {isFailed ? <X className="h-3.5 w-3.5" /> : isPassed && !st.isCustom ? <Check className="h-3.5 w-3.5" /> : null}
                             {tc.name}
                             {testcaseTabs.length > 1 && (
-                              <button onClick={(e) => { e.stopPropagation(); const newTabs = testcaseTabs.filter((t) => t.id !== tc.id); setTestcaseTabs(newTabs); if (activeTestcaseId === tc.id) setActiveTestcaseId(newTabs[newTabs.length-1]?.id || "1"); }} className="p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/10 dark:hover:bg-white/10 ml-1">
+                              <button
+                                type="button"
+                                aria-label={`Remove ${tc.name}`}
+                                onClick={(e) => { e.stopPropagation(); const newTabs = testcaseTabs.filter((t) => t.id !== tc.id); setTestcaseTabs(newTabs); if (activeTestcaseId === tc.id) setActiveTestcaseId(newTabs[newTabs.length-1]?.id || "1"); }}
+                                className="ml-1 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+                              >
                                 <X className="h-3 w-3" />
                               </button>
                             )}
                           </div>
                         );
                       })}
-                      <button onClick={() => { const newId = String(Date.now()); const name = `Case ${testcaseTabs.length + 1}`; const newTabs = [...testcaseTabs, { id: newId, name, value: "" }]; setTestcaseTabs(newTabs); setActiveTestcaseId(newId); }} className="ml-1 p-1.5 rounded-full border border-dashed transition-colors hover:bg-black/5 dark:hover:bg-white/5" style={{ color: isDark ? "#64748b" : "#94a3b8", borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)" }} title="Add custom testcase">
+                      <button
+                        type="button"
+                        onClick={() => { const newId = String(Date.now()); const name = `Case ${testcaseTabs.length + 1}`; const newTabs = [...testcaseTabs, { id: newId, name, value: "" }]; setTestcaseTabs(newTabs); setActiveTestcaseId(newId); }}
+                        className="ml-1 rounded-lg border border-dashed border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        title="Add custom testcase"
+                        aria-label="Add custom testcase"
+                      >
                         <Plus className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => setRunResult(null)} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all " style={{ color: isDark ? "#94a3b8" : "#64748b", background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}>
+                      <button
+                        type="button"
+                        onClick={() => setRunResult(null)}
+                        className="ml-auto flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
                         <RotateCcw className="h-3.5 w-3.5" /> Reset
                       </button>
                     </div>
 
-                    {/* Overall status like screenshot: ✓ Accepted */}
-                    <div className="flex items-center gap-2">
-                      {allPassed ? <Check className="h-4 w-4" style={{ color: "#10b981" }} /> : <X className="h-4 w-4" style={{ color: "#f87171" }} />}
-                      <span className="text-sm font-bold" style={{ color: allPassed ? "#10b981" : "#f87171" }}>{overallStatus}</span>
-                      {hasExpected && <span className="text-xs" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>{passedCount} / {testcaseTabs.length} passed</span>}
-                      <span className="ml-auto flex items-center gap-1 text-[10px] font-mono" style={{ color: "#64748b" }}><Clock className="h-3 w-3" /> {runResult.executionTimeMs}ms</span>
+                    {/* Overall status */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          "flex items-center gap-2 text-sm font-bold",
+                          allPassed ? "text-success" : "text-destructive",
+                        )}
+                      >
+                        {allPassed ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                        {overallStatus}
+                      </span>
+                      {hasExpected && <span className="text-xs text-muted-foreground">{passedCount} / {testcaseTabs.length} passed</span>}
+                      <span className="ml-auto flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+                        <Clock className="h-3 w-3" /> {runResult.executionTimeMs}ms
+                      </span>
                     </div>
 
                     {/* Active case details - Input / Your Output / Expected Output */}
                     {activeTab && activeStatus && (
                       <div className="space-y-3">
                         <div>
-                          <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>{inputLabel}</div>
-                          <div className="w-full p-3 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap break-all border" style={{ background: isDark ? "rgba(30,30,55,0.6)" : "#f8f8fc", borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", color: isDark ? "#cbd5e1" : "#1e293b" }}>
+                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{inputLabel}</div>
+                          <div className="w-full whitespace-pre-wrap break-all rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed text-foreground">
                             {activeTab.value || "(empty)"}
                           </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                           <div>
-                            <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>Your Output</div>
-                            <div className="w-full p-3 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap break-all border" style={{ background: isDark ? "rgba(30,30,55,0.6)" : "#f8f8fc", borderColor: activeStatus.passed || activeStatus.isCustom ? (isDark ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.2)") : (isDark ? "rgba(239,68,68,0.15)" : "rgba(239,68,68,0.2)"), color: activeStatus.passed || activeStatus.isCustom ? (isDark ? "#cbd5e1" : "#1e293b") : "#f87171" }}>
+                            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Your Output</div>
+                            <div
+                              className={cn(
+                                "w-full whitespace-pre-wrap break-all rounded-xl border p-3 font-mono text-xs leading-relaxed",
+                                activeStatus.passed || activeStatus.isCustom
+                                  ? "border-success/30 bg-muted/40 text-foreground"
+                                  : "border-destructive/30 bg-destructive/5 text-destructive",
+                              )}
+                            >
                               {activeStatus.your || "(no output)"}
                             </div>
                           </div>
                           <div>
-                            <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color: isDark ? "#64748b" : "#94a3b8" }}>Expected Output</div>
-                            <div className="w-full p-3 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap break-all border" style={{ background: isDark ? "rgba(30,30,55,0.6)" : "#f8f8fc", borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", color: isDark ? "#cbd5e1" : "#1e293b" }}>
-                              {activeStatus.isCustom ? <span style={{ color: isDark ? "#475569" : "#94a3b8", fontStyle: "italic" }}>No expected — custom case</span> : (activeStatus.expected || "(not found)")}
+                            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Expected Output</div>
+                            <div className="w-full whitespace-pre-wrap break-all rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed text-foreground">
+                              {activeStatus.isCustom
+                                ? <span className="italic text-muted-foreground/70">No expected — custom case</span>
+                                : (activeStatus.expected || "(not found)")}
                             </div>
                           </div>
                         </div>
@@ -1431,23 +1503,22 @@ function CodeEditorPane({
               <motion.div key="testcases" {...fadeIn} className="space-y-4">
                 <div className="flex flex-col space-y-3">
                   <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                    {testcaseTabs.map((tc, index) => (
+                    {testcaseTabs.map((tc) => (
                       <div
                         key={tc.id}
                         onClick={() => setActiveTestcaseId(tc.id)}
-                        className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all min-w-max select-none"
-                        style={{
-                          background: activeTestcaseId === tc.id
-                            ? isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)"
-                            : "transparent",
-                          color: activeTestcaseId === tc.id
-                            ? isDark ? "#e2e8f0" : "#1e293b"
-                            : isDark ? "#94a3b8" : "#64748b",
-                        }}
+                        className={cn(
+                          "group flex min-w-max cursor-pointer select-none items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                          activeTestcaseId === tc.id
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                        )}
                       >
                         {tc.name}
                         {testcaseTabs.length > 1 && (
                           <button
+                            type="button"
+                            aria-label={`Remove ${tc.name}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               const newTabs = testcaseTabs.filter((t) => t.id !== tc.id);
@@ -1456,7 +1527,7 @@ function CodeEditorPane({
                                 setActiveTestcaseId(newTabs[newTabs.length - 1].id);
                               }
                             }}
-                            className="p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/10 dark:hover:bg-white/10 ml-1"
+                            className="ml-1 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted-foreground/20 group-hover:opacity-100"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -1464,6 +1535,7 @@ function CodeEditorPane({
                       </div>
                     ))}
                     <button
+                      type="button"
                       onClick={() => {
                         const newId = String(Date.now());
                         const name = `Case ${testcaseTabs.length + 1}`;
@@ -1471,14 +1543,14 @@ function CodeEditorPane({
                         setTestcaseTabs(newTabs);
                         setActiveTestcaseId(newId);
                       }}
-                      className="ml-1 p-1.5 rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                      style={{ color: isDark ? "#94a3b8" : "#64748b" }}
+                      className="ml-1 rounded-lg border border-dashed border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       title="Add new testcase"
+                      aria-label="Add new testcase"
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  
+
                   <textarea
                     value={testcaseTabs.find((tc) => tc.id === activeTestcaseId)?.value || ""}
                     onChange={(e) => {
@@ -1487,21 +1559,15 @@ function CodeEditorPane({
                       );
                     }}
                     placeholder="Enter custom testcase..."
-                    className="w-full min-h-[150px] p-4 rounded-xl font-mono text-xs leading-relaxed overflow-x-auto resize-y focus:outline-none"
-                    style={{
-                      background: isDark
-                        ? "linear-gradient(135deg, rgba(30,30,55,0.8) 0%, rgba(22,22,42,0.9) 100%)"
-                        : "#f0f0f5",
-                      border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-                      color: isDark ? "#cbd5e1" : "#334155",
-                    }}
+                    aria-label="Test case input"
+                    className="min-h-[150px] w-full resize-y rounded-xl border border-input bg-background p-4 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-        </div>
+        </PaneShell>
       </Panel>
     </PanelGroup>
 
@@ -1512,46 +1578,30 @@ function CodeEditorPane({
             className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
             onClick={() => setShowResetConfirm(false)}
           />
-          {/* modal — matches screenshot: dark rounded card */}
+          {/* modal */}
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="reset-confirm-title"
-            className="relative w-full max-w-[420px] rounded-2xl border shadow-overlay flex items-start gap-4 p-5 sm:p-6"
-            style={{
-              background: "#2a2a2a",
-              borderColor: "rgba(255,255,255,0.08)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.4)",
-            }}
+            className="relative flex w-full max-w-[420px] items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-overlay sm:p-6"
           >
-            {/* green info circle */}
-            <div className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center" style={{ background: "#22c55e" }}>
-              <span className="text-white font-bold text-[18px] leading-none">i</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 id="reset-confirm-title" className="text-[15px] font-semibold text-white leading-tight">Are you sure?</h3>
-              <p className="mt-1.5 text-[13px] leading-[1.45] text-[#a3a3a3]">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-warning/25 bg-warning/10 text-warning">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 id="reset-confirm-title" className="text-[15px] font-semibold leading-tight text-foreground">
+                Are you sure?
+              </h3>
+              <p className="mt-1.5 text-[13px] leading-[1.45] text-muted-foreground">
                 Your current code will be discarded and reset to the default code!
               </p>
               <div className="mt-5 flex items-center justify-end gap-2.5">
-                <button
-                  onClick={() => setShowResetConfirm(false)}
-                  className="h-8 px-4 rounded-lg text-[13px] font-medium transition-colors"
-                  style={{ background: "#3a3a3a", color: "#d4d4d4" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#404040")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "#3a3a3a")}
-                >
+                <Button variant="outline" size="sm" onClick={() => setShowResetConfirm(false)}>
                   Cancel
-                </button>
-                <button
-                  onClick={handleConfirmReset}
-                  className="h-8 px-5 rounded-lg text-[13px] font-semibold text-white transition-colors shadow-sm"
-                  style={{ background: "#22c55e" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#16a34a")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "#22c55e")}
-                >
+                </Button>
+                <Button size="sm" onClick={handleConfirmReset}>
                   Confirm
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1566,26 +1616,59 @@ function CodeEditorPane({
 /* Skeleton (loading)                                                  */
 /* ------------------------------------------------------------------ */
 
-function ProblemSkeleton() {
-  return (
-    <div className="flex h-full w-full">
-      <div className="w-2/5 border-r border-border/50 p-8 space-y-6">
-        <Skeleton className="h-8 w-3/4" />
-        <div className="flex gap-2">
-          <Skeleton className="h-6 w-16" />
-          <Skeleton className="h-6 w-20" />
-          <Skeleton className="h-6 w-12" />
+function ProblemSkeleton({ compact = false }: { compact?: boolean }) {
+  const problemPane = (
+    <PaneShell className="p-5 md:p-6">
+      <div className="space-y-4">
+        <Skeleton className="h-7 w-3/4" />
+        <div className="flex flex-wrap gap-2">
+          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="h-6 w-20 rounded-full" />
+          <Skeleton className="h-6 w-14 rounded-full" />
         </div>
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-11/12" />
-        <Skeleton className="h-4 w-10/12" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-4 w-9/12" />
-        <Skeleton className="h-4 w-8/12" />
+        <div className="space-y-2.5 pt-1">
+          <Skeleton className="h-3.5 w-full" />
+          <Skeleton className="h-3.5 w-11/12" />
+          <Skeleton className="h-3.5 w-10/12" />
+        </div>
+        <Skeleton className="h-28 w-full rounded-xl" />
+        <div className="space-y-2.5">
+          <Skeleton className="h-3.5 w-9/12" />
+          <Skeleton className="h-3.5 w-8/12" />
+        </div>
       </div>
-      <div className="flex-1 p-4">
-        <Skeleton className="h-full w-full" />
+    </PaneShell>
+  );
+
+  const editorPane = (
+    <PaneShell className="p-0">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+        <Skeleton className="h-6 w-24 rounded-md" />
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-7 w-7 rounded-md" />
+          <Skeleton className="h-7 w-7 rounded-md" />
+          <Skeleton className="h-7 w-7 rounded-md" />
+        </div>
       </div>
+      <div className="flex-1 min-h-0 p-4">
+        <Skeleton className="h-full w-full rounded-xl" />
+      </div>
+    </PaneShell>
+  );
+
+  if (compact) {
+    return (
+      <div className="flex h-full min-h-0 flex-col gap-3">
+        <div className="min-h-0 flex-1">{problemPane}</div>
+        <div className="min-h-0 flex-1">{editorPane}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full min-h-0 gap-3">
+      <div className="w-[45%] min-w-0">{problemPane}</div>
+      <div className="min-w-0 flex-1">{editorPane}</div>
     </div>
   );
 }
@@ -1596,29 +1679,35 @@ function ProblemSkeleton() {
 
 function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
   return (
-    <div className="flex h-full items-center justify-center p-8">
-      <Alert variant="destructive" className="max-w-xl">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Couldn't load today's challenge</AlertTitle>
-        <AlertDescription>
-          <p className="mb-3">
-            {error.message || "Something went wrong fetching the LeetCode daily challenge."}
-          </p>
-          <p className="mb-4 text-xs opacity-80">
-            The backend service may be temporarily unavailable. You can still open today's problem on LeetCode directly.
-          </p>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={onRetry} variant="outline">
-              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry
-            </Button>
-            <Button size="sm" asChild variant="secondary">
-              <a href="https://leetcode.com/problemset/" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Open LeetCode
-              </a>
-            </Button>
+    <div className="flex h-full items-center justify-center p-4">
+      <div className="w-full max-w-xl rounded-2xl border border-destructive/30 bg-destructive/5 p-5 shadow-card md:p-6">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-destructive/25 bg-destructive/10 text-destructive">
+            <AlertCircle className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              Couldn't load today's challenge
+            </h2>
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+              {error.message || "Something went wrong fetching the LeetCode daily challenge."}
+            </p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground/80">
+              The backend service may be temporarily unavailable. You can still open today's problem on LeetCode directly.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <Button size="sm" onClick={onRetry}>
+                <RefreshCw className="h-3.5 w-3.5" /> Retry
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <a href="https://leetcode.com/problemset/" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-3.5 w-3.5" /> Open LeetCode
+                </a>
+              </Button>
+            </div>
           </div>
-        </AlertDescription>
-      </Alert>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1629,19 +1718,27 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
 
 function EmptyState({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="flex h-full items-center justify-center p-8">
-      <Alert className="max-w-xl">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>No challenge available</AlertTitle>
-        <AlertDescription>
-          <p className="mb-3">
-            LeetCode hasn't published a daily challenge yet, or the upstream service returned an unexpected empty payload.
-          </p>
-          <Button size="sm" onClick={onRetry} variant="outline">
-            <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Refresh
-          </Button>
-        </AlertDescription>
-      </Alert>
+    <div className="flex h-full items-center justify-center p-4">
+      <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-5 shadow-card md:p-6">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
+            <AlertCircle className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              No challenge available
+            </h2>
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+              LeetCode hasn't published a daily challenge yet, or the upstream service returned an unexpected empty payload.
+            </p>
+            <div className="mt-5">
+              <Button size="sm" variant="outline" onClick={onRetry}>
+                <RefreshCw className="h-3.5 w-3.5" /> Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1651,18 +1748,25 @@ function EmptyState({ onRetry }: { onRetry: () => void }) {
 /* ------------------------------------------------------------------ */
 
 const LEFT_TABS = [
-  { label: "Description", icon: "📄" },
-  { label: "Editorial", icon: "📖" },
-  { label: "Guru AI", icon: "🤖" },
+  { label: "Description", icon: FileText },
+  { label: "Editorial", icon: BookOpen },
+  { label: "Guru AI", icon: Sparkles },
 ] as const;
 
-function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyChallengeResponse, theme: "dark" | "light", liveSync?: LiveEditorSync | null, onInsertCode?: (code: string) => void }) {
+/** Token-driven difficulty treatment shared with the rest of the app. */
+const DIFFICULTY_STYLES: Record<string, string> = {
+  Easy: "border-success/30 bg-success/10 text-success",
+  Medium: "border-warning/30 bg-warning/10 text-warning",
+  Hard: "border-destructive/30 bg-destructive/10 text-destructive",
+};
+
+// `theme` is accepted for API symmetry with the editor pane (the panel itself
+// is fully theme-token driven, so it does not need to branch on it).
+function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallengeResponse, theme?: "dark" | "light", liveSync?: LiveEditorSync | null, onInsertCode?: (code: string) => void }) {
   const { problem, stale } = data;
   const [activeTab, setActiveTab] = useState(0);
   const [hintsOpen, setHintsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const isDark = theme === "dark";
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -1703,52 +1807,49 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
   }, [liveSync]);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden" style={{ background: isDark ? "#16162a" : "#ffffff" }}>
-      {/* ── Top Tabs — single row when Guru AI active (all controls in one line) ── */}
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-card text-card-foreground">
+      {/* ── Top Tabs — hidden when Guru AI is open (it renders its own title bar) ── */}
       {activeTab !== 2 && (
       <div
-        className="flex items-center shrink-0 select-none overflow-x-auto"
-        style={{
-          background: isDark
-            ? "linear-gradient(180deg, rgba(30,30,55,1) 0%, rgba(22,22,42,1) 100%)"
-            : "linear-gradient(180deg, #f8f8fc 0%, #f0f0f5 100%)",
-          borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-        }}
+        className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border bg-muted/40 px-2 select-none"
+        role="tablist"
+        aria-label="Problem sections"
       >
-        {LEFT_TABS.map((tab, i) => (
-          <button
-            key={tab.label}
-            onClick={() => setActiveTab(i)}
-            className="flex items-center gap-1.5 px-5 py-3 text-sm font-medium transition-all duration-300 relative whitespace-nowrap"
-            style={{
-              color: activeTab === i
-                ? isDark ? "#fbbf24" : "#d97706"
-                : isDark ? "#64748b" : "#94a3b8",
-              fontWeight: activeTab === i ? 700 : 500,
-            }}
-          >
-            <span className="text-sm">{tab.icon}</span>
-            {tab.label}
-            {activeTab === i && (
-              <motion.div
-                layoutId="tab-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
-                style={{
-                  background: isDark
-                    ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-                    : "linear-gradient(90deg, #d97706, #f59e0b)",
-                }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              />
-            )}
-          </button>
-          ))}
+        {LEFT_TABS.map((tab, i) => {
+          const Icon = tab.icon;
+          const active = activeTab === i;
+          return (
+            <button
+              key={tab.label}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setActiveTab(i)}
+              className={cn(
+                "relative flex items-center gap-1.5 whitespace-nowrap px-3 py-2.5 text-[13px] transition-colors md:px-4",
+                active
+                  ? "font-semibold text-foreground"
+                  : "font-medium text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {tab.label}
+              {active && (
+                <motion.span
+                  layoutId="tab-indicator"
+                  className="absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-primary"
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                />
+              )}
+            </button>
+          );
+        })}
         </div>
       )}
 
       {/* ── Scrollable / Guru Content ── */}
       <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 2 ? "overflow-hidden" : "overflow-y-auto"}`} style={{ scrollbarWidth: "thin" }}>
-        <div className={activeTab === 2 ? "flex-1 min-h-0 flex flex-col p-2 md:p-3 bg-muted/[0.04]" : "p-6 space-y-6"}>
+        <div className={activeTab === 2 ? "flex-1 min-h-0 flex flex-col p-2 md:p-3" : "p-5 md:p-6 space-y-5"}>
           <AnimatePresence mode="popLayout">
             {activeTab === 0 && (
               <motion.div
@@ -1759,13 +1860,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                 transition={{ duration: 0.2 }}
                 className="space-y-4"
               >
-                <h1
-                  className="text-2xl font-bold tracking-tight leading-tight"
-                  style={{
-                    fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-                    color: isDark ? "#ece7dd" : "#0f172a",
-                  }}
-                >
+                <h1 className="text-2xl leading-tight font-bold tracking-tight text-foreground">
                   {problem.title}
                 </h1>
 
@@ -1773,14 +1868,10 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                 <div className="flex flex-wrap items-center gap-2">
                   {/* Difficulty */}
                   <span
-                    className="inline-flex items-center h-6 px-3 rounded-full text-xs font-bold tracking-wide"
-                    style={
-                      problem.difficulty === "Hard"
-                        ? { background: isDark ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.08)", color: isDark ? "#f87171" : "#dc2626", border: `1px solid ${isDark ? "rgba(239,68,68,0.2)" : "rgba(239,68,68,0.15)"}` }
-                        : problem.difficulty === "Medium"
-                          ? { background: isDark ? "rgba(245,158,11,0.1)" : "rgba(245,158,11,0.08)", color: isDark ? "#fbbf24" : "#d97706", border: `1px solid ${isDark ? "rgba(245,158,11,0.2)" : "rgba(245,158,11,0.15)"}` }
-                          : { background: isDark ? "rgba(16,185,129,0.1)" : "rgba(16,185,129,0.08)", color: isDark ? "#34d399" : "#059669", border: `1px solid ${isDark ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.15)"}` }
-                    }
+                    className={cn(
+                      "inline-flex h-6 items-center rounded-full border px-3 text-xs font-semibold tracking-wide",
+                      DIFFICULTY_STYLES[problem.difficulty] ?? "border-border bg-muted text-muted-foreground",
+                    )}
                   >
                     {problem.difficulty}
                   </span>
@@ -1788,15 +1879,15 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                   {/* Hints toggle — only shown when hints exist */}
                   {problem.hints && problem.hints.length > 0 && (
                     <button
+                      type="button"
+                      aria-expanded={hintsOpen}
                       onClick={() => setHintsOpen(!hintsOpen)}
-                      className="inline-flex items-center gap-1 h-6 px-3 rounded-full text-xs font-semibold transition-all duration-200 "
-                      style={{
-                        background: hintsOpen
-                          ? isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.1)"
-                          : isDark ? "rgba(139,92,246,0.08)" : "rgba(139,92,246,0.06)",
-                        color: isDark ? "#a78bfa" : "#7c3aed",
-                        border: `1px solid ${isDark ? "rgba(139,92,246,0.15)" : "rgba(139,92,246,0.12)"}`,
-                      }}
+                      className={cn(
+                        "inline-flex h-6 items-center gap-1 rounded-full border px-3 text-xs font-semibold transition-colors",
+                        hintsOpen
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
                     >
                       <Lightbulb className="h-3 w-3" /> Hints ({problem.hints.length})
                     </button>
@@ -1806,22 +1897,14 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                   {problem.topicTags.map((t) => (
                     <span
                       key={t.name}
-                      className="inline-flex items-center h-6 px-2.5 rounded-full text-[11px] font-medium"
-                      style={{
-                        background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
-                        color: isDark ? "#94a3b8" : "#64748b",
-                        border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-                      }}
+                      className="inline-flex h-6 items-center rounded-md border border-border bg-muted px-2.5 text-[11px] font-medium text-muted-foreground"
                     >
                       {t.name}
                     </span>
                   ))}
 
                   {stale && (
-                    <span
-                      className="inline-flex items-center h-6 px-3 rounded-full text-[10px] font-bold ml-auto"
-                      style={{ background: "rgba(245,158,11,0.08)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.15)" }}
-                    >
+                    <span className="ml-auto inline-flex h-6 items-center rounded-full border border-warning/30 bg-warning/10 px-3 text-[10px] font-bold uppercase tracking-wide text-warning">
                       Cached
                     </span>
                   )}
@@ -1837,23 +1920,15 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                        <div
-                          className="p-4 rounded-xl space-y-2 mt-4"
-                          style={{
-                            background: isDark ? "rgba(232,177,104,0.05)" : "rgba(139,92,246,0.03)",
-                            border: `1px solid ${isDark ? "rgba(232,177,104,0.14)" : "rgba(139,92,246,0.1)"}`,
-                          }}
-                        >
-                          <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: isDark ? "#e8b168" : "#a78bfa" }}>
+                        <div className="mt-4 space-y-2 rounded-xl border border-border bg-muted/40 p-4">
+                          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">
                             Hints
                           </span>
-                          <ol className="space-y-2 text-sm list-decimal pl-5">
+                          <ol className="problem-description space-y-2 pl-5 text-sm">
                             {problem.hints.map((h, i) => (
                               <li
                                 key={i}
                                 dangerouslySetInnerHTML={{ __html: h }}
-                                className="[&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-xs [&_code]:border [&_code]:border-white/10 [&_code]:bg-white/5"
-                                style={{ color: isDark ? "#a8a29a" : "#64748b" }}
                               />
                             ))}
                           </ol>
@@ -1876,13 +1951,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
 
           {activeTab === 1 && (
             <motion.div {...fadeIn} className="space-y-4">
-              <h2
-                className="text-xl font-bold tracking-tight"
-                style={{
-                  fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-                  color: isDark ? "#ece7dd" : "#0f172a",
-                }}
-              >
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
                 Official Editorial
               </h2>
               {problem.solution ? (
@@ -1930,12 +1999,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 my-5 px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 no-underline hover:no-underline"
-                              style={{
-                                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
-                                border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`,
-                                color: isDark ? "#93c5fd" : "#2563eb",
-                              }}
+                              className="my-5 flex items-center gap-2 rounded-xl border border-border bg-muted px-5 py-3.5 text-sm font-semibold text-foreground no-underline transition-colors hover:bg-muted/70 hover:no-underline"
                             >
                               <ExternalLink size={16} />
                               View Implementation on LeetCode
@@ -1948,14 +2012,8 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                     </ReactMarkdown>
                   </div>
               ) : (
-                <div
-                  className="p-6 rounded-xl space-y-4"
-                  style={{
-                    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-                    border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
-                  }}
-                >
-                  <p className="text-sm font-medium text-center" style={{ color: isDark ? "#a8a29a" : "#64748b" }}>
+                <div className="space-y-4 rounded-xl border border-dashed border-border bg-muted/30 p-6">
+                  <p className="text-center text-sm font-medium leading-6 text-muted-foreground">
                     The official editorial couldn't be loaded for this problem — it may be LeetCode-premium only.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1984,13 +2042,9 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                       l.action ? (
                         <button
                           key={l.label}
+                          type="button"
                           onClick={l.action}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80"
-                          style={{
-                            background: isDark ? "rgba(232,177,104,0.08)" : "rgba(0,0,0,0.03)",
-                            border: `1px solid ${isDark ? "rgba(232,177,104,0.2)" : "rgba(0,0,0,0.1)"}`,
-                            color: isDark ? "#e8b168" : "#b45309",
-                          }}
+                          className="flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
                         >
                           {l.icon}
                           {l.label}
@@ -2001,12 +2055,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
                           href={l.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80 no-underline"
-                          style={{
-                            background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
-                            border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`,
-                            color: isDark ? "#c7c2b8" : "#33415c",
-                          }}
+                          className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground no-underline transition-colors hover:bg-muted"
                         >
                           {l.icon}
                           {l.label}
@@ -2021,7 +2070,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
 
           {activeTab === 2 && (
             <>
-              <motion.div {...fadeIn} className={`flex flex-col flex-1 min-h-0 rounded-xl overflow-hidden border relative shadow-sm ${isFullscreen ? "hidden" : "border-border bg-card"}`}>
+              <motion.div {...fadeIn} className={`flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl border ${isFullscreen ? "hidden" : "border-border bg-card shadow-soft"}`}>
                 <GuruBot
                   open={true}
                   onClose={() => setActiveTab(0)}
@@ -2059,25 +2108,12 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
         </div>
       </div>
 
-      {/* ── Bottom Bar — only the functional "Open on LeetCode" + Back link ── */}
-      <div
-        className="flex items-center justify-between px-4 py-2 shrink-0 select-none"
-        style={{
-          background: isDark
-            ? "linear-gradient(180deg, rgba(22,22,42,1) 0%, rgba(26,26,46,1) 100%)"
-            : "linear-gradient(180deg, #f8f8fc 0%, #f0f0f5 100%)",
-          borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-        }}
-      >
+      {/* ── Bottom Bar — back link + external problem link ── */}
+      <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-muted/30 px-4 py-2.5 select-none">
         {/* Back to home */}
         <Link
           to="/"
-          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 "
-          style={{
-            color: isDark ? "#94a3b8" : "#64748b",
-            background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-          }}
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5" /> Back
         </Link>
@@ -2087,12 +2123,7 @@ function ProblemDetails({ data, theme, liveSync, onInsertCode }: { data: DailyCh
           href={problem.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold transition-all duration-200 "
-          style={{
-            color: isDark ? "#fbbf24" : "#d97706",
-            background: isDark ? "rgba(251,191,36,0.06)" : "rgba(217,119,6,0.04)",
-            border: `1px solid ${isDark ? "rgba(251,191,36,0.12)" : "rgba(217,119,6,0.1)"}`,
-          }}
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <ExternalLink className="h-3.5 w-3.5" /> Open on LeetCode
         </a>
@@ -2115,19 +2146,22 @@ export default function ProblemSolver() {
     setGuruInsert({ code, nonce: Date.now() });
   }, []);
 
-  const isDark = theme === "dark";
+  // Below `lg` a side-by-side split leaves both panes too narrow, so we fall
+  // back to a single pane with a switcher — the same responsive contract the
+  // rest of the app uses for split workspaces.
+  const isCompact = useMediaQuery("(max-width: 1023px)");
+  const [pane, setPane] = useState<"problem" | "code">("problem");
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="flex flex-col h-full min-h-0 p-3 pb-0"
-      style={{ background: isDark ? "#0a0a0f" : "#e2e8f0" }}
+      className="flex h-full min-h-0 flex-col bg-background p-3 md:p-4"
     >
       <div className="flex-1 min-h-0">
         {isLoading ? (
-          <ProblemSkeleton />
+          <ProblemSkeleton compact={isCompact} />
         ) : isError ? (
           <ErrorState
             error={error instanceof Error ? error : new Error("Unknown error")}
@@ -2136,41 +2170,67 @@ export default function ProblemSolver() {
         ) : isEmpty ? (
           <EmptyState onRetry={() => { void refetch(); }} />
         ) : data ? (
-          <PanelGroup
-            direction="horizontal"
-            autoSaveId="problem-solver-split-v4"
-            className="h-full w-full"
-          >
-            <Panel defaultSize={45} minSize={25} className="rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
-              <ProblemDetails data={data} theme={theme} liveSync={liveSync} onInsertCode={handleGuruInsert} />
-            </Panel>
-
-            <PanelResizeHandle className="group flex items-center justify-center relative z-50 cursor-col-resize hover:bg-black/5 dark:hover:bg-white/5 transition-colors" style={{ width: 16, background: "transparent" }}>
-              <div
-                className="h-12 w-1.5 rounded-full transition-all duration-300 group-hover:w-2 group-hover:bg-primary/50"
-                style={{ background: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.2)" }}
+          isCompact ? (
+            <div className="flex h-full min-h-0 flex-col gap-3">
+              <SegmentedControl<"problem" | "code">
+                value={pane}
+                onChange={setPane}
+                fullWidth
+                className="shrink-0"
+                options={[
+                  { value: "problem", label: "Problem", icon: <FileText className="h-3.5 w-3.5" /> },
+                  { value: "code", label: "Editor", icon: <Code className="h-3.5 w-3.5" /> },
+                ]}
               />
-            </PanelResizeHandle>
+              <div className="min-h-0 flex-1">
+                {pane === "problem" ? (
+                  <PaneShell>
+                    <ProblemDetails data={data} theme={theme} liveSync={liveSync} onInsertCode={handleGuruInsert} />
+                  </PaneShell>
+                ) : (
+                  <CodeEditorPane
+                    questionId={data.problem.questionId}
+                    theme={theme}
+                    exampleTestcases={data.problem.exampleTestcases}
+                    codeSnippets={data.problem.codeSnippets}
+                    problemContent={data.problem.content}
+                    onLiveSync={setLiveSync}
+                    insertTrigger={guruInsert}
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            <PanelGroup
+              direction="horizontal"
+              autoSaveId="problem-solver-split-v5"
+              className="h-full w-full"
+            >
+              <Panel defaultSize={45} minSize={25} className="min-w-0">
+                <PaneShell>
+                  <ProblemDetails data={data} theme={theme} liveSync={liveSync} onInsertCode={handleGuruInsert} />
+                </PaneShell>
+              </Panel>
 
-            <Panel defaultSize={55} minSize={30}>
-              <CodeEditorPane
-                questionId={data.problem.questionId}
-                theme={theme}
-                exampleTestcases={data.problem.exampleTestcases}
-                codeSnippets={data.problem.codeSnippets}
-                problemContent={data.problem.content}
-                onLiveSync={setLiveSync}
-                insertTrigger={guruInsert}
-              />
-            </Panel>
-          </PanelGroup>
+              <PanelResizeHandle className="group relative z-50 flex w-3 shrink-0 items-center justify-center cursor-col-resize">
+                <div className="h-12 w-1.5 rounded-full bg-border transition-all duration-300 group-hover:w-2 group-hover:bg-primary/60 group-active:bg-primary" />
+              </PanelResizeHandle>
+
+              <Panel defaultSize={55} minSize={30} className="min-w-0">
+                <CodeEditorPane
+                  questionId={data.problem.questionId}
+                  theme={theme}
+                  exampleTestcases={data.problem.exampleTestcases}
+                  codeSnippets={data.problem.codeSnippets}
+                  problemContent={data.problem.content}
+                  onLiveSync={setLiveSync}
+                  insertTrigger={guruInsert}
+                />
+              </Panel>
+            </PanelGroup>
+          )
         ) : null}
       </div>
-      
-      {/* ── Page Footer (outside of panels) if needed, but we integrated into ProblemDetails earlier. 
-          Actually wait, ProblemDetails has a bottom bar. The panels fill the space. 
-          We just add a tiny bottom margin to the layout. */}
-      <div className="h-3 shrink-0" />
     </motion.div>
   );
 }

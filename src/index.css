@@ -49,6 +49,7 @@
     --success-foreground: 0 0% 100%;
 
     --warning: 35 90% 52%;
+    --warning-foreground: 25 40% 12%;
     --info: 210 80% 52%;
     --heap: 320 65% 52%;
 
@@ -1202,8 +1203,8 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
-/* Problem Description — Late-Night Long-Reading Experience            */
-/* Warm, low-glare palette tuned for extended night sessions           */
+/* Problem Description — long-form reading surface                     */
+/* Fully token-driven so light and dark stay in step with the app.     */
 /* ═══════════════════════════════════════════════════════════════════ */
 
 .problem-description {
@@ -1211,7 +1212,7 @@
   font-size: 0.9375rem; /* 15px — comfortable reading size */
   line-height: 1.8;
   letter-spacing: 0.01em;
-  color: #3d4452;
+  color: hsl(var(--foreground) / 0.88);
   word-break: break-word;
 }
 
@@ -1233,7 +1234,7 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.4;
-  color: #1c2230;
+  color: hsl(var(--foreground));
   margin: 1.75rem 0 0.75rem;
 }
 .problem-description h1 { font-size: 1.35rem; }
@@ -1245,30 +1246,35 @@
 .problem-description strong,
 .problem-description b {
   font-weight: 700;
-  color: #232a38;
+  color: hsl(var(--foreground));
+}
+
+.problem-description em,
+.problem-description i {
+  font-style: italic;
 }
 
 /* ── Links ── */
 .problem-description a {
-  color: #b45309;
+  color: hsl(var(--primary));
   font-weight: 500;
   text-decoration: underline;
-  text-decoration-color: rgba(180, 83, 9, 0.35);
+  text-decoration-color: hsl(var(--primary) / 0.35);
   text-underline-offset: 3px;
 }
 .problem-description a:hover {
   text-decoration-color: currentColor;
 }
 
-/* ── Inline Code Chips (LeetCode-style bordered chips) ── */
+/* ── Inline Code Chips ── */
 .problem-description code {
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   font-size: 0.86em;
-  background: rgba(15, 23, 42, 0.05);
-  color: #33415c;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
   padding: 2px 8px;
   border-radius: 7px;
-  border: 1px solid rgba(15, 23, 42, 0.14);
+  border: 1px solid hsl(var(--primary) / 0.18);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -1278,12 +1284,12 @@
   display: block;
 }
 
-/* ── Code Blocks (examples: Input/Output) ── */
+/* ── Code Blocks (examples: Input / Output) ── */
 .problem-description pre {
   margin: 1.25rem 0;
   padding: 1rem 1.25rem;
-  background: #faf7f2;
-  border: 1px solid rgba(15, 23, 42, 0.09);
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
   border-radius: 12px;
   overflow-x: auto;
   line-height: 1.7;
@@ -1296,10 +1302,10 @@
   padding: 0;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   font-size: 0.84rem;
-  color: #414b5e;
+  color: hsl(var(--foreground) / 0.9);
 }
 
-/* ── Lists — relaxed bullet rhythm like LeetCode ── */
+/* ── Lists ── */
 .problem-description ul,
 .problem-description ol {
   margin: 0.9rem 0;
@@ -1331,7 +1337,7 @@
 
 .problem-description ol > li::marker {
   font-weight: 600;
-  color: #6b7280;
+  color: hsl(var(--primary));
 }
 
 /* ── Tables ── */
@@ -1344,12 +1350,13 @@
 .problem-description th,
 .problem-description td {
   padding: 0.6rem 0.9rem;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid hsl(var(--border));
   text-align: left;
 }
 .problem-description th {
-  background: rgba(15, 23, 42, 0.04);
+  background: hsl(var(--muted) / 0.6);
   font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 /* ── Horizontal rule ── */
@@ -1357,111 +1364,17 @@
   margin: 1.75rem 0;
   border: none;
   height: 1px;
-  background: rgba(15, 23, 42, 0.1);
+  background: hsl(var(--border));
 }
 
-/* ═══════════════════════════════════════════════════════════════════ */
-/* Problem Description + Editorial — DARK (late-night warm palette)    */
-/* Warm charcoal-tinted surfaces, candlelight text — no harsh blues    */
-/* ═══════════════════════════════════════════════════════════════════ */
-
-.dark .problem-description {
-  color: #c7c2b8; /* warm parchment gray — easy on night eyes */
-}
-
-.dark .problem-description strong,
-.dark .problem-description b {
-  color: #ece7dd;
-}
-
-.dark .problem-description h1,
-.dark .problem-description h2,
-.dark .problem-description h3,
-.dark .problem-description h4 {
-  color: #ece7dd;
-}
-
-.dark .problem-description a {
-  color: #e8b168;
-  text-decoration-color: rgba(232, 177, 104, 0.35);
-}
-
-.dark .problem-description code {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ddd6c9;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-}
-
-.dark .problem-description pre {
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.dark .problem-description pre code,
-.dark .problem-description pre * {
-  color: #cfc8ba;
-}
-
-.dark .problem-description th {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.dark .problem-description th,
-.dark .problem-description td {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .problem-description hr {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* ── Editorial tab shares the same night palette ── */
-.dark .editorial-content {
-  color: #c7c2b8;
-}
-
-.dark .editorial-content strong,
-.dark .editorial-content b {
-  color: #ece7dd;
-}
-
-.dark .editorial-content h1,
-.dark .editorial-content h2,
-.dark .editorial-content h3,
-.dark .editorial-content h4,
-.dark .editorial-content h5,
-.dark .editorial-content h6 {
-  color: #ece7dd;
-}
-
-.dark .editorial-content h3 {
-  color: #e8b168;
-}
-
-.dark .editorial-content code {
-  background: rgba(232, 177, 104, 0.08);
-  color: #e8ca96;
-  border: 1px solid rgba(232, 177, 104, 0.18);
-}
-
+/* ── Editorial tab — dark tweaks only where a literal is required.
+      Everything else already resolves through the theme tokens. ── */
 .dark .editorial-content pre {
-  background: rgba(0, 0, 0, 0.28);
+  background: #0D0D0D;
 }
 
 .dark .editorial-content pre code {
-  color: #cfc8ba;
-}
-
-.dark .editorial-content a {
-  color: #e8b168;
-}
-
-.dark .editorial-content ul > li::before {
-  background: rgba(232, 177, 104, 0.55);
-}
-
-.dark .editorial-content ol > li::marker {
-  color: #e8b168;
+  color: #abb2bf;
 }
 
 /* ═══════════════════════════════════════════════════════════
