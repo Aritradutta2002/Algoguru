@@ -116,7 +116,10 @@ import {
 } from "@/components/ui/tooltip";
 
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { GuruBot } from "@/components/GuruBot";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -247,12 +250,15 @@ const addAutoImports = (source: string) => {
   return `${missingImports.join("\n")}\n\n${source}`;
 };
 
-// LeetCode Dark theme definition — matched to ProblemSolver for identical editor experience
+// LeetCode Dark theme definition — matched to ProblemSolver for identical editor
+// experience. Syntax colours stay LeetCode-accurate, but every *surface* is drawn
+// from the app's cool neutral palette so the editor sits inside the same card
+// treatment as the rest of the workspace instead of reading as a warm foreign box.
 const LEETCODE_DARK_THEME = {
   base: "vs-dark" as const,
   inherit: true,
   rules: [
-    { token: "", foreground: "D4D0C8", background: "1B1A18" },
+    { token: "", foreground: "D4D0C8", background: "0E1016" },
     { token: "comment", foreground: "6A9955", fontStyle: "italic" },
     { token: "keyword.boolean", foreground: "4EC9B0" },
     { token: "keyword.byte", foreground: "4EC9B0" },
@@ -294,28 +300,28 @@ const LEETCODE_DARK_THEME = {
     { token: "delimiter.parenthesis", foreground: "D4D4D4" },
   ],
   colors: {
-    "editor.background": "#1B1A18",
+    "editor.background": "#0E1016",
     "editor.foreground": "#D4D0C8",
-    "editorLineNumber.foreground": "#7D7A72",
+    "editorLineNumber.foreground": "#5B6070",
     "editorLineNumber.activeForeground": "#C9C5BC",
-    "editorGutter.background": "#1B1A18",
-    "editor.lineHighlightBackground": "#26251F",
+    "editorGutter.background": "#0E1016",
+    "editor.lineHighlightBackground": "#171A22",
     "editor.lineHighlightBorder": "#00000000",
-    "editor.selectionBackground": "#4A4436AA",
-    "editor.inactiveSelectionBackground": "#3A3833AA",
+    "editor.selectionBackground": "#3B4258AA",
+    "editor.inactiveSelectionBackground": "#2A2F3DAA",
     "editorCursor.foreground": "#C9C5BC",
-    "editorIndentGuide.background": "#3B3934",
-    "editorIndentGuide.activeBackground": "#6B675E",
-    "editorBracketMatch.background": "#5C564755",
-    "editorBracketMatch.border": "#8A8578",
+    "editorIndentGuide.background": "#262B36",
+    "editorIndentGuide.activeBackground": "#4A5164",
+    "editorBracketMatch.background": "#4A516455",
+    "editorBracketMatch.border": "#7A8499",
     "scrollbar.shadow": "#00000000",
-    "scrollbarSlider.background": "#79766E66",
-    "scrollbarSlider.hoverBackground": "#64615AB3",
-    "scrollbarSlider.activeBackground": "#BFBBB166",
-    "editorWidget.background": "#232220",
-    "editorSuggestWidget.background": "#232220",
+    "scrollbarSlider.background": "#5B607066",
+    "scrollbarSlider.hoverBackground": "#7A8499B3",
+    "scrollbarSlider.activeBackground": "#AEB6C666",
+    "editorWidget.background": "#171A22",
+    "editorSuggestWidget.background": "#171A22",
     "editorSuggestWidget.foreground": "#D4D0C8",
-    "editorSuggestWidget.selectedBackground": "#33312C",
+    "editorSuggestWidget.selectedBackground": "#262B36",
   },
 } as const;
 
@@ -838,7 +844,6 @@ export default function Playground() {
         : themeChoice;
     return THEMES.find((t) => t.id === resolvedId) ?? THEMES[0];
   }, [themeChoice, appTheme]);
-  const isDark = currentTheme.id !== "light";
 
   const [availableLanguages] = useState(SUPPORTED_LANGUAGES);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -1527,7 +1532,10 @@ export default function Playground() {
                 className: "debug-current-line",
                 glyphMarginClassName: "debug-current-glyph",
                 overviewRuler: {
-                  color: "#38bdf8",
+                  // Monaco needs a literal here (it cannot resolve CSS custom
+                  // properties). Kept in step with --info, the same colour the
+                  // .debug-current-line rule resolves to.
+                  color: "#1a84d9",
                   position: monaco.editor.OverviewRulerLane.Center,
                 },
               },
@@ -2187,17 +2195,14 @@ export default function Playground() {
       <button
         onClick={() => runCode(false)}
         disabled={isRunning || !code.trim()}
-        className={`flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3"}`}
-        style={{
-          background: isRunning
-            ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
-            : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-          boxShadow: isRunning
-            ? "0 0 12px rgba(245,158,11,0.4), 0 2px 4px rgba(0,0,0,0.2)"
-            : "0 0 12px rgba(16,185,129,0.4), 0 2px 4px rgba(0,0,0,0.2)",
-          color: "white",
-          fontSize: compact ? 12 : 13,
-        }}
+        className={cn(
+          "flex items-center justify-center gap-1.5 rounded-md font-semibold shadow-soft transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50",
+          compact ? "h-7 w-7" : "h-7 px-3",
+          isRunning
+            ? "bg-warning text-warning-foreground"
+            : "bg-primary text-primary-foreground hover:bg-primary/90",
+          compact ? "text-xs" : "text-[13px]",
+        )}
         aria-label="Run code"
         aria-busy={isRunning}
       >
@@ -2227,12 +2232,13 @@ export default function Playground() {
         <button
           onClick={() => runCode(true)}
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
-          className={`flex items-center justify-center gap-1 rounded-md font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed ${compact ? "h-7 w-7" : "h-7 px-3 text-[12px]"}`}
-          style={{
-            background: breakpoints.size > 0 ? (isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)") : "transparent",
-            color: breakpoints.size > 0 ? (isDark ? "#a78bfa" : "#7c3aed") : isDark ? "#94a3b8" : "#64748b",
-            border: `1px solid ${breakpoints.size > 0 ? (isDark ? "rgba(139,92,246,0.3)" : "rgba(139,92,246,0.2)") : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)"}`,
-          }}
+          className={cn(
+            "flex items-center justify-center gap-1 rounded-md border font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40",
+            compact ? "h-7 w-7" : "h-7 px-3 text-[12px]",
+            breakpoints.size > 0
+              ? "border-purple-500/25 bg-purple-500/10 text-purple-500 dark:text-purple-400"
+              : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
           aria-label={tooltip}
         >
           <Bug size={13} />
@@ -2429,7 +2435,7 @@ export default function Playground() {
                         setTestcaseTabs(renamed);
                         if (activeTestcaseId === tc.id) setActiveTestcaseId(renamed[0]?.id || "1");
                       }}
-                      className="ml-1 p-0.5 rounded-full opacity-60 group-hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10"
+                      className="ml-1 rounded-full p-0.5 opacity-60 hover:bg-foreground/10 group-hover:opacity-100"
                       title="Remove case"
                     >
                       <X size={10} />
@@ -2540,7 +2546,7 @@ export default function Playground() {
           aria-label="Close settings"
         />
         <div
-          className="lc-surface relative flex w-full max-w-lg animate-in flex-col overflow-hidden rounded-xl duration-200 fade-in zoom-in-95"
+          className="lc-surface relative flex w-full max-w-lg animate-in flex-col overflow-hidden rounded-2xl duration-200 fade-in zoom-in-95"
           style={{ maxHeight: "85vh" }}
         >
           {/* Header */}
@@ -3021,14 +3027,24 @@ export default function Playground() {
   );
 
   return (
-    <div
-      ref={playgroundShellRef}
-      className={`playground-shell ${isFullscreen ? "fixed inset-0 z-50 h-screen" : "h-full min-h-0"} relative flex flex-col overflow-hidden`}
-      style={{
-        background: "var(--lc-bg)",
-        color: "var(--lc-text)",
-      }}
+    // Outer page frame — identical treatment to Problem Solver so both
+    // split-workspace pages sit in the same card on the same backdrop.
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className={cn(
+        "flex h-full min-h-0 flex-col bg-background",
+        isFullscreen ? "fixed inset-0 z-50" : "p-3 md:p-4",
+      )}
     >
+      <div
+        ref={playgroundShellRef}
+        className={cn(
+          "playground-shell relative flex min-h-0 flex-1 flex-col overflow-hidden bg-card text-card-foreground",
+          isFullscreen ? "h-screen" : "rounded-2xl border border-border shadow-card",
+        )}
+      >
       {/* Breakpoint & debug CSS */}
       <style>{`
         .breakpoint-decoration {
@@ -3044,11 +3060,11 @@ export default function Playground() {
           background: hsla(var(--destructive) / 0.08) !important;
         }
         .debug-current-line {
-          background: rgba(56, 189, 248, 0.18) !important;
-          border-left: 3px solid #38bdf8 !important;
+          background: hsl(var(--info) / 0.18) !important;
+          border-left: 3px solid hsl(var(--info)) !important;
         }
         .debug-current-glyph {
-          background: #38bdf8 !important;
+          background: hsl(var(--info)) !important;
           width: 6px !important;
           margin-left: 5px !important;
           border-radius: 2px !important;
@@ -3060,14 +3076,10 @@ export default function Playground() {
 
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TOP BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className={`flex flex-shrink-0 select-none items-center justify-between px-3 ${zenMode ? "hidden" : ""}`}
-        style={{
-          height: 44,
-          background: isDark
-            ? "linear-gradient(180deg, rgba(30,30,55,1) 0%, rgba(26,26,46,1) 100%)"
-            : "#f0f0f5",
-          borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
-        }}
+        className={cn(
+          "flex h-11 flex-shrink-0 select-none items-center justify-between border-b border-border bg-muted/40 px-3",
+          zenMode && "hidden",
+        )}
       >
         {/* LEFT: language + workspace */}
         <div className="flex h-full min-w-0 flex-1 items-center gap-1">
@@ -3084,14 +3096,7 @@ export default function Playground() {
                   }
                 }}
                 aria-label="Change Language"
-                className="flex h-7 items-center gap-1.5 px-3 rounded-md text-xs font-semibold transition-all "
-                style={{
-                  background: isDark
-                    ? "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.12) 100%)"
-                    : "rgba(99,102,241,0.08)",
-                  color: isDark ? "#a5b4fc" : "#6366f1",
-                  border: `1px solid ${isDark ? "rgba(99,102,241,0.2)" : "rgba(99,102,241,0.15)"}`,
-                }}
+                className="flex h-7 items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/15"
               >
                 <Code2 size={13} />
                 <span>{selectedLanguage.label} 21</span>
@@ -3386,7 +3391,7 @@ export default function Playground() {
                                     style={{
                                       color:
                                         deleteConfirmId === tmpl.id
-                                          ? "#ffffff"
+                                          ? "hsl(var(--destructive-foreground))"
                                           : "var(--lc-muted)",
                                       background:
                                         deleteConfirmId === tmpl.id
@@ -3614,18 +3619,11 @@ export default function Playground() {
                 defaultSize={34}
                 minSize={20}
                 maxSize={55}
-                className="overflow-hidden"
-                style={{ background: "var(--lc-panel)" }}
+                className="overflow-hidden p-1 sm:p-2"
               >
-                <div className="flex h-full min-h-0 flex-col rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, background: isDark ? "#1A1A1A" : "#ffffff" }}>
+                <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
                   {/* Panel tabs */}
-                  <div
-                    className="flex flex-shrink-0 items-center px-5 select-none"
-                    style={{
-                      height: 42,
-                      borderBottom: "1px solid var(--lc-border)",
-                    }}
-                  >
+                  <div className="flex h-[42px] flex-shrink-0 select-none items-center border-b border-border px-5">
                     <button
                       onClick={() => setPracticeTab("problem")}
                       className={`lc-tab ${practiceTab !== "notes" ? "lc-tab-active" : ""}`}
@@ -3770,19 +3768,13 @@ export default function Playground() {
               isMobile ? 60 : showLeftDescription ? 66 : guruBotOpen ? 75 : 100
             }
             minSize={30}
-            className="overflow-hidden flex flex-col p-1 sm:p-2"
-            style={{ background: "transparent" }}
+            className="flex flex-col overflow-hidden p-1 sm:p-2"
           >
-            <div className="flex h-full min-h-0 flex-col rounded-xl overflow-hidden shadow-sm" style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`, background: isDark ? "#1A1A1A" : "#ffffff" }}>
+            <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
               {/* File tab strip — ProblemSolver style */}
               <div
-                className="flex flex-shrink-0 select-none items-center px-2 py-1 overflow-x-auto"
-                style={{
-                  minHeight: 34,
-                  background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
-                  borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
-                  scrollbarWidth: "none",
-                }}
+                className="flex min-h-[34px] flex-shrink-0 select-none items-center overflow-x-auto border-b border-border bg-muted/40 px-2 py-1"
+                style={{ scrollbarWidth: "none" }}
               >
                 {/* Mobile-only Description tab */}
                 {isMobile && practiceData && (
@@ -4051,8 +4043,10 @@ export default function Playground() {
                     options={{
                       fontSize: editorFontSize,
                       lineHeight: Math.round(editorFontSize * 1.62),
+                      // Same stack as Problem Solver so code renders identically
+                      // across both workspaces.
                       fontFamily:
-                        "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+                        '"Consolas","Cascadia Code","JetBrains Mono","Fira Code",Menlo,Monaco,"Courier New",monospace',
                       fontLigatures: false,
                       minimap: { enabled: false },
                       scrollBeyondLastLine: false,
@@ -4141,8 +4135,7 @@ export default function Playground() {
                     setIoCollapsed(false);
                   }
                 }}
-                className="overflow-hidden"
-                style={{ background: "var(--lc-panel)" }}
+                className="overflow-hidden p-1 sm:p-2"
               >
                 {ioCollapsed && !isMobile ? (
                   <AppTooltip content="Expand console" side="left">
@@ -4154,11 +4147,8 @@ export default function Playground() {
                         )
                       }
                       aria-label="Expand console"
-                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 lc-hover"
-                      style={{
-                        borderLeft: "1px solid var(--lc-border)",
-                        color: "var(--lc-accent)",
-                      }}
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-border bg-card px-0 py-4 shadow-soft lc-hover"
+                      style={{ color: "var(--lc-accent)" }}
                     >
                       <Keyboard size={18} />
                       <span className="rotate-180 text-[11px] font-medium tracking-widest [writing-mode:vertical-rl]" style={{ color: "var(--lc-text)" }}>
@@ -4187,18 +4177,9 @@ export default function Playground() {
                     </button>
                   </AppTooltip>
                 ) : (
-                  <div
-                    className="flex h-full min-h-0 flex-col"
-                    style={{ borderTop: "1px solid var(--lc-border)" }}
-                  >
+                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
                     {/* Console action bar: tabs + Run/Debug */}
-                    <div
-                      className="flex select-none flex-shrink-0 items-center justify-between gap-3 px-4"
-                      style={{
-                        height: 44,
-                        borderBottom: "1px solid var(--lc-border)",
-                      }}
-                    >
+                    <div className="flex h-11 flex-shrink-0 select-none items-center justify-between gap-3 border-b border-border bg-muted/40 px-4">
                       <div className="flex items-center">
                         <button
                           onClick={() => setConsoleTab("testcase")}
@@ -4245,7 +4226,7 @@ export default function Playground() {
                                 background: diagnostics.some((d) => d.severity === "error")
                                   ? "var(--lc-red)"
                                   : "var(--lc-yellow)",
-                                color: "#fff",
+                                color: "hsl(var(--destructive-foreground))",
                               }}
                             >
                               {diagnostics.length}
@@ -4260,7 +4241,7 @@ export default function Playground() {
                           {breakpoints.size > 0 && (
                             <span
                               className="inline-flex min-w-[16px] justify-center rounded-full px-1 text-[10px] font-semibold leading-none py-0.5"
-                              style={{ background: "var(--lc-red)", color: "#fff" }}
+                              style={{ background: "var(--lc-red)", color: "hsl(var(--destructive-foreground))" }}
                             >
                               {breakpoints.size}
                             </span>
@@ -4296,7 +4277,7 @@ export default function Playground() {
                               {testcaseTabs.map((tc) => (
                                 <div
                                   key={tc.id}
-                                  className={`group flex items-center gap-1 pl-3 pr-1 py-1 rounded-full text-[11px] font-bold border transition-colors ${activeTestcaseId === tc.id ? "bg-[color:var(--lc-accent)] text-white border-[color:var(--lc-accent)]" : "bg-[color:var(--lc-panel-2)] text-[color:var(--lc-muted)] border-[color:var(--lc-border)] hover:text-[color:var(--lc-text)]"}`}
+                                  className={`group flex items-center gap-1 pl-3 pr-1 py-1 rounded-full text-[11px] font-bold border transition-colors ${activeTestcaseId === tc.id ? "border-primary bg-primary text-primary-foreground" : "border-border bg-muted text-muted-foreground hover:text-foreground"}`}
                                 >
                                   <button onClick={() => setActiveTestcaseId(tc.id)} className="bg-transparent border-0 p-0 font-bold text-inherit">
                                     {tc.name}
@@ -4313,7 +4294,7 @@ export default function Playground() {
                                         // sync stdin to active
                                         if (renamed[0]) setStdin(renamed.find((t) => t.id === activeTestcaseId)?.value || renamed[0].value);
                                       }}
-                                      className="ml-1 p-0.5 rounded-full opacity-60 group-hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10"
+                                      className="ml-1 rounded-full p-0.5 opacity-60 hover:bg-foreground/10 group-hover:opacity-100"
                                       title="Remove case"
                                     >
                                       <X size={10} />
@@ -4446,11 +4427,7 @@ export default function Playground() {
                   setGuruBotCollapsed(size <= GURU_EXPAND_TRIGGER_SIZE);
                 }}
                 onCollapse={() => setGuruBotCollapsed(true)}
-                className="overflow-hidden"
-                style={{
-                  background: "var(--lc-panel)",
-                  borderLeft: "1px solid var(--lc-border)",
-                }}
+                className="overflow-hidden p-1 sm:p-2"
               >
                 {guruBotCollapsed ? (
                   <AppTooltip content="Expand GuruBot" side="left">
@@ -4465,7 +4442,7 @@ export default function Playground() {
                         }
                       }}
                       aria-label="Expand GuruBot"
-                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden px-0 py-4 lc-hover"
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-border bg-card px-0 py-4 shadow-soft lc-hover"
                       style={{ color: "var(--lc-accent)" }}
                     >
                       <Bot size={18} />
@@ -4487,7 +4464,7 @@ export default function Playground() {
                     </div>
                   </AppTooltip>
                 ) : (
-                  <div className="h-full min-w-0 overflow-hidden">
+                  <div className="h-full min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
                     <GuruBot
                       open={guruBotOpen}
                       onClose={() => setGuruBotOpen(false)}
@@ -4527,12 +4504,10 @@ export default function Playground() {
 
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• STATUS BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
-        className={`flex select-none flex-shrink-0 items-center justify-between px-3 ${zenMode ? "hidden" : ""}`}
-        style={{
-          height: 30,
-          background: isDark ? "rgba(26,26,46,0.8)" : "#f5f5f8",
-          borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}`,
-        }}
+        className={cn(
+          "flex h-[30px] flex-shrink-0 select-none items-center justify-between border-t border-border bg-muted/40 px-3",
+          zenMode && "hidden",
+        )}
       >
         {/* Left: cursor + editor info */}
         <div
@@ -4691,8 +4666,7 @@ export default function Playground() {
         <div className="absolute top-3 right-3 z-50">
           <button
             onClick={toggleZenMode}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold shadow-lg border"
-            style={{ background: "var(--lc-panel)", borderColor: "var(--lc-border)", color: "var(--lc-text)" }}
+            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-[11px] font-bold text-card-foreground shadow-overlay"
           >
             <Focus size={13} style={{ color: "var(--lc-accent)" }} />
             Exit Zen Mode
@@ -4723,22 +4697,19 @@ export default function Playground() {
 
       {/* Create / Edit Template Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-        <DialogContent
-          className="lc-surface w-[calc(100vw-2rem)] max-w-[500px] rounded-xl p-6"
-          style={{ color: "var(--lc-text)" }}
-        >
+        {/* NOTE: DialogContent portals to <body>, so it sits outside
+            .playground-shell and the --lc-* tokens do not resolve here.
+            Everything in this subtree must use the app-wide tokens. */}
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold">
+            <DialogTitle className="text-base font-semibold text-foreground">
               {editingBuiltinPrefix
                 ? "Edit Built-in Template"
                 : editingTemplate
                   ? "Edit Template"
                   : "Save as Template"}
             </DialogTitle>
-            <DialogDescription
-              className="text-[13px] leading-relaxed"
-              style={{ color: "var(--lc-muted)" }}
-            >
+            <DialogDescription className="text-[13px] leading-relaxed text-muted-foreground">
               {editingBuiltinPrefix
                 ? "Update this built-in template's description. Current editor code will be saved as your custom version."
                 : editingTemplate
@@ -4749,7 +4720,7 @@ export default function Playground() {
           <div className="flex flex-col gap-4 py-2">
             <div>
               <label
-                className="lc-io-label block"
+                className="mb-1.5 block text-xs font-medium text-muted-foreground"
                 htmlFor="lc-template-name"
               >
                 Template Name {editingBuiltinPrefix ? "" : "*"}
@@ -4759,13 +4730,13 @@ export default function Playground() {
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="e.g. My Graph Template"
-                className="lc-field h-10 px-3 text-sm"
+                className="h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
                 disabled={!!editingBuiltinPrefix}
               />
             </div>
             <div>
               <label
-                className="lc-io-label block"
+                className="mb-1.5 block text-xs font-medium text-muted-foreground"
                 htmlFor="lc-template-desc"
               >
                 Description (optional)
@@ -4775,37 +4746,26 @@ export default function Playground() {
                 value={templateDesc}
                 onChange={(e) => setTemplateDesc(e.target.value)}
                 placeholder="e.g. BFS/DFS with adjacency list"
-                className="lc-field min-h-[74px] px-3 py-2.5 text-sm"
+                className="min-h-[74px] rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
                 rows={2}
               />
             </div>
-            <div
-              className="rounded-lg px-3.5 py-2.5 text-[12px]"
-              style={{
-                background: "var(--lc-accent-soft)",
-                color: "var(--lc-accent)",
-              }}
-            >
+            <div className="rounded-lg bg-primary/10 px-3.5 py-2.5 text-[12px] text-primary">
               The current editor code will be saved with this template.
             </div>
           </div>
           <DialogFooter className="gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setTemplateDialogOpen(false)}
-              className="lc-pill lc-pill-muted !rounded-lg"
-            >
+            <Button type="button" variant="outline" onClick={() => setTemplateDialogOpen(false)}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={handleSaveTemplate}
               disabled={!editingBuiltinPrefix && !templateName.trim()}
-              className="lc-pill lc-pill-green !rounded-lg"
             >
               <Save size={15} />
               {editingTemplate || editingBuiltinPrefix ? "Update" : "Save"}
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -4899,7 +4859,7 @@ export default function Playground() {
       {/* Outline drawer */}
       {outlineOpen && (
         <div className="fixed inset-0 z-[60] flex justify-end">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setOutlineOpen(false)} aria-label="Close outline" />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={() => setOutlineOpen(false)} aria-label="Close outline" />
           <div
             className="relative w-[320px] max-w-[85vw] h-full overflow-hidden lc-surface flex flex-col"
             style={{ background: "var(--lc-panel)" }}
@@ -4958,6 +4918,7 @@ export default function Playground() {
           }}
         />
       )}
-    </div>
+      </div>
+    </motion.div>
   );
 }

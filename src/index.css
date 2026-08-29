@@ -1378,67 +1378,80 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   LeetCode-style Playground design tokens & utilities
+   Playground design tokens & utilities
    Scoped to .playground-shell — does not affect other pages.
-   ═══════════════════════════════════════════════════════════ */
-.playground-shell {
-  --lc-bg: #282828;
-  --lc-panel: #1e1e1e;
-  --lc-panel-2: #242424;
-  --lc-panel-3: #2d2d2d;
-  --lc-border: #3c3c3c;
-  --lc-border-soft: #333333;
-  --lc-text: #e1e1e1;
-  --lc-muted: #9d9d9d;
-  --lc-faint: #6f6f6f;
-  --lc-accent: #ffa116;
-  --lc-accent-soft: rgba(255, 161, 22, 0.12);
-  --lc-green: #2ea44f;
-  --lc-green-hover: #3cb45d;
-  --lc-green-soft: rgba(46, 164, 79, 0.14);
-  --lc-red: #ef4743;
-  --lc-red-soft: rgba(239, 71, 67, 0.13);
-  --lc-blue: #109dc9;
-  --lc-yellow: #ffc01e;
-  --lc-yellow-soft: rgba(255, 192, 30, 0.13);
 
-  /* Theme-safe interaction overlays — replace hardcoded white/N */
-  --lc-hover: rgba(255, 255, 255, 0.055);
-  --lc-hover-strong: rgba(255, 255, 255, 0.1);
-  --lc-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 2px 8px -2px rgba(0, 0, 0, 0.4);
-  --lc-shadow-sm: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
-  --lc-scrim: rgba(0, 0, 0, 0.55);
+   The `--lc-*` layer exists only so the playground's many bespoke
+   components can keep their own class names while still resolving
+   every colour from the app-wide design tokens. Nothing here may
+   hardcode a literal — that is what made the page drift from the
+   rest of the product in the first place.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Dark (default) — mirrors `html.dark` */
+.playground-shell {
+  --lc-bg: hsl(var(--background));
+  --lc-panel: hsl(var(--card));
+  --lc-panel-2: hsl(var(--muted));
+  --lc-panel-3: hsl(var(--border) / 0.55);
+  --lc-border: hsl(var(--border));
+  --lc-border-soft: hsl(var(--border) / 0.55);
+  --lc-text: hsl(var(--foreground));
+  --lc-muted: hsl(var(--muted-foreground));
+  --lc-faint: hsl(var(--muted-foreground) / 0.62);
+  --lc-accent: hsl(var(--primary));
+  --lc-accent-soft: hsl(var(--primary) / 0.14);
+  --lc-green: hsl(var(--success));
+  --lc-green-hover: hsl(145 55% 48%);
+  --lc-green-soft: hsl(var(--success) / 0.14);
+  --lc-red: hsl(var(--destructive));
+  --lc-red-soft: hsl(var(--destructive) / 0.14);
+  --lc-blue: hsl(var(--info));
+  --lc-yellow: hsl(var(--warning));
+  --lc-yellow-soft: hsl(var(--warning) / 0.14);
+
+  /* Theme-safe interaction overlays — derived from the foreground so they
+     read correctly in both modes instead of a hardcoded white/N. */
+  --lc-hover: hsl(var(--foreground) / 0.05);
+  --lc-hover-strong: hsl(var(--foreground) / 0.09);
+  --lc-shadow: var(--shadow-overlay);
+  --lc-shadow-sm: var(--shadow-card);
+  --lc-scrim: hsl(222 40% 3% / 0.62);
 }
 
+/* Light — mirrors `html.light`. Higher specificity than the block above,
+   which doubles as the dark default. */
 .light .playground-shell {
-  --lc-bg: #f7f8fa;
-  --lc-panel: #ffffff;
-  --lc-panel-2: #f4f5f7;
-  --lc-panel-3: #eaecef;
-  --lc-border: #e0e2e6;
-  --lc-border-soft: #eceef0;
-  --lc-text: #1a1a1a;
-  --lc-muted: #5c5f66;
-  --lc-faint: #8f9299;
-  --lc-accent: #e08000;
-  --lc-accent-soft: rgba(255, 161, 22, 0.16);
-  --lc-green: #1a7f37;
-  --lc-green-hover: #22913f;
-  --lc-green-soft: rgba(26, 127, 55, 0.1);
-  --lc-red: #d1332e;
-  --lc-red-soft: rgba(209, 51, 46, 0.09);
-  --lc-yellow: #b07500;
-  --lc-yellow-soft: rgba(176, 117, 0, 0.1);
+  --lc-bg: hsl(var(--background));
+  --lc-panel: hsl(var(--card));
+  --lc-panel-2: hsl(var(--muted));
+  --lc-panel-3: hsl(var(--muted) / 0.72);
+  --lc-border: hsl(var(--border));
+  --lc-border-soft: hsl(var(--border) / 0.6);
+  --lc-text: hsl(var(--foreground));
+  --lc-muted: hsl(var(--muted-foreground));
+  --lc-faint: hsl(var(--muted-foreground) / 0.68);
+  --lc-accent: hsl(var(--primary));
+  --lc-accent-soft: hsl(var(--primary) / 0.12);
+  --lc-green: hsl(var(--success));
+  --lc-green-hover: hsl(145 55% 34%);
+  --lc-green-soft: hsl(var(--success) / 0.12);
+  --lc-red: hsl(var(--destructive));
+  --lc-red-soft: hsl(var(--destructive) / 0.1);
+  --lc-blue: hsl(var(--info));
+  --lc-yellow: hsl(var(--warning));
+  --lc-yellow-soft: hsl(var(--warning) / 0.12);
 
-  --lc-hover: rgba(15, 23, 42, 0.05);
-  --lc-hover-strong: rgba(15, 23, 42, 0.09);
-  --lc-shadow: 0 12px 32px -10px rgba(15, 23, 42, 0.18), 0 2px 8px -2px rgba(15, 23, 42, 0.08);
-  --lc-shadow-sm: 0 4px 12px -4px rgba(15, 23, 42, 0.12);
-  --lc-scrim: rgba(15, 23, 42, 0.35);
+  --lc-hover: hsl(var(--foreground) / 0.045);
+  --lc-hover-strong: hsl(var(--foreground) / 0.08);
+  --lc-shadow: var(--shadow-overlay);
+  --lc-shadow-sm: var(--shadow-card);
+  --lc-scrim: hsl(222 25% 10% / 0.32);
 }
 
 .playground-shell ::selection {
-  background: rgba(255, 161, 22, 0.28);
+  background: hsl(var(--primary) / 0.28);
+  color: hsl(var(--foreground));
 }
 
 /* Theme-safe hover overlays (use instead of hover:bg-white/N) */
@@ -1651,7 +1664,7 @@
 }
 .lc-pill-green:hover:not(:disabled) {
   background: var(--lc-green-hover);
-  box-shadow: 0 2px 10px -2px var(--lc-green);
+  box-shadow: 0 2px 10px -3px var(--lc-green);
 }
 .lc-pill-outline {
   background: transparent;
@@ -1679,15 +1692,16 @@
     0 0 0 4px var(--lc-accent);
 }
 
-/* LC difficulty dots */
+/* LC difficulty dots — driven by the app's difficulty tokens so the
+   playground matches Practice / Problem Solver. */
 .lc-difficulty-easy {
-  color: #2db55d;
+  color: hsl(var(--difficulty-easy));
 }
 .lc-difficulty-medium {
-  color: #ffb800;
+  color: hsl(var(--difficulty-medium));
 }
 .lc-difficulty-hard {
-  color: #ef4743;
+  color: hsl(var(--difficulty-hard));
 }
 
 /* Icon button (LC toolbar style) */
@@ -1697,7 +1711,7 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--lc-muted);
   transition:
     background-color 0.15s ease,
@@ -1723,11 +1737,11 @@
   background: transparent;
 }
 .playground-shell *::-webkit-scrollbar-thumb {
-  background: rgba(128, 128, 128, 0.35);
+  background: hsl(var(--muted-foreground) / 0.32);
   border-radius: 8px;
 }
 .playground-shell *::-webkit-scrollbar-thumb:hover {
-  background: rgba(128, 128, 128, 0.55);
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* ── LeetCode-style result panel ── */
