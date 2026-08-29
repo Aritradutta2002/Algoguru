@@ -146,6 +146,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_pinned: boolean
           messages: Json
           model: string
           scope: string
@@ -158,6 +159,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_pinned?: boolean
           messages?: Json
           model?: string
           scope?: string
@@ -170,12 +172,43 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_pinned?: boolean
           messages?: Json
           model?: string
           scope?: string
           session_date?: number
           session_id?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      guru_chat_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message_index: number
+          rating: number
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_index: number
+          rating: number
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_index?: number
+          rating?: number
+          session_id?: string
           updated_at?: string
           user_id?: string
         }

@@ -23,14 +23,20 @@ import {
   Wand2,
   Maximize,
   Minimize,
+  Pin,
+  Search,
+  ThumbsDown,
+  ThumbsUp,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeChatMarkdown } from "@/lib/normalizeChatMarkdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = {
@@ -39,6 +45,7 @@ type Session = {
   messages: Msg[];
   model: string;
   date: number;
+  pinned: boolean;
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guru-chat`;
@@ -53,6 +60,21 @@ interface ModelOption {
 const MODELS: ModelOption[] = [
   { key: "openrouter", label: "OpenRouter Free", tag: "OpenRouter" },
 ];
+
+const MAX_MODEL_MESSAGES = 14;
+
+function createSessionTitle(message: string) {
+  const cleanMessage = message.replace(/\s+/g, " ").trim();
+  return cleanMessage.length > 56 ? `${cleanMessage.slice(0, 56).trimEnd()}…` : cleanMessage;
+}
+
+function compactConversation(messages: Msg[]) {
+  if (messages.length <= MAX_MODEL_MESSAGES) return messages;
+
+  // Preserve the original question and the latest discussion. This is kept in
+  // memory for the request only; no browser storage is used.
+  return [messages[0], ...messages.slice(-(MAX_MODEL_MESSAGES - 1))];
+}
 
 async function streamChat({
   messages,
@@ -413,8 +435,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           .select("*")
           .eq("user_id", user.id)
           .eq("scope", chatScope)
+          .order("is_pinned", { ascending: false })
           .order("session_date", { ascending: false })
-          .limit(10);
+          .limit(50);
 
         if (cancelled) return;
 
@@ -425,6 +448,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             messages: Array.isArray(row.messages) ? row.messages : [],
             model: row.model ?? "openrouter",
             date: Number(row.session_date) || 0,
+            pinned: Boolean(row.is_pinned),
           }));
           setSessions(loaded);
           setCurrentId(loaded[0].id);
@@ -441,6 +465,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
     // Sync chat history to the database whenever it changes (logged-in only).
     const syncedSessionsRef = useRef<Map<string, string>>(new Map());
+    const deletedSessionIdsRef = useRef(new Set<string>());
     useEffect(() => {
       if (!user) return;
 
@@ -449,33 +474,36 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         const next = new Map<string, string>();
 
         for (const s of sessions) {
-          const fingerprint = JSON.stringify([s.title, s.messages, s.model, s.date]);
+          const fingerprint = JSON.stringify([s.title, s.messages, s.model, s.date, s.pinned]);
           next.set(s.id, fingerprint);
 
           if (prev.get(s.id) !== fingerprint) {
-            supabase.from("guru_chat_sessions").upsert({
-              user_id: user.id,
-              scope: chatScope,
-              session_id: s.id,
-              title: s.title,
-              messages: s.messages,
-              model: s.model,
-              session_date: s.date,
-            });
+            supabase
+              .from("guru_chat_sessions")
+              .upsert({
+                user_id: user.id,
+                scope: chatScope,
+                session_id: s.id,
+                title: s.title,
+                messages: s.messages,
+                model: s.model,
+                session_date: s.date,
+                is_pinned: s.pinned,
+              }, { onConflict: "user_id,session_id" });
           }
         }
 
-        // Delete sessions removed from the list (history cap).
-        for (const id of prev.keys()) {
-          if (!next.has(id)) {
-            supabase
-              .from("guru_chat_sessions")
-              .delete()
-              .eq("user_id", user.id)
-              .eq("scope", chatScope)
-              .eq("session_id", id);
-          }
+        // Only explicit deletes are removed from Supabase. Changing the loaded
+        // window or opening a new chat must never erase server-side history.
+        for (const id of deletedSessionIdsRef.current) {
+          supabase
+            .from("guru_chat_sessions")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("scope", chatScope)
+            .eq("session_id", id);
         }
+        deletedSessionIdsRef.current.clear();
 
         syncedSessionsRef.current = next;
       }, 800);
@@ -484,8 +512,11 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     }, [sessions, user, chatScope]);
 
     const [showHistory, setShowHistory] = useState(false);
+    const [historyQuery, setHistoryQuery] = useState("");
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
+    const [feedbackByMessage, setFeedbackByMessage] = useState<Record<string, 1 | -1>>({});
     // Single OpenRouter free route — no persisted model preference needed
     const [model, setModel] = useState("openrouter");
 
@@ -510,6 +541,12 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       [sessions, currentId],
     );
     const messages = activeSession?.messages || [];
+    const visibleSessions = useMemo(() => {
+      const query = historyQuery.trim().toLowerCase();
+      return sessions
+        .filter((session) => !query || session.title.toLowerCase().includes(query))
+        .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.date - a.date);
+    }, [historyQuery, sessions]);
 
     useEffect(() => {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -532,9 +569,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       setSessions((prev) => {
         const now = Date.now();
         if (!currentId) {
-          const fallbackTitle =
-            newMessages.find((m) => m.role === "user")?.content.slice(0, 30) +
-            "...";
+          const fallbackTitle = createSessionTitle(
+            newMessages.find((m) => m.role === "user")?.content || "New chat",
+          );
           const newId = crypto.randomUUID();
           setCurrentId(newId);
           return [
@@ -544,6 +581,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               messages: newMessages,
               model: curModel,
               date: now,
+              pinned: false,
             },
             ...prev,
           ];
@@ -585,15 +623,17 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       };
     };
 
-    const send = async () => {
-      const text = input.trim();
+    const send = async (promptOverride?: string) => {
+      const text = (promptOverride ?? input).trim();
       if (!text || loading || sendingLockRef.current) return;
       // guard against double-fire (e.g. Enter + click) with same text — uses ref to catch stale closure
       if (messages.length > 0 && messages[messages.length - 1]?.role === "user" && messages[messages.length - 1]?.content === text) return;
       sendingLockRef.current = true;
 
-      setInput("");
-      if (inputRef.current) inputRef.current.style.height = "auto";
+      if (!promptOverride) {
+        setInput("");
+        if (inputRef.current) inputRef.current.style.height = "auto";
+      }
 
       const userMsg: Msg = { role: "user", content: text };
       const newMessages = [...messages, userMsg];
@@ -617,9 +657,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         const newId = crypto.randomUUID();
         targetId = newId;
         targetIdRef.current = newId;
-        const fallbackTitle = text.slice(0, 30) + "...";
+        const fallbackTitle = createSessionTitle(text);
         setSessions((prev) => [
-          { id: newId, title: fallbackTitle, messages: newMessages, model, date: Date.now() },
+          { id: newId, title: fallbackTitle, messages: newMessages, model, date: Date.now(), pinned: false },
           ...prev,
         ]);
         setCurrentId(newId);
@@ -656,7 +696,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
       try {
         await streamChat({
-          messages: debugMode ? apiMessages : newMessages,
+          messages: compactConversation(debugMode ? apiMessages : newMessages),
           model,
           onDelta: upsert,
           onDone: () => {
@@ -696,6 +736,48 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       }
     };
 
+    const copyReply = async (content: string, messageIndex: number) => {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageIndex(messageIndex);
+      setTimeout(() => setCopiedMessageIndex(null), 1800);
+    };
+
+    const rateReply = async (messageIndex: number, rating: 1 | -1) => {
+      if (!user || !currentId) return;
+
+      const key = `${currentId}:${messageIndex}`;
+      const previousRating = feedbackByMessage[key];
+      setFeedbackByMessage((previous) => ({ ...previous, [key]: rating }));
+
+      const { error } = await supabase.from("guru_chat_feedback").upsert(
+        {
+          user_id: user.id,
+          session_id: currentId,
+          message_index: messageIndex,
+          rating,
+        },
+        { onConflict: "user_id,session_id,message_index" },
+      );
+
+      if (error) {
+        setFeedbackByMessage((previous) => {
+          const next = { ...previous };
+          if (previousRating) next[key] = previousRating;
+          else delete next[key];
+          return next;
+        });
+      }
+    };
+
+    const toggleSessionPin = (id: string, event: React.MouseEvent) => {
+      event.stopPropagation();
+      setSessions((previous) =>
+        previous.map((session) =>
+          session.id === id ? { ...session, pinned: !session.pinned } : session,
+        ),
+      );
+    };
+
     const stopChat = () => {
       abortRef.current?.abort();
       setLoading(false);
@@ -707,7 +789,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     };
     const deleteSession = (id: string, e: React.MouseEvent) => {
       e.stopPropagation();
-      setSessions(sessions.filter((s) => s.id !== id));
+      deletedSessionIdsRef.current.add(id);
+      setSessions((previous) => previous.filter((s) => s.id !== id));
       if (currentId === id) setCurrentId(null);
     };
     const handleClose = () => {
@@ -903,6 +986,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                   {m.role === "assistant" ? (
                     <div className="prose prose-sm max-w-[92%] text-[13px] leading-relaxed text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-p:my-2 prose-pre:my-3 dark:prose-invert">
                       <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
                         components={{
                           code({ className, children, ...props }) {
                             const isBlock = className?.startsWith("language-") || String(children).includes("\n");
@@ -910,9 +994,33 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                             return <code className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[12px] text-foreground" {...props}>{children}</code>;
                           },
                           pre({ children }) { return <>{children}</>; },
+                          table({ children }) {
+                            return (
+                              <div className="my-4 w-full overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+                                <table className="w-full min-w-[520px] border-collapse text-left text-[12px] leading-relaxed">
+                                  {children}
+                                </table>
+                              </div>
+                            );
+                          },
+                          thead({ children }) {
+                            return <thead className="bg-muted/70 text-foreground">{children}</thead>;
+                          },
+                          tbody({ children }) {
+                            return <tbody className="divide-y divide-border/70">{children}</tbody>;
+                          },
+                          tr({ children }) {
+                            return <tr className="transition-colors hover:bg-muted/35">{children}</tr>;
+                          },
+                          th({ children }) {
+                            return <th className="border-b border-border px-3 py-2.5 align-top font-semibold">{children}</th>;
+                          },
+                          td({ children }) {
+                            return <td className="px-3 py-2.5 align-top text-foreground/90">{children}</td>;
+                          },
                         }}
                       >
-                        {m.content}
+                        {normalizeChatMarkdown(m.content)}
                       </ReactMarkdown>
                     </div>
                   ) : (
