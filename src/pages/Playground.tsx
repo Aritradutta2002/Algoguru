@@ -72,6 +72,7 @@ import {
 import { PlaygroundProblemsLibrary } from "@/components/playground/PlaygroundProblemsLibrary";
 import { fetchLeetCodeProblem, deriveTitleSlug, type LeetCodeProblem } from "@/lib/leetcodeProblem";
 import { generateHarnessMain, parseSolutionSignature, chunkTestCases } from "@/lib/javaHarness";
+import { extractExpectedOutputs } from "@/lib/extractExpectedOutputs";
 import {
   buildMonacoEditorOptions,
   loadLocalEditorOptions,
@@ -658,37 +659,6 @@ function instrumentCodeForDebug(
   }
 
   return result.join("\n");
-}
-
-function extractExpectedOutputs(html: string): string[] {
-  if (!html) return [];
-  try {
-    if (typeof document !== "undefined") {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      const outputs: string[] = [];
-      temp.querySelectorAll(".example-block").forEach((block) => {
-        const text = block.textContent || "";
-        const m = text.match(/Output:\s*([^\n]+)/i);
-        if (m) outputs.push(m[1].trim());
-        else {
-          const spans = block.querySelectorAll(".example-io");
-          if (spans.length >= 2) outputs.push((spans[1].textContent || "").trim());
-          else if (spans.length === 1 && text.toLowerCase().includes("output")) outputs.push((spans[0].textContent || "").trim());
-        }
-      });
-      if (outputs.length > 0) return outputs.map((s) => s.replace(/\u00A0/g, " ").trim());
-    }
-  } catch {}
-  const re = /Output:\s*<\/strong>\s*<span[^>]*class="example-io"[^>]*>([^<]+)<\/span>/gi;
-  const out: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null) out.push(m[1].trim());
-  if (out.length === 0) {
-    const re2 = /Output:\s*([^<\n]+)/gi;
-    while ((m = re2.exec(html)) !== null) out.push(m[1].trim().replace(/<\/?[^>]+>/g, ""));
-  }
-  return out.map((s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim());
 }
 
 export default function Playground() {

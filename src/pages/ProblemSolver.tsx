@@ -11,7 +11,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from "react-resizable-panels";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
@@ -19,7 +19,6 @@ import {
   Check,
   CheckCircle2,
   ChevronLeft,
-  Clock,
   Code,
   Copy,
   ExternalLink,
@@ -33,6 +32,9 @@ import {
   RotateCcw,
   X,
   XCircle,
+  Terminal,
+  Maximize2,
+  Minimize2,
   BrainCircuit,
   Sparkles,
 } from "lucide-react";
@@ -49,6 +51,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyChallengeResponse } from "@/types/leetcode";
 import { generateHarnessMain, parseSolutionSignature, chunkTestCases } from "@/lib/javaHarness";
+import { extractExpectedOutputs } from "@/lib/extractExpectedOutputs";
 import { buildProblemSolverGuruContext, deriveGuruSuggestions } from "@/lib/guruContext";
 import { toast } from "@/hooks/use-toast";
 import * as prettier from "prettier/standalone";
@@ -500,43 +503,6 @@ interface FileTab {
   content: string;
 }
 
-function extractExpectedOutputs(html: string): string[] {
-  if (!html) return [];
-  try {
-    // Browser DOM parse
-    if (typeof document !== "undefined") {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      const outputs: string[] = [];
-      // LeetCode standard: each example-block contains Output
-      temp.querySelectorAll(".example-block").forEach((block) => {
-        const text = block.textContent || "";
-        // Look for Output: ... next line / span
-        const m = text.match(/Output:\s*([^\n]+)/i);
-        if (m) outputs.push(m[1].trim());
-        else {
-          // fallback: look for example-io inside block where preceding strong is Output
-          const spans = block.querySelectorAll(".example-io");
-          // Heuristic: second span per block is output when first is input
-          if (spans.length >= 2) outputs.push((spans[1].textContent || "").trim());
-          else if (spans.length === 1 && text.toLowerCase().includes("output")) outputs.push((spans[0].textContent || "").trim());
-        }
-      });
-      if (outputs.length > 0) return outputs.map((s) => s.replace(/\u00A0/g, " ").trim());
-    }
-  } catch {}
-  // Regex fallback
-  const re = /Output:\s*<\/strong>\s*<span[^>]*class="example-io"[^>]*>([^<]+)<\/span>/gi;
-  const out: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null) out.push(m[1].trim());
-  if (out.length === 0) {
-    const re2 = /Output:\s*([^<\n]+)/gi;
-    while ((m = re2.exec(html)) !== null) out.push(m[1].trim().replace(/<\/?[^>]+>/g, ""));
-  }
-  return out.map((s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim());
-}
-
 export interface LiveEditorSync {
   code: string;
   tabs: FileTab[];
@@ -610,6 +576,20 @@ function CodeEditorPane({
   const [activeTestcaseId, setActiveTestcaseId] = useState<string>("1");
   const [editorFontSize, setEditorFontSize] = useState(14);
   const [selectedCode, setSelectedCode] = useState("");
+  // Bottom console view: testcase editor vs. LeetCode-style Test Result
+  const [consoleTab, setConsoleTab] = useState<"testcase" | "result">("testcase");
+  // Testcase panel collapse — when dragged small, only the tab strip stays visible
+  const [testPanelCollapsed, setTestPanelCollapsed] = useState(false);
+  const testPanelRef = useRef<ImperativePanelHandle>(null);
+  // Fullscreen editor mode — editor takes over the whole workspace (Esc exits)
+  const [editorFullscreen, setEditorFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!editorFullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setEditorFullscreen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editorFullscreen]);
 
   // Update local testcases if exampleTestcases changes (e.g., new daily challenge)
   useEffect(() => {
@@ -830,7 +810,10 @@ function CodeEditorPane({
     }
     setRunResult(result);
     setIsRunning(false);
-  }, [tabs, testcaseTabs, activeTestcaseId, exampleTestcases]);
+    // Auto-switch to the LeetCode-style Test Result view (re-expand if collapsed)
+    setConsoleTab("result");
+    if (testPanelCollapsed) testPanelRef.current?.expand();
+  }, [tabs, testcaseTabs, activeTestcaseId, exampleTestcases, testPanelCollapsed]);
 
   const formatCode = useCallback(async () => {
     const raw = code;
@@ -967,12 +950,12 @@ function CodeEditorPane({
     <>
     <PanelGroup
       direction="vertical"
-      autoSaveId="editor-testcases-split-v4"
+      autoSaveId="editor-testcases-split-v5"
       className="h-full"
     >
       {/* ═════════ Editor Panel ═════════ */}
-      <Panel defaultSize={62} minSize={30} className="min-h-0">
-        <PaneShell className="p-0">
+      <Panel defaultSize={55} minSize={30} className="min-h-0">
+        <PaneShell className={cn("p-0", editorFullscreen && "fixed inset-0 z-[90] rounded-none")}>
         {/* --- Editor Top Bar --- */}
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-1.5">
           {/* Language label (static — only Java supported) */}
@@ -1067,6 +1050,17 @@ function CodeEditorPane({
                 <Rocket className="h-3.5 w-3.5" />
               )}
               <span className="hidden sm:inline">{isRunning ? "Running" : "Run"}</span>
+            </button>
+
+            {/* Fullscreen editor toggle */}
+            <button
+              type="button"
+              onClick={() => setEditorFullscreen((v) => !v)}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title={editorFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen editor"}
+              aria-label={editorFullscreen ? "Exit fullscreen editor" : "Fullscreen editor"}
+            >
+              {editorFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
             </button>
           </div>
         </div>
@@ -1223,16 +1217,55 @@ function CodeEditorPane({
       </PanelResizeHandle>
 
       {/* ═════════ Test Cases / Output Panel ═════════ */}
-      <Panel defaultSize={38} minSize={15} className="min-h-0">
+      <Panel
+        ref={testPanelRef}
+        defaultSize={45}
+        minSize={22}
+        collapsible
+        collapsedSize={7}
+        onCollapse={() => setTestPanelCollapsed(true)}
+        onExpand={() => setTestPanelCollapsed(false)}
+        className="min-h-0"
+      >
         <PaneShell className="p-0">
-        {/* Header */}
-        <div className="flex shrink-0 items-center gap-3 border-b border-border bg-muted/40 px-3 py-1.5">
-          <span className="flex items-center gap-1.5 text-xs font-bold text-primary">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Test Cases
-          </span>
+        {/* Header — LeetCode-style tabs (click strip to re-expand when collapsed) */}
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-1 border-b border-border bg-muted/40 px-3 py-1.5",
+            testPanelCollapsed && "cursor-pointer",
+          )}
+          onClick={() => { if (testPanelCollapsed) testPanelRef.current?.expand(); }}
+        >
+          <button
+            type="button"
+            onClick={() => setConsoleTab("testcase")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors",
+              consoleTab === "testcase"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            Testcase
+          </button>
+          <button
+            type="button"
+            onClick={() => runResult && setConsoleTab("result")}
+            aria-disabled={!runResult}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors",
+              consoleTab === "result" && runResult
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+              !runResult && "cursor-not-allowed opacity-50 hover:text-muted-foreground",
+            )}
+          >
+            <Terminal className="h-4 w-4" />
+            Test Result
+          </button>
 
-          {/* Run status badges */}
+          {/* Run status badge — only while running (verdict lives in the body) */}
           {isRunning && (
             <motion.div {...fadeIn} className="ml-auto">
               <Badge
@@ -1243,36 +1276,11 @@ function CodeEditorPane({
               </Badge>
             </motion.div>
           )}
-          {!isRunning && runResult && (
-            <motion.div {...fadeIn} className="ml-auto flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className={cn(
-                  "gap-1 text-[10px] font-semibold",
-                  runResult.status === "success" && "border-success/30 bg-success/10 text-success",
-                  (runResult.status === "compile_error" || runResult.status === "error") && "border-destructive/30 bg-destructive/10 text-destructive",
-                  runResult.status === "runtime_error" && "border-warning/30 bg-warning/10 text-warning",
-                )}
-              >
-                {runResult.status === "success" ? (
-                  <><CheckCircle2 className="h-3 w-3" /> Accepted</>
-                ) : runResult.status === "compile_error" ? (
-                  <><XCircle className="h-3 w-3" /> Compile Error</>
-                ) : runResult.status === "runtime_error" ? (
-                  <><AlertTriangle className="h-3 w-3" /> Runtime Error</>
-                ) : (
-                  <><XCircle className="h-3 w-3" /> Error</>
-                )}
-              </Badge>
-              <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
-                <Clock className="h-3 w-3" /> {runResult.executionTimeMs}ms
-              </span>
-            </motion.div>
-          )}
         </div>
 
-        {/* Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto bg-background p-4">
+        {/* Body — hidden while collapsed so only the tab strip shows */}
+        {!testPanelCollapsed && (
+        <div className="min-h-0 flex-1 overflow-y-auto bg-background p-5">
           <AnimatePresence mode="wait">
             {isRunning ? (
               <motion.div key="running" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="relative flex flex-col items-center justify-center gap-4 overflow-hidden py-10">
@@ -1342,7 +1350,7 @@ function CodeEditorPane({
                   <span className="flex items-center gap-1.5 opacity-60"><span className="h-1.5 w-1.5 rounded-full border border-muted-foreground/50" /> Verify</span>
                 </div>
               </motion.div>
-            ) : runResult ? (
+            ) : consoleTab === "result" && runResult ? (
               (() => {
                 // Compile/runtime error -> show single error box
                 if (runResult.status === "compile_error" || runResult.status === "runtime_error" || runResult.status === "error") {
@@ -1393,35 +1401,60 @@ function CodeEditorPane({
                 const inputLabel = paramNames.length === 1 ? paramNames[0] : paramNames.length > 1 ? paramNames.join(", ") : "Input";
                 const overallStatus = hasExpected ? (allPassed ? "Accepted" : "Wrong Answer") : "Executed";
                 return (
-                  <motion.div key="result-success" {...fadeIn} className="space-y-4">
-                    {/* Tabs row with pass/fail icons */}
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                  <motion.div key="result-success" {...fadeIn} className="space-y-5">
+                    {/* Big LeetCode-style verdict */}
+                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                      <span
+                        className={cn(
+                          "text-[26px] font-bold leading-tight tracking-tight",
+                          allPassed ? "text-success" : "text-destructive",
+                        )}
+                      >
+                        {overallStatus}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Runtime: {runResult.executionTimeMs} ms
+                      </span>
+                      {hasExpected && (
+                        <span className="text-sm text-muted-foreground">
+                          ·  {passedCount} / {testcaseTabs.length} cases passed
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Case pills with checkbox styling */}
+                    <div className="flex flex-wrap items-center gap-2.5">
                       {testcaseTabs.map((tc, i) => {
                         const st = caseStatuses[i];
                         const isActive = tc.id === activeTestcaseId;
-                        const isPassed = st.passed;
                         const isFailed = !st.passed && !st.isCustom;
                         return (
                           <div
                             key={tc.id}
                             onClick={() => setActiveTestcaseId(tc.id)}
                             className={cn(
-                              "group flex min-w-max cursor-pointer select-none items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
-                              isFailed && (isActive ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-transparent text-destructive hover:bg-destructive/5"),
-                              !isFailed && isPassed && !st.isCustom && (isActive ? "border-success/30 bg-success/10 text-success" : "border-transparent text-success hover:bg-success/5"),
-                              !isFailed && !(isPassed && !st.isCustom) && (isActive ? "border-border bg-muted text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"),
+                              "group flex min-w-max cursor-pointer select-none items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
+                              isActive
+                                ? "bg-muted text-foreground"
+                                : "text-foreground/85 hover:bg-muted/60 hover:text-foreground",
                             )}
                           >
-                            {isFailed ? <X className="h-3.5 w-3.5" /> : isPassed && !st.isCustom ? <Check className="h-3.5 w-3.5" /> : null}
+                            {isFailed ? (
+                              <X className="h-4 w-4 text-destructive" />
+                            ) : (
+                              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] bg-success shadow-sm">
+                                <Check className="h-3 w-3 text-background" strokeWidth={3.5} />
+                              </span>
+                            )}
                             {tc.name}
                             {testcaseTabs.length > 1 && (
                               <button
                                 type="button"
                                 aria-label={`Remove ${tc.name}`}
                                 onClick={(e) => { e.stopPropagation(); const newTabs = testcaseTabs.filter((t) => t.id !== tc.id); setTestcaseTabs(newTabs); if (activeTestcaseId === tc.id) setActiveTestcaseId(newTabs[newTabs.length-1]?.id || "1"); }}
-                                className="ml-1 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+                                className="ml-0.5 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted-foreground/20 group-hover:opacity-100"
                               >
-                                <X className="h-3 w-3" />
+                                <X className="h-3.5 w-3.5 text-muted-foreground" />
                               </button>
                             )}
                           </div>
@@ -1430,70 +1463,70 @@ function CodeEditorPane({
                       <button
                         type="button"
                         onClick={() => { const newId = String(Date.now()); const name = `Case ${testcaseTabs.length + 1}`; const newTabs = [...testcaseTabs, { id: newId, name, value: "" }]; setTestcaseTabs(newTabs); setActiveTestcaseId(newId); }}
-                        className="ml-1 rounded-lg border border-dashed border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="ml-1 rounded-lg border border-dashed border-border px-2.5 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         title="Add custom testcase"
                         aria-label="Add custom testcase"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <Plus className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => setRunResult(null)}
-                        className="ml-auto flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        onClick={() => { setRunResult(null); setConsoleTab("testcase"); }}
+                        className="ml-auto flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       >
                         <RotateCcw className="h-3.5 w-3.5" /> Reset
                       </button>
                     </div>
 
-                    {/* Overall status */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={cn(
-                          "flex items-center gap-2 text-sm font-bold",
-                          allPassed ? "text-success" : "text-destructive",
-                        )}
-                      >
-                        {allPassed ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                        {overallStatus}
-                      </span>
-                      {hasExpected && <span className="text-xs text-muted-foreground">{passedCount} / {testcaseTabs.length} passed</span>}
-                      <span className="ml-auto flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
-                        <Clock className="h-3 w-3" /> {runResult.executionTimeMs}ms
-                      </span>
-                    </div>
-
-                    {/* Active case details - Input / Your Output / Expected Output */}
+                    {/* Active case details — big LeetCode-style Input / Output */}
                     {activeTab && activeStatus && (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div>
-                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{inputLabel}</div>
-                          <div className="w-full whitespace-pre-wrap break-all rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed text-foreground">
-                            {activeTab.value || "(empty)"}
+                          <div className="mb-2 text-sm font-semibold text-foreground/90">Input</div>
+                          <div className="w-full rounded-xl border border-border/60 bg-muted/40 px-5 py-4 font-mono text-sm leading-relaxed">
+                            {(() => {
+                              const lines = (activeTab.value || "").split("\n");
+                              const perParam = paramNames.length > 1 && lines.length === paramNames.length;
+                              if (perParam) {
+                                return lines.map((l, li) => (
+                                  <div key={li} className={li > 0 ? "mt-2" : undefined}>
+                                    <span className="text-muted-foreground">{paramNames[li]} = </span>
+                                    <span className="break-all font-semibold text-foreground">{l}</span>
+                                  </div>
+                                ));
+                              }
+                              return (
+                                <>
+                                  <div className="text-muted-foreground">{inputLabel} =</div>
+                                  <div className="mt-1 break-all whitespace-pre-wrap font-semibold text-foreground">
+                                    {activeTab.value || "(empty)"}
+                                  </div>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                          <div>
-                            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Your Output</div>
-                            <div
-                              className={cn(
-                                "w-full whitespace-pre-wrap break-all rounded-xl border p-3 font-mono text-xs leading-relaxed",
-                                activeStatus.passed || activeStatus.isCustom
-                                  ? "border-success/30 bg-muted/40 text-foreground"
-                                  : "border-destructive/30 bg-destructive/5 text-destructive",
-                              )}
-                            >
-                              {activeStatus.your || "(no output)"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Expected Output</div>
-                            <div className="w-full whitespace-pre-wrap break-all rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed text-foreground">
-                              {activeStatus.isCustom
-                                ? <span className="italic text-muted-foreground/70">No expected — custom case</span>
-                                : (activeStatus.expected || "(not found)")}
-                            </div>
+                        <div>
+                          <div className="mb-2 text-sm font-semibold text-foreground/90">Output</div>
+                          <div
+                            className={cn(
+                              "w-full break-all whitespace-pre-wrap rounded-xl border px-5 py-4 font-mono text-sm font-semibold leading-relaxed",
+                              activeStatus.passed || activeStatus.isCustom
+                                ? "border-border/60 bg-muted/40 text-foreground"
+                                : "border-destructive/30 bg-destructive/5 text-destructive",
+                            )}
+                          >
+                            {activeStatus.your || "(no output)"}
                           </div>
                         </div>
+                        {(!activeStatus.passed && !activeStatus.isCustom) && (
+                          <div>
+                            <div className="mb-2 text-sm font-semibold text-foreground/90">Expected Output</div>
+                            <div className="w-full break-all whitespace-pre-wrap rounded-xl border border-border/60 bg-muted/40 px-5 py-4 font-mono text-sm font-semibold leading-relaxed text-foreground">
+                              {activeStatus.expected || "(not found)"}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </motion.div>
@@ -1508,7 +1541,7 @@ function CodeEditorPane({
                         key={tc.id}
                         onClick={() => setActiveTestcaseId(tc.id)}
                         className={cn(
-                          "group flex min-w-max cursor-pointer select-none items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                          "group flex min-w-max cursor-pointer select-none items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
                           activeTestcaseId === tc.id
                             ? "bg-muted text-foreground"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
@@ -1527,9 +1560,9 @@ function CodeEditorPane({
                                 setActiveTestcaseId(newTabs[newTabs.length - 1].id);
                               }
                             }}
-                            className="ml-1 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted-foreground/20 group-hover:opacity-100"
+                            className="ml-0.5 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted-foreground/20 group-hover:opacity-100"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-3.5 w-3.5" />
                           </button>
                         )}
                       </div>
@@ -1560,13 +1593,14 @@ function CodeEditorPane({
                     }}
                     placeholder="Enter custom testcase..."
                     aria-label="Test case input"
-                    className="min-h-[150px] w-full resize-y rounded-xl border border-input bg-background p-4 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="min-h-[240px] w-full resize-y rounded-xl border border-input bg-background p-5 font-mono text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
+        )}
         </PaneShell>
       </Panel>
     </PanelGroup>
