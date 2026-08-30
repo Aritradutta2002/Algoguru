@@ -5,7 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AppTooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import {
   ResizablePanel,
   ResizablePanelGroup,
@@ -22,7 +23,7 @@ import Interview from "./pages/Interview";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import { Menu, Sun, Moon, ZoomIn, ZoomOut, Search, X, ChevronRight, Sparkles } from "lucide-react";
+import { Sun, Moon, ZoomIn, ZoomOut, Search, X, ChevronRight, Sparkles, PanelLeftClose, PanelLeftOpen, PanelLeft } from "lucide-react";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -453,6 +454,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     clamp(100 - splitPct, GURU_PANEL_MIN_SIZE, GURU_PANEL_MAX_SIZE),
   );
 
+  // ── Sidebar collapse (react-resizable-panels) ──────────────
+  const sidebarRef = useRef<ImperativePanelHandle>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [showUnfoldTooltip, setShowUnfoldTooltip] = useState(false);
+
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
 
@@ -518,24 +524,80 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider defaultWidth={340} widthStorageKey="algoguru-sidebar-width">
       <div
         className="flex h-[100dvh] w-full overflow-hidden"
-        style={{
-          background: "hsl(var(--background))",
-        }}
+        style={{ background: "hsl(var(--background))" }}
       >
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
+        {/* ── Floating Unfold button (LeetCode-style) ── */}
+        {/* Anchored just below the AlgoGuru logo button in the header
+            (header is h-14 = 3.5rem) so it never overlaps the logo. */}
+        {isSidebarCollapsed && (
+          <div
+            className="fixed top-[calc(3.5rem+10px)] left-3 sm:left-4 md:left-6 z-[60] flex flex-col items-center gap-1.5"
+            onMouseEnter={() => setShowUnfoldTooltip(true)}
+            onMouseLeave={() => setShowUnfoldTooltip(false)}
+          >
+            <button
+              onClick={() => { sidebarRef.current?.expand(); setIsSidebarCollapsed(false); }}
+              aria-label="Unfold sidebar"
+              className="touch-manipulation w-9 h-9 rounded-full flex items-center justify-center bg-card/90 border border-border/60 shadow-lg backdrop-blur-sm hover:bg-muted hover:border-primary/40 hover:shadow-primary/10 transition-all duration-200 group"
+            >
+              <PanelLeft size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+            </button>
+            {showUnfoldTooltip && (
+              <div className="animate-in fade-in slide-in-from-top-1 duration-150">
+                <span className="bg-zinc-800 dark:bg-zinc-900 text-white text-[11px] font-medium px-3 py-1 rounded-md shadow-lg whitespace-nowrap select-none">
+                  Unfold
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Sidebar + Content split ── */}
+        <PanelGroup direction="horizontal" className="h-full w-full">
+          {/* Sidebar panel */}
+          <Panel
+            ref={sidebarRef}
+            defaultSize={20}
+            minSize={14}
+            maxSize={28}
+            collapsible={true}
+            collapsedSize={0}
+            onCollapse={() => setIsSidebarCollapsed(true)}
+            onExpand={() => setIsSidebarCollapsed(false)}
+            className="flex flex-col h-full"
+            style={{ maxWidth: 360 }}
+          >
+            <AppSidebar />
+          </Panel>
+
+          {/* Resize handle with collapse arrow */}
+          <PanelResizeHandle className="group relative flex items-center justify-center w-[5px] bg-border/30 hover:bg-primary/20 transition-colors duration-200 cursor-col-resize select-none">
+            {/* Collapse arrow — visible on hover */}
+            <button
+              onClick={() => {
+                if (isSidebarCollapsed) {
+                  sidebarRef.current?.expand();
+                  setIsSidebarCollapsed(false);
+                } else {
+                  sidebarRef.current?.collapse();
+                  setIsSidebarCollapsed(true);
+                }
+              }}
+              aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 z-10 w-5 h-5 rounded-full bg-card border border-border shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-primary hover:border-primary hover:text-primary-foreground"
+            >
+              {isSidebarCollapsed
+                ? <PanelLeftOpen size={11} />
+                : <PanelLeftClose size={11} />}
+            </button>
+          </PanelResizeHandle>
+
+          {/* Main content panel */}
+          <Panel defaultSize={80} minSize={50} className="flex flex-col min-h-0">
           {/* Top bar */}
           <header
             className="h-14 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 border-b border-border flex-shrink-0 sticky top-0 z-40 bg-background/95 backdrop-blur header"
           >
-            <AppTooltip content="Toggle sidebar (Ctrl+B)">
-              <SidebarTrigger
-                className="flex items-center justify-center w-9 h-9 hover:bg-muted rounded-lg transition-colors text-foreground flex-shrink-0"
-                aria-label="Toggle sidebar"
-              >
-                <Menu size={18} />
-              </SidebarTrigger>
-            </AppTooltip>
 
             <AppTooltip content="Go to home">
               <div className="flex items-center gap-2 group cursor-pointer flex-shrink-0"
@@ -772,7 +834,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </main>
           )}
-        </div>
+          </Panel>
+        </PanelGroup>
       </div>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
     </SidebarProvider>
