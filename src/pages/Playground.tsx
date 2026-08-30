@@ -4263,8 +4263,6 @@ export default function Playground() {
                             </button>
                           </AppTooltip>
                         )}
-                        <DebugButton compact />
-                        <RunButton compact />
                       </div>
                     </div>
 
