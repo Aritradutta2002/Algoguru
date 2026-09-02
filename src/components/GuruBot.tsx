@@ -27,6 +27,8 @@ import {
   Search,
   ThumbsDown,
   ThumbsUp,
+  Stars,
+  Clock3,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -625,6 +627,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         .filter((session) => !query || session.title.toLowerCase().includes(query))
         .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.date - a.date);
     }, [historyQuery, sessions]);
+    const sessionCountLabel = `${sessions.length} ${sessions.length === 1 ? "chat" : "chats"}`;
 
     useEffect(() => {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -895,56 +898,77 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       <div ref={ref} className={containerClasses}>
         {/* ─── Header ─── */}
         {!hideHeader && (
-        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background px-3 py-3">
-          <div className="flex items-center gap-2">
-            {showGuruTitle && (
-              <span className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground">
-                GURU AI
-              </span>
-            )}
-            <button
-              onClick={() => setShowHistory((o) => !o)}
-              className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
-                showHistory
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-              }`}
-              aria-label="Chat History"
-            >
-              {showHistory ? <X size={14} /> : <History size={14} />}
-            </button>
-          </div>
+        <div className="sticky top-0 z-20 border-b border-border/60 bg-background/90 px-3 py-3 backdrop-blur-xl">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-[0_10px_30px_-18px_hsl(var(--primary))]">
+                <Stars size={16} className="text-primary" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-[13px] font-semibold tracking-[-0.01em] text-foreground">
+                    {showGuruTitle ? "Guru AI" : "AlgoGuru Assistant"}
+                  </span>
+                  <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                    Pro
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Zap size={11} className="text-primary" />
+                    {debugMode ? "Debug coach" : "Premium guidance"}
+                  </span>
+                  <span className="text-border">•</span>
+                  <span>{sessionCountLabel}</span>
+                </div>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-1.5">
-            {onToggleFullscreen && (
-              <AppTooltip content={isFullscreen ? "Exit fullscreen" : "Fullscreen"}>
+            <div className="flex items-center gap-1.5">
+              <AppTooltip content={showHistory ? "Back to chat" : "Chat history"}>
                 <button
-                  onClick={onToggleFullscreen}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
-                  aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                  onClick={() => setShowHistory((o) => !o)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
+                    showHistory
+                      ? "border-primary/30 bg-primary text-primary-foreground shadow-[0_10px_24px_-16px_hsl(var(--primary))]"
+                      : "border-border/70 bg-muted/60 text-muted-foreground hover:border-primary/20 hover:bg-muted hover:text-foreground"
+                  }`}
+                  aria-label="Chat History"
                 >
-                  {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+                  {showHistory ? <X size={14} /> : <History size={14} />}
                 </button>
               </AppTooltip>
-            )}
-            <AppTooltip content="New Chat">
-              <button
-                onClick={startNewChat}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
-                aria-label="New Chat"
-              >
-                <MessageSquarePlus size={14} />
-              </button>
-            </AppTooltip>
-            <AppTooltip content="Close Guru">
-              <button
-                onClick={handleClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
-                aria-label="Close Guru"
-              >
-                <X size={16} />
-              </button>
-            </AppTooltip>
+              {onToggleFullscreen && (
+                <AppTooltip content={isFullscreen ? "Exit fullscreen" : "Fullscreen"}>
+                  <button
+                    onClick={onToggleFullscreen}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-muted/60 text-muted-foreground transition-all hover:border-primary/20 hover:bg-muted hover:text-foreground"
+                    aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                  >
+                    {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+                  </button>
+                </AppTooltip>
+              )}
+              <AppTooltip content="New Chat">
+                <button
+                  onClick={startNewChat}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-muted/60 text-muted-foreground transition-all hover:border-primary/20 hover:bg-muted hover:text-foreground"
+                  aria-label="New Chat"
+                >
+                  <MessageSquarePlus size={14} />
+                </button>
+              </AppTooltip>
+              <AppTooltip content="Close Guru">
+                <button
+                  onClick={handleClose}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-muted/60 text-muted-foreground transition-all hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
+                  aria-label="Close Guru"
+                >
+                  <X size={16} />
+                </button>
+              </AppTooltip>
+            </div>
           </div>
         </div>
         )}
@@ -953,26 +977,47 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         <div className="relative flex-1 overflow-hidden bg-background">
           {/* Chat History Sidebar */}
           {showHistory ? (
-            <div className="absolute inset-0 z-10 animate-in slide-in-from-left-2 overflow-y-auto border-r border-border bg-background duration-300">
+            <div className="absolute inset-0 z-10 animate-in slide-in-from-left-2 overflow-y-auto border-r border-border/60 bg-gradient-to-b from-background via-background to-muted/20 duration-300">
               <div className="p-5">
-                <div className="mb-6 flex items-center justify-between">
-                  <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Chat history
-                  </h3>
-                  <span className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-                    {sessions.length}
-                  </span>
+                <div className="mb-5 rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm backdrop-blur">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Chat history
+                      </h3>
+                      <p className="mt-1 text-[13px] text-muted-foreground">
+                        Reopen recent conversations and continue where you left off.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-primary/15 bg-primary/10 px-2.5 py-1 font-mono text-[10px] text-primary">
+                      {sessionCountLabel}
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70" />
+                    <input
+                      value={historyQuery}
+                      onChange={(e) => setHistoryQuery(e.target.value)}
+                      placeholder="Search chats"
+                      className="h-10 w-full rounded-xl border border-border/70 bg-background/80 pl-9 pr-3 text-[13px] text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/30"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  {sessions.length === 0 ? (
-                    <div className="py-16 text-center">
-                      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted">
-                        <MessageSquare size={18} className="text-muted-foreground" />
+                <div className="space-y-2">
+                  {visibleSessions.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 px-5 py-14 text-center">
+                      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10">
+                        <MessageSquare size={18} className="text-primary" />
                       </div>
-                      <p className="text-xs font-medium text-muted-foreground">No chats yet</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {sessions.length === 0 ? "No chats yet" : "No matching chats"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {sessions.length === 0 ? "Start a new conversation to build your private history." : "Try a different keyword or clear the search."}
+                      </p>
                     </div>
                   ) : (
-                    sessions.map((s) => (
+                    visibleSessions.map((s) => (
                       <div
                         key={s.id}
                         onClick={() => {
@@ -980,31 +1025,56 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setShowHistory(false);
                           setModel(s.model || "openrouter");
                         }}
-                        className={`group flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-colors ${
+                        className={`group rounded-2xl border p-3.5 transition-all ${
                           s.id === currentId
-                            ? "border-primary/25 bg-primary/10 text-foreground"
-                            : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                            ? "border-primary/25 bg-primary/10 shadow-[0_16px_40px_-28px_hsl(var(--primary))]"
+                            : "border-border/60 bg-card/60 hover:border-primary/15 hover:bg-card"
                         }`}
                       >
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div
-                            className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                              s.id === currentId
-                                ? "bg-primary/10 text-primary"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            <MessageSquare size={12} />
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex min-w-0 items-start gap-3">
+                            <div
+                              className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+                                s.id === currentId
+                                  ? "border-primary/20 bg-primary/15 text-primary"
+                                  : "border-border/60 bg-muted/60 text-muted-foreground"
+                              }`}
+                            >
+                              {s.pinned ? <Pin size={12} /> : <MessageSquare size={12} />}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate text-[13px] font-semibold text-foreground">{s.title}</div>
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                                <span className="inline-flex items-center gap-1">
+                                  <Clock3 size={11} />
+                                  {new Date(s.date).toLocaleDateString()}
+                                </span>
+                                <span>•</span>
+                                <span>{s.messages.length} msgs</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="truncate text-[13px] font-medium">{s.title}</div>
+                          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                            <button
+                              onClick={(e) => toggleSessionPin(s.id, e)}
+                              className={`flex h-8 w-8 items-center justify-center rounded-xl transition-colors ${
+                                s.pinned
+                                  ? "bg-primary/10 text-primary hover:bg-primary/15"
+                                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                              }`}
+                              aria-label={s.pinned ? "Unpin chat" : "Pin chat"}
+                            >
+                              <Pin size={12} className={s.pinned ? "fill-current" : ""} />
+                            </button>
+                            <button
+                              onClick={(e) => deleteSession(s.id, e)}
+                              className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                              aria-label="Delete chat"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={(e) => deleteSession(s.id, e)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                          aria-label="Delete chat"
-                        >
-                          <Trash2 size={12} />
-                        </button>
                       </div>
                     ))
                   )}
@@ -1013,33 +1083,59 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             </div>
           ) : (
             <div
-              className="h-full space-y-4 overflow-y-auto bg-background p-4"
+              className="h-full space-y-5 overflow-y-auto bg-[radial-gradient(circle_at_top,_hsl(var(--primary)/0.10),_transparent_34%),linear-gradient(to_bottom,_hsl(var(--background)),_hsl(var(--muted)/0.18))] p-4"
               style={{ overscrollBehavior: "contain" }}
             >
               {messages.length === 0 && (
                 <div className="flex flex-col gap-5 py-2">
-                  <div className="space-y-3">
-                    <h2 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-foreground">
-                      Hello!
-                    </h2>
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">
-                      I am your DSA teaching assistant. I am here to help you master algorithms and data structures through clear, structured, and efficient code implementations.
-                    </p>
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">
-                      If you have a specific problem you are working on, feel free to share it. I can assist with:
-                    </p>
-                    <div className="space-y-2 text-[13px] leading-relaxed text-muted-foreground">
-                      <p><span className="font-semibold text-foreground">Algorithm design:</span> Breaking down complex problems into logical steps.</p>
-                      <p><span className="font-semibold text-foreground">Complexity analysis:</span> Understanding Big O notation for time and space.</p>
-                      <p><span className="font-semibold text-foreground">Code optimization:</span> Writing clean, efficient, and idiomatic code.</p>
-                      <p><span className="font-semibold text-foreground">Debugging:</span> Identifying common pitfalls and edge cases in your implementations.</p>
+                  <div className="overflow-hidden rounded-[28px] border border-border/60 bg-card/80 p-5 shadow-[0_24px_80px_-48px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                    <div className="mb-5 flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-[0_18px_40px_-28px_hsl(var(--primary))]">
+                          <Sparkles size={18} className="text-primary" />
+                        </div>
+                        <div>
+                          <h2 className="text-[24px] font-semibold leading-tight tracking-[-0.03em] text-foreground">
+                            Premium AI help for every coding step
+                          </h2>
+                          <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
+                            Get polished debugging help, algorithm hints, complexity guidance, and cleaner implementation advice in one focused workspace.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="hidden rounded-2xl border border-primary/15 bg-primary/10 px-3 py-2 text-right md:block">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Mode</div>
+                        <div className="mt-1 text-[12px] font-medium text-foreground">{debugMode ? "Socratic coach" : "Assistant"}</div>
+                      </div>
                     </div>
-                    <p className="pt-2 text-[13px] leading-relaxed text-muted-foreground">
-                      How can I help you with your coding journey today?
-                    </p>
+
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+                        <div className="mb-2 flex items-center gap-2 text-[12px] font-semibold text-foreground">
+                          <Lightbulb size={14} className="text-primary" />
+                          What Guru does best
+                        </div>
+                        <div className="space-y-2 text-[13px] leading-relaxed text-muted-foreground">
+                          <p><span className="font-semibold text-foreground">Algorithm design:</span> break complex problems into clear steps.</p>
+                          <p><span className="font-semibold text-foreground">Complexity analysis:</span> reason about time and space tradeoffs.</p>
+                          <p><span className="font-semibold text-foreground">Debugging:</span> isolate bugs, edge cases, and failing logic faster.</p>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+                        <div className="mb-2 flex items-center gap-2 text-[12px] font-semibold text-foreground">
+                          <Wand2 size={14} className="text-primary" />
+                          Best prompts to start with
+                        </div>
+                        <div className="space-y-2 text-[13px] leading-relaxed text-muted-foreground">
+                          <p>Ask for a hint before the full answer.</p>
+                          <p>Paste your bug, wrong output, or edge case.</p>
+                          <p>Request optimization after your code works.</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {(suggestedPrompts && suggestedPrompts.length > 0
                       ? suggestedPrompts.map((q) => ({ q }))
                       : [{ q: "Why is my output wrong?" }, { q: "Help me find the bug" }, { q: "What should I check first?" }]
@@ -1052,10 +1148,15 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setInput(item.q);
                           setTimeout(() => inputRef.current?.focus(), 50);
                         }}
-                        className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                        className="group flex items-center justify-between rounded-2xl border border-border/60 bg-card/75 px-4 py-3.5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <span className="text-[13px] font-medium text-foreground">{item.q}</span>
-                        <ArrowRight size={14} className="shrink-0 text-muted-foreground" />
+                        <div>
+                          <span className="text-[13px] font-semibold text-foreground">{item.q}</span>
+                          <p className="mt-1 text-[11px] text-muted-foreground">Tap to prefill and continue in the composer.</p>
+                        </div>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/80 text-muted-foreground transition-colors group-hover:border-primary/20 group-hover:text-primary">
+                          <ArrowRight size={14} />
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -1065,47 +1166,60 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   {m.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-[92%] text-[13px] leading-relaxed text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-p:my-2 prose-pre:my-3 dark:prose-invert">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          code({ className, children, ...props }) {
-                            const isBlock = className?.startsWith("language-") || String(children).includes("\n");
-                            if (isBlock) return <CodeBlock className={className} onInsert={onInsertCode}>{String(children).replace(/\n$/, "")}</CodeBlock>;
-                            return <code className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[12px] text-foreground" {...props}>{children}</code>;
-                          },
-                          pre({ children }) { return <>{children}</>; },
-                          table({ children }) {
-                            return (
-                              <div className="my-4 w-full overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
-                                <table className="w-full min-w-[520px] border-collapse text-left text-[12px] leading-relaxed">
-                                  {children}
-                                </table>
-                              </div>
-                            );
-                          },
-                          thead({ children }) {
-                            return <thead className="bg-muted/70 text-foreground">{children}</thead>;
-                          },
-                          tbody({ children }) {
-                            return <tbody className="divide-y divide-border/70">{children}</tbody>;
-                          },
-                          tr({ children }) {
-                            return <tr className="transition-colors hover:bg-muted/35">{children}</tr>;
-                          },
-                          th({ children }) {
-                            return <th className="border-b border-border px-3 py-2.5 align-top font-semibold">{children}</th>;
-                          },
-                          td({ children }) {
-                            return <td className="px-3 py-2.5 align-top text-foreground/90">{children}</td>;
-                          },
-                        }}
-                      >
-                        {normalizeChatMarkdown(m.content)}
-                      </ReactMarkdown>
+                    <div className="max-w-[94%]">
+                      <div className="mb-2 flex items-center gap-2 pl-1">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-xl border border-primary/15 bg-primary/10 text-primary">
+                          <Stars size={12} />
+                        </div>
+                        <div>
+                          <div className="text-[12px] font-semibold text-foreground">Guru AI</div>
+                          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Premium response</div>
+                        </div>
+                      </div>
+                      <div className="rounded-[24px] rounded-tl-md border border-border/60 bg-card/85 px-4 py-3.5 shadow-[0_20px_60px_-42px_rgba(0,0,0,0.45)] backdrop-blur-sm">
+                        <div className="prose prose-sm max-w-none text-[13px] leading-relaxed text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-p:my-2 prose-pre:my-3 dark:prose-invert">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code({ className, children, ...props }) {
+                                const isBlock = className?.startsWith("language-") || String(children).includes("\n");
+                                if (isBlock) return <CodeBlock className={className} onInsert={onInsertCode}>{String(children).replace(/\n$/, "")}</CodeBlock>;
+                                return <code className="rounded-lg border border-border bg-muted px-1.5 py-0.5 font-mono text-[12px] text-foreground" {...props}>{children}</code>;
+                              },
+                              pre({ children }) { return <>{children}</>; },
+                              table({ children }) {
+                                return (
+                                  <div className="my-4 w-full overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
+                                    <table className="w-full min-w-[520px] border-collapse text-left text-[12px] leading-relaxed">
+                                      {children}
+                                    </table>
+                                  </div>
+                                );
+                              },
+                              thead({ children }) {
+                                return <thead className="bg-muted/70 text-foreground">{children}</thead>;
+                              },
+                              tbody({ children }) {
+                                return <tbody className="divide-y divide-border/70">{children}</tbody>;
+                              },
+                              tr({ children }) {
+                                return <tr className="transition-colors hover:bg-muted/35">{children}</tr>;
+                              },
+                              th({ children }) {
+                                return <th className="border-b border-border px-3 py-2.5 align-top font-semibold">{children}</th>;
+                              },
+                              td({ children }) {
+                                return <td className="px-3 py-2.5 align-top text-foreground/90">{children}</td>;
+                              },
+                            }}
+                          >
+                            {normalizeChatMarkdown(m.content)}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    <div className="max-w-[78%] rounded-xl bg-primary px-4 py-2.5 text-[13px] leading-relaxed text-primary-foreground">
+                    <div className="max-w-[82%] rounded-[24px] rounded-br-md bg-gradient-to-br from-primary to-primary/85 px-4 py-3 text-[13px] leading-relaxed text-primary-foreground shadow-[0_18px_40px_-28px_hsl(var(--primary))]">
                       {m.content}
                     </div>
                   )}
@@ -1140,72 +1254,68 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
         {/* ─── Input ─── */}
         <div
-          className="z-20 border-t border-border bg-background p-3"
+          className="z-20 border-t border-border/60 bg-background/90 p-3 backdrop-blur-xl"
           style={{
             paddingBottom: isMobile ? "max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))" : undefined,
           }}
         >
-          <div className="relative rounded-xl border border-border bg-muted/40 p-2.5 pt-2 transition-colors focus-within:border-primary/50 focus-within:bg-background">
-            {/* Attach Code toggle */}
-            <button
-              onClick={() => setAttachCode((v) => !v)}
-              className={`mb-2 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
-                attachCode
-                  ? "border-primary/30 bg-primary/10 text-primary"
-                  : "border-dashed border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-              title={attachCode ? "Code will be sent with your message (click to detach)" : "Attach your current editor code to Guru"}
-            >
-              {attachCode ? <Check size={12} className="text-primary" /> : <span className="text-[14px] font-light leading-none">+</span>}
-              <Code2 size={12} className={attachCode ? "text-primary" : "text-muted-foreground"} />
-              <span>{attachCode ? "Code attached" : "Attach Code"}</span>
-              {attachCode && (
-                <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-muted hover:bg-muted/70">
-                  <X size={10} />
+          <div className="rounded-[26px] border border-border/60 bg-card/85 p-3 shadow-[0_24px_80px_-48px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-colors focus-within:border-primary/30">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <button
+                onClick={() => setAttachCode((v) => !v)}
+                className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[12px] font-medium transition-all ${
+                  attachCode
+                    ? "border-primary/25 bg-primary/10 text-primary shadow-[0_12px_30px_-22px_hsl(var(--primary))]"
+                    : "border-dashed border-border/70 bg-background/60 text-muted-foreground hover:border-primary/20 hover:bg-muted/60 hover:text-foreground"
+                }`}
+                title={attachCode ? "Code will be sent with your message (click to detach)" : "Attach your current editor code to Guru"}
+              >
+                <span className={`flex h-5 w-5 items-center justify-center rounded-full ${attachCode ? "bg-primary/15" : "bg-muted"}`}>
+                  {attachCode ? <Check size={12} className="text-primary" /> : <span className="text-[14px] font-light leading-none">+</span>}
                 </span>
-              )}
-            </button>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, isMobile ? 96 : 120) + "px";
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  if (!loading) send();
-                }
-              }}
-              placeholder={attachCode ? "Describe what to build — code is attached..." : "Describe what to build"}
-              disabled={loading && !input}
-              className="w-full resize-none bg-transparent py-1 pr-12 text-[13px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground min-h-[44px] max-h-[96px] md:max-h-[120px]"
-              rows={1}
-            />
-            <button
-              onClick={loading ? stopChat : send}
-              disabled={(!input.trim() && !loading) || (loading && !input && messages.length === 0)}
-              className={`absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-lg transition-colors disabled:opacity-30 ${
-                loading
-                  ? "bg-destructive/15 text-destructive"
-                  : "bg-primary text-primary-foreground hover:brightness-95"
-              }`}
-              aria-label={loading ? "Stop" : "Send"}
-            >
-              {loading ? <Square size={12} fill="currentColor" /> : <span className="text-[16px] leading-none">↵</span>}
-            </button>
-          </div>
-          <div className="mt-2 flex items-center gap-1 px-1 text-[11px] text-muted-foreground">
-            <span>Press</span>
-            <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">Enter</span>
-            <span>to send •</span>
-            <span className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">Shift</span>
-            <span className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px] text-muted-foreground">Enter</span>
-            <span>for newline</span>
-          </div>
+                <Code2 size={13} className={attachCode ? "text-primary" : "text-muted-foreground"} />
+                <span>{attachCode ? "Code attached" : "Attach code"}</span>
+              </button>
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <span className="rounded-full border border-border/70 bg-background/70 px-2.5 py-1 font-medium">Enter to send</span>
+                <span className="rounded-full border border-border/70 bg-background/70 px-2.5 py-1 font-medium">Shift + Enter for newline</span>
+              </div>
+            </div>
 
+            <div className="relative overflow-hidden rounded-[22px] border border-border/60 bg-background/80">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, isMobile ? 96 : 120) + "px";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!loading) send();
+                  }
+                }}
+                placeholder={attachCode ? "Ask Guru anything about your code, bug, or approach…" : "Ask Guru anything about your problem, algorithm, or implementation…"}
+                disabled={loading && !input}
+                className="w-full resize-none bg-transparent px-4 py-3 pr-16 text-[13px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground min-h-[56px] max-h-[96px] md:max-h-[120px]"
+                rows={1}
+              />
+              <button
+                onClick={loading ? stopChat : send}
+                disabled={(!input.trim() && !loading) || (loading && !input && messages.length === 0)}
+                className={`absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-2xl transition-all disabled:opacity-30 ${
+                  loading
+                    ? "border border-destructive/20 bg-destructive/10 text-destructive"
+                    : "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-[0_18px_40px_-24px_hsl(var(--primary))] hover:brightness-105"
+                }`}
+                aria-label={loading ? "Stop" : "Send"}
+              >
+                {loading ? <Square size={12} fill="currentColor" /> : <Send size={15} />}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
