@@ -594,6 +594,14 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     const [historyQuery, setHistoryQuery] = useState("");
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    // Mirror of the textarea contents so the click handler can read the
+    // freshest value without depending on a potentially stale closure.
+    // Without this, double-clicking the send button (or Enter + click races)
+    // can fire `send` with an empty `input` and silently no-op.
+    const inputValueRef = useRef("");
+    useEffect(() => {
+      inputValueRef.current = input;
+    }, [input]);
     // Cycling "thinking" status text — replaces the static "GuruBot is thinking"
     // string with a rotating set of phrases (Claude / ChatGPT style). The list
     // is shuffled per request so consecutive runs feel different.
@@ -767,7 +775,11 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     };
 
     const send = async (promptOverride?: string) => {
-      const text = (promptOverride ?? input).trim();
+      // Prefer the override (used by suggestion chips / regenerate) and fall
+      // back to the latest textarea value. Using `inputValueRef.current`
+      // instead of the React `input` state makes the click handler robust
+      // against stale closures from rapid double-clicks and Enter+click races.
+      const text = (promptOverride ?? inputValueRef.current ?? input).trim();
       if (!text || loading || sendingLockRef.current) return;
       // guard against double-fire (e.g. Enter + click) with same text — uses ref to catch stale closure
       if (messages.length > 0 && messages[messages.length - 1]?.role === "user" && messages[messages.length - 1]?.content === text) return;
@@ -775,6 +787,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
       if (!promptOverride) {
         setInput("");
+        inputValueRef.current = "";
         if (inputRef.current) inputRef.current.style.height = "auto";
       }
 
@@ -1322,26 +1335,46 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
+                inputValueRef.current = e.target.value;
                 e.target.style.height = "auto";
                 e.target.style.height = Math.min(e.target.scrollHeight, isMobile ? 96 : 120) + "px";
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  if (!loading) send();
+                  if (!loading) {
+                    // Use the ref so the most recently typed value is what
+                    // gets sent, not a stale React closure.
+                    send(inputValueRef.current);
+                  }
                 }
               }}
               placeholder={`Ask ${botName} anything...`}
-              disabled={loading && !input}
+              // Only disable the textarea while a stream is in flight AND the
+              // user has no draft. Allowing typing mid-stream lets the next
+              // question queue up; pressing Enter will trigger `send` (or
+              // `stopChat` is the visible button action).
+              disabled={loading && !inputValueRef.current}
               className="w-full resize-none bg-transparent px-4 py-3 pr-14 text-[13px] leading-relaxed text-neutral-100 outline-none placeholder:text-neutral-500 min-h-[52px] max-h-[96px] md:max-h-[120px]"
               rows={1}
             />
             <button
-              onClick={loading ? stopChat : send}
-              disabled={(!input.trim() && !loading) || (loading && !input && messages.length === 0)}
-              className={`absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-xl transition-all disabled:opacity-30 ${
+              type="button"
+              onClick={(e) => {
+                // Read the latest value before any state reads, so the click
+                // is never lost to a stale closure of `input` from a prior
+                // render. `preventDefault` stops any focus shift on touch.
+                e.preventDefault();
+                if (loading) {
+                  stopChat();
+                } else {
+                  send(inputValueRef.current);
+                }
+              }}
+              disabled={(!inputValueRef.current.trim() && !loading) || (loading && !inputValueRef.current && messages.length === 0)}
+              className={`pointer-events-auto absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
                 loading
-                  ? "bg-red-500/15 text-red-400"
+                  ? "bg-red-500/15 text-red-400 hover:bg-red-500/25"
                   : "bg-indigo-600 text-white hover:bg-indigo-500"
               }`}
               aria-label={loading ? "Stop" : "Send"}

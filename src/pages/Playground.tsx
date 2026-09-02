@@ -168,7 +168,13 @@ const IO_GURU_DEFAULT_SIZE = 25;
 const IO_MOBILE_DEFAULT_SIZE = 40;
 const GURU_COLLAPSED_SIZE = 3.5;
 const GURU_EXPAND_TRIGGER_SIZE = 4.25;
-const GURU_DEFAULT_SIZE = 25;
+// Mirrors the standardized App.tsx constants. The Playground layout has the
+// editor + IO dock on the left, so the Guru panel on the right is capped a
+// bit tighter (45%) — but it shares the same minimum (18%) so the panel is
+// always readable and the slider is consistent with the main app.
+const GURU_DEFAULT_SIZE = 28;
+const GURU_MIN_SIZE = 18;
+const GURU_MAX_SIZE = 45;
 
 const WANDBOX_API = "https://wandbox.org/api/compile.json";
 const COMPILER_MARKER_OWNER = "algoguru-compiler";
@@ -4387,8 +4393,8 @@ export default function Playground() {
               <ResizablePanel
                 ref={guruPanelRef}
                 defaultSize={GURU_DEFAULT_SIZE}
-                minSize={8}
-                maxSize={45}
+                minSize={GURU_MIN_SIZE}
+                maxSize={GURU_MAX_SIZE}
                 collapsible
                 collapsedSize={GURU_COLLAPSED_SIZE}
                 onResize={(size) => {

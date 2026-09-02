@@ -344,9 +344,17 @@ const queryClient = new QueryClient();
 
 const MAIN_PANEL_DEFAULT_SIZE = 75;
 const MAIN_PANEL_MIN_SIZE = 30;
-const GURU_PANEL_DEFAULT_SIZE = 25;
-const GURU_PANEL_MIN_SIZE = 8;
-const GURU_PANEL_MAX_SIZE = 70;
+
+// Standard Guru panel size limits — used by the resizable split in App.tsx
+// and by Playground/ProblemSolver. These are the single source of truth so
+// the slider behaves consistently across every entry point.
+//   • MIN keeps the panel wide enough to render a message comfortably
+//     (avoids the 8% sliver that used to be effectively unusable).
+//   • MAX caps the panel at 55% so the main content is never squashed into
+//     a sliver when the user drags the slider all the way open.
+const GURU_PANEL_DEFAULT_SIZE = 28;
+const GURU_PANEL_MIN_SIZE = 18;
+const GURU_PANEL_MAX_SIZE = 55;
 const GURU_PANEL_COLLAPSED_SIZE = 3.5;
 const GURU_PANEL_EXPAND_TRIGGER_SIZE = 4.25;
 
