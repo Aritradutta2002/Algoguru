@@ -9,10 +9,23 @@ CREATE TABLE IF NOT EXISTS public.guru_chat_sessions (
     messages JSONB NOT NULL DEFAULT '[]'::jsonb,
     model TEXT NOT NULL DEFAULT 'openrouter',
     session_date BIGINT NOT NULL DEFAULT 0,
+    is_pinned BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    UNIQUE (user_id, session_id)
+    UNIQUE (user_id, scope, session_id)
 );
+
+ALTER TABLE public.guru_chat_sessions
+ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN NOT NULL DEFAULT false;
+
+DROP INDEX IF EXISTS idx_guru_chat_sessions_user_scope;
+DROP INDEX IF EXISTS idx_guru_chat_sessions_user_scope_pinned;
+
+ALTER TABLE public.guru_chat_sessions
+DROP CONSTRAINT IF EXISTS guru_chat_sessions_user_id_session_id_key;
+
+ALTER TABLE public.guru_chat_sessions
+ADD CONSTRAINT guru_chat_sessions_user_id_scope_session_id_key UNIQUE (user_id, scope, session_id);
 
 CREATE INDEX IF NOT EXISTS idx_guru_chat_sessions_user_scope
 ON public.guru_chat_sessions(user_id, scope, session_date DESC);

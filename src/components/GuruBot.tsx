@@ -49,6 +49,7 @@ type Session = {
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guru-chat`;
+const LOCAL_CHAT_STORAGE_PREFIX = "guru-chat-history";
 
 interface ModelOption {
   key: string;
@@ -66,6 +67,47 @@ const MAX_MODEL_MESSAGES = 14;
 function createSessionTitle(message: string) {
   const cleanMessage = message.replace(/\s+/g, " ").trim();
   return cleanMessage.length > 56 ? `${cleanMessage.slice(0, 56).trimEnd()}…` : cleanMessage;
+}
+
+function getLocalChatStorageKey(scope: string, userId?: string) {
+  return `${LOCAL_CHAT_STORAGE_PREFIX}:${userId ?? "guest"}:${scope}`;
+}
+
+function readLocalSessions(scope: string, userId?: string): Session[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(getLocalChatStorageKey(scope, userId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((item) => item && typeof item === "object" && typeof item.id === "string")
+      .map((item) => ({
+        id: item.id,
+        title: typeof item.title === "string" ? item.title : "",
+        messages: Array.isArray(item.messages) ? item.messages : [],
+        model: typeof item.model === "string" ? item.model : "openrouter",
+        date: typeof item.date === "number" ? item.date : Number(item.date) || 0,
+        pinned: Boolean(item.pinned),
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalSessions(scope: string, sessions: Session[], userId?: string) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(
+      getLocalChatStorageKey(scope, userId),
+      JSON.stringify(sessions),
+    );
+  } catch {
+    // Ignore storage failures in private mode / quota exceeded.
+  }
 }
 
 function compactConversation(messages: Msg[]) {
@@ -425,19 +467,31 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     // Chat history scope: per-question or global
     const chatScope = questionId || "global";
 
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     const [sessions, setSessions] = useState<Session[]>([]);
     const [currentId, setCurrentId] = useState<string | null>(null);
+    const syncedSessionsRef = useRef<Map<string, string>>(new Map());
+    const deletedSessionIdsRef = useRef(new Set<string>());
+
+    useEffect(() => {
+      const localSessions = readLocalSessions(chatScope, user?.id);
+      setSessions(localSessions);
+      setCurrentId(localSessions[0]?.id ?? null);
+
+      const localFingerprints = new Map<string, string>();
+      for (const s of localSessions) {
+        localFingerprints.set(s.id, JSON.stringify([s.title, s.messages, s.model, s.date, s.pinned]));
+      }
+      syncedSessionsRef.current = localFingerprints;
+    }, [chatScope, user?.id]);
 
     // Load chat history from Supabase (authenticated users only).
-    // Guests cannot use Guru AI — they must sign in first.
+    // Guests fall back to local browser persistence.
     useEffect(() => {
       let cancelled = false;
 
-      if (!user) {
-        setSessions([]);
-        setCurrentId(null);
+      if (authLoading || !user) {
         return;
       }
 
@@ -455,8 +509,6 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
         if (error) {
           console.error("[GuruBot] Failed to load chat sessions:", error.message);
-          setSessions([]);
-          setCurrentId(null);
           return;
         }
 
@@ -470,28 +522,28 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             pinned: Boolean(row.is_pinned),
           }));
           setSessions(loaded);
-          setCurrentId(loaded[0].id);
+          setCurrentId((prev) => prev && loaded.some((session) => session.id === prev) ? prev : loaded[0].id);
+          writeLocalSessions(chatScope, loaded, user.id);
 
-          // Seed sync fingerprints to prevent redundant uploads of unchanged sessions
           const initialFingerprints = new Map<string, string>();
           for (const s of loaded) {
             initialFingerprints.set(s.id, JSON.stringify([s.title, s.messages, s.model, s.date, s.pinned]));
           }
           syncedSessionsRef.current = initialFingerprints;
-        } else {
-          setSessions([]);
-          setCurrentId(null);
         }
       })();
 
       return () => {
         cancelled = true;
       };
-    }, [user, chatScope]);
+    }, [user, chatScope, authLoading]);
+
+    // Persist chat history locally for refresh survival in local/dev usage too.
+    useEffect(() => {
+      writeLocalSessions(chatScope, sessions, user?.id);
+    }, [chatScope, sessions, user?.id]);
 
     // Sync chat history to the database whenever it changes (authenticated users only).
-    const syncedSessionsRef = useRef<Map<string, string>>(new Map());
-    const deletedSessionIdsRef = useRef(new Set<string>());
     useEffect(() => {
       if (!user) return;
 
@@ -515,7 +567,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 model: s.model,
                 session_date: s.date,
                 is_pinned: s.pinned,
-              }, { onConflict: "user_id,session_id" });
+              }, { onConflict: "user_id,scope,session_id" });
           }
         }
 
