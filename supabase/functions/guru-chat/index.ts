@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,6 +44,34 @@ serve(async (req) => {
   }
 
   try {
+    // ── Auth gate: only signed-in users may use Guru AI ──
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const authHeader = req.headers.get("Authorization");
+    const publishableKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+
+    // Conventional Supabase request layout:
+    //   Authorization: Bearer <user session JWT>   (what we verify)
+    //   apikey:        <project publishable key>   (allowed — public by design)
+    // Reject callers who present only the publishable key as their token.
+    const token = authHeader?.replace("Bearer ", "") || "";
+    const isPublishableKey = !token || token === publishableKey;
+    const looksLikeJwt = token.startsWith("eyJ");
+    if (!supabaseUrl || !publishableKey || isPublishableKey || !looksLikeJwt) {
+      return new Response(
+        JSON.stringify({ error: "Sign in to use Guru AI" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, publishableKey);
+    const { data: { user }, error: userError } = await authClient.auth.getUser(token);
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Sign in to use Guru AI" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const { messages } = await req.json();
 
     // Force OpenRouter — ignore any client-supplied model key, always use openrouter/free

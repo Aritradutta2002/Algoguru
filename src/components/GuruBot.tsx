@@ -89,18 +89,29 @@ async function streamChat({
   onDone: () => void;
   signal?: AbortSignal;
 }) {
+  // Send the caller's Supabase session token (NOT the publishable key) so the
+  // edge function can verify the user is signed in. Guests are blocked.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error("Sign in to use Guru AI");
+  }
+
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      // Conventional Supabase layout: apikey = project publishable key,
+      // Authorization = the signed-in user's session token.
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     },
     body: JSON.stringify({ messages, model }),
     signal,
   });
   if (!resp.ok || !resp.body) {
-    const err = await resp.text();
-    throw new Error(err || "Stream failed");
+    const err = new Error((await resp.text()) || "Stream failed");
+    (err as any).status = resp.status;
+    throw err;
   }
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
@@ -419,7 +430,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     const [sessions, setSessions] = useState<Session[]>([]);
     const [currentId, setCurrentId] = useState<string | null>(null);
 
-    // Load chat history from the database (logged-in users only).
+    // Load chat history from Supabase (authenticated users only).
+    // Guests cannot use Guru AI — they must sign in first.
     useEffect(() => {
       let cancelled = false;
 
@@ -430,7 +442,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       }
 
       (async () => {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("guru_chat_sessions")
           .select("*")
           .eq("user_id", user.id)
@@ -440,6 +452,13 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           .limit(50);
 
         if (cancelled) return;
+
+        if (error) {
+          console.error("[GuruBot] Failed to load chat sessions:", error.message);
+          setSessions([]);
+          setCurrentId(null);
+          return;
+        }
 
         if (data && data.length > 0) {
           const loaded: Session[] = data.map((row: any) => ({
@@ -452,6 +471,13 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           }));
           setSessions(loaded);
           setCurrentId(loaded[0].id);
+
+          // Seed sync fingerprints to prevent redundant uploads of unchanged sessions
+          const initialFingerprints = new Map<string, string>();
+          for (const s of loaded) {
+            initialFingerprints.set(s.id, JSON.stringify([s.title, s.messages, s.model, s.date, s.pinned]));
+          }
+          syncedSessionsRef.current = initialFingerprints;
         } else {
           setSessions([]);
           setCurrentId(null);
@@ -463,7 +489,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       };
     }, [user, chatScope]);
 
-    // Sync chat history to the database whenever it changes (logged-in only).
+    // Sync chat history to the database whenever it changes (authenticated users only).
     const syncedSessionsRef = useRef<Map<string, string>>(new Map());
     const deletedSessionIdsRef = useRef(new Set<string>());
     useEffect(() => {
@@ -710,6 +736,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         });
       } catch (e: any) {
         if (e.name !== "AbortError") {
+          const isAuthError =
+            e?.message === "Sign in to use Guru AI" || (e?.status === 401);
           const tid = targetIdRef.current;
           setSessions((prev) =>
             prev.map((s) =>
@@ -720,8 +748,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                       ...newMessages,
                       {
                         role: "assistant",
-                        content:
-                          "⚠️ Error connecting to Guru. Please try again.",
+                        content: isAuthError
+                          ? "⚠️ Your session expired — please sign in again to continue using Guru AI."
+                          : "⚠️ Error connecting to Guru. Please try again.",
                       },
                     ],
                   }
