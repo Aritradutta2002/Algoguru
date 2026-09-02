@@ -1,21 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="130 15 140 160">
-  <g stroke="#1b1b1b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M 165 95 C 145 130, 180 170, 200 170 C 220 170, 255 130, 235 95 Z" fill="#ffffff" />
-
-    <circle cx="200" cy="95" r="24" fill="#fcd09f" />
-
-    <circle cx="188" cy="90" r="8" fill="#fcd09f" stroke-width="3"/>
-    <circle cx="212" cy="90" r="8" fill="#fcd09f" stroke-width="3"/>
-    <line x1="196" y1="90" x2="204" y2="90" stroke-width="3" />
-
-    <path d="M 185 88 Q 188 85 191 88" fill="none" stroke-width="3" />
-    <path d="M 209 88 Q 212 85 215 88" fill="none" stroke-width="3" />
-
-    <path d="M 190 105 C 195 110, 205 110, 210 105 C 205 115, 195 115, 190 105 Z" fill="#ffffff" stroke-width="3"/>
-
-    <path d="M 155 65 C 145 40, 180 30, 200 30 C 220 30, 255 40, 245 65 C 260 80, 240 105, 220 95 C 210 100, 190 100, 180 95 C 160 105, 140 80, 155 65 Z" fill="#ed7014" />
-    
-    <path d="M 165 50 C 180 70, 200 95, 220 95" fill="none" stroke-width="3"/>
-    <path d="M 235 50 C 220 70, 200 95, 180 95" fill="none" stroke-width="3"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="agFavGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FB923C"/>
+      <stop offset="1" stop-color="#E1542F"/>
+    </linearGradient>
+  </defs>
+  <!-- Simplified for 16px rendering: no node knockouts (they vanish at that size),
+       heavier stroke for legibility. Favicons do not need an accessible title. -->
+  <rect width="64" height="64" rx="16" fill="url(#agFavGrad)"/>
+  <path d="M17 46 L32 18 L47 46" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22.09 36.5 H41.91" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
 </svg>

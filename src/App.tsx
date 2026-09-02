@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +13,7 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { AppSidebar } from "@/components/AppSidebar";
+import { FoldGlyph } from "@/components/FoldGlyph";
 import Index from "./pages/Index";
 import TopicPage from "./pages/TopicPage";
 import Playground from "./pages/Playground";
@@ -23,7 +24,9 @@ import Interview from "./pages/Interview";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import { Sun, Moon, ZoomIn, ZoomOut, Search, X, ChevronRight, Sparkles, PanelLeftClose, PanelLeftOpen, PanelLeft } from "lucide-react";
+import { Sun, Moon, ZoomIn, ZoomOut, Search, X, ChevronRight, Sparkles, PanelLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -457,7 +460,25 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // ── Sidebar collapse (react-resizable-panels) ──────────────
   const sidebarRef = useRef<ImperativePanelHandle>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [showUnfoldTooltip, setShowUnfoldTooltip] = useState(false);
+  // While the user drags the resize handle we must NOT transition `flex-grow`,
+  // otherwise the panel lags behind the cursor. The transition is only enabled
+  // for programmatic fold/unfold so those animate smoothly.
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  const foldSidebar = useCallback(() => {
+    setIsSidebarCollapsed(true);
+    sidebarRef.current?.collapse();
+  }, []);
+
+  const unfoldSidebar = useCallback(() => {
+    setIsSidebarCollapsed(false);
+    sidebarRef.current?.expand();
+  }, []);
+
+  const toggleSidebarFold = useCallback(() => {
+    if (isSidebarCollapsed) unfoldSidebar();
+    else foldSidebar();
+  }, [isSidebarCollapsed, foldSidebar, unfoldSidebar]);
 
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
@@ -526,32 +547,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         className="flex h-[100dvh] w-full overflow-hidden"
         style={{ background: "hsl(var(--background))" }}
       >
-        {/* ── Floating Unfold button (LeetCode-style) ── */}
-        {/* Anchored just below the AlgoGuru logo button in the header
-            (header is h-14 = 3.5rem) so it never overlaps the logo. */}
-        {isSidebarCollapsed && (
-          <div
-            className="fixed top-[calc(3.5rem+10px)] left-3 sm:left-4 md:left-6 z-[60] flex flex-col items-center gap-1.5"
-            onMouseEnter={() => setShowUnfoldTooltip(true)}
-            onMouseLeave={() => setShowUnfoldTooltip(false)}
-          >
-            <button
-              onClick={() => { sidebarRef.current?.expand(); setIsSidebarCollapsed(false); }}
-              aria-label="Unfold sidebar"
-              className="touch-manipulation w-9 h-9 rounded-full flex items-center justify-center bg-card/90 border border-border/60 shadow-lg backdrop-blur-sm hover:bg-muted hover:border-primary/40 hover:shadow-primary/10 transition-all duration-200 group"
-            >
-              <PanelLeft size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
-            </button>
-            {showUnfoldTooltip && (
-              <div className="animate-in fade-in slide-in-from-top-1 duration-150">
-                <span className="bg-zinc-800 dark:bg-zinc-900 text-white text-[11px] font-medium px-3 py-1 rounded-md shadow-lg whitespace-nowrap select-none">
-                  Unfold
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* ── Sidebar + Content split ── */}
         <PanelGroup direction="horizontal" className="h-full w-full">
           {/* Sidebar panel */}
@@ -564,31 +559,45 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             collapsedSize={0}
             onCollapse={() => setIsSidebarCollapsed(true)}
             onExpand={() => setIsSidebarCollapsed(false)}
-            className="flex flex-col h-full"
+            className={cn(
+              "flex flex-col h-full overflow-hidden will-change-[flex-grow]",
+              // Animate only programmatic fold/unfold — never while dragging,
+              // otherwise the panel visibly trails the cursor.
+              !isResizingSidebar && "transition-[flex-grow] duration-300 ease-in-out"
+            )}
             style={{ maxWidth: 360 }}
           >
-            <AppSidebar />
+            {/* Content fades out as the panel folds so the squeeze reads as a
+                deliberate exit rather than a layout glitch. */}
+            <div
+              className={cn(
+                "h-full w-full overflow-hidden transition-opacity duration-200 ease-out",
+                isSidebarCollapsed ? "opacity-0" : "opacity-100"
+              )}
+            >
+              <AppSidebar />
+            </div>
           </Panel>
 
-          {/* Resize handle with collapse arrow */}
-          <PanelResizeHandle className="group relative flex items-center justify-center w-[5px] bg-border/30 hover:bg-primary/20 transition-colors duration-200 cursor-col-resize select-none">
-            {/* Collapse arrow — visible on hover */}
+          {/* Resize handle with fold / unfold toggle */}
+          <PanelResizeHandle
+            onDragging={setIsResizingSidebar}
+            className="group relative flex items-center justify-center w-[5px] bg-border/30 hover:bg-primary/20 transition-colors duration-200 cursor-col-resize select-none"
+          >
+            {/* Fold / unfold toggle — visible on hover; when collapsed the rail
+                is the only affordance, so keep it permanently visible then. */}
             <button
-              onClick={() => {
-                if (isSidebarCollapsed) {
-                  sidebarRef.current?.expand();
-                  setIsSidebarCollapsed(false);
-                } else {
-                  sidebarRef.current?.collapse();
-                  setIsSidebarCollapsed(true);
-                }
-              }}
-              aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 z-10 w-5 h-5 rounded-full bg-card border border-border shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-primary hover:border-primary hover:text-primary-foreground"
+              onClick={toggleSidebarFold}
+              aria-label={isSidebarCollapsed ? "Unfold sidebar" : "Fold sidebar"}
+              className={cn(
+                "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 z-10 w-6 h-6 rounded-full bg-card border border-border shadow-md",
+                "flex items-center justify-center transition-all duration-200",
+                "text-muted-foreground hover:bg-primary hover:border-primary hover:text-primary-foreground",
+                "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                isSidebarCollapsed ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}
             >
-              {isSidebarCollapsed
-                ? <PanelLeftOpen size={11} />
-                : <PanelLeftClose size={11} />}
+              <FoldGlyph direction={isSidebarCollapsed ? "unfold" : "fold"} size={12} />
             </button>
           </PanelResizeHandle>
 
@@ -598,6 +607,49 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           <header
             className="h-14 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 border-b border-border flex-shrink-0 sticky top-0 z-40 bg-background/95 backdrop-blur header"
           >
+
+            {/* ── Unfold button — sits beside the AlgoGuru logo ──────────
+                In-flow flex child placed immediately BEFORE the logo, so it
+                occupies its own layout slot and cannot overlap or interfere
+                with the logo's layout. On hover the resting icon crossfades
+                into the ">>" indicator. */}
+            <AnimatePresence initial={false}>
+              {isSidebarCollapsed && (
+                <motion.div
+                  key="unfold-beside-logo"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: "auto", opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+                  className="flex items-center overflow-hidden flex-shrink-0"
+                >
+                  <button
+                    onClick={unfoldSidebar}
+                    aria-label="Unfold sidebar"
+                    className={cn(
+                      "group relative touch-manipulation w-9 h-9 rounded-full flex-shrink-0",
+                      "flex items-center justify-center",
+                      "bg-card/90 border border-border/60 shadow-lg backdrop-blur-sm",
+                      "hover:bg-muted hover:border-primary/40 hover:shadow-primary/10",
+                      "active:scale-95 transition-all duration-200",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    )}
+                  >
+                    {/* Resting icon — crossfades to the ">>" indicator on hover. */}
+                    <PanelLeft
+                      size={16}
+                      className="absolute text-muted-foreground transition-all duration-200 group-hover:opacity-0 group-hover:scale-75"
+                    />
+                    <FoldGlyph
+                      direction="unfold"
+                      size={17}
+                      strokeWidth={2.5}
+                      className="absolute text-primary opacity-0 scale-75 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100"
+                    />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <AppTooltip content="Go to home">
               <div className="flex items-center gap-2 group cursor-pointer flex-shrink-0"
