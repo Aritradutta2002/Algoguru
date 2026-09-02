@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useViewport } from './useViewport';
+import { GURU_PANEL_CONSTANTS } from '@/components/GuruBot';
 
 /**
  * Storage keys for responsive preferences
@@ -107,7 +108,7 @@ export function useResponsivePreferences() {
   /**
    * Get GuruBot panel width percentage (desktop only)
    * Returns null on mobile (full-screen mode)
-   * Defaults to 50% if no preference stored
+   * Defaults to standard 28% if no preference stored
    */
   const getGurubotWidth = useCallback((): number | null => {
     if (!isDesktop) {
@@ -117,13 +118,13 @@ export function useResponsivePreferences() {
     const stored = safeStorage.getItem(STORAGE_KEYS.GURUBOT_WIDTH);
     if (stored) {
       const parsed = parseFloat(stored);
-      // Validate range: 20% to 80%
-      if (!isNaN(parsed) && parsed >= 20 && parsed <= 80) {
+      // Validate standard range: 18% to 38%
+      if (!isNaN(parsed) && parsed >= GURU_PANEL_CONSTANTS.MIN_SIZE && parsed <= GURU_PANEL_CONSTANTS.MAX_SIZE) {
         return parsed;
       }
     }
     
-    return 50; // Default to 50% split
+    return GURU_PANEL_CONSTANTS.DEFAULT_SIZE; // Standard default 28%
   }, [isDesktop]);
 
   /**
@@ -135,8 +136,11 @@ export function useResponsivePreferences() {
       return; // Don't persist width on mobile
     }
 
-    // Clamp width between 20% and 80%
-    const clampedWidth = Math.max(20, Math.min(80, width));
+    // Clamp width to standard limits (18% to 38%)
+    const clampedWidth = Math.max(
+      GURU_PANEL_CONSTANTS.MIN_SIZE,
+      Math.min(GURU_PANEL_CONSTANTS.MAX_SIZE, width),
+    );
     safeStorage.setItem(STORAGE_KEYS.GURUBOT_WIDTH, String(clampedWidth));
   }, [isDesktop]);
 

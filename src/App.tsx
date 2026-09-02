@@ -31,7 +31,7 @@ import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { UserMenu } from "@/components/UserMenu";
-import { GuruBot } from "@/components/GuruBot";
+import { GuruBot, GURU_PANEL_CONSTANTS } from "@/components/GuruBot";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
@@ -342,21 +342,19 @@ function SearchResultItem({ item, onSelect }: { item: typeof allSearchItems[numb
 
 const queryClient = new QueryClient();
 
-const MAIN_PANEL_DEFAULT_SIZE = 75;
-const MAIN_PANEL_MIN_SIZE = 30;
+// Standard Guru panel size limits — single source of truth from GuruBot.tsx.
+//   • MIN (18%) keeps the panel wide enough to render chat and code comfortably.
+//   • DEFAULT (28%) provides an ergonomic starting width.
+//   • MAX (38%) standard level so main content / code always keeps at least 62%
+//     and never feels crushed when expanding the slider.
+const GURU_PANEL_DEFAULT_SIZE = GURU_PANEL_CONSTANTS.DEFAULT_SIZE;
+const GURU_PANEL_MIN_SIZE = GURU_PANEL_CONSTANTS.MIN_SIZE;
+const GURU_PANEL_MAX_SIZE = GURU_PANEL_CONSTANTS.MAX_SIZE;
+const GURU_PANEL_COLLAPSED_SIZE = GURU_PANEL_CONSTANTS.COLLAPSED_SIZE;
+const GURU_PANEL_EXPAND_TRIGGER_SIZE = GURU_PANEL_CONSTANTS.EXPAND_TRIGGER_SIZE;
 
-// Standard Guru panel size limits — used by the resizable split in App.tsx
-// and by Playground/ProblemSolver. These are the single source of truth so
-// the slider behaves consistently across every entry point.
-//   • MIN keeps the panel wide enough to render a message comfortably
-//     (avoids the 8% sliver that used to be effectively unusable).
-//   • MAX caps the panel at 55% so the main content is never squashed into
-//     a sliver when the user drags the slider all the way open.
-const GURU_PANEL_DEFAULT_SIZE = 28;
-const GURU_PANEL_MIN_SIZE = 18;
-const GURU_PANEL_MAX_SIZE = 55;
-const GURU_PANEL_COLLAPSED_SIZE = 3.5;
-const GURU_PANEL_EXPAND_TRIGGER_SIZE = 4.25;
+const MAIN_PANEL_DEFAULT_SIZE = 100 - GURU_PANEL_DEFAULT_SIZE;
+const MAIN_PANEL_MIN_SIZE = 100 - GURU_PANEL_MAX_SIZE;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -451,7 +449,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem("guru-split-pct");
       const parsed = saved ? parseFloat(saved) : MAIN_PANEL_DEFAULT_SIZE;
       return Number.isFinite(parsed)
-        ? clamp(parsed, MAIN_PANEL_MIN_SIZE, 100 - GURU_PANEL_MIN_SIZE)
+        ? clamp(parsed, 100 - GURU_PANEL_MAX_SIZE, 100 - GURU_PANEL_MIN_SIZE)
         : MAIN_PANEL_DEFAULT_SIZE;
     } catch {
       return MAIN_PANEL_DEFAULT_SIZE;

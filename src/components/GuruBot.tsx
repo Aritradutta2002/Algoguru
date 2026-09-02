@@ -63,6 +63,19 @@ const MODELS: ModelOption[] = [
   { key: "openrouter", label: "OpenRouter Free", tag: "OpenRouter" },
 ];
 
+// Standard sizing limits for Guru panel / slider across all layouts:
+//   • MIN keeps the panel readable without breaking message bubbles or code.
+//   • DEFAULT provides an ergonomic 28% starting size.
+//   • MAX is capped at 38% so the main content / code editor always maintains
+//     at least 62% width and never feels squashed.
+export const GURU_PANEL_CONSTANTS = {
+  DEFAULT_SIZE: 28,
+  MIN_SIZE: 18,
+  MAX_SIZE: 38,
+  COLLAPSED_SIZE: 3.5,
+  EXPAND_TRIGGER_SIZE: 4.25,
+} as const;
+
 const MAX_MODEL_MESSAGES = 14;
 
 function createSessionTitle(message: string) {
@@ -1008,11 +1021,11 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               </button>
             </AppTooltip>
             {onToggleFullscreen && (
-              <AppTooltip content={isFullscreen ? "Exit fullscreen" : "Expand"}>
+              <AppTooltip content={isFullscreen ? "Exit expanded view" : "Expand panel"}>
                 <button
                   onClick={onToggleFullscreen}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
-                  aria-label="Expand"
+                  aria-label={isFullscreen ? "Exit expanded view" : "Expand panel"}
                 >
                   {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
                 </button>

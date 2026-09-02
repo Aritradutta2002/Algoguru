@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 
 import {
@@ -121,7 +121,7 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { GuruBot } from "@/components/GuruBot";
+import { GuruBot, GURU_PANEL_CONSTANTS } from "@/components/GuruBot";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,13 +168,11 @@ const IO_GURU_DEFAULT_SIZE = 25;
 const IO_MOBILE_DEFAULT_SIZE = 40;
 const GURU_COLLAPSED_SIZE = 3.5;
 const GURU_EXPAND_TRIGGER_SIZE = 4.25;
-// Mirrors the standardized App.tsx constants. The Playground layout has the
-// editor + IO dock on the left, so the Guru panel on the right is capped a
-// bit tighter (45%) — but it shares the same minimum (18%) so the panel is
-// always readable and the slider is consistent with the main app.
-const GURU_DEFAULT_SIZE = 28;
-const GURU_MIN_SIZE = 18;
-const GURU_MAX_SIZE = 45;
+// Mirrors the standardized GuruBot.tsx constants.
+// Standard max size capped at 38% so the editor & terminal always keep at least 62%.
+const GURU_DEFAULT_SIZE = GURU_PANEL_CONSTANTS.DEFAULT_SIZE;
+const GURU_MIN_SIZE = GURU_PANEL_CONSTANTS.MIN_SIZE;
+const GURU_MAX_SIZE = GURU_PANEL_CONSTANTS.MAX_SIZE;
 
 const WANDBOX_API = "https://wandbox.org/api/compile.json";
 const COMPILER_MARKER_OWNER = "algoguru-compiler";
@@ -884,6 +882,7 @@ export default function Playground() {
   const guruPanelRef = useRef<ImperativePanelHandle>(null);
   const [guruBotOpen, setGuruBotOpen] = useState(false);
   const [guruBotCollapsed, setGuruBotCollapsed] = useState(false);
+  const [guruBotSize, setGuruBotSize] = useState(GURU_DEFAULT_SIZE);
   const [selectedCodeForGuru, setSelectedCodeForGuru] = useState("");
   const [guruInitialPrompt, setGuruInitialPrompt] = useState("");
   const [askGuruPopup, setAskGuruPopup] = useState<{
@@ -894,6 +893,7 @@ export default function Playground() {
   const openGuruBotPanel = useCallback((targetSize = GURU_DEFAULT_SIZE) => {
     setGuruBotOpen(true);
     setGuruBotCollapsed(false);
+    setGuruBotSize(targetSize);
     requestAnimationFrame(() => {
       guruPanelRef.current?.resize(targetSize);
     });
@@ -4398,6 +4398,7 @@ export default function Playground() {
                 collapsible
                 collapsedSize={GURU_COLLAPSED_SIZE}
                 onResize={(size) => {
+                  setGuruBotSize(size);
                   setGuruBotCollapsed(size <= GURU_EXPAND_TRIGGER_SIZE);
                 }}
                 onCollapse={() => setGuruBotCollapsed(true)}
@@ -4446,6 +4447,14 @@ export default function Playground() {
                       initialContext={guruBotContext}
                       initialPrompt={guruInitialPrompt}
                       embedded={true}
+                      onToggleFullscreen={() => {
+                        if (guruBotSize >= GURU_MAX_SIZE - 1) {
+                          openGuruBotPanel(GURU_DEFAULT_SIZE);
+                        } else {
+                          openGuruBotPanel(GURU_MAX_SIZE);
+                        }
+                      }}
+                      isFullscreen={guruBotSize >= GURU_MAX_SIZE - 1}
                       onAssistantComplete={(text) => {
                         if (!pendingGuruWantsCodeRef.current) return;
                         const proposed = extractProposedCode(text);

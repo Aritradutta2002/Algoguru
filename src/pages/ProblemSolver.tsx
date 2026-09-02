@@ -2120,20 +2120,28 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                 />
               </motion.div>
               {isFullscreen && createPortal(
-                <div className={`fixed inset-0 z-[100] flex flex-col animate-in fade-in duration-200 bg-background`}>
-                  <GuruBot
-                    open={true}
-                    onClose={() => setIsFullscreen(false)}
-                    embedded={true}
-                    debugMode={true}
-                    initialContext={guruContext}
-                    questionId={problem.questionId}
-                    suggestedPrompts={guruSuggestions}
-                    onInsertCode={onInsertCode}
-                    showGuruTitle={true}
-                    onToggleFullscreen={() => setIsFullscreen(false)}
-                    isFullscreen={true}
-                  />
+                <div
+                  className="fixed inset-0 z-[100] flex justify-end bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-200"
+                  onClick={() => setIsFullscreen(false)}
+                >
+                  <div
+                    className="h-full w-full sm:w-[38vw] sm:max-w-[38vw] sm:min-w-[380px] flex flex-col shadow-2xl border-l border-border bg-background animate-in slide-in-from-right duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <GuruBot
+                      open={true}
+                      onClose={() => setIsFullscreen(false)}
+                      embedded={true}
+                      debugMode={true}
+                      initialContext={guruContext}
+                      questionId={problem.questionId}
+                      suggestedPrompts={guruSuggestions}
+                      onInsertCode={onInsertCode}
+                      showGuruTitle={true}
+                      onToggleFullscreen={() => setIsFullscreen(false)}
+                      isFullscreen={true}
+                    />
+                  </div>
                 </div>,
                 document.body
               )}
