@@ -8,6 +8,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { Typewriter } from "@/components/motion";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
@@ -175,8 +176,13 @@ export default function Auth() {
         </button>
       </AppTooltip>
 
-      {/* Subtle background glow */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" aria-hidden="true" />
+      {/* Ambient background — grid, glow, and slow-drifting orbs */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="motion-grid-bg absolute inset-0 opacity-70" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" />
+        <div className="animate-drift-slow absolute -top-32 left-[6%] h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
+        <div className="animate-drift-slower absolute -bottom-36 right-[4%] h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -279,7 +285,8 @@ export default function Auth() {
               <motion.button
                 type="submit"
                 disabled={isDisabled}
-                className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-colors hover:brightness-95 disabled:opacity-60"
+                whileTap={{ scale: 0.985 }}
+                className="btn-shine w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-colors hover:brightness-95 disabled:opacity-60"
               >
                 {loading ? "Please wait…" : cooldown ? "Try again shortly…" : isLogin ? "Sign in" : "Sign up"}
               </motion.button>
@@ -326,17 +333,31 @@ export default function Auth() {
         </div>
 
         {/* ── RIGHT PANEL (Value proposition) ── */}
-        <div className="hidden w-[45%] flex-col justify-center border-l border-border bg-muted/30 p-10 md:flex order-1 md:order-2">
+        <div className="relative hidden w-[45%] flex-col justify-center overflow-hidden border-l border-border bg-muted/30 p-10 md:flex order-1 md:order-2">
+          <div
+            aria-hidden="true"
+            className="animate-drift-slow pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/15 blur-3xl"
+          />
           <div className="relative z-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-              Why AlgoGuru
-            </p>
-            <h3 className="mt-3 text-2xl font-bold leading-snug tracking-[-0.03em] text-foreground">
-              Learn. Adapt. Grow.
-            </h3>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Master the craft with a workspace built around deliberate practice.
-            </p>
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                Why AlgoGuru
+              </p>
+              <h3 className="mt-3 min-h-[4.5rem] text-2xl font-bold leading-snug tracking-[-0.03em] text-foreground">
+                Master{" "}
+                <Typewriter
+                  words={["DSA patterns.", "System design.", "Java depth.", "Interviews."]}
+                  className="text-gradient-brand"
+                />
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                A workspace built around deliberate practice — roadmaps, reps, and a mentor.
+              </p>
+            </motion.div>
 
             <ul className="mt-8 space-y-4">
               {[
@@ -353,7 +374,13 @@ export default function Auth() {
                   body: "A full editor with test cases, so you can solve without setup.",
                 },
               ].map((item, index) => (
-                <li key={item.title} className="flex gap-3">
+                <motion.li
+                  key={item.title}
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + index * 0.12, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex gap-3"
+                >
                   <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-[11px] font-semibold text-primary">
                     {index + 1}
                   </span>
@@ -361,7 +388,7 @@ export default function Auth() {
                     <p className="text-sm font-semibold text-foreground">{item.title}</p>
                     <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{item.body}</p>
                   </div>
-                </li>
+                </motion.li>
               ))}
             </ul>
           </div>

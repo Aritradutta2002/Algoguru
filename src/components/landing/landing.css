@@ -15,14 +15,6 @@
   opacity: 0.55;
 }
 
-/* Brand gradient text — orange → amber, readable in both themes. */
-.text-gradient-brand {
-  background: linear-gradient(98deg, hsl(var(--primary)) 10%, hsl(var(--accent)) 90%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 /* ── Topic marquee ─────────────────────────────────────────── */
 @keyframes landing-marquee {
   from {

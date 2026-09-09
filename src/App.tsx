@@ -25,8 +25,10 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { Sun, Moon, ZoomIn, ZoomOut, Search, X, ChevronRight, Sparkles, PanelLeft } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { PageTransition } from "@/components/motion/PageTransition";
+import { ScrollProgressBar } from "@/components/motion/ScrollProgressBar";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -440,6 +442,37 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/**
+ * The scrollable content viewport shared by every authenticated page.
+ * Adds a slim scroll-progress bar pinned to the top and a quick
+ * fade-and-rise enter transition on every route change.
+ */
+function ContentViewport({
+  containerRef,
+  className,
+  mainClassName,
+  children,
+}: {
+  containerRef: React.RefObject<HTMLElement>;
+  className?: string;
+  mainClassName?: string;
+  children: React.ReactNode;
+}) {
+  const { pathname } = useLocation();
+  return (
+    <div className={cn("relative flex min-h-0 flex-col", className)}>
+      <ScrollProgressBar containerRef={containerRef} />
+      <main
+        ref={containerRef}
+        className={cn("overflow-y-auto", mainClassName)}
+        style={{ overscrollBehavior: "contain" }}
+      >
+        <PageTransition routeKey={pathname}>{children}</PageTransition>
+      </main>
+    </div>
+  );
+}
+
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [guruOpen, setGuruOpen] = useState(false);
@@ -771,10 +804,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   defaultSize={splitPct}
                   minSize={MAIN_PANEL_MIN_SIZE}
                 >
-                  <main
-                    ref={contentScrollRef}
-                    className="h-full overflow-y-auto"
-                    style={{ overscrollBehavior: "contain" }}
+                  <ContentViewport
+                    containerRef={contentScrollRef}
+                    className="h-full"
+                    mainClassName="flex-1"
                   >
                     <div className={contentSurfaceClass}>
                       {children}
@@ -782,7 +815,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                         <Footer onSupportClick={() => setSupportOpen(true)} />
                       )}
                     </div>
-                  </main>
+                  </ContentViewport>
                 </ResizablePanel>
 
                 <ResizableHandle
@@ -883,14 +916,18 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               </ResizablePanelGroup>
             )
           ) : (
-            <main ref={contentScrollRef} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
+            <ContentViewport
+              containerRef={contentScrollRef}
+              className="flex-1"
+              mainClassName="flex-1"
+            >
               <div className={contentSurfaceClass}>
                 {children}
                 {location.pathname === "/" && (
                   <Footer onSupportClick={() => setSupportOpen(true)} />
                 )}
               </div>
-            </main>
+            </ContentViewport>
           )}
           </Panel>
         </PanelGroup>
@@ -902,6 +939,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <MotionConfig reducedMotion="user">
     <TooltipProvider>
       <SettingsProvider>
         <ModeProvider>
@@ -958,6 +996,7 @@ const App = () => (
         </ModeProvider>
       </SettingsProvider>
     </TooltipProvider>
+    </MotionConfig>
   </QueryClientProvider>
 );
 

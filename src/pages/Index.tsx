@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { MotionConfig, motion } from "framer-motion";
 import {
@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { RoadmapFullscreenOverlay } from "@/components/roadmap/RoadmapFullscreenOverlay";
 import { HeroVisual } from "@/components/landing/HeroVisual";
-import { CountUp } from "@/components/landing/CountUp";
+import { AnimatedNumber, Magnetic, handleSpotlightMove } from "@/components/motion";
 import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -255,22 +255,26 @@ export default function Index() {
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={scrollToModules}
-                  className="group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:brightness-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
-                >
-                  Explore learning paths
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/playground")}
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/80 px-6 py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
-                >
-                  <Play size={15} fill="currentColor" className="text-primary" />
-                  Open playground
-                </button>
+                <Magnetic>
+                  <button
+                    type="button"
+                    onClick={scrollToModules}
+                    className="btn-shine group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:brightness-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
+                  >
+                    Explore learning paths
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                </Magnetic>
+                <Magnetic>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/playground")}
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-card/80 px-6 py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
+                  >
+                    <Play size={15} fill="currentColor" className="text-primary" />
+                    Open playground
+                  </button>
+                </Magnetic>
               </div>
 
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground">
@@ -301,7 +305,7 @@ export default function Index() {
                 className="rounded-2xl border border-border bg-card px-6 py-7 text-center shadow-card transition-colors hover:border-primary/30"
               >
                 <p className="text-3xl font-extrabold tracking-tight md:text-4xl">
-                  <CountUp to={s.value} suffix={s.suffix} />
+                  <AnimatedNumber to={s.value} suffix={s.suffix} />
                 </p>
                 <p className="mt-1.5 text-sm font-semibold">{s.label}</p>
                 <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
@@ -361,13 +365,15 @@ export default function Index() {
                 tabIndex={0}
                 aria-label={`${sec.title} — ${sec.subtitle}. ${sec.desc}`}
                 onClick={() => go(sec.route)}
+                onMouseMove={handleSpotlightMove}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     go(sec.route);
                   }
                 }}
-                className="group relative flex min-h-[280px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 outline-none transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                style={{ "--spot-color": `${sec.color}2e` } as CSSProperties}
+                className="spotlight-card group relative flex min-h-[280px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 outline-none transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <div
                   aria-hidden
@@ -534,7 +540,7 @@ export default function Index() {
         <section aria-labelledby="daily-heading" className="mx-auto max-w-7xl px-5 pb-16 md:px-10 md:pb-24 lg:px-16">
           <motion.div
             {...fadeUp}
-            className="relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-accent md:p-12"
+            className="conic-border relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-accent md:p-12"
           >
             <div aria-hidden className="pointer-events-none absolute inset-0">
               <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
@@ -567,14 +573,16 @@ export default function Index() {
                   </span>
                 </div>
                 <div className="mt-7 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => navigate("/problem-solver")}
-                    className="group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:brightness-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
-                  >
-                    Solve today&apos;s problem
-                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                  </button>
+                  <Magnetic>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/problem-solver")}
+                      className="btn-shine group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:brightness-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
+                    >
+                      Solve today&apos;s problem
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </Magnetic>
                 </div>
               </div>
               <div className="rounded-2xl border border-border bg-background/80 p-6 backdrop-blur">
@@ -687,21 +695,25 @@ export default function Index() {
                 Future-you says thanks.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={scrollToModules}
-                  className="group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:brightness-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
-                >
-                  Start learning free
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/problem-solver")}
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
-                >
-                  <Flame size={15} className="text-primary" /> Today&apos;s challenge
-                </button>
+                <Magnetic>
+                  <button
+                    type="button"
+                    onClick={scrollToModules}
+                    className="btn-shine group inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:brightness-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
+                  >
+                    Start learning free
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                </Magnetic>
+                <Magnetic>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/problem-solver")}
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
+                  >
+                    <Flame size={15} className="text-primary" /> Today&apos;s challenge
+                  </button>
+                </Magnetic>
               </div>
               <p className="mt-6 text-xs text-muted-foreground">
                 Free after sign-in · No credit card · Learn at your pace

@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useInView } from "framer-motion";
 
-interface CountUpProps {
+interface AnimatedNumberProps {
   /** Target value to count to. */
   to: number;
   /** Rendered after the number, e.g. "+". */
   suffix?: string;
   /** Animation length in ms. */
   duration?: number;
+  className?: string;
 }
 
 /** Counts from 0 to `to` the first time it scrolls into view. */
-export function CountUp({ to, suffix = "", duration = 1200 }: CountUpProps) {
+export function AnimatedNumber({ to, suffix = "", duration = 1200, className }: AnimatedNumberProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const [value, setValue] = useState(0);
@@ -35,7 +36,7 @@ export function CountUp({ to, suffix = "", duration = 1200 }: CountUpProps) {
   }, [inView, to, duration]);
 
   return (
-    <span ref={ref} className="tabular-nums">
+    <span ref={ref} className={className ?? "tabular-nums"}>
       {value.toLocaleString()}
       {suffix}
     </span>
