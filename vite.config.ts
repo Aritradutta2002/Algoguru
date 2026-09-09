@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // Allow cloud preview / tunnel hosts (dev only — no effect on builds).
+    allowedHosts: true,
     hmr: {
       overlay: false,
     },
