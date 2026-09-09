@@ -10,6 +10,11 @@ export interface Topic {
   color: string;
   description: string;
   subtopics: SubTopic[];
+  /**
+   * Optional category for grouping topics. Used by Java topics to group
+   * into Core / Advanced / Spring Boot. Non-Java topics can leave this unset.
+   */
+  category?: string;
 }
 
 export const topics: Topic[] = [

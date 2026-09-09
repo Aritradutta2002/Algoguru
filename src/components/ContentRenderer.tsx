@@ -3,7 +3,7 @@ import { ContentSection } from "@/data/recursionContent";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DiagramRenderer } from "@/components/DiagramRenderer";
 import { useNavigate } from "react-router-dom";
-import { Play, Lightbulb, FlaskConical, BookOpen } from "lucide-react";
+import { Play, Lightbulb, FlaskConical, BookOpen, Info, AlertTriangle, Sparkles } from "lucide-react";
 
 /* ── Superscript rendering (2^n → 2<sup>n</sup>) ── */
 function renderSuperscript(text: string): React.ReactNode {
@@ -22,10 +22,11 @@ function renderSuperscript(text: string): React.ReactNode {
   return parts.length > 1 ? parts : parts.length === 1 ? parts[0] : text;
 }
 
-/* ── Markdown (bold + code) with superscript ── */
+/* ── Markdown (bold + italic + code) with superscript ── */
 function renderMarkdown(text: string) {
   const parts: React.ReactNode[] = [];
-  const regex = /(\*\*(.+?)\*\*)|(`(.+?)`)/g;
+  // Matches: 1. **bold** ($2) | 2. `code` ($4) | 3. *italic* ($6)
+  const regex = /(\*\*(.+?)\*\*)|(`(.+?)`)|(\*([^*]+?)\*)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
@@ -41,6 +42,10 @@ function renderMarkdown(text: string) {
     } else if (match[4]) {
       parts.push(
         <code key={key++} className="cr-code">{renderSuperscript(match[4])}</code>
+      );
+    } else if (match[6]) {
+      parts.push(
+        <em key={key++} className="cr-italic">{renderSuperscript(match[6])}</em>
       );
     }
     lastIndex = match.index + match[0].length;
@@ -260,14 +265,16 @@ export const ContentRenderer = memo(function ContentRenderer({ section, isPracti
       {classified.theory.length > 0 && (
         <div className="cr-block">
           <div className="cr-block-label">
-            <BookOpen size={13} />
-            Description
+            <BookOpen size={14} className="text-primary/90" />
+            <span>Theory & Overview</span>
           </div>
-          <ul className="cr-theory-list">
+          <div className="cr-theory-content">
             {classified.theory.map((para, i) => (
-              <li key={i}>{renderMarkdown(para)}</li>
+              <p key={i} className="cr-theory-para">
+                {renderMarkdown(para)}
+              </p>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
@@ -302,36 +309,54 @@ export const ContentRenderer = memo(function ContentRenderer({ section, isPracti
 
       {/* ═══ Key Points ═══ */}
       {section.keyPoints && (
-        <div className="cr-block">
+        <div className="cr-keypoints-box">
           <div className="cr-block-label cr-block-label--accent">
-            <Lightbulb size={13} />
-            Key Points
+            <Sparkles size={14} className="text-accent" />
+            <span>Key Takeaways</span>
           </div>
-          <ul className="cr-theory-list cr-keypoint-list">
+          <ul className="cr-keypoint-list">
             {section.keyPoints.map((point, i) => (
-              <li key={i}>{renderMarkdown(point)}</li>
+              <li key={i} className="cr-keypoint-item">
+                <span className="cr-keypoint-marker" />
+                <div className="cr-keypoint-text">{renderMarkdown(point)}</div>
+              </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* ═══ Note / Tip / Warning ═══ */}
+      {/* ═══ Note / Tip / Warning Callouts ═══ */}
       {section.note && (
-        <div className="cr-block">
-          <h3 className="cr-subtitle">Note:</h3>
-          <p className="cr-para">{renderMarkdown(section.note)}</p>
+        <div className="cr-callout cr-callout-note">
+          <div className="cr-callout-icon">
+            <Info size={18} />
+          </div>
+          <div className="cr-callout-content">
+            <div className="cr-callout-header">Note</div>
+            <div className="cr-callout-body">{renderMarkdown(section.note)}</div>
+          </div>
         </div>
       )}
       {section.tip && (
-        <div className="cr-block">
-          <h3 className="cr-subtitle">💡 Pro Tip:</h3>
-          <p className="cr-para">{renderMarkdown(section.tip)}</p>
+        <div className="cr-callout cr-callout-tip">
+          <div className="cr-callout-icon">
+            <Lightbulb size={18} />
+          </div>
+          <div className="cr-callout-content">
+            <div className="cr-callout-header">Pro Tip</div>
+            <div className="cr-callout-body">{renderMarkdown(section.tip)}</div>
+          </div>
         </div>
       )}
       {section.warning && (
-        <div className="cr-block">
-          <h3 className="cr-subtitle">⚠ Warning:</h3>
-          <p className="cr-para">{renderMarkdown(section.warning)}</p>
+        <div className="cr-callout cr-callout-warning">
+          <div className="cr-callout-icon">
+            <AlertTriangle size={18} />
+          </div>
+          <div className="cr-callout-content">
+            <div className="cr-callout-header">Warning & Gotchas</div>
+            <div className="cr-callout-body">{renderMarkdown(section.warning)}</div>
+          </div>
         </div>
       )}
 

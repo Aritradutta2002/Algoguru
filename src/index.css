@@ -64,12 +64,15 @@
     --gradient-sidebar: hsl(210 20% 96%);
 
     --reading-surface: 0 0% 100%;
-    --reading-foreground: 222.2 84% 4.9%;
-    --reading-heading: 222.2 84% 4.9%;
-    --reading-body: 222.2 84% 4.9%;
-    --reading-highlight: 18 78% 58%;
-    --reading-muted: 215 16% 47%;
-    --reading-border: 30 28% 66%;
+    --reading-foreground: 222 35% 12%;
+    --reading-heading: 222 47% 11%;
+    --reading-body: 222 25% 18%;
+    --reading-highlight: 222 47% 11%;
+    --reading-muted: 220 12% 46%;
+    --reading-border: 220 13% 89%;
+    --code-inline-bg: 220 14% 94%;
+    --code-inline-text: 222 47% 18%;
+    --code-inline-border: 220 13% 86%;
 
     --shadow-glow: none;
     --shadow-glow-strong: none;
@@ -130,13 +133,16 @@
     --gradient-card: hsl(0 0% 10%);
     --gradient-sidebar: hsl(0 0% 7%);
 
-    --reading-surface: 0 0% 9%;
-    --reading-foreground: 0 0% 96%;
-    --reading-heading: 214 32% 91%;
-    --reading-body: 215 25% 65%;
-    --reading-highlight: 48 96% 53%;
-    --reading-muted: 0 0% 60%;
-    --reading-border: 0 0% 20%;
+    --reading-surface: 222 24% 9.5%;
+    --reading-foreground: 210 20% 98%;
+    --reading-heading: 0 0% 98%;
+    --reading-body: 214 20% 91%;
+    --reading-highlight: 0 0% 100%;
+    --reading-muted: 215 16% 65%;
+    --reading-border: 222 16% 18%;
+    --code-inline-bg: 222 20% 15%;
+    --code-inline-text: 210 30% 94%;
+    --code-inline-border: 222 16% 25%;
 
     /* Code Blocks: One Dark style */
     --code-bg: 220 13% 18%;
@@ -389,30 +395,30 @@
   /* ═══ Content Renderer — LeetCode-quality Layout ═══ */
 
   .cr-problem-card {
-    @apply mb-7 md:mb-9 lg:mb-12 scroll-mt-24 p-4 md:p-6 lg:p-8;
+    @apply mb-8 md:mb-12 scroll-mt-24 p-5 md:p-8 lg:p-10;
     background: hsl(var(--reading-surface));
     color: hsl(var(--reading-foreground));
     border: 1px solid hsl(var(--reading-border));
     box-shadow: var(--shadow-card);
-    border-radius: 0.75rem;
-    letter-spacing: 0;
-    will-change: transform, opacity;
+    border-radius: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .cr-header {
-    @apply mb-4 md:mb-6 pb-4 md:pb-5;
-    border-bottom: 1px solid hsl(var(--reading-border) / 0.65);
+    @apply mb-5 md:mb-7 pb-4 md:pb-6;
+    border-bottom: 1px solid hsl(var(--reading-border) / 0.75);
   }
 
   .cr-header-top {
-    @apply flex items-center gap-3 flex-wrap mb-3;
+    @apply flex items-center gap-3.5 flex-wrap mb-3;
   }
 
   .cr-title {
-    @apply text-base md:text-[22px] lg:text-[26px] font-bold tracking-tight;
+    @apply text-lg md:text-2xl lg:text-[26px] font-bold tracking-tight;
+    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
     color: hsl(var(--reading-heading));
-    line-height: 1.3;
-    letter-spacing: 0;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
   }
 
   .cr-diff-badge {
@@ -459,7 +465,7 @@
   }
 
   .cr-block-label {
-    @apply flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider mb-3 px-1;
+    @apply flex items-center gap-2 text-[11px] md:text-xs font-bold uppercase tracking-wider mb-3 px-0.5;
     font-family: 'JetBrains Mono', monospace;
     color: hsl(var(--reading-muted));
   }
@@ -468,58 +474,198 @@
     color: hsl(var(--accent));
   }
 
-  .cr-theory-list {
-    @apply space-y-3 pl-5 mb-0;
-    list-style: none;
+  /* ── Theory Content (Clean Editorial Paragraphs) ── */
+  .cr-theory-content {
+    @apply space-y-4 md:space-y-5 mb-2;
   }
 
-  .cr-theory-list li {
-    @apply text-sm md:text-[15px] leading-[1.85] relative pl-4;
+  .cr-theory-para {
+    @apply text-[15.5px] md:text-[16.5px] leading-[1.85] tracking-[-0.011em];
     color: hsl(var(--reading-body));
-    font-family: 'Roboto', sans-serif;
-  }
-
-  .cr-theory-list li::before {
-    content: '';
-    @apply absolute left-0 top-[11px] w-[5px] h-[5px] rounded-full;
-    background: hsl(var(--primary) / 0.5);
-  }
-
-  .cr-keypoint-list li::before {
-    background: hsl(var(--accent) / 0.6);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   .cr-subtitle {
-    @apply text-sm md:text-base lg:text-[17px] font-bold mb-3;
+    @apply text-base md:text-lg font-bold mb-3;
     color: hsl(var(--reading-heading));
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
   }
 
   .cr-para {
-    @apply text-sm md:text-[15px] leading-[1.85] mb-4;
+    @apply text-[15px] md:text-[16px] leading-[1.85] mb-4;
     color: hsl(var(--reading-body));
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
+  /* ── High-Contrast, Clean Bold and Monospace ── */
   .cr-bold {
-    @apply font-semibold px-1 py-[1px] rounded mx-[1px];
-    background: hsl(var(--reading-highlight) / 0.1);
-    color: hsl(var(--reading-highlight));
+    font-weight: 700;
+    color: hsl(var(--reading-heading));
+    letter-spacing: -0.01em;
+  }
+  .dark .cr-bold {
+    color: hsl(0 0% 100%);
+  }
+
+  .cr-italic {
+    font-style: italic;
+    color: inherit;
   }
 
   .cr-code {
-    @apply font-mono text-[0.82em] px-1.5 py-[2px] rounded mx-[1px];
-    background: hsl(var(--primary) / 0.12);
-    color: hsl(var(--primary));
-    border: 1px solid hsl(var(--primary) / 0.28);
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.86em;
+    font-weight: 550;
+    padding: 0.15em 0.45em;
+    border-radius: 0.375rem;
+    margin: 0 0.12em;
+    background: hsl(var(--code-inline-bg));
+    color: hsl(var(--code-inline-text));
+    border: 1px solid hsl(var(--code-inline-border));
+    word-break: break-word;
+    white-space: break-spaces;
+  }
+
+  /* ── Keypoints Box (Highlights) ── */
+  .cr-keypoints-box {
+    @apply my-6 md:my-8 rounded-xl p-4 md:p-6 overflow-hidden;
+    background: hsl(var(--primary) / 0.04);
+    border: 1px solid hsl(var(--primary) / 0.22);
+    border-left: 3.5px solid hsl(var(--primary));
+  }
+
+  .cr-keypoint-list {
+    @apply space-y-3 my-0 pl-0;
+    list-style: none;
+  }
+
+  .cr-keypoint-item {
+    @apply flex items-start gap-3 text-[14.5px] md:text-[15.5px] leading-[1.8];
+    color: hsl(var(--reading-body));
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .cr-keypoint-marker {
+    @apply shrink-0 mt-2 w-1.5 h-1.5 rounded-full;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 6px hsl(var(--primary) / 0.5);
+  }
+
+  .cr-keypoint-text {
+    @apply flex-1 min-w-0;
+  }
+
+  /* ── Callout Boxes (Note, Tip, Warning) ── */
+  .cr-callout {
+    @apply my-5 md:my-6 rounded-xl p-4 md:p-5 flex items-start gap-3.5 transition-all duration-200;
+    border-width: 1px;
+    border-style: solid;
+  }
+
+  .cr-callout-icon {
+    @apply shrink-0 mt-0.5 p-1.5 rounded-lg;
+  }
+
+  .cr-callout-content {
+    @apply flex-1 min-w-0;
+  }
+
+  .cr-callout-header {
+    @apply text-[11px] md:text-xs font-bold uppercase tracking-wider mb-1;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .cr-callout-body {
+    @apply text-[14.5px] md:text-[15.5px] leading-[1.8];
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* Note Callout (Blue/Info) */
+  .cr-callout-note {
+    background: hsl(210 100% 98%);
+    border-color: hsl(210 80% 85%);
+    color: hsl(215 35% 18%);
+  }
+  .cr-callout-note .cr-callout-icon {
+    background: hsl(210 80% 52% / 0.12);
+    color: hsl(210 80% 45%);
+  }
+  .cr-callout-note .cr-callout-header {
+    color: hsl(210 80% 45%);
+  }
+  .dark .cr-callout-note {
+    background: hsl(215 50% 10% / 0.55);
+    border-color: hsl(215 50% 25% / 0.7);
+    color: hsl(210 30% 92%);
+  }
+  .dark .cr-callout-note .cr-callout-icon {
+    background: hsl(210 80% 52% / 0.18);
+    color: hsl(210 90% 70%);
+  }
+  .dark .cr-callout-note .cr-callout-header {
+    color: hsl(210 90% 70%);
+  }
+
+  /* Tip Callout (Emerald/Success) */
+  .cr-callout-tip {
+    background: hsl(150 60% 98%);
+    border-color: hsl(150 45% 82%);
+    color: hsl(155 40% 15%);
+  }
+  .cr-callout-tip .cr-callout-icon {
+    background: hsl(145 55% 40% / 0.12);
+    color: hsl(145 55% 35%);
+  }
+  .cr-callout-tip .cr-callout-header {
+    color: hsl(145 55% 35%);
+  }
+  .dark .cr-callout-tip {
+    background: hsl(155 50% 8% / 0.55);
+    border-color: hsl(155 45% 22% / 0.7);
+    color: hsl(150 30% 92%);
+  }
+  .dark .cr-callout-tip .cr-callout-icon {
+    background: hsl(145 55% 45% / 0.18);
+    color: hsl(145 70% 65%);
+  }
+  .dark .cr-callout-tip .cr-callout-header {
+    color: hsl(145 70% 65%);
+  }
+
+  /* Warning Callout (Amber/Orange) */
+  .cr-callout-warning {
+    background: hsl(38 100% 98%);
+    border-color: hsl(38 75% 82%);
+    color: hsl(30 40% 16%);
+  }
+  .cr-callout-warning .cr-callout-icon {
+    background: hsl(35 90% 52% / 0.12);
+    color: hsl(32 85% 40%);
+  }
+  .cr-callout-warning .cr-callout-header {
+    color: hsl(32 85% 40%);
+  }
+  .dark .cr-callout-warning {
+    background: hsl(35 50% 9% / 0.55);
+    border-color: hsl(35 50% 22% / 0.7);
+    color: hsl(35 30% 92%);
+  }
+  .dark .cr-callout-warning .cr-callout-icon {
+    background: hsl(35 90% 52% / 0.18);
+    color: hsl(38 95% 65%);
+  }
+  .dark .cr-callout-warning .cr-callout-header {
+    color: hsl(38 95% 65%);
   }
 
   /* ── Example Box ── */
   .cr-example-box {
-    @apply mb-4 md:mb-6 rounded-xl p-4 md:p-5 overflow-hidden;
+    @apply mb-5 md:mb-7 rounded-xl p-4 md:p-6 overflow-hidden;
     background: hsl(var(--success) / 0.03);
-    border: 1px solid hsl(var(--success) / 0.12);
-    border-left: 3px solid hsl(var(--success) / 0.5);
+    border: 1px solid hsl(var(--success) / 0.18);
+    border-left: 3.5px solid hsl(var(--success) / 0.7);
   }
 
   .cr-example-label {
@@ -529,11 +675,11 @@
   }
 
   .cr-example-content {
-    @apply space-y-1;
+    @apply space-y-1.5;
   }
 
   .cr-io-line {
-    @apply flex items-baseline gap-2 text-[14px] leading-relaxed py-[3px];
+    @apply flex items-baseline gap-2.5 text-[14px] leading-relaxed py-[3px];
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -545,15 +691,15 @@
 
   .cr-io-value {
     @apply text-[14px];
-    color: hsl(var(--reading-foreground) / 0.86);
+    color: hsl(var(--reading-foreground) / 0.9);
   }
 
   /* ── Approach Box ── */
   .cr-approach-box {
-    @apply mb-4 md:mb-6 rounded-xl p-4 md:p-5 overflow-hidden;
+    @apply mb-5 md:mb-7 rounded-xl p-4 md:p-6 overflow-hidden;
     background: hsl(var(--primary) / 0.03);
-    border: 1px solid hsl(var(--primary) / 0.28);
-    border-left: 3px solid hsl(var(--primary) / 0.4);
+    border: 1px solid hsl(var(--primary) / 0.22);
+    border-left: 3.5px solid hsl(var(--primary) / 0.7);
   }
 
   .cr-approach-label {
@@ -563,13 +709,13 @@
   }
 
   .cr-approach-content {
-    @apply space-y-2;
+    @apply space-y-2.5;
   }
 
   .cr-approach-text {
-    @apply text-sm md:text-[15px] leading-[1.85];
+    @apply text-[15px] md:text-[16px] leading-[1.85];
     color: hsl(var(--reading-body));
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
   .cr-table-wrap {
@@ -594,6 +740,36 @@
 
   .cr-group-header:first-child {
     @apply mt-0;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     DIAGRAM SYSTEM (Architectural & Technical Visualizers)
+     ══════════════════════════════════════════════════════════ */
+  .diag-frame {
+    @apply relative rounded-2xl overflow-hidden mb-8 transition-all duration-300;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.85);
+    box-shadow: 0 8px 30px -10px hsl(var(--foreground) / 0.08);
+  }
+
+  .diag-canvas-bg {
+    background-color: hsl(var(--card));
+    background-image: radial-gradient(circle at 1.5px 1.5px, hsl(var(--border) / 0.8) 1.5px, transparent 0);
+    background-size: 22px 22px;
+  }
+  .dark .diag-canvas-bg {
+    background-color: hsl(220 30% 9%);
+    background-image: radial-gradient(circle at 1.5px 1.5px, hsl(217 33% 22% / 0.9) 1.5px, transparent 0);
+  }
+
+  .diag-header-bar {
+    @apply flex items-center justify-between gap-3 px-4 md:px-6 py-3.5 border-b backdrop-blur-md;
+    background: hsl(var(--card) / 0.9);
+    border-color: hsl(var(--border) / 0.85);
+  }
+  .dark .diag-header-bar {
+    background: hsl(220 30% 11% / 0.95);
+    border-color: hsl(217 33% 20%);
   }
 
   /* Legacy compat */

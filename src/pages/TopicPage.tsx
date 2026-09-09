@@ -22,7 +22,7 @@ import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
 import { practiceContentMap } from "@/data/practiceContent";
 import { ContentSection } from "@/data/recursionContent";
-import { ChevronRight, ChevronLeft, List, X } from "lucide-react";
+import { ChevronRight, ChevronLeft, List, X, Clock, ZoomIn, ZoomOut, Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMode } from "@/contexts/ModeContext";
 import { AppTooltip } from "@/components/ui/tooltip";
@@ -68,6 +68,17 @@ const topicColorVars: Record<string, string> = {
   "java-multithreading": "hsl(var(--primary))",
   "java-io": "hsl(var(--accent))",
   "java-advanced": "hsl(var(--warning))",
+  "java-jdbc": "hsl(var(--info))",
+  "java-sql": "hsl(var(--success))",
+  // Spring Boot
+  "spring-core": "hsl(var(--primary))",
+  "spring-boot-basics": "hsl(var(--accent))",
+  "spring-boot-rest": "hsl(var(--info))",
+  "spring-data-jpa": "hsl(var(--success))",
+  "spring-security": "hsl(var(--warning))",
+  "spring-boot-testing": "hsl(var(--heap))",
+  "spring-boot-microservices": "hsl(var(--primary))",
+  "spring-boot-actuator": "hsl(var(--info))",
   // Practice topic colors
   "practice-arrays": "hsl(var(--accent))",
   "practice-strings": "hsl(var(--success))",
@@ -87,7 +98,7 @@ export default function TopicPage() {
   const [tocOpen, setTocOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<string>("");
-  const { contentWidth } = useSettings();
+  const { contentWidth, fontSize, increaseFontSize, decreaseFontSize, theme, toggleTheme } = useSettings();
 
   // Auto-detect the correct mode based on topicId
   const detectedMode = useMemo(() => {
@@ -109,6 +120,20 @@ export default function TopicPage() {
 
   const topic = allTopicsForPage.find((t) => t.id === topicId);
   const content = topicId ? contentMap[topicId] : null;
+
+  const readingTimeMinutes = useMemo(() => {
+    if (!content) return 5;
+    let totalWords = 0;
+    content.forEach((sec) => {
+      sec.theory?.forEach((t) => {
+        totalWords += t.split(/\s+/).length;
+      });
+      sec.keyPoints?.forEach((k) => {
+        totalWords += k.split(/\s+/).length;
+      });
+    });
+    return Math.max(3, Math.ceil(totalWords / 180));
+  }, [content]);
 
   useEffect(() => {
     const hash = location.hash.replace("#", "");
@@ -184,13 +209,57 @@ export default function TopicPage() {
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-[-0.035em] text-foreground">
                   {topic.title}
                 </h1>
-                <div className="flex flex-wrap items-center gap-3 mt-3">
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-muted border border-border text-muted-foreground">
-                    {detectedMode === "lang" ? "Java" : detectedMode === "practice" ? "Practice" : "Data Structure"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {content.length} sections · Comprehensive guide
-                  </span>
+                <div className="flex flex-wrap items-center justify-between gap-4 mt-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-muted border border-border text-muted-foreground">
+                      {detectedMode === "lang" ? "Java" : detectedMode === "practice" ? "Practice" : "Data Structure"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {content.length} sections · Comprehensive guide
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock size={12} className="opacity-60" />
+                      ~{readingTimeMinutes} min read
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="inline-flex items-center rounded-lg border border-border bg-card/70 backdrop-blur-sm p-0.5 shadow-sm">
+                      <AppTooltip content="Smaller text">
+                        <button
+                          onClick={decreaseFontSize}
+                          disabled={fontSize === "sm"}
+                          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                          aria-label="Decrease font size"
+                        >
+                          <ZoomOut size={13} />
+                        </button>
+                      </AppTooltip>
+                      <span className="text-[11px] font-mono font-medium px-1.5 text-muted-foreground select-none">
+                        {fontSize.toUpperCase()}
+                      </span>
+                      <AppTooltip content="Larger text">
+                        <button
+                          onClick={increaseFontSize}
+                          disabled={fontSize === "xl"}
+                          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                          aria-label="Increase font size"
+                        >
+                          <ZoomIn size={13} />
+                        </button>
+                      </AppTooltip>
+                    </div>
+
+                    <AppTooltip content={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
+                      <button
+                        onClick={toggleTheme}
+                        className="p-2 rounded-lg border border-border bg-card/70 backdrop-blur-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shadow-sm"
+                        aria-label="Toggle theme"
+                      >
+                        {theme === "dark" ? <Sun size={13} /> : <Moon size={13} />}
+                      </button>
+                    </AppTooltip>
+                  </div>
                 </div>
               </div>
             </div>
@@ -227,7 +296,10 @@ export default function TopicPage() {
           </div>
         </motion.div>
 
-        <div className="px-4 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16 w-full max-w-[1400px] mx-auto">
+        <div 
+          className="px-4 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16 w-full mx-auto"
+          style={{ maxWidth: `${Math.min(contentWidth || 1080, 1140)}px` }}
+        >
           <div className="space-y-10 md:space-y-15 lg:space-y-20">
             {content.map((section) => (
               <ContentRenderer key={section.id} section={section} isPractice={detectedMode === "practice"} />

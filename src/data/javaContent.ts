@@ -7,6 +7,16 @@ import { javaIOContent } from "./javaIOContent";
 import { javaAdvancedContent } from "./javaAdvancedContent";
 import { javaJDBCContent } from "./javaJDBCContent";
 import { javaSQLContent } from "./javaSQLContent";
+import { springCoreContent } from "./springCoreContent";
+import {
+  springBootBasicsContent,
+  springBootRestContent,
+  springDataJpaContent,
+  springSecurityContent,
+  springBootTestingContent,
+  springBootMicroservicesContent,
+  springBootActuatorContent,
+} from "./springBootContent";
 
 // Java Fundamentals content
 export const javaBasicsContent: ContentSection[] = [
@@ -2220,4 +2230,13 @@ export const javaContentMap: Record<string, ContentSection[]> = {
   "java-advanced": javaAdvancedContent,
   "java-jdbc": javaJDBCContent,
   "java-sql": javaSQLContent,
+  // Spring Boot — placeholder content, theory is added incrementally
+  "spring-core": springCoreContent,
+  "spring-boot-basics": springBootBasicsContent,
+  "spring-boot-rest": springBootRestContent,
+  "spring-data-jpa": springDataJpaContent,
+  "spring-security": springSecurityContent,
+  "spring-boot-testing": springBootTestingContent,
+  "spring-boot-microservices": springBootMicroservicesContent,
+  "spring-boot-actuator": springBootActuatorContent,
 };

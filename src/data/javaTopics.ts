@@ -1,8 +1,39 @@
 import { Topic } from "./topics";
 
-export const javaTopics: Topic[] = [
+/* -------------------------------------------------------------------------- */
+/*  Java theory is split into three categories:                              */
+/*                                                                            */
+/*    1. core          — language fundamentals every Java dev must know       */
+/*    2. advanced      — deeper internals (JVM, concurrency, modern Java)     */
+/*    3. spring-boot   — Spring / Spring Boot ecosystem                       */
+/*                                                                            */
+/*  Every existing topic keeps its `id` so the route table (`/:topicId`), the */
+/*  search index, `javaContentMap`, and the JavaTreeBanner all keep working.  */
+/*                                                                            */
+/*  Theory for the new Spring Boot topics is added incrementally — each new   */
+/*  subtopic ships with an entry in `springBootContent.ts` marked as a        */
+/*  placeholder. Replace the placeholder `theory` array with the real writeup */
+/*  when you're ready to add it.                                              */
+/* -------------------------------------------------------------------------- */
+
+export type JavaCategoryId = "core" | "advanced" | "spring-boot";
+
+export interface JavaCategory {
+  id: JavaCategoryId;
+  title: string;
+  subtitle: string;
+  description: string;
+  topics: Topic[];
+}
+
+/* ========================================================================== */
+/*                              CORE JAVA                                     */
+/* ========================================================================== */
+
+const coreJavaTopics: Topic[] = [
   {
     id: "java-basics",
+    category: "core",
     title: "Java Fundamentals",
     icon: "☕",
     color: "primary",
@@ -22,6 +53,7 @@ export const javaTopics: Topic[] = [
   },
   {
     id: "java-oop",
+    category: "core",
     title: "Object-Oriented Programming",
     icon: "◈",
     color: "accent",
@@ -41,6 +73,7 @@ export const javaTopics: Topic[] = [
   },
   {
     id: "java-exceptions",
+    category: "core",
     title: "Exception Handling",
     icon: "⚡",
     color: "warning",
@@ -57,6 +90,7 @@ export const javaTopics: Topic[] = [
   },
   {
     id: "java-collections",
+    category: "core",
     title: "Collections Framework",
     icon: "▤",
     color: "success",
@@ -79,6 +113,7 @@ export const javaTopics: Topic[] = [
   },
   {
     id: "java-generics",
+    category: "core",
     title: "Generics",
     icon: "⟨T⟩",
     color: "info",
@@ -94,6 +129,7 @@ export const javaTopics: Topic[] = [
   },
   {
     id: "java-streams",
+    category: "core",
     title: "Streams & Lambdas",
     icon: "λ",
     color: "heap",
@@ -111,26 +147,8 @@ export const javaTopics: Topic[] = [
     ],
   },
   {
-    id: "java-multithreading",
-    title: "Multithreading & Concurrency",
-    icon: "⇶",
-    color: "primary",
-    description: "Threads, synchronization, executors & concurrent utilities",
-    subtopics: [
-      { id: "mt-intro", title: "Threads & Runnable" },
-      { id: "mt-lifecycle", title: "Thread Lifecycle" },
-      { id: "mt-sync", title: "Synchronization & Locks" },
-      { id: "mt-volatile", title: "Volatile & Atomic Variables" },
-      { id: "mt-executor", title: "Executor Framework" },
-      { id: "mt-callable", title: "Callable & Future" },
-      { id: "mt-concurrent", title: "Concurrent Data Structures" },
-      { id: "mt-completable", title: "CompletableFuture" },
-      { id: "mt-forkjoin", title: "Fork/Join Framework" },
-      { id: "mt-patterns", title: "Concurrency Patterns" },
-    ],
-  },
-  {
     id: "java-io",
+    category: "core",
     title: "I/O & File Handling",
     icon: "📁",
     color: "accent",
@@ -146,6 +164,7 @@ export const javaTopics: Topic[] = [
   },
   {
     id: "java-jdbc",
+    category: "core",
     title: "JDBC & Database",
     icon: "🗄️",
     color: "info",
@@ -160,6 +179,7 @@ export const javaTopics: Topic[] = [
   },
   {
     id: "java-sql",
+    category: "core",
     title: "SQL Interview Mastery",
     icon: "📊",
     color: "success",
@@ -186,8 +206,36 @@ export const javaTopics: Topic[] = [
       { id: "sql-interview-patterns", title: "Top Interview Patterns & Problems" },
     ],
   },
+];
+
+/* ========================================================================== */
+/*                           ADVANCED JAVA                                    */
+/* ========================================================================== */
+
+const advancedJavaTopics: Topic[] = [
+  {
+    id: "java-multithreading",
+    category: "advanced",
+    title: "Multithreading & Concurrency",
+    icon: "⇶",
+    color: "primary",
+    description: "Threads, synchronization, executors & concurrent utilities",
+    subtopics: [
+      { id: "mt-intro", title: "Threads & Runnable" },
+      { id: "mt-lifecycle", title: "Thread Lifecycle" },
+      { id: "mt-sync", title: "Synchronization & Locks" },
+      { id: "mt-volatile", title: "Volatile & Atomic Variables" },
+      { id: "mt-executor", title: "Executor Framework" },
+      { id: "mt-callable", title: "Callable & Future" },
+      { id: "mt-concurrent", title: "Concurrent Data Structures" },
+      { id: "mt-completable", title: "CompletableFuture" },
+      { id: "mt-forkjoin", title: "Fork/Join Framework" },
+      { id: "mt-patterns", title: "Concurrency Patterns" },
+    ],
+  },
   {
     id: "java-advanced",
+    category: "advanced",
     title: "Advanced Java",
     icon: "🔥",
     color: "warning",
@@ -205,3 +253,248 @@ export const javaTopics: Topic[] = [
     ],
   },
 ];
+
+/* ========================================================================== */
+/*                              SPRING BOOT                                   */
+/* ========================================================================== */
+
+const springBootTopics: Topic[] = [
+  {
+    id: "spring-core",
+    category: "spring-boot",
+    title: "Spring Core Fundamentals",
+    icon: "🌱",
+    color: "primary",
+    description: "IoC, DI, bean lifecycle, scopes & the ApplicationContext",
+    subtopics: [
+      { id: "spring-intro", title: "Introduction to Spring Framework" },
+      { id: "spring-ioc", title: "Inversion of Control (IoC) Container" },
+      { id: "spring-di", title: "Dependency Injection — Constructor, Setter, Field" },
+      { id: "spring-bean-lifecycle", title: "Bean Lifecycle" },
+      { id: "spring-bean-scopes", title: "Bean Scopes — Singleton, Prototype, Request, Session" },
+      { id: "spring-autowiring", title: "Autowiring Modes" },
+      { id: "spring-java-config", title: "Java-based Configuration (@Configuration, @Bean)" },
+      { id: "spring-annotation-config", title: "Annotation-based Configuration" },
+      { id: "spring-component-scan", title: "Component Scanning" },
+      { id: "spring-profiles", title: "Profiles & Environment Abstraction" },
+      { id: "spring-value", title: "@Value & Property Sources" },
+      { id: "spring-context-vs-factory", title: "ApplicationContext vs BeanFactory" },
+      { id: "spring-postprocessor", title: "BeanPostProcessor & BeanFactoryPostProcessor" },
+      { id: "spring-spel", title: "SpEL — Spring Expression Language" },
+    ],
+  },
+  {
+    id: "spring-boot-basics",
+    category: "spring-boot",
+    title: "Spring Boot Basics",
+    icon: "🚀",
+    color: "accent",
+    description: "Auto-configuration, starters, profiles & the Spring Boot CLI",
+    subtopics: [
+      { id: "sb-intro", title: "What is Spring Boot?" },
+      { id: "sb-vs-spring", title: "Spring Boot vs Spring Framework" },
+      { id: "sb-autoconfig", title: "Auto-Configuration Internals" },
+      { id: "sb-springbootapp", title: "@SpringBootApplication Deep Dive" },
+      { id: "sb-starters", title: "Spring Boot Starters" },
+      { id: "sb-config-files", title: "application.properties vs application.yml" },
+      { id: "sb-externalized", title: "Externalized Configuration" },
+      { id: "sb-configuration-props", title: "@ConfigurationProperties" },
+      { id: "sb-profiles", title: "Profiles in Spring Boot" },
+      { id: "sb-logging", title: "Logging — Logback, Log4j2" },
+      { id: "sb-build-run", title: "Building & Running (Maven, Gradle)" },
+      { id: "sb-devtools", title: "Spring Boot DevTools" },
+      { id: "sb-cli", title: "Spring Boot CLI" },
+    ],
+  },
+  {
+    id: "spring-boot-rest",
+    category: "spring-boot",
+    title: "REST APIs with Spring Boot",
+    icon: "🌐",
+    color: "info",
+    description: "Controllers, validation, exception handling, OpenAPI & versioning",
+    subtopics: [
+      { id: "rest-controller", title: "@RestController & @RequestMapping" },
+      { id: "rest-http-methods", title: "HTTP Methods — GET, POST, PUT, DELETE, PATCH" },
+      { id: "rest-path-query", title: "Path Variables & Query Parameters" },
+      { id: "rest-request-body", title: "@RequestBody & @ResponseBody" },
+      { id: "rest-response-entity", title: "ResponseEntity & HttpStatus" },
+      { id: "rest-exception", title: "Exception Handling — @ControllerAdvice" },
+      { id: "rest-validation", title: "Bean Validation (@Valid, @NotNull, @Size)" },
+      { id: "rest-content-negotiation", title: "Content Negotiation" },
+      { id: "rest-hateoas", title: "HATEOAS" },
+      { id: "rest-versioning", title: "API Versioning Strategies" },
+      { id: "rest-openapi", title: "OpenAPI / Swagger Integration" },
+      { id: "rest-cors", title: "CORS Configuration" },
+      { id: "rest-file-upload", title: "File Upload & Download" },
+      { id: "rest-async", title: "Async REST Endpoints" },
+    ],
+  },
+  {
+    id: "spring-data-jpa",
+    category: "spring-boot",
+    title: "Spring Data JPA",
+    icon: "💾",
+    color: "success",
+    description: "Entities, relationships, repositories, transactions & migrations",
+    subtopics: [
+      { id: "jpa-intro", title: "JPA & Hibernate Overview" },
+      { id: "jpa-entity-mapping", title: "Entity Mapping (@Entity, @Id, @GeneratedValue)" },
+      { id: "jpa-column-mapping", title: "Column Mapping & Lifecycle Annotations" },
+      { id: "jpa-relationships", title: "Relationships — @OneToOne, @OneToMany, @ManyToOne, @ManyToMany" },
+      { id: "jpa-cascade", title: "Cascade Types" },
+      { id: "jpa-fetch", title: "Fetch Types — LAZY vs EAGER" },
+      { id: "jpa-repository", title: "Repository Hierarchy (CrudRepository, JpaRepository)" },
+      { id: "jpa-derived-queries", title: "Derived Query Methods" },
+      { id: "jpa-query-annotation", title: "@Query Annotation" },
+      { id: "jpa-native-queries", title: "Native & Named Queries" },
+      { id: "jpa-pagination", title: "Pagination & Sorting" },
+      { id: "jpa-transactions", title: "Transaction Management (@Transactional)" },
+      { id: "jpa-n-plus-1", title: "N+1 Problem & Solutions" },
+      { id: "jpa-migrations", title: "Database Migrations — Flyway, Liquibase" },
+      { id: "jpa-auditing", title: "Auditing — @CreatedDate, @LastModifiedDate" },
+    ],
+  },
+  {
+    id: "spring-security",
+    category: "spring-boot",
+    title: "Spring Security",
+    icon: "🔒",
+    color: "warning",
+    description: "Authentication, authorization, JWT, OAuth2 & method-level security",
+    subtopics: [
+      { id: "sec-intro", title: "Security Fundamentals" },
+      { id: "sec-auth-vs-authz", title: "Authentication vs Authorization" },
+      { id: "sec-filter-chain", title: "SecurityFilterChain" },
+      { id: "sec-in-memory", title: "In-Memory Authentication" },
+      { id: "sec-jdbc", title: "JDBC Authentication" },
+      { id: "sec-user-details", title: "UserDetailsService & UserDetailsManager" },
+      { id: "sec-password", title: "Password Encoding — BCrypt, Argon2" },
+      { id: "sec-jwt", title: "JWT Authentication" },
+      { id: "sec-oauth2", title: "OAuth 2.0 & OpenID Connect" },
+      { id: "sec-method", title: "Method-Level Security — @PreAuthorize, @Secured" },
+      { id: "sec-csrf", title: "CSRF Protection" },
+      { id: "sec-cors", title: "CORS in Security" },
+      { id: "sec-rbac", title: "Role-Based Access Control" },
+      { id: "sec-ldap", title: "LDAP Authentication" },
+    ],
+  },
+  {
+    id: "spring-boot-testing",
+    category: "spring-boot",
+    title: "Spring Boot Testing",
+    icon: "🧪",
+    color: "heap",
+    description: "JUnit 5, Mockito, slice tests, Testcontainers & coverage",
+    subtopics: [
+      { id: "test-intro", title: "Testing in Spring Boot" },
+      { id: "test-junit5", title: "Unit Testing with JUnit 5" },
+      { id: "test-mockito", title: "Mockito & Mocking" },
+      { id: "test-springboottest", title: "@SpringBootTest" },
+      { id: "test-webmvctest", title: "@WebMvcTest" },
+      { id: "test-datajpatest", title: "@DataJpaTest" },
+      { id: "test-mockbean", title: "@MockBean vs @MockitoBean" },
+      { id: "test-testcontainers", title: "Testcontainers" },
+      { id: "test-integration", title: "Integration Testing" },
+      { id: "test-profiles", title: "Test Profiles" },
+      { id: "test-coverage", title: "Code Coverage — JaCoCo" },
+      { id: "test-slice", title: "Slice Annotations Overview" },
+    ],
+  },
+  {
+    id: "spring-boot-microservices",
+    category: "spring-boot",
+    title: "Spring Boot Microservices",
+    icon: "🧩",
+    color: "primary",
+    description: "Service discovery, gateways, circuit breakers & event-driven flows",
+    subtopics: [
+      { id: "ms-intro", title: "Monolith vs Microservices" },
+      { id: "ms-discovery", title: "Service Discovery — Eureka, Consul" },
+      { id: "ms-gateway", title: "API Gateway — Spring Cloud Gateway" },
+      { id: "ms-config", title: "Config Server" },
+      { id: "ms-circuit-breaker", title: "Circuit Breaker — Resilience4j" },
+      { id: "ms-communication", title: "Inter-Service Communication — REST, Feign, WebClient" },
+      { id: "ms-tracing", title: "Distributed Tracing — Sleuth, Zipkin" },
+      { id: "ms-logging", title: "Centralized Logging" },
+      { id: "ms-saga", title: "Saga Pattern" },
+      { id: "ms-event-driven", title: "Event-Driven Architecture" },
+      { id: "ms-api-composition", title: "API Composition" },
+      { id: "ms-service-mesh", title: "Service Mesh Overview" },
+    ],
+  },
+  {
+    id: "spring-boot-actuator",
+    category: "spring-boot",
+    title: "Spring Boot Actuator & Monitoring",
+    icon: "📈",
+    color: "info",
+    description: "Endpoints, health checks, Micrometer, Prometheus & tracing",
+    subtopics: [
+      { id: "act-intro", title: "Introduction to Actuator" },
+      { id: "act-builtin", title: "Built-in Endpoints" },
+      { id: "act-custom", title: "Custom Endpoints" },
+      { id: "act-health", title: "Health Checks" },
+      { id: "act-metrics", title: "Metrics with Micrometer" },
+      { id: "act-prometheus", title: "Prometheus Integration" },
+      { id: "act-tracing", title: "Distributed Tracing — Sleuth, Zipkin" },
+      { id: "act-custom-health", title: "Custom Health Indicators" },
+      { id: "act-info", title: "Application Info & Git Info" },
+      { id: "act-loggers", title: "Loggers Endpoint" },
+      { id: "act-dumps", title: "Thread Dump & Heap Dump" },
+    ],
+  },
+];
+
+/* ========================================================================== */
+/*                              EXPORTS                                       */
+/* ========================================================================== */
+
+/**
+ * Flat list — kept for every existing consumer (AppSidebar, TopicPage, App.tsx
+ * search index, JavaTreeBanner). Order matches the user-facing grouping:
+ * Core Java → Advanced Java → Spring Boot.
+ */
+export const javaTopics: Topic[] = [
+  ...coreJavaTopics,
+  ...advancedJavaTopics,
+  ...springBootTopics,
+];
+
+/**
+ * Grouped view — for UIs that want to render Java theory as three sections
+ * (Core / Advanced / Spring Boot) instead of one flat list.
+ */
+export const JAVA_CATEGORIES: JavaCategory[] = [
+  {
+    id: "core",
+    title: "Core Java",
+    subtitle: "Language fundamentals",
+    description: "Every Java developer must know these — syntax, OOP, collections, streams, I/O, JDBC & SQL.",
+    topics: coreJavaTopics,
+  },
+  {
+    id: "advanced",
+    title: "Advanced Java",
+    subtitle: "Internals & deep dives",
+    description: "Multithreading, JVM internals, reflection, design patterns & modern Java features.",
+    topics: advancedJavaTopics,
+  },
+  {
+    id: "spring-boot",
+    title: "Spring Boot",
+    subtitle: "Framework & ecosystem",
+    description: "Spring Core, Boot, REST, Data JPA, Security, Testing, Microservices & Actuator — theory added one topic at a time.",
+    topics: springBootTopics,
+  },
+];
+
+/** Convenience: a topic's category id → the matching JavaCategory record. */
+export const JAVA_CATEGORY_BY_ID: Record<JavaCategoryId, JavaCategory> =
+  JAVA_CATEGORIES.reduce(
+    (acc, cat) => {
+      acc[cat.id] = cat;
+      return acc;
+    },
+    {} as Record<JavaCategoryId, JavaCategory>,
+  );

@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";import { Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, Check, CalendarDays, Map as MapIcon, Play, Sparkles
+  ArrowRight, Check, CalendarDays, Map as MapIcon, Play, Sparkles, Coffee
 } from "lucide-react";
 import { RoadmapFullscreenOverlay } from "@/components/roadmap/RoadmapFullscreenOverlay";
 
 const SECTIONS = [
   {
-    id: "roadmaps",
-    title: "Roadmaps",
-    subtitle: "Interactive mind-maps",
-    desc: "Full-screen, distraction-free interactive mind-maps for DSA, Java, and System Design. Pan, zoom, drag, and track your progress.",
-    icon: <MapIcon size={24} />,
-    color: "#A78BFA",
-    tag: "Roadmaps",
-    route: "__open_roadmap__",
-    stats: "3 Learning Paths",
+    id: "advanced-java",
+    title: "Advanced Java",
+    subtitle: "Master the deep end",
+    desc: "Reflection, JVM internals, garbage collection, design patterns, and modern Java 17+ features — the theory interviewers actually ask about.",
+    icon: <Coffee size={24} />,
+    color: "#F472B6",
+    tag: "Java Theory",
+    route: "/java-advanced",
+    stats: "9 Deep Topics",
   },
   {
     id: "interview",
