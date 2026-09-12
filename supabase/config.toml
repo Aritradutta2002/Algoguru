@@ -1,4 +1,4 @@
-project_id = "xemkazcectlganbrolxq"
+project_id = "tgzyttzmtsnlxxiywoww"
 
 [functions.guru-chat]
 verify_jwt = false
@@ -13,4 +13,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.leetcode-problem]
+verify_jwt = false
+
+[functions.leetcode-user]
 verify_jwt = false

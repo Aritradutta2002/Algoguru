@@ -14,10 +14,15 @@ import {
   Share2,
   GraduationCap,
   ChevronDown,
+  RefreshCw,
 } from "lucide-react";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { cn } from "@/lib/utils";
 import { practiceData } from "@/data/practiceData";
+import {
+  fetchLeetcodeUserStats,
+  LeetcodeUserNotFoundError,
+} from "@/lib/leetcodeUserStats";
 
 // Build a lookup of problem_id -> difficulty from the static practice sheet.
 const PROBLEM_DIFFICULTY_MAP: Record<string, "Easy" | "Medium" | "Hard"> =
@@ -50,58 +55,6 @@ interface LeetcodeData {
   submissionCalendar: Record<string, number>;
   activeYears: number[];
 }
-
-const parseLeetcodeCalendarPayload = (
-  payload: any,
-): { calendar: Record<string, number>; activeYears: number[] } => {
-  const calendarSource =
-    payload?.data?.matchedUser?.userCalendar ??
-    payload?.matchedUser?.userCalendar ??
-    payload;
-
-  const rawCalendar =
-    calendarSource?.submissionCalendar ?? payload?.submissionCalendar;
-
-  let parsedCalendar: Record<string, unknown> = {};
-  try {
-    if (typeof rawCalendar === "string") {
-      parsedCalendar = JSON.parse(rawCalendar);
-    } else if (rawCalendar && typeof rawCalendar === "object") {
-      parsedCalendar = rawCalendar;
-    }
-  } catch (e) {
-    console.error("Failed to parse LeetCode calendar", e);
-  }
-
-  const calendar = Object.entries(parsedCalendar).reduce<
-    Record<string, number>
-  >((acc, [dateKey, value]) => {
-    const count = Number(value);
-    if (dateKey && Number.isFinite(count) && count > 0) {
-      acc[dateKey] = (acc[dateKey] || 0) + count;
-    }
-    return acc;
-  }, {});
-
-  const activeYears = Array.isArray(calendarSource?.activeYears)
-    ? calendarSource.activeYears
-        .map((year: unknown) => Number(year))
-        .filter((year: number) => Number.isInteger(year))
-    : [];
-
-  return { calendar, activeYears };
-};
-
-const mergeLeetcodeCalendars = (
-  calendars: Array<Record<string, number>>,
-): Record<string, number> => {
-  return calendars.reduce<Record<string, number>>((acc, calendar) => {
-    Object.entries(calendar).forEach(([dateKey, count]) => {
-      acc[dateKey] = (acc[dateKey] || 0) + count;
-    });
-    return acc;
-  }, {});
-};
 
 interface CodechefData {
   currentRating: number;
@@ -268,146 +221,57 @@ export default function Profile() {
     setSaving(false);
   };
 
-  const fetchLeetcodeStats = async (username: string) => {
+  const fetchLeetcodeStats = async (username: string, force = false) => {
     setIsLeetcodeLoading(true);
     try {
-      // The /solved endpoint returns the actual solved counts; the base profile
-      // endpoint does NOT. /calendar returns the submission heatmap.
-      const [solvedRes, calendarRes] = await Promise.all([
-        fetch(`https://alfa-leetcode-api.onrender.com/${username}/solved`),
-        fetch(`https://alfa-leetcode-api.onrender.com/${username}/calendar`),
-      ]);
+      // Data flows through the `leetcode-user` edge function, which queries
+      // LeetCode's own GraphQL API server-side. The previous implementation
+      // called the free public `alfa-leetcode-api.onrender.com` wrapper
+      // straight from the browser, which is shared and rate-limited (HTTP 429)
+      // — the cause of the intermittent "API is currently unavailable" toast.
+      const result = await fetchLeetcodeUserStats(username, { force });
+      const stats = result.stats;
 
-      if (!solvedRes.ok) {
-        throw new Error("Failed to fetch LeetCode data");
-      }
+      setLeetcodeData({
+        totalSolved: stats.totalSolved,
+        totalQuestions: stats.totalQuestions || 3000,
+        easySolved: stats.easySolved,
+        totalEasy: stats.totalEasy,
+        mediumSolved: stats.mediumSolved,
+        totalMedium: stats.totalMedium,
+        hardSolved: stats.hardSolved,
+        totalHard: stats.totalHard,
+        submissionCalendar: stats.submissionCalendar,
+        activeYears: stats.activeYears,
+      });
 
-      const solvedData = await solvedRes.json();
-      const calendarData = calendarRes.ok ? await calendarRes.json() : {};
-
-      if (solvedData.errors || solvedData.solvedProblem === undefined) {
+      if (result.stale) {
         toast({
-          title: "LeetCode fetch failed",
-          description: "Invalid username or no data available",
-          variant: "destructive",
+          title: "Showing cached LeetCode stats",
+          description:
+            "LeetCode is temporarily unreachable, so your last synced stats are displayed.",
         });
-        return;
-      }
-
-      // Total questions available on LeetCode (used as the ring denominator).
-      const allQuestionsCount: Array<{ difficulty: string; count: number }> =
-        solvedData.totalSubmissionNum ?? [];
-      const allCount = allQuestionsCount.find((q) => q.difficulty === "All")
-        ?.count;
-      const totalEasy =
-        allQuestionsCount.find((q) => q.difficulty === "Easy")?.count ?? 0;
-      const totalMedium =
-        allQuestionsCount.find((q) => q.difficulty === "Medium")?.count ?? 0;
-      const totalHard =
-        allQuestionsCount.find((q) => q.difficulty === "Hard")?.count ?? 0;
-
-      const baseCalendar = parseLeetcodeCalendarPayload(calendarData);
-      const currentYear = new Date().getFullYear();
-      const yearsToFetch = Array.from(
-        new Set(
-          (baseCalendar.activeYears.length > 0
-            ? baseCalendar.activeYears
-            : [currentYear, currentYear - 1, currentYear - 2]
-          ).filter((year) => year <= currentYear),
-        ),
-      );
-
-      // Fetch each year's calendar with a small delay to avoid rate limits
-      const yearlyCalendars: Array<Record<string, number>> = [];
-      for (let i = 0; i < yearsToFetch.length; i++) {
-        const year = yearsToFetch[i];
-        try {
-          const res = await fetch(
-            `https://alfa-leetcode-api.onrender.com/${username}/calendar?year=${year}`,
-          );
-          if (res.ok) {
-            const yearData = await res.json();
-            const parsedYearCalendar = parseLeetcodeCalendarPayload(yearData);
-            yearlyCalendars.push(parsedYearCalendar.calendar);
-          }
-        } catch (e) {
-          console.warn(`Failed to fetch LeetCode calendar for year ${year}`, e);
-        }
-        // Add a small delay between API calls to avoid hitting rate limits
-        if (i < yearsToFetch.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-      }
-
-      const parsedCalendar = mergeLeetcodeCalendars([
-        baseCalendar.calendar,
-        ...yearlyCalendars
-      ]);
-
-      const activeYears =
-        baseCalendar.activeYears.length > 0
-          ? baseCalendar.activeYears
-          : Array.from(
-              new Set(
-                Object.keys(parsedCalendar)
-                  .map((dateKey) => {
-                    const timestamp = Number(dateKey);
-                    if (Number.isFinite(timestamp)) {
-                      return new Date(timestamp * 1000).getUTCFullYear();
-                    }
-                    const parsedDate = new Date(dateKey);
-                    return Number.isNaN(parsedDate.getTime())
-                      ? null
-                      : parsedDate.getFullYear();
-                  })
-                  .filter((year): year is number => year !== null),
-              ),
-            );
-
-      if (calendarRes.ok && baseCalendar.activeYears.length === 0) {
-        const legacyCalendarYears = Object.keys(baseCalendar.calendar)
-          .map((dateKey) => {
-            const timestamp = Number(dateKey);
-            if (Number.isFinite(timestamp)) {
-              return new Date(timestamp * 1000).getUTCFullYear();
-            }
-            const parsedDate = new Date(dateKey);
-            return Number.isNaN(parsedDate.getTime())
-              ? null
-              : parsedDate.getFullYear();
-          })
-          .filter((year): year is number => year !== null);
-        if (legacyCalendarYears.length > 0) {
-          activeYears.push(...legacyCalendarYears);
-        }
-      }
-
-      if (Object.keys(parsedCalendar).length === 0) {
+      } else if (Object.keys(stats.submissionCalendar).length === 0) {
         toast({
           title: "LeetCode calendar unavailable",
           description:
             "Solved counts imported, but LeetCode did not return calendar activity.",
         });
       }
-
-      setLeetcodeData({
-        totalSolved: solvedData.solvedProblem ?? 0,
-        totalQuestions: allCount ?? 3000,
-        easySolved: solvedData.easySolved ?? 0,
-        totalEasy,
-        mediumSolved: solvedData.mediumSolved ?? 0,
-        totalMedium,
-        hardSolved: solvedData.hardSolved ?? 0,
-        totalHard,
-        submissionCalendar: parsedCalendar,
-        activeYears: Array.from(new Set(activeYears)).sort((a, b) => b - a),
-      });
     } catch (err) {
-      toast({
-        title: "LeetCode API Error",
-        description: "The API is currently unavailable. Try again later.",
-        variant: "destructive",
-      });
+      if (err instanceof LeetcodeUserNotFoundError) {
+        toast({
+          title: "LeetCode fetch failed",
+          description: "Invalid username or no data available",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "LeetCode API Error",
+          description: "The API is currently unavailable. Try again later.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLeetcodeLoading(false);
     }
@@ -484,6 +348,12 @@ export default function Profile() {
     ) {
       fetchCodechefStats(profile.codechef_username);
     }
+  };
+
+  // Manual refresh: bypass all caches and pull fresh data from LeetCode.
+  const handleRefreshLeetcode = () => {
+    if (!profile?.leetcode_username || isLeetcodeLoading) return;
+    fetchLeetcodeStats(profile.leetcode_username, true);
   };
 
   const fetchWebsiteStats = async () => {
@@ -1010,9 +880,26 @@ export default function Profile() {
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
               <div ref={dsaCardRef} className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col relative min-h-[320px] xl:col-span-2 2xl:col-span-1">
                 <div className="flex flex-col items-start gap-4 w-full mb-8 relative z-10">
-                  <h3 className="text-base font-semibold text-foreground shrink-0">
-                    DSA progress
-                  </h3>
+                  <div className="flex items-center justify-between w-full gap-3">
+                    <h3 className="text-base font-semibold text-foreground shrink-0">
+                      DSA progress
+                    </h3>
+                    {dataMode === "leetcode" && profile?.leetcode_username && (
+                      <button
+                        onClick={handleRefreshLeetcode}
+                        disabled={isLeetcodeLoading}
+                        title="Refresh LeetCode stats"
+                        aria-label="Refresh LeetCode stats"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                      >
+                        <RefreshCw
+                          size={12}
+                          className={isLeetcodeLoading ? "animate-spin" : ""}
+                        />
+                        Refresh
+                      </button>
+                    )}
+                  </div>
 
                   {/* ── Adaptive toggle: inline pills when wide, dropdown when narrow ── */}
                   {isNarrowDsa ? (
