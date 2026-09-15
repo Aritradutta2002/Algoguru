@@ -2,6 +2,15 @@ export interface DiagramBox {
   label: string;
   children?: DiagramBox[];
   color?: string; // CSS var like "primary", "accent", "success"
+  /**
+   * Composition diagrams only — the visual role this node plays.
+   * "group" renders a container panel, "circle" a leaf node inside a
+   * container, "text" a panel whose body is free-form prose.
+   * Defaults to "group" when the node has children, otherwise "text".
+   */
+  variant?: "group" | "circle" | "text";
+  /** Composition diagrams only — body copy rendered under the node label. */
+  description?: string;
 }
 
 export interface GraphNode {
@@ -32,7 +41,7 @@ export interface GraphDiagramData {
 }
 
 export interface Diagram {
-  type: "layers" | "hierarchy" | "flow" | "table-visual" | "graph";
+  type: "layers" | "hierarchy" | "flow" | "table-visual" | "graph" | "composition";
   title: string;
   data: DiagramBox[] | GraphDiagramData;
   direction?: "vertical" | "horizontal";

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { Fragment, useId, useMemo, useState } from "react";
 import { Diagram, DiagramBox, GraphDiagramData, GraphNode, GraphEdge } from "@/data/recursionContent";
 import { motion } from "framer-motion";
 import {
@@ -7,6 +7,7 @@ import {
   Workflow,
   TableProperties,
   Network,
+  Boxes,
   ArrowRight,
   ArrowDown,
   Sparkles,
@@ -643,6 +644,193 @@ function GraphDiagram({ data }: { data: GraphDiagramData }) {
 }
 
 /* ══════════════════════════════════════════════════════════
+   6. COMPOSITION DIAGRAM (Nested Set / "is composed of" Figure)
+   ── Palette and geometry sampled directly from the reference
+      artwork so the render matches the source figure:
+        root fill   #D0E8C7   (753 × 377 outer panel)
+        group fill  #FFEAB2   (400 × 250 / 269 × 250 panels)
+        leaf fill   #D3E6FF   (154 px diameter circles)
+        ink         #0A0A0A   1.5 px strokes + bold type
+
+      All sizing lives in the `.diag-compose*` rules in index.css and
+      is expressed in `cqi`, i.e. a fraction of this figure's own width
+      rather than the viewport width. That matters because the diagram
+      renders inside a content column narrower than the viewport — with
+      viewport media queries the type scale would be too large for the
+      column and would overflow the panels.
+   ══════════════════════════════════════════════════════════ */
+
+/** Stable, human-readable fragment used to build aria-labelledby ids. */
+const composeSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+/** "a, b and c" */
+function joinWithAnd(items: string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+/**
+ * Flattens the composition tree into prose sentences, used as the
+ * figure's text alternative for assistive technology.
+ */
+function describeComposition(node: DiagramBox): string[] {
+  const children = node.children ?? [];
+  const self = children.length
+    ? `${node.label} contains ${joinWithAnd(children.map((c) => c.label))}`
+    : node.description
+      ? `${node.label} — ${node.description}`
+      : null;
+  return [...(self ? [self] : []), ...children.flatMap(describeComposition)];
+}
+
+/** True when every child is a circle — i.e. a leaf cluster. */
+function isCircleCluster(node: DiagramBox): boolean {
+  const children = node.children ?? [];
+  return children.length > 0 && children.every((c) => c.variant === "circle");
+}
+
+function CompositionDiagram({ data }: { data: DiagramBox[] }) {
+  const root = data[0];
+  const baseId = useId();
+
+  const caption = useMemo(
+    () => (root ? describeComposition(root).join(" ") : ""),
+    [root],
+  );
+
+  if (!root) return null;
+
+  const idFor = (path: string[]) => `${baseId}-${path.map(composeSlug).join("-")}`;
+
+  /** Decorative "+" operator joining sibling nodes. */
+  const operator = (tone: "outer" | "inner") => (
+    <span aria-hidden="true" className={`diag-compose-op diag-compose-op-${tone}`}>
+      +
+    </span>
+  );
+
+  const renderLeaf = (label: string) => (
+    <div className="diag-compose-leaf">
+      <span>{label}</span>
+    </div>
+  );
+
+  /**
+   * Leaf cluster — sibling nodes rendered as circles joined by "+".
+   * The circle styling sits on the <li> itself so its percentage width
+   * resolves against the list's definite width rather than an auto-width box
+   * (which would collapse it to zero). The operator flexes to absorb the
+   * leftover 16% of the row, which is what puts the "+" midway between the
+   * circles as in the reference.
+   */
+  const renderCircleCluster = (nodes: DiagramBox[]) => (
+    <ul role="list" className="diag-compose-leaves">
+      {nodes.map((node, i) => (
+        <Fragment key={node.label}>
+          {i > 0 && (
+            <li aria-hidden="true" className="diag-compose-op diag-compose-op-inner">
+              +
+            </li>
+          )}
+          <li className="diag-compose-leaf">
+            <span>{node.label}</span>
+          </li>
+        </Fragment>
+      ))}
+    </ul>
+  );
+
+  /** A single node: container panel, circle leaf, or prose panel. */
+  const renderNode = (node: DiagramBox, path: string[]): React.ReactNode => {
+    if (node.variant === "circle") return renderLeaf(node.label);
+
+    const labelId = idFor([...path, node.label]);
+    const children = node.children ?? [];
+    const hasCircleCluster = isCircleCluster(node);
+    const isNestedGroup = children.length > 0 && !hasCircleCluster;
+
+    return (
+      <div role="group" aria-labelledby={labelId} className="diag-compose-group">
+        {/*
+          The title is taken out of flow and parked in the top padding (see
+          .diag-compose-title). That keeps the content area symmetric, so
+          circles and prose centre on the panel's midline exactly as in the
+          reference — where the title also sits inside the padding rather
+          than displacing the content.
+        */}
+        <p id={labelId} className="diag-compose-title">
+          {node.label}
+        </p>
+
+        {hasCircleCluster && renderCircleCluster(children)}
+
+        {isNestedGroup && (
+          <div className="flex flex-1 flex-col items-center justify-center gap-1">
+            {children.map((child, i) => (
+              <Fragment key={child.label}>
+                {i > 0 && (
+                  <div className="flex shrink-0 items-center justify-center py-0.5">
+                    {operator("inner")}
+                  </div>
+                )}
+                <div className="flex w-full min-w-0">{renderNode(child, [...path, node.label])}</div>
+              </Fragment>
+            ))}
+          </div>
+        )}
+
+        {!children.length && node.description && (
+          <p className="diag-compose-body">{node.description}</p>
+        )}
+      </div>
+    );
+  };
+
+  const topLevel = root.children ?? [];
+  const rootLabelId = idFor([root.label]);
+
+  return (
+    <figure className="diag-compose">
+      <div role="group" aria-labelledby={rootLabelId} className="diag-compose-root">
+        <div className="diag-compose-row">
+          {topLevel.map((child, i) => (
+            <Fragment key={child.label}>
+              {i > 0 && operator("outer")}
+              {/*
+                Circle clusters carry two nodes side by side, so they claim
+                ~1.5× the width of a prose panel — the reference's 400 : 269
+                split. flex-basis 0 makes that ratio exact rather than
+                dependent on intrinsic content width.
+              */}
+              <div
+                className={
+                  isCircleCluster(child)
+                    ? "diag-compose-cell diag-compose-cell-wide"
+                    : "diag-compose-cell"
+                }
+              >
+                {renderNode(child, [root.label])}
+              </div>
+            </Fragment>
+          ))}
+        </div>
+
+        <p id={rootLabelId} className="diag-compose-label">
+          {root.label}
+        </p>
+      </div>
+
+      <figcaption className="sr-only">{caption}</figcaption>
+    </figure>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
    MASTER DIAGRAM CONTAINER
    ══════════════════════════════════════════════════════════ */
 const DIAGRAM_TYPE_CONFIG: Record<
@@ -673,6 +861,11 @@ const DIAGRAM_TYPE_CONFIG: Record<
     label: "Network Graph",
     icon: <Network size={15} />,
     color: "var(--accent)",
+  },
+  composition: {
+    label: "Composition Breakdown",
+    icon: <Boxes size={15} />,
+    color: "var(--success)",
   },
 };
 
@@ -763,6 +956,9 @@ export function DiagramRenderer({ diagram }: { diagram: Diagram }) {
         )}
         {diagram.type === "graph" && (
           <GraphDiagram data={diagram.data as GraphDiagramData} />
+        )}
+        {diagram.type === "composition" && (
+          <CompositionDiagram data={diagram.data as DiagramBox[]} />
         )}
       </div>
     </motion.div>

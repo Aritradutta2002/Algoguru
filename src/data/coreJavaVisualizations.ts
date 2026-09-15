@@ -2,42 +2,31 @@ import type { Diagram } from "@/data/recursionContent";
 
 /**
  * Scoped visualization data for Core Java interview questions.
- * Reuses the existing DiagramRenderer component (layers/hierarchy/flow/table-visual/graph).
+ * Reuses the existing DiagramRenderer component (layers/hierarchy/flow/table-visual/graph/composition).
  * All content is derived from the existing question answers — no fabricated facts.
  */
 export const coreJavaVisualizations: Record<string, Diagram> = {
   // ── Java Basics ──
   b2: {
-    type: "layers",
+    type: "composition",
     title: "JDK ⊃ JRE ⊃ JVM",
     data: [
       {
-        label: "JDK — Java Development Kit",
-        color: "primary",
+        label: "JDK",
+        variant: "group",
         children: [
           {
-            label: "Development Tools — javac, jar, javadoc, jdb",
-            color: "info",
+            label: "JRE",
+            variant: "group",
+            children: [
+              { label: "JVM", variant: "circle" },
+              { label: "Libraries Set", variant: "circle" },
+            ],
           },
           {
-            label: "JRE — Java Runtime Environment",
-            color: "accent",
-            children: [
-              {
-                label: "Core Libraries — java.lang, java.util, java.io",
-                color: "success",
-              },
-              {
-                label: "JVM — Java Virtual Machine",
-                color: "warning",
-                children: [
-                  {
-                    label: "Class Loader → Bytecode Verifier → Execution Engine (Interpreter + JIT)",
-                    color: "heap",
-                  },
-                ],
-              },
-            ],
+            label: "Development Tools",
+            variant: "text",
+            description: "Java Compiler, Java Debugger, etc",
           },
         ],
       },
