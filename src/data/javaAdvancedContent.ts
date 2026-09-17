@@ -177,34 +177,41 @@ public class AnnotationDemo {
       title: "JVM Architecture",
       data: [
         {
-          label: "JVM (Java Virtual Machine)",
-          color: "primary",
+          label: "Class Loader",
+          color: "info",
           children: [
-            {
-              label: "Class Loader Subsystem",
-              color: "info",
-              children: [
-                { label: "Bootstrap → Extension → Application ClassLoader", color: "info" }
-              ]
-            },
-            {
-              label: "Runtime Data Areas (Memory)",
-              color: "warning",
-              children: [
-                { label: "Heap (Objects & Arrays — shared, GC managed)", color: "accent" },
-                { label: "Stack (Per thread — local vars, method frames)", color: "success" },
-                { label: "Method Area / Metaspace (Class metadata, statics)", color: "heap" },
-                { label: "PC Register + Native Method Stack (Per thread)", color: "muted" }
-              ]
-            },
-            {
-              label: "Execution Engine",
-              color: "primary",
-              children: [
-                { label: "Interpreter + JIT Compiler + Garbage Collector", color: "primary" }
-              ]
-            }
+            { label: "Loading", color: "info" },
+            { label: "Linking", color: "info" },
+            { label: "Initialization", color: "info" }
           ]
+        },
+        {
+          label: "Runtime Data Area",
+          color: "warning",
+          children: [
+            { label: "Method Area", color: "warning" },
+            { label: "Heap Area", color: "warning" },
+            { label: "Stack Area", color: "warning" },
+            { label: "PC Register", color: "warning" },
+            { label: "Native Method Stack", color: "warning" }
+          ]
+        },
+        {
+          label: "Execution Engine",
+          color: "accent",
+          children: [
+            { label: "Interpreter", color: "accent" },
+            { label: "JIT Compiler", color: "accent" },
+            { label: "Garbage Collector", color: "accent" }
+          ]
+        },
+        {
+          label: "Native Method Interface (JNI)",
+          color: "success"
+        },
+        {
+          label: "Native Method Library",
+          color: "success"
         }
       ]
     },

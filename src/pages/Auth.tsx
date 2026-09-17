@@ -8,6 +8,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { getAuthRedirectUrl } from "@/lib/authUrl";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
@@ -124,7 +125,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { data: { full_name: name.trim() }, emailRedirectTo: import.meta.env.VITE_PUBLIC_BASE_URL || "https://algoguru.online" },
+        options: { data: { full_name: name.trim() }, emailRedirectTo: getAuthRedirectUrl() },
       });
       if (error) {
         setError(error.message);
@@ -142,7 +143,7 @@ export default function Auth() {
     setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: import.meta.env.VITE_PUBLIC_BASE_URL || "https://algoguru.online" },
+      options: { redirectTo: getAuthRedirectUrl() },
     });
     if (error) setError(error.message);
     setLoading(false);
