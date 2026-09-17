@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springBootMicroservicesVisualizations } from "./springBootMicroservicesVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  Spring Boot Microservices — Complete In-Depth Theory                      */
@@ -7,7 +9,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Boot 3.x / Spring Cloud 2023+ / Java 17+.          */
 /* -------------------------------------------------------------------------- */
 
-export const springBootMicroservicesContent: ContentSection[] = [
+const springBootMicroservicesRaw: ContentSection[] = [
   {
     id: "ms-intro",
     title: "Monolith vs Microservices",
@@ -626,3 +628,8 @@ spec:
     note: "When using a Service Mesh like Istio, you can eliminate Spring Cloud Netflix Eureka, Ribbon, and Zuul from your Java applications, keeping your Spring Boot microservices lightweight and focused purely on business logic."
   }
 ];
+
+export const springBootMicroservicesContent: ContentSection[] = attachDiagrams(
+  springBootMicroservicesRaw,
+  springBootMicroservicesVisualizations,
+);

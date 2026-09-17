@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springDataJpaVisualizations } from "./springDataJpaVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  Spring Data JPA — Complete In-Depth Theory                                */
@@ -7,7 +9,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Boot 3.x / Hibernate 6.x / Java 17+.               */
 /* -------------------------------------------------------------------------- */
 
-export const springDataJpaContent: ContentSection[] = [
+const springDataJpaRaw: ContentSection[] = [
   {
     id: "jpa-intro",
     title: "JPA & Hibernate Overview",
@@ -893,3 +895,8 @@ class AuditConfig {
     tip: "Use `@MappedSuperclass` on base entity classes so child entities inherit auditing fields without generating a separate table."
   }
 ];
+
+export const springDataJpaContent: ContentSection[] = attachDiagrams(
+  springDataJpaRaw,
+  springDataJpaVisualizations,
+);

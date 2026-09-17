@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springBootBasicsVisualizations } from "./springBootBasicsVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  Spring Boot Basics — Complete In-Depth Theory                             */
@@ -7,7 +9,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Boot 3.x / Java 17+.                               */
 /* -------------------------------------------------------------------------- */
 
-export const springBootBasicsContent: ContentSection[] = [
+const springBootBasicsRaw: ContentSection[] = [
   {
     id: "sb-intro",
     title: "What is Spring Boot?",
@@ -677,3 +679,8 @@ class HelloController {
     tip: "Use `spring init -d=web,data-jpa,security --build=maven --java-version=17 my-service` to spin up a production-ready starter project in one terminal command."
   }
 ];
+
+export const springBootBasicsContent: ContentSection[] = attachDiagrams(
+  springBootBasicsRaw,
+  springBootBasicsVisualizations,
+);

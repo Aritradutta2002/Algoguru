@@ -817,6 +817,40 @@ export const coreJavaVisualizations: Record<string, Diagram> = {
       { label: "orElseThrow() when absence is an error", color: "warning" },
     ],
   },
+  // ── OOP (continued) ──
+  o3: {
+    type: "flow",
+    title: "Encapsulation — Guarded State",
+    direction: "vertical",
+    data: [
+      { label: "private fields — hidden state", color: "primary", children: [{ label: "No direct access from outside" }] },
+      { label: "public getters — controlled reads", color: "info" },
+      { label: "validated setters — enforced invariants", color: "accent", children: [{ label: "setAge rejects negatives" }] },
+      { label: "Internal refactor invisible to callers", color: "success" },
+    ],
+  },
+  o6: {
+    type: "flow",
+    title: "Polymorphism — Overload vs Override",
+    direction: "horizontal",
+    data: [
+      { label: "log(String)", color: "primary" },
+      { label: "log(String, int) — overload", color: "info", children: [{ label: "Compile-time • reference type decides" }] },
+      { label: "Payment p = new UPI()", color: "accent" },
+      { label: "p.pay(50) — override", color: "success", children: [{ label: "Runtime • object type decides" }] },
+    ],
+  },
+  o12: {
+    type: "flow",
+    title: "super() — Parent First",
+    direction: "vertical",
+    data: [
+      { label: "Child constructor called", color: "primary" },
+      { label: "super(args) MUST be first statement", color: "warning", children: [{ label: "No implicit super() if parent lacks no-arg ctor" }] },
+      { label: "Parent fields initialized", color: "info" },
+      { label: "Child fields initialized", color: "success" },
+    ],
+  },
   io3: {
     type: "flow",
     title: "Serialization — Object ↔ Bytes",
@@ -827,6 +861,137 @@ export const coreJavaVisualizations: Record<string, Diagram> = {
       { label: "Byte stream (file/network)", color: "accent" },
       { label: "ObjectInputStream", color: "info" },
       { label: "Object (restored)", color: "success" },
+    ],
+  },
+  // ── Strings (continued) ──
+  s2: {
+    type: "flow",
+    title: "Why String Is Immutable",
+    direction: "vertical",
+    data: [
+      { label: "char[] / byte[] is final + private", color: "primary" },
+      { label: "No method mutates the array in place", color: "info", children: [{ label: "All ops return a NEW String" }] },
+      { label: "class String is final — no subclass can break it", color: "accent" },
+      {
+        label: "Benefits",
+        color: "success",
+        children: [{ label: "Safe String Pool sharing" }, { label: "Thread-safety • cached hashCode" }],
+      },
+    ],
+  },
+  s3: {
+    type: "table-visual",
+    title: "String vs StringBuilder vs StringBuffer",
+    data: [
+      {
+        label: "String — immutable",
+        color: "primary",
+        children: [{ label: "Every + creates a new object — O(n²) in loops" }, { label: "Best for constants and keys" }],
+      },
+      {
+        label: "StringBuilder — mutable, fast",
+        color: "success",
+        children: [{ label: "Resizable buffer, starts at capacity 16" }, { label: "NOT thread-safe — single-thread default" }],
+      },
+      {
+        label: "StringBuffer — mutable, synchronized",
+        color: "warning",
+        children: [{ label: "Same API, lock overhead on every method" }, { label: "Only when threads share one builder" }],
+      },
+    ],
+  },
+  // ── Exceptions (continued) ──
+  e2: {
+    type: "table-visual",
+    title: "throw vs throws",
+    data: [
+      {
+        label: "throw — the action",
+        color: "primary",
+        children: [{ label: "Inside a method body" }, { label: "throw new IOException — raises it now" }],
+      },
+      {
+        label: "throws — the declaration",
+        color: "info",
+        children: [{ label: "In the method signature" }, { label: "void read() throws IOException — warns callers" }, { label: "Caller must catch or re-declare" }],
+      },
+    ],
+  },
+  e3: {
+    type: "flow",
+    title: "finally — Cleanup That Always Runs",
+    direction: "vertical",
+    data: [
+      { label: "try { work }", color: "primary" },
+      { label: "catch — optional, handles failure", color: "info" },
+      { label: "finally — always executes", color: "accent", children: [{ label: "Skipped only by System.exit() / JVM crash" }] },
+      { label: "Gotcha: return in finally overrides try/catch", color: "warning", children: [{ label: "Never return from finally" }] },
+      { label: "Modern alternative: try-with-resources", color: "success" },
+    ],
+  },
+  e8: {
+    type: "flow",
+    title: "Exception Propagation Up the Stack",
+    direction: "vertical",
+    data: [
+      { label: "level3() throws", color: "primary" },
+      { label: "level2() — no catch, unwinds", color: "info" },
+      { label: "level1() catches ArithmeticException", color: "success", children: [{ label: "e.printStackTrace() shows level3 → level2 → level1" }] },
+      { label: "Unchecked: auto • Checked: throws at each level", color: "accent" },
+    ],
+  },
+  // ── Inheritance & Polymorphism traps ──
+  ip1: {
+    type: "table-visual",
+    title: "Overriding vs Static Hiding",
+    data: [
+      {
+        label: "Instance method — true override",
+        color: "success",
+        children: [{ label: "Parent p = new Child(); p.greet() runs Child" }, { label: "@Override compiles • runtime dispatch" }],
+      },
+      {
+        label: "static method — hiding, NOT overriding",
+        color: "warning",
+        children: [{ label: "Parent p = new Child(); p.greet() runs Parent" }, { label: "@Override fails • compile-time binding" }, { label: "Call via ClassName.method()" }],
+      },
+    ],
+  },
+  ip5: {
+    type: "table-visual",
+    title: "Inheritance vs Composition",
+    data: [
+      {
+        label: "Inheritance — is-a",
+        color: "info",
+        children: [{ label: "Dog extends Animal" }, { label: "Fragile base class • one parent only" }],
+      },
+      {
+        label: "Composition — has-a",
+        color: "success",
+        children: [{ label: "Car has an Engine" }, { label: "Flexible • testable • preferred default" }],
+      },
+    ],
+  },
+  // ── Threads (continued) ──
+  mt1: {
+    type: "flow",
+    title: "Three Ways to Start a Thread",
+    direction: "horizontal",
+    data: [
+      { label: "new Thread(task).start()", color: "primary", children: [{ label: "start() creates the thread • run() does not" }] },
+      { label: "Runnable / lambda (preferred)", color: "info" },
+      { label: "Callable + ExecutorService", color: "success", children: [{ label: "Returns Future<T> • pool.shutdown()" }] },
+    ],
+  },
+  // ── Generics (continued) ──
+  g1: {
+    type: "flow",
+    title: "Before vs After Generics",
+    direction: "horizontal",
+    data: [
+      { label: "List + cast at runtime", color: "warning", children: [{ label: "ClassCastException at runtime" }] },
+      { label: "List<String> — compile-time", color: "success", children: [{ label: "Wrong add() = compile error" }, { label: "No casts • self-documenting" }] },
     ],
   },
 };

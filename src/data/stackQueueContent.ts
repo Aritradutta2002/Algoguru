@@ -1,6 +1,8 @@
 import { ContentSection } from "@/data/recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { dsaVisualizations } from "./dsaVisualizations";
 
-export const stackQueueContent: ContentSection[] = [
+const stackQueueRaw: ContentSection[] = [
   /* ═══════════════════════════════════════════════════════════
      1. STACK FUNDAMENTALS
      ═══════════════════════════════════════════════════════════ */
@@ -1450,3 +1452,5 @@ public String removeDuplicateLetters(String s) {
     },
   },
 ];
+export const stackQueueContent: ContentSection[] = attachDiagrams(stackQueueRaw, dsaVisualizations);
+

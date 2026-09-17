@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springBootTestingVisualizations } from "./springBootTestingVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  Spring Boot Testing — Complete In-Depth Theory                            */
@@ -7,7 +9,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Boot 3.x / Spring Framework 6.x / Java 17+.        */
 /* -------------------------------------------------------------------------- */
 
-export const springBootTestingContent: ContentSection[] = [
+const springBootTestingRaw: ContentSection[] = [
   {
     id: "test-intro",
     title: "Testing in Spring Boot",
@@ -689,3 +691,8 @@ class UserJsonTest {
     tip: "Use slice tests wherever possible for day-to-day feature test development, and reserve full `@SpringBootTest` suites for end-to-end smoke verification."
   }
 ];
+
+export const springBootTestingContent: ContentSection[] = attachDiagrams(
+  springBootTestingRaw,
+  springBootTestingVisualizations,
+);

@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springCoreVisualizations } from "./springCoreVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  Spring Core Fundamentals — full theory                                    */
@@ -8,7 +10,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Framework 6.x / Spring Boot 3.x / Java 17.         */
 /* -------------------------------------------------------------------------- */
 
-export const springCoreContent: ContentSection[] = [
+const springCoreRaw: ContentSection[] = [
   /* ------------------------------------------------------------------------ */
   {
     id: "spring-intro",
@@ -1816,5 +1818,10 @@ public class ReportService {
 /* -- end of springCoreContent: 14 sections (IoC, DI, lifecycle, scopes,
       autowiring, configuration, scanning, profiles, @Value, contexts,
       post-processors, SpEL) -- */
+
+export const springCoreContent: ContentSection[] = attachDiagrams(
+  springCoreRaw,
+  springCoreVisualizations,
+);
 
 

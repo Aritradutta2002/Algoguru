@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springSecurityVisualizations } from "./springSecurityVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  Spring Security — Complete In-Depth Theory                                */
@@ -7,7 +9,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Boot 3.x / Spring Security 6.x / Java 17+.         */
 /* -------------------------------------------------------------------------- */
 
-export const springSecurityContent: ContentSection[] = [
+const springSecurityRaw: ContentSection[] = [
   {
     id: "sec-intro",
     title: "Security Fundamentals",
@@ -724,3 +726,8 @@ public class LdapConfig {
     note: "Modern cloud-native architectures frequently replace direct LDAP connections with SAML 2.0 or OIDC federation against Okta, Azure AD, or PingFederate."
   }
 ];
+
+export const springSecurityContent: ContentSection[] = attachDiagrams(
+  springSecurityRaw,
+  springSecurityVisualizations,
+);

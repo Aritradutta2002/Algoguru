@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springBootActuatorVisualizations } from "./springBootActuatorVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  Spring Boot Actuator & Monitoring — Complete In-Depth Theory              */
@@ -7,7 +9,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Boot 3.x / Java 17+.                               */
 /* -------------------------------------------------------------------------- */
 
-export const springBootActuatorContent: ContentSection[] = [
+const springBootActuatorRaw: ContentSection[] = [
   {
     id: "act-intro",
     title: "Introduction to Actuator",
@@ -532,3 +534,8 @@ gzip -d heapdump.hprof.gz`
     warning: "Triggering `/actuator/heapdump` causes a full 'Stop-the-World' garbage collection pause on the JVM while the heap is written to disk. In high-traffic production environments, temporarily pull the node out of load balancing before taking a heap dump."
   }
 ];
+
+export const springBootActuatorContent: ContentSection[] = attachDiagrams(
+  springBootActuatorRaw,
+  springBootActuatorVisualizations,
+);

@@ -1,6 +1,8 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { dsaVisualizations } from "./dsaVisualizations";
 
-export const stringsContent: ContentSection[] = [
+const stringsRaw: ContentSection[] = [
   {
     id: "str-intro",
     title: "Strings in CP — Overview",
@@ -896,3 +898,4 @@ static int countDistinct(String s, int k) {
     note: "Aho-Corasick is the go-to algorithm when you need to search for **multiple patterns** simultaneously in a text."
   }
 ];
+export const stringsContent: ContentSection[] = attachDiagrams(stringsRaw, dsaVisualizations);

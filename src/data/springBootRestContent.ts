@@ -1,4 +1,6 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { springBootRestVisualizations } from "./springBootRestVisualizations";
 
 /* -------------------------------------------------------------------------- */
 /*  REST APIs with Spring Boot — Complete In-Depth Theory                     */
@@ -7,7 +9,7 @@ import { ContentSection } from "./recursionContent";
 /*  Written against Spring Boot 3.x / Spring Framework 6.x / Java 17+.        */
 /* -------------------------------------------------------------------------- */
 
-export const springBootRestContent: ContentSection[] = [
+const springBootRestRaw: ContentSection[] = [
   {
     id: "rest-controller",
     title: "@RestController & @RequestMapping",
@@ -799,3 +801,8 @@ public class AsyncProcessController {
     note: "To use Spring's `@Async` annotation, you must add `@EnableAsync` to your `@Configuration` class and define a custom `ThreadPoolTaskExecutor`."
   }
 ];
+
+export const springBootRestContent: ContentSection[] = attachDiagrams(
+  springBootRestRaw,
+  springBootRestVisualizations,
+);

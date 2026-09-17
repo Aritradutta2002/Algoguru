@@ -1,6 +1,8 @@
 import { ContentSection } from "@/data/recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { dsaVisualizations } from "./dsaVisualizations";
 
-export const bitManipulationContent: ContentSection[] = [
+const bitManipulationRaw: ContentSection[] = [
   // ===== 1. Introduction to Bits & Number Systems =====
   {
     id: "bits-intro",
@@ -1791,3 +1793,4 @@ public class SubarrayXORK {
     tip: "In competitions, always check: (1) Can I solve this bit-by-bit independently? (2) Is there a XOR cancellation I can exploit? (3) Is n small enough for bitmask DP? These three questions cover 80% of bit manipulation problems.",
   },
 ];
+export const bitManipulationContent: ContentSection[] = attachDiagrams(bitManipulationRaw, dsaVisualizations);

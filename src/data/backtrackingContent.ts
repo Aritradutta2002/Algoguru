@@ -1,6 +1,8 @@
 import { ContentSection } from "./recursionContent";
+import { attachDiagrams } from "./diagramAttach";
+import { dsaVisualizations } from "./dsaVisualizations";
 
-export const backtrackingContent: ContentSection[] = [
+const backtrackingRaw: ContentSection[] = [
   {
     id: "bt-intro",
     title: "Backtracking Fundamentals",
@@ -1229,3 +1231,4 @@ public class WordBreakII {
     ],
   },
 ];
+export const backtrackingContent: ContentSection[] = attachDiagrams(backtrackingRaw, dsaVisualizations);
