@@ -22,7 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useCoreJavaBookmarks } from "@/hooks/useCoreJavaBookmarks";
 import { useCoreJavaUserState } from "@/hooks/useCoreJavaUserState";
-import { useOnThisPage, useReadingProgress, useReadingPositionPersist, scrollToSection, type TocSection } from "@/hooks/useOnThisPage";
+import { useOnThisPage, useReadingProgress, scrollToSection, type TocSection } from "@/hooks/useOnThisPage";
 import {
   getCoreJavaQuestionBySlug,
   getAdjacentCoreJavaQuestions,
@@ -63,9 +63,6 @@ export default function InterviewCoreJavaQuestionDetailPage() {
     doneMap,
     toggleDone,
     isUpserting,
-    loading: userStateLoading,
-    readingSectionMap,
-    saveReadingSection,
   } = useCoreJavaUserState();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerButtonRef = useRef<HTMLButtonElement>(null);
@@ -79,33 +76,12 @@ export default function InterviewCoreJavaQuestionDetailPage() {
   const tocSections = useMemo(() => (entry ? buildTocSections(entry.question.id) : []), [entry]);
   const activeSection = useOnThisPage({ sections: tocSections });
 
-  // Persist reading position (debounced) to the per-user database row.
-  useReadingPositionPersist(activeSection, (sectionId) => {
-    if (question?.id) saveReadingSection(question.id, sectionId);
-  });
-
-  // Restore reading position once when the page loads (no jumpy behavior —
-  // only after user state finished loading and only if the user actually
-  // has a saved section for this question).
-  const restoredForRef = useRef<string | null>(null);
-  const skipRestoreRef = useRef(false);
+  // Always open the question at the top when navigating via "Read" (or when
+  // the question changes). Previously the saved reading position was restored
+  // here, which sent revisits straight to the bottom (e.g. related-questions).
   useEffect(() => {
-    if (!question || restoredForRef.current === question.id || userStateLoading) return;
-    if (skipRestoreRef.current) {
-      // Prev/next navigation intentionally starts at the top.
-      skipRestoreRef.current = false;
-      restoredForRef.current = question.id;
-      return;
-    }
-    restoredForRef.current = question.id;
-    const saved = readingSectionMap[question.id];
-    if (saved && document.getElementById(saved)) {
-      // Defer until after first paint so we don't fight the scroll restore.
-      requestAnimationFrame(() => {
-        scrollToSection(saved);
-      });
-    }
-  }, [question?.id, readingSectionMap, userStateLoading]);
+    scrollPageToTop(document.querySelector(".cjd-page"), "auto");
+  }, [questionSlug]);
 
   // SEO title
   useEffect(() => {
@@ -161,7 +137,6 @@ export default function InterviewCoreJavaQuestionDetailPage() {
   const hasDeepDive = answerSections.length > 1;
 
   const handleQuestionNavigate = (slug: string) => {
-    skipRestoreRef.current = true;
     navigate(`/interview/${language ?? "java"}/core-java-qa/${slug}`);
     scrollPageToTop(document.querySelector(".cjd-page"), "auto");
   };
