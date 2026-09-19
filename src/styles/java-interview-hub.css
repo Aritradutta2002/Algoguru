@@ -181,6 +181,20 @@
   transform: translateY(-1px);
 }
 
+/* Compact variant of the secondary button — used by the roadmap reveal */
+.jvh-focus-toggle {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8125rem;
+  border-radius: 0.7rem;
+}
+
+.jvh-focus-toggle--open {
+  border-color: hsl(var(--primary) / 0.45);
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.06);
+}
+
 /* ── Generic panel ───────────────────────────────────────────────── */
 .jvh-panel {
   border: 1px solid hsl(var(--border));
