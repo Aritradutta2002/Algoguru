@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // Allow proxied preview hosts (e.g. *.e2b.app) to reach the dev server.
+    allowedHosts: [".e2b.app", ".arena.ai"],
     hmr: {
       overlay: false,
     },
