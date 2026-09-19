@@ -1,0 +1,564 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Java Interview Hub — redesigned page styles (v2).
+   Scoped under `.jvh-*`. Imported ONLY by JavaInterviewHub.tsx.
+   Uses AlgoGuru design tokens exclusively — full light/dark parity.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Page canvas ─────────────────────────────────────────────────── */
+.jvh-page {
+  background:
+    radial-gradient(70% 34% at 50% -10%, hsl(var(--primary) / 0.05), transparent 70%),
+    radial-gradient(40% 28% at 102% 0%, hsl(var(--accent) / 0.05), transparent 70%),
+    hsl(var(--background));
+}
+
+/* ── Breadcrumb ──────────────────────────────────────────────────── */
+.jvh-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.jvh-breadcrumb a {
+  transition: color 0.15s ease;
+}
+
+.jvh-breadcrumb a:hover {
+  color: hsl(var(--primary));
+}
+
+/* ── Sticky section nav ──────────────────────────────────────────── */
+.jvh-sitenav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 9999px;
+  background: hsl(var(--card) / 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-soft);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.jvh-sitenav::-webkit-scrollbar {
+  display: none;
+}
+
+.jvh-sitenav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  padding: 0.32rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.jvh-sitenav-link:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.6);
+}
+
+.jvh-sitenav-link--active {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.09);
+  font-weight: 600;
+}
+
+.jvh-sitenav-dot {
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.jvh-sitenav-link--active .jvh-sitenav-dot {
+  opacity: 1;
+}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+.jvh-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: 1.25rem;
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
+}
+
+/* Fine dot grid, masked into the upper-right — texture, not decoration */
+.jvh-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(hsl(var(--muted-foreground) / 0.16) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 72% 68% at 72% 26%, black 30%, transparent 74%);
+  mask-image: radial-gradient(ellipse 72% 68% at 72% 26%, black 30%, transparent 74%);
+  pointer-events: none;
+}
+
+.jvh-hero-glow-a {
+  position: absolute;
+  top: -32%;
+  right: -12%;
+  width: min(560px, 62%);
+  aspect-ratio: 1.35;
+  background: radial-gradient(closest-side, hsl(var(--primary) / 0.13), transparent 72%);
+  pointer-events: none;
+}
+
+.jvh-hero-glow-b {
+  position: absolute;
+  bottom: -46%;
+  left: -10%;
+  width: 380px;
+  aspect-ratio: 1.3;
+  background: radial-gradient(closest-side, hsl(var(--accent) / 0.07), transparent 72%);
+  pointer-events: none;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.jvh-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.4rem;
+  border-radius: 0.75rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 24px -10px hsl(var(--primary) / 0.55);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.jvh-btn-primary:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px -10px hsl(var(--primary) / 0.6);
+}
+
+.jvh-btn-primary:active {
+  transform: translateY(0);
+}
+
+.jvh-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.4rem;
+  border-radius: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.jvh-btn-secondary:hover {
+  background: hsl(var(--muted) / 0.6);
+  border-color: hsl(var(--primary) / 0.35);
+  transform: translateY(-1px);
+}
+
+/* Compact variant of the secondary button — used by the roadmap reveal */
+.jvh-focus-toggle {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8125rem;
+  border-radius: 0.7rem;
+}
+
+.jvh-focus-toggle--open {
+  border-color: hsl(var(--primary) / 0.45);
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.06);
+}
+
+/* ── Generic panel ───────────────────────────────────────────────── */
+.jvh-panel {
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
+}
+
+/* Hero dashboard card — sits on the hero surface, so it steps down one level */
+.jvh-dashboard {
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  background: hsl(var(--muted) / 0.32);
+  box-shadow: var(--shadow-soft);
+}
+
+.jvh-divide-y > * + * {
+  border-top: 1px solid hsl(var(--border) / 0.7);
+}
+
+/* ── Stat strip (hairline dividers via 1px gap) ──────────────────── */
+.jvh-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  background: hsl(var(--border));
+  box-shadow: var(--shadow-card);
+}
+
+.jvh-stat-cell {
+  background: hsl(var(--card));
+  padding: 1.15rem 1.35rem;
+  min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  .jvh-stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .jvh-stat-cell:last-child {
+    grid-column: span 2;
+  }
+}
+
+/* ── Section header ──────────────────────────────────────────────── */
+.jvh-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  background: hsl(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
+  flex-shrink: 0;
+}
+
+.jvh-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: "Outfit", "Space Grotesk", system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ── Learning track cards ────────────────────────────────────────── */
+.jvh-track-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.4rem 1.4rem 1.25rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* Signature top line — appears in the track's own color on hover */
+.jvh-track-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--jvh-track), transparent 75%);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.jvh-track-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--jvh-track);
+  box-shadow: var(--shadow-accent);
+}
+
+.jvh-track-card:hover::before {
+  opacity: 0.9;
+}
+
+.jvh-track-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.8rem;
+  border: 1px solid;
+  margin-bottom: 1.15rem;
+}
+
+.jvh-track-arrow {
+  margin-top: auto;
+  padding-top: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  transition: color 0.15s ease, gap 0.15s ease;
+}
+
+.jvh-track-card:hover .jvh-track-arrow {
+  color: hsl(var(--primary));
+  gap: 0.5rem;
+}
+
+/* ── Curriculum: sticky rail ─────────────────────────────────────── */
+.jvh-rail {
+  position: sticky;
+  top: 1rem;
+}
+
+.jvh-rail-scroll {
+  max-height: 296px;
+  overflow-y: auto;
+  margin: 0 -0.4rem;
+  padding: 0 0.4rem;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+.jvh-rail-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.jvh-rail-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+
+.jvh-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.42rem 0.55rem;
+  border-radius: 0.55rem;
+  text-align: left;
+  transition: background-color 0.13s ease;
+}
+
+.jvh-rail-item:hover {
+  background: hsl(var(--muted) / 0.55);
+}
+
+.jvh-rail-item:hover .jvh-rail-item-title {
+  color: hsl(var(--primary));
+}
+
+.jvh-rail-item-title {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  transition: color 0.13s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Curriculum: topic cards ─────────────────────────────────────── */
+.jvh-topic-card {
+  position: relative;
+  display: block;
+  height: 100%;
+  padding: 1.15rem 1.2rem 1.2rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.9rem;
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.jvh-topic-card:hover {
+  transform: translateY(-2px);
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: var(--shadow-accent);
+}
+
+.jvh-topic-card--complete {
+  border-color: hsl(var(--success) / 0.4);
+}
+
+.jvh-topic-card--complete:hover {
+  border-color: hsl(var(--success) / 0.65);
+}
+
+.jvh-topic-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.7rem;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+}
+
+/* Difficulty micro-bar (easy / medium / hard segments) */
+.jvh-diffbar {
+  display: flex;
+  height: 4px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: hsl(var(--muted));
+}
+
+.jvh-diffbar > span {
+  height: 100%;
+}
+
+/* ── Hot list (leaderboard rows) ─────────────────────────────────── */
+.jvh-hotlist {
+  overflow: hidden;
+}
+
+.jvh-hot-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.35rem;
+  transition: background-color 0.15s ease;
+}
+
+.jvh-hot-row + .jvh-hot-row {
+  border-top: 1px solid hsl(var(--border) / 0.75);
+}
+
+.jvh-hot-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.85rem;
+  bottom: 0.85rem;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: hsl(var(--primary));
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.jvh-hot-row:hover {
+  background: hsl(var(--muted) / 0.45);
+}
+
+.jvh-hot-row:hover::before {
+  opacity: 1;
+}
+
+.jvh-hot-rank {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: hsl(var(--muted-foreground) / 0.65);
+  flex-shrink: 0;
+  width: 1.75rem;
+}
+
+.jvh-hot-row:first-child .jvh-hot-rank {
+  color: hsl(var(--primary));
+}
+
+/* ── Revision banner (dramatic dark panel, both themes) ──────────── */
+.jvh-revision {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid hsl(var(--foreground) / 0.09);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(70% 130% at 88% -20%, hsl(var(--primary) / 0.22), transparent 55%),
+    radial-gradient(50% 100% at 0% 120%, hsl(var(--accent) / 0.1), transparent 60%),
+    hsl(224 26% 8%);
+  box-shadow: var(--shadow-accent);
+}
+
+.jvh-revision-watermark {
+  position: absolute;
+  right: 0.75rem;
+  bottom: -1.4rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  color: hsl(0 0% 100% / 0.045);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Footer links ────────────────────────────────────────────────── */
+.jvh-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  transition: color 0.15s ease;
+}
+
+.jvh-footer-link:hover {
+  color: hsl(var(--primary));
+}
+
+.jvh-footer-link:hover svg {
+  transform: translate(2px, -2px);
+}
+
+.jvh-footer-link svg {
+  transition: transform 0.15s ease;
+}
+
+/* ── Keyboard focus rings ────────────────────────────────────────── */
+.jvh-page a:focus-visible,
+.jvh-page button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .jvh-page *,
+  .jvh-page *::before,
+  .jvh-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
