@@ -1,9 +1,10 @@
 ﻿import { defineChunk } from "@/data/coreJavaQuestions/contract";
 
 /**
- * Advanced Object Oriented Concepts — global questions 55-63.
+ * Advanced Object Oriented Concepts — global questions 55-63, plus q226.
  * Covers polymorphism, instanceof, coupling, cohesion, encapsulation and the
- * four-part inner-class family (member, static nested, local, anonymous).
+ * four-part inner-class family (member, static nested, local, anonymous), and
+ * closes with the design-pattern question q226, which renders as question 64.
  */
 export const chunk07AdvancedOop = defineChunk({
   topic: "advanced-oop",
@@ -350,6 +351,94 @@ public class AnonymousClassDemo {
       explanation:
         "Anonymous classes extend or implement one type, take no constructor and capture effectively-final locals; lambdas replaced them for functional interfaces.",
     },
+    {
+      id: "q226",
+      question: "What is the Singleton design pattern and how do you implement it safely in Java?",
+      answer:
+        "**Singleton** is a creational design pattern that guarantees a class has exactly one instance and provides a single global access point to it. It earns its place when a resource is genuinely singular — a connection pool, a metrics registry, a thread pool, an application-wide configuration — because a second copy is not merely wasteful but wrong: two caches do not share state, so the program quietly behaves as though it were two programs. It is one of the most frequently asked Java interview questions, and also one of the most frequently implemented badly.\n\n" +
+        "The three parts that make a singleton:\n\n" +
+        "- **A private constructor** — `private ConfigService() { }`. Outside code cannot call `new`, and Java does not synthesise a default constructor once you declare one, so this closes the only normal door.\n" +
+        "- **A private static field** holding the single instance, with the class itself marked `final` so it cannot be subclassed into a second one.\n" +
+        "- **A public static accessor** — `getInstance()` — the only way in, which decides when the instance is created and hands the same reference to every caller.\n\n" +
+        "The constructor is the load-bearing part, not the field. A static field with a public constructor is not a singleton, it is a shared variable, and any caller can bypass the pattern with `new`. Everything interesting about the pattern follows from construction being private: when it happens, who may trigger it, and how many times it can happen under concurrency.\n\n" +
+        "Lazy creation versus eager creation:\n\n" +
+        "**Eager** creation initialises the field at class-load time: `private static final ConfigService INSTANCE = new ConfigService();`. It is one line, it is thread-safe for free because the JVM serialises class initialisation, and it is the right default when the object is cheap or always needed. **Lazy** creation defers construction to the first `getInstance()` call, which pays off only when the object is expensive and possibly unused. Eager pays for the object even when nothing uses it, and a heavy constructor turns a class-load into a startup pause; lazy avoids that but makes the concurrency problem yours.\n\n" +
+        "Why the naive lazy version breaks under threads:\n\n" +
+        "The obvious lazy singleton is a null check followed by an assignment, and that is exactly where it fails. The check and the assignment are two separate steps, and nothing stops the scheduler from interleaving two threads between them.\n\n" +
+        "1. Thread A calls `getInstance()`, reads the field, and finds it `null`.\n" +
+        "2. Thread A is preempted before it can store the new object.\n" +
+        "3. Thread B calls `getInstance()`, reads the same field, still sees `null`, and constructs a second object.\n" +
+        "4. Both threads return different references; whichever writes last silently wins, and the other holds a stale object forever.\n\n" +
+        "**Marking the accessor synchronized fixes correctness but not the cost.** Every call — including the billions that arrive after the instance exists — now acquires the class monitor, paying for a lock on a read whose value can no longer change. Correct and unnecessarily slow: naming that trade-off out loud is what interviewers are listening for.\n\n" +
+        "Double-checked locking, and why volatile is not optional:\n\n" +
+        "Double-checked locking takes the common-case read off the lock. Read the field once into a local; if it is non-null, return it and never touch the monitor. Only the first call, where the field really is `null`, enters the `synchronized` block and re-checks — and that second check matters, because a thread that queued on the monitor may have been waiting while another thread finished constructing the object.\n\n" +
+        "The detail that separates a good answer from a memorised one is `volatile`. The `new` expression is not atomic: memory is allocated, the constructor runs, and only then is the reference assigned. Without `volatile`, the compiler and the CPU are free to publish the reference before the constructor's writes to the object's fields become visible to other threads. A second thread can then pass the first null check, observe a non-null reference, and return an object whose fields are still default values — a partially constructed singleton that fails much later and far from the cause. `volatile` forbids that reordering and establishes a happens-before edge, so any thread that reads the reference is guaranteed to see a fully built object.\n\n" +
+        "**Why the local variable matters:** `ConfigService local = instance;` reads the volatile field exactly once. A volatile read is not free, and reading the field repeatedly inside the method invites the optimiser to eliminate a check you were relying on. One read, one re-check under the lock, one write.\n\n" +
+        "The other four ways a singleton can be beaten:\n\n" +
+        "- **Reflection**: `setAccessible(true)` walks straight through the private modifier and builds a second instance. A guard in the constructor that throws when the field is already set restores the guarantee for a few lines.\n" +
+        "- **Serialization**: deserialization allocates a fresh object and never calls the constructor, so a `Serializable` singleton comes back as a copy. Implement `readResolve()` to return the existing instance, or sidestep the problem with an enum.\n" +
+        "- **Cloning**: a singleton that implements `Cloneable` without overriding `clone()` hands out copies. Override it to return the singleton, or do not implement `Cloneable` at all.\n" +
+        "- **Multiple class loaders**: the promise is one instance per class loader, not per JVM. Two loaders or two JVMs each get their own singleton, which is why a singleton is not a distributed lock and why hot-reloading applications can briefly hold two.\n\n" +
+        "The enum singleton - the answer interviewers are fishing for:\n\n" +
+        "Joshua Bloch's recommendation in Effective Java is a single-element enum, and it is short enough to be the whole answer. `enum Registry { INSTANCE; }` gives one instance per class loader with no locking, because the JVM already serialises class initialisation. It defeats the reflection attack, since instantiation of an enum constructor through `newInstance` is rejected. It survives serialization, which returns the same constant rather than a copy. It is a compile-time-checked singleton with none of the boilerplate, and it can still implement interfaces. Two limitations are worth volunteering so the answer sounds measured rather than recited: it cannot be lazy, and being an enum it cannot extend a class.\n\n" +
+        "When a singleton is the wrong tool:\n\n" +
+        "- **It is hidden global state.** Every caller that reaches for `getInstance()` is coupled to a concrete class and its shared mutable contents — the tightest coupling there is, and the reason the pattern is so often called an anti-pattern.\n" +
+        "- **It is untestable by construction.** You cannot inject a fake, and tests inherit whatever state the previous test left behind. Dependency injection — one container-managed instance passed through a constructor — delivers the same single-instance benefit while staying substitutable.\n" +
+        "- **Spring's singleton is a different promise.** A `@Component` is singleton-scoped, meaning one instance per container, but it has a public constructor, the container builds it, and you can switch it to prototype scope with `@Scope`. Calling that the Singleton pattern is a common slip.\n" +
+        "- **A stateless utility does not need it.** If the object holds no state, static methods are simpler and equally shareable.\n\n" +
+        "The 30-second answer:\n\n" +
+        "Private constructor, private static field, public static accessor. Lazy creation is not thread-safe until you synchronise the accessor or use double-checked locking with a `volatile` field, and `volatile` is required because the reference can otherwise be published before the constructor's writes are visible. Enums give all of that with no boilerplate and also survive reflection and serialization, which is why they are the recommended form — and dependency injection is the right form whenever the singleton would only be global mutable state.",
+      code: `import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public final class ConfigService {                    // final: no subclass trickery
+
+    private static volatile ConfigService instance;   // volatile publishes safely
+
+    private final Map<String, String> settings;
+
+    private ConfigService() {                         // the only door, and it is shut
+        if (instance != null) {                       // blocks the reflection attack
+            throw new IllegalStateException("Use ConfigService.getInstance()");
+        }
+        this.settings = loadFromDisk();               // slow, one-time work
+    }
+
+    public static ConfigService getInstance() {
+        ConfigService local = instance;               // one volatile read, no lock
+        if (local == null) {                          // fast path for every later call
+            synchronized (ConfigService.class) {
+                local = instance;                     // re-check: we may have lost the race
+                if (local == null) {
+                    local = new ConfigService();
+                    instance = local;                 // volatile write ends the race
+                }
+            }
+        }
+        return local;
+    }
+
+    public String get(String key) { return settings.get(key); }
+
+    private static Map<String, String> loadFromDisk() {
+        return new ConcurrentHashMap<>(Map.of("region", "ap-south-1", "retries", "3"));
+    }
+}
+
+// Bloch's recommendation: no locking, no readResolve, no reflection loophole.
+enum Registry {
+    INSTANCE;                                         // one instance per class loader
+
+    private final Map<String, Integer> counters = new ConcurrentHashMap<>();
+
+    void record(String name) { counters.merge(name, 1, Integer::sum); }
+
+    Map<String, Integer> snapshot() { return Map.copyOf(counters); }
+}`,
+      codeLanguage: "java",
+      explanation:
+        "Cover the private constructor, then volatile in double-checked locking, and finish with the enum answer and its reflection and serialization guarantees.",
+    },
   ],
   meta: {
     q055: {
@@ -423,6 +512,14 @@ public class AnonymousClassDemo {
       relatedQuestionIds: ["q060", "q062", "q208"],
       estimatedReadMinutes: 4,
       javaVersions: ["Java 8+"],
+    },
+    q226: {
+      difficulty: "medium",
+      priority: "very-high",
+      tags: ["design-pattern", "singleton", "thread-safety", "double-checked-locking"],
+      relatedQuestionIds: ["q057", "q059", "q197"],
+      estimatedReadMinutes: 7,
+      javaVersions: ["Java 1+", "Java 5+"],
     },
   },
 });

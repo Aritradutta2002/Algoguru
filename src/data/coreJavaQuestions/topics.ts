@@ -6,6 +6,11 @@
  * `coreJavaQuestionIndex`, so the sequence of `questions` inside each topic —
  * and the order of the topics themselves — is the source of truth for
  * "Question 1 ... Question N".
+ *
+ * Question ids are immutable (bookmarks and Supabase progress are keyed by id),
+ * so a question appended inside an existing topic keeps its original id while
+ * taking its display number from position. `range` therefore tracks rendered
+ * positions, not id suffixes: q226 sits in `advanced-oop` and renders as 64.
  */
 
 export interface TopicDefinition {
@@ -24,22 +29,22 @@ export const TOPIC_DEFINITIONS: TopicDefinition[] = [
   { id: "wrapper-classes", title: "Wrapper Classes", icon: "📦", range: [7, 15] },
   { id: "strings", title: "Strings", icon: "🔤", range: [16, 22] },
   { id: "oop-basics", title: "Object Oriented Programming Basics", icon: "🧱", range: [23, 54] },
-  { id: "advanced-oop", title: "Advanced Object Oriented Concepts", icon: "🧩", range: [55, 63] },
-  { id: "modifiers", title: "Modifiers", icon: "🔐", range: [64, 78] },
-  { id: "conditions-loops", title: "Conditions & Loops", icon: "🔁", range: [79, 90] },
-  { id: "exception-handling", title: "Exception Handling", icon: "⚠️", range: [91, 108] },
-  { id: "miscellaneous", title: "Miscellaneous Topics", icon: "🧰", range: [109, 133] },
-  { id: "collections", title: "Collections", icon: "📚", range: [134, 166] },
-  { id: "advanced-collections", title: "Advanced Collections", icon: "⚙️", range: [167, 177] },
-  { id: "generics", title: "Generics", icon: "🧬", range: [178, 184] },
-  { id: "multithreading", title: "Multi Threading", icon: "🧵", range: [185, 207] },
+  { id: "advanced-oop", title: "Advanced Object Oriented Concepts", icon: "🧩", range: [55, 64] },
+  { id: "modifiers", title: "Modifiers", icon: "🔐", range: [65, 79] },
+  { id: "conditions-loops", title: "Conditions & Loops", icon: "🔁", range: [80, 91] },
+  { id: "exception-handling", title: "Exception Handling", icon: "⚠️", range: [92, 109] },
+  { id: "miscellaneous", title: "Miscellaneous Topics", icon: "🧰", range: [110, 134] },
+  { id: "collections", title: "Collections", icon: "📚", range: [135, 167] },
+  { id: "advanced-collections", title: "Advanced Collections", icon: "⚙️", range: [168, 178] },
+  { id: "generics", title: "Generics", icon: "🧬", range: [179, 185] },
+  { id: "multithreading", title: "Multi Threading", icon: "🧵", range: [186, 208] },
   {
     id: "functional-streams",
     title: "Functional Programming — Lambda Expressions and Streams",
     icon: "🌊",
-    range: [208, 221],
+    range: [209, 222],
   },
-  { id: "new-features", title: "New Features", icon: "🚀", range: [222, 225] },
+  { id: "new-features", title: "New Features", icon: "🚀", range: [223, 226] },
 ];
 
 export const TOPIC_BY_ID: Record<string, TopicDefinition> = Object.fromEntries(

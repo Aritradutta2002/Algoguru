@@ -104,11 +104,11 @@ describe("JavaInterviewHub (redesigned)", () => {
       "href",
       "/interview/java/core-java-qa"
     );
-    // 225 questions / 15 topics straight from the data layer.
-    expect(screen.getByText(/225 expert-curated questions/i)).toBeInTheDocument();
+    // 226 questions / 15 topics straight from the data layer.
+    expect(screen.getByText(/226 expert-curated questions/i)).toBeInTheDocument();
     expect(screen.getByText(/15 topics in order/i)).toBeInTheDocument();
     // appears in both the hero meta line and the revision banner
-    expect(screen.getAllByText(/101 must-know questions/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/102 must-know questions/i).length).toBeGreaterThan(0);
   });
 
   it("renders every section anchor targeted by the sticky nav", () => {
@@ -136,7 +136,7 @@ describe("JavaInterviewHub (redesigned)", () => {
       const link = screen.getByRole("heading", { level: 3, name: title }).closest("a");
       expect(link).toHaveAttribute("href", href);
     }
-    expect(screen.getByText("225 questions")).toBeInTheDocument();
+    expect(screen.getByText("226 questions")).toBeInTheDocument();
   });
 
   it("renders all 15 roadmap topics, each deep-linked by topic id", () => {
@@ -183,7 +183,7 @@ describe("JavaInterviewHub (redesigned)", () => {
     renderHub();
     const dashboard = screen.getByLabelText(/your java interview progress/i);
     expect(dashboard).toHaveTextContent("0%");
-    expect(dashboard).toHaveTextContent("0/225");
+    expect(dashboard).toHaveTextContent("0/226");
     expect(within(dashboard).getByText("Next up")).toBeInTheDocument();
     expect(within(dashboard).getByText("Completed").parentElement).toHaveTextContent("0");
   });
@@ -195,11 +195,11 @@ describe("JavaInterviewHub (redesigned)", () => {
 
     const dashboard = screen.getByLabelText(/your java interview progress/i);
     expect(within(dashboard).getByText("Completed").parentElement).toHaveTextContent("2");
-    expect(within(dashboard).getByText("Remaining").parentElement).toHaveTextContent("223");
+    expect(within(dashboard).getByText("Remaining").parentElement).toHaveTextContent("224");
     expect(within(dashboard).getByText("Bookmarked").parentElement).toHaveTextContent("1");
-    // 2/225 rounds to 1%.
+    // 2/226 rounds to 1%.
     expect(dashboard).toHaveTextContent("1%");
-    expect(dashboard).toHaveTextContent("2/225");
+    expect(dashboard).toHaveTextContent("2/226");
   });
 
   it("sets the page title", () => {
