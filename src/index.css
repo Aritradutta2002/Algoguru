@@ -999,6 +999,11 @@
     animation: float 6s ease-in-out infinite;
   }
 
+  @keyframes shimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+
   /* ═══════════════════════════════════════════════════════════════════
      Roadmap edge flowing animation
 

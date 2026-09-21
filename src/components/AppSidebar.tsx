@@ -11,7 +11,7 @@ import {
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
-import { ChevronDown, Home, Layers, Coffee, Search, X, Code2, LogOut, Trophy, ChevronRight } from "lucide-react";
+import { ChevronDown, Home, Layers, Coffee, Search, X, Code2, LogOut, Trophy, ChevronRight, PanelLeftClose } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
