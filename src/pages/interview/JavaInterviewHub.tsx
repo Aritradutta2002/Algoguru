@@ -8,20 +8,18 @@ import {
   type RefObject,
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
   Coffee,
   Database,
   Flame,
   Layers,
   ListChecks,
-  SlidersHorizontal,
   Sparkles,
   Target,
   Timer,
@@ -309,8 +307,6 @@ export default function JavaInterviewHub() {
   const { doneMap } = useCoreJavaUserState();
   const { bookmarkedIds } = useCoreJavaBookmarks();
   const activeSection = useActiveSection();
-  // The focus rail stays closed until the reader asks for it.
-  const [focusPanelOpen, setFocusPanelOpen] = useState(false);
 
   useEffect(() => {
     const previous = document.title;
@@ -725,129 +721,94 @@ export default function JavaInterviewHub() {
               </span>
               Interview roadmap
             </h2>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-              <span className="font-mono text-[11px] text-muted-foreground">
-                {topicCount} topics · {totalQuestions} questions · curriculum order
-              </span>
-              <button
-                type="button"
-                onClick={() => setFocusPanelOpen((open) => !open)}
-                aria-expanded={focusPanelOpen}
-                aria-controls="roadmap-focus-panel"
-                className={cn(
-                  "jvh-btn-secondary jvh-focus-toggle",
-                  focusPanelOpen && "jvh-focus-toggle--open"
-                )}
-              >
-                <SlidersHorizontal size={14} />
-                Choose where to focus next
-                <ChevronDown
-                  size={14}
-                  className={cn("transition-transform duration-200", focusPanelOpen && "rotate-180")}
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
+            <span className="font-mono text-[11px] text-muted-foreground">
+              {topicCount} topics · {totalQuestions} questions · curriculum order
+            </span>
           </motion.div>
 
-          <div className={cn("grid gap-5", focusPanelOpen && "lg:grid-cols-[290px_minmax(0,1fr)]")}>
-            {/* Sticky focus rail — mounted only when opened */}
-            <AnimatePresence initial={false}>
-              {focusPanelOpen && (
-                <motion.aside
-                  key="focus-rail"
-                  id="roadmap-focus-panel"
-                  initial={{ opacity: 0, x: -14 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -14 }}
-                  transition={{ duration: 0.26, ease: EASE }}
-                >
-                  <div className="jvh-rail">
-                    <div className="jvh-panel p-5">
-                      <div className="flex items-center gap-4">
-                        <ProgressRing value={progressPct} size={84} strokeWidth={8}>
-                          <span className="font-display text-lg leading-none font-bold">
-                            {progressPct}
-                            <span className="text-[11px] text-muted-foreground">%</span>
+          <div className="grid gap-5 lg:grid-cols-[290px_minmax(0,1fr)]">
+            {/* Sticky overview rail */}
+            <motion.aside {...fadeUp} className="hidden lg:block">
+              <div className="jvh-rail">
+                <div className="jvh-panel p-5">
+                  <div className="flex items-center gap-4">
+                    <ProgressRing value={progressPct} size={84} strokeWidth={8}>
+                      <span className="font-display text-lg leading-none font-bold">
+                        {progressPct}
+                        <span className="text-[11px] text-muted-foreground">%</span>
+                      </span>
+                    </ProgressRing>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold tracking-tight">
+                        {doneCount}
+                        <span className="text-muted-foreground"> / {totalQuestions}</span>
+                      </p>
+                      <p className="mt-0.5 text-[11.5px] leading-snug text-muted-foreground">
+                        questions completed
+                        {bookmarkedCount > 0 && (
+                          <span className="block">
+                            {bookmarkedCount} bookmarked for later
                           </span>
-                        </ProgressRing>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold tracking-tight">
-                            {doneCount}
-                            <span className="text-muted-foreground"> / {totalQuestions}</span>
-                          </p>
-                          <p className="mt-0.5 text-[11.5px] leading-snug text-muted-foreground">
-                            questions completed
-                            {bookmarkedCount > 0 && (
-                              <span className="block">
-                                {bookmarkedCount} bookmarked for later
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-5">
-                        <div className="mb-2 flex items-center justify-between font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                          <span>Difficulty mix</span>
-                          <span className="tabular-nums normal-case">
-                            {easyCount}E · {mediumCount}M · {hardCount}H
-                          </span>
-                        </div>
-                        <DifficultyBar easy={easyCount} medium={mediumCount} hard={hardCount} />
-                        <div className="mt-2.5 flex gap-3 text-[10.5px] text-muted-foreground">
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-success" /> Easy
-                          </span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-warning" /> Medium
-                          </span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-destructive" /> Hard
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="mt-5 border-t border-border pt-4">
-                        <span className="mb-2 block font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                          Jump to topic
-                        </span>
-                        <div className="jvh-rail-scroll">
-                          {topicStats.map(({ topic, number, done, total }) => (
-                            <Link
-                              key={topic.id}
-                              to={`/interview/java/core-java-qa?topic=${topic.id}`}
-                              className="jvh-rail-item"
-                              title={`${topic.title} — ${done}/${total} completed`}
-                            >
-                              <span className="w-5 flex-shrink-0 font-mono text-[10px] font-semibold text-muted-foreground/60">
-                                {String(number).padStart(2, "0")}
-                              </span>
-                              <span className="jvh-rail-item-title flex-1">{topic.title}</span>
-                              <span
-                                className={cn(
-                                  "flex-shrink-0 font-mono text-[10px] tabular-nums",
-                                  done === total && total > 0 ? "text-success font-bold" : "text-muted-foreground"
-                                )}
-                              >
-                                {done}/{total}
-                              </span>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
+                        )}
+                      </p>
                     </div>
                   </div>
-                </motion.aside>
-              )}
-            </AnimatePresence>
+
+                  <div className="mt-5">
+                    <div className="mb-2 flex items-center justify-between font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                      <span>Difficulty mix</span>
+                      <span className="tabular-nums normal-case">
+                        {easyCount}E · {mediumCount}M · {hardCount}H
+                      </span>
+                    </div>
+                    <DifficultyBar easy={easyCount} medium={mediumCount} hard={hardCount} />
+                    <div className="mt-2.5 flex gap-3 text-[10.5px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-success" /> Easy
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-warning" /> Medium
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-destructive" /> Hard
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 border-t border-border pt-4">
+                    <span className="mb-2 block font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                      Jump to topic
+                    </span>
+                    <div className="jvh-rail-scroll">
+                      {topicStats.map(({ topic, number, done, total }) => (
+                        <Link
+                          key={topic.id}
+                          to={`/interview/java/core-java-qa?topic=${topic.id}`}
+                          className="jvh-rail-item"
+                          title={`${topic.title} — ${done}/${total} completed`}
+                        >
+                          <span className="w-5 flex-shrink-0 font-mono text-[10px] font-semibold text-muted-foreground/60">
+                            {String(number).padStart(2, "0")}
+                          </span>
+                          <span className="jvh-rail-item-title flex-1">{topic.title}</span>
+                          <span
+                            className={cn(
+                              "flex-shrink-0 font-mono text-[10px] tabular-nums",
+                              done === total && total > 0 ? "text-success font-bold" : "text-muted-foreground"
+                            )}
+                          >
+                            {done}/{total}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.aside>
 
             {/* Topic cards */}
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-70px" }}
-              transition={{ duration: 0.5, ease: EASE }}
               className="grid gap-3.5 sm:grid-cols-2 2xl:grid-cols-3"
             >
               {topicStats.map(({ topic, number, done, total, pct, easy, medium, hard, minutes }, i) => (

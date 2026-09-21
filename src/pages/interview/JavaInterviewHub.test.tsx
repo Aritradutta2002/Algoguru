@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import JavaInterviewHub from "./JavaInterviewHub";
 
@@ -145,8 +145,8 @@ describe("JavaInterviewHub (redesigned)", () => {
     const topicLinks = screen
       .getAllByRole("link")
       .filter((el) => el.getAttribute("href")?.startsWith("/interview/java/core-java-qa?topic="));
-    // Rail is closed on load, so only the 15 topic cards are present.
-    expect(topicLinks).toHaveLength(15);
+    // 15 topic cards + the 15-row desktop rail.
+    expect(topicLinks).toHaveLength(30);
 
     const uniqueHrefs = new Set(topicLinks.map((el) => el.getAttribute("href")));
     expect(uniqueHrefs.size).toBe(15);
@@ -207,32 +207,6 @@ describe("JavaInterviewHub (redesigned)", () => {
     expect(document.title).toBe("Java Interview | AlgoGuru");
   });
 });
-
-  it("keeps the focus rail hidden until 'Choose where to focus next' is clicked", async () => {
-    renderHub();
-
-    const toggle = screen.getByRole("button", { name: /choose where to focus next/i });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(document.getElementById("roadmap-focus-panel")).toBeNull();
-
-    // Opening reveals the per-topic rail on top of the 15 cards.
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    const panel = document.getElementById("roadmap-focus-panel");
-    expect(panel).not.toBeNull();
-    expect(within(panel as HTMLElement).getAllByRole("link")).toHaveLength(15);
-    expect(within(panel as HTMLElement).getByText("Jump to topic")).toBeInTheDocument();
-
-    const allTopicLinks = screen
-      .getAllByRole("link")
-      .filter((el) => el.getAttribute("href")?.startsWith("/interview/java/core-java-qa?topic="));
-    expect(allTopicLinks).toHaveLength(30);
-
-    // And it closes again (the node unmounts once the exit animation settles).
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    await waitFor(() => expect(document.getElementById("roadmap-focus-panel")).toBeNull());
-  });
 
 /* ──────────────────────────────────────────────────────────────
    Stylesheet contract — the .jvh-* CSS is hand-written, so these
