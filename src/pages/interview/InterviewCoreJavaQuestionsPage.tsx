@@ -8,6 +8,7 @@ import {
   BookOpen,
   Check,
   ChevronRight,
+  ChevronUp,
   Coffee,
   Code2,
   Download,
@@ -84,12 +85,12 @@ const _QuestionCard = ({
 
   return (
     <div
-      className={`rounded-2xl border transition-all duration-200 overflow-hidden relative ${
+      className={`cjq-qcard rounded-2xl border transition-all duration-200 overflow-hidden relative ${
         isDone
-          ? "bg-success/5 border-success/20"
+          ? "cjq-qcard--done bg-success/5 border-success/20"
           : activeView
-            ? "bg-card border-primary/30 shadow-sm"
-            : "bg-card border-border/40 hover:border-border/60"
+            ? "cjq-qcard--active bg-card border-primary/30 shadow-sm"
+            : "cjq-qcard--idle"
       }`}
     >
       {activeView && !isDone && (
@@ -116,7 +117,7 @@ const _QuestionCard = ({
           <div className="flex-1 min-w-0">
             {/* Meta row */}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground/50 bg-muted/30 px-2 py-0.5 rounded-md">
+              <span className="cjq-qbadge text-[11px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-md">
                 Q{String(entry.index + 1).padStart(2, "0")}
               </span>
               <span className="text-[10px] font-semibold text-muted-foreground/70 flex items-center gap-1">
@@ -145,8 +146,8 @@ const _QuestionCard = ({
             {/* Question title — links to detail page */}
             <Link to={detailPath} className="group/title block">
               <h3
-                className={`text-[19px] font-bold leading-[1.5] mb-2.5 transition-colors group-hover/title:text-primary ${
-                  isDone ? "opacity-40 line-through text-foreground" : "text-foreground"
+                className={`cjq-list-title text-[20px] font-bold leading-[1.45] mb-3 transition-colors group-hover/title:text-primary ${
+                  isDone ? "opacity-40 line-through" : ""
                 }`}
               >
                 {question.question}
@@ -155,48 +156,60 @@ const _QuestionCard = ({
 
             {/* One-line mental model */}
             {question.explanation && (
-              <p className={`text-[14.5px] leading-[1.75] mb-4 ${isDone ? "opacity-40" : "text-muted-foreground"}`}>
+              <p className={`cjq-list-body text-[16px] leading-[1.8] mb-4 ${isDone ? "opacity-40" : ""}`}>
                 {question.explanation}
               </p>
             )}
 
             {/* Action buttons */}
-            <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border/20">
+            <div className="cjq-card-divider flex flex-wrap items-center gap-2 pt-4 border-t">
               <button
                 onClick={() => onToggleView(question.id, "theory")}
                 aria-expanded={activeView === "theory"}
-                className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
+                className={`cjq-btn-ghost inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
                   activeView === "theory"
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                    : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : ""
                 }`}
               >
                 <FileText size={14} />
                 Quick Answer
+                <ChevronUp
+                  size={13}
+                  className="transition-transform duration-200"
+                  style={{ transform: activeView === "theory" ? "rotate(0deg)" : "rotate(180deg)" }}
+                  aria-hidden="true"
+                />
               </button>
 
               {question.code && (
                 <button
                   onClick={() => onToggleView(question.id, "code")}
                   aria-expanded={activeView === "code"}
-                  className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
+                  className={`cjq-btn-ghost inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
                     activeView === "code"
                       ? "bg-accent text-accent-foreground shadow-md shadow-accent/20"
-                      : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : ""
                   }`}
                 >
                   <Code2 size={14} />
                   Example
+                  <ChevronUp
+                    size={13}
+                    className="transition-transform duration-200"
+                    style={{ transform: activeView === "code" ? "rotate(0deg)" : "rotate(180deg)" }}
+                    aria-hidden="true"
+                  />
                 </button>
               )}
 
               <button
                 onClick={() => onOpenNote(question.id)}
                 aria-label={hasNote ? "Edit note for this question" : "Add note for this question"}
-                className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
+                className={`cjq-btn-ghost inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
                   hasNote
                     ? "bg-warning/15 text-warning hover:bg-warning/25"
-                    : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : ""
                 }`}
               >
                 <StickyNote size={14} />
@@ -215,7 +228,7 @@ const _QuestionCard = ({
               <Link
                 to={detailPath}
                 aria-label={`Read full answer: ${question.question}`}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[36px] rounded-lg bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground text-[12px] font-semibold transition-all"
+                className="cjq-btn-ghost inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[36px] rounded-lg text-[12px] font-semibold transition-all"
               >
                 Read <ArrowRight size={13} />
               </Link>
@@ -224,32 +237,47 @@ const _QuestionCard = ({
         </div>
       </div>
 
-      {/* Expand panel */}
-      <AnimatePresence>
+      {/* Expand panel (fold/unfold) */}
+      <AnimatePresence initial={false}>
         {activeView && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-border/20" />
-            <div className="p-5 md:p-6 space-y-4">
-              {activeView === "theory" && (
-                <div className="bg-muted/30 rounded-xl p-5 md:p-6 border border-border/20 shadow-inner">
-                  <CoreJavaQuestionAnswer answer={question.answer} />
-                </div>
-              )}
-              {activeView === "code" && question.code && (
-                <div className="rounded-xl overflow-hidden shadow-lg border border-border/30">
-                  <CodeBlock
-                    language={question.codeLanguage || "java"}
-                    code={question.code}
-                    title="Implementation"
-                  />
-                </div>
-              )}
+            <div className="cjq-panel cjq-card-divider border-t">
+              <div className="px-5 md:px-6">
+                <button
+                  onClick={() => onToggleView(question.id, activeView)}
+                  aria-expanded={true}
+                  aria-label={`Collapse ${activeView === "theory" ? "quick answer" : "example"}`}
+                  className="cjq-panel-toggle"
+                >
+                  <span className="cjq-panel-icon" aria-hidden="true">
+                    {activeView === "theory" ? <FileText size={13} /> : <Code2 size={13} />}
+                  </span>
+                  <span>{activeView === "theory" ? "Quick Answer" : "Example"}</span>
+                  <ChevronUp size={16} className="cjq-panel-chevron" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
+                {activeView === "theory" && (
+                  <div className="cjq-reading rounded-xl p-5 md:p-6">
+                    <CoreJavaQuestionAnswer answer={question.answer} />
+                  </div>
+                )}
+                {activeView === "code" && question.code && (
+                  <div className="rounded-xl overflow-hidden shadow-lg border border-border/30">
+                    <CodeBlock
+                      language={question.codeLanguage || "java"}
+                      code={question.code}
+                      title="Implementation"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -567,12 +595,12 @@ export default function InterviewCoreJavaQuestionsPage() {
   return (
     <div className="cjq-page min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
       {/* ── Page Header ──────────────────────────────────────────── */}
-      <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
+      <header className="cjq-toolbar-divider shrink-0 bg-card/90 backdrop-blur-xl border-b relative z-30">
         <div className="px-4 md:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <button
               onClick={() => navigate(backRoute)}
-              className="group flex items-center justify-center w-9 h-9 rounded-full border border-border/40 bg-card hover:bg-muted/60 transition-all shrink-0"
+              className="cjq-toolbar-btn group flex items-center justify-center w-9 h-9 rounded-full border transition-all shrink-0"
               aria-label="Go back"
             >
               <ArrowLeft size={16} className="text-muted-foreground group-hover:text-primary transition-transform group-hover:-translate-x-0.5" />
@@ -608,14 +636,14 @@ export default function InterviewCoreJavaQuestionsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search Java interview questions"
-                className="pl-9 pr-3 py-1.5 text-sm border border-border/40 bg-muted/20 rounded-full w-48 lg:w-64 outline-none focus:border-primary/50 focus:bg-card transition-all placeholder:text-muted-foreground/50"
+                className="cjq-input pl-9 pr-3 py-1.5 text-sm border rounded-full w-48 lg:w-64 outline-none transition-all placeholder:text-muted-foreground/50"
               />
             </div>
 
             {/* Notes Modal Trigger */}
             <button
               onClick={() => setShowNotesPanel(true)}
-              className="px-4 py-1.5 rounded-full text-sm font-semibold border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-2 shrink-0 transition-all min-h-[36px]"
+              className="cjq-toolbar-btn px-4 py-1.5 rounded-full text-sm font-semibold border flex items-center gap-2 shrink-0 transition-all min-h-[36px]"
             >
               <StickyNote size={14} />
               <span className="hidden sm:inline">Notes</span>
@@ -630,7 +658,7 @@ export default function InterviewCoreJavaQuestionsPage() {
             <AppTooltip content="Toggle App Sidebar">
               <button
                 onClick={() => setGlobalSidebarOpen((prev) => !prev)}
-                className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 transition-all"
+                className="cjq-toolbar-btn w-9 h-9 rounded-full flex items-center justify-center border shrink-0 transition-all"
                 aria-label="Toggle App Sidebar"
               >
                 <PanelLeftOpen size={16} />
@@ -660,7 +688,7 @@ export default function InterviewCoreJavaQuestionsPage() {
       </header>
 
       {/* ── Search + Filter toolbar (mobile search included) ─────── */}
-      <div className="shrink-0 px-4 md:px-6 py-3 bg-card border-b border-border/20">
+      <div className="cjq-toolbar-divider shrink-0 px-4 md:px-6 py-3 bg-card border-b">
         {/* Mobile search */}
         <div className="relative md:hidden mb-3">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" aria-hidden="true" />
@@ -672,7 +700,7 @@ export default function InterviewCoreJavaQuestionsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search Java interview questions"
-            className="pl-9 pr-3 py-2 text-sm border border-border/40 bg-muted/20 rounded-full w-full outline-none focus:border-primary/50 focus:bg-card transition-all"
+            className="cjq-input pl-9 pr-3 py-2 text-sm border rounded-full w-full outline-none transition-all"
           />
         </div>
 
@@ -682,10 +710,10 @@ export default function InterviewCoreJavaQuestionsPage() {
               key={filter.id}
               onClick={() => handleFilterClick(filter.id)}
               aria-pressed={activeFilter === filter.id}
-              className={`px-3.5 py-1.5 min-h-[34px] rounded-full text-[12.5px] font-semibold border whitespace-nowrap shrink-0 transition-all ${
+              className={`cjq-filter-pill px-3.5 py-1.5 min-h-[34px] rounded-full text-[12.5px] font-semibold border whitespace-nowrap shrink-0 transition-all ${
                 activeFilter === filter.id
                   ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
-                  : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : ""
               }`}
             >
               {filter.icon && <span aria-hidden="true">{filter.icon} </span>}
@@ -710,7 +738,7 @@ export default function InterviewCoreJavaQuestionsPage() {
       {/* ── Main Layout (Sidebar + Content) ──────────────────────── */}
       <div className="flex-1 flex relative" style={{ minHeight: 0 }}>
         {/* Permanent Desktop Sidebar */}
-        <aside className="hidden lg:block w-[240px] xl:w-[270px] shrink-0 border-r border-border/40 bg-card/30">
+        <aside className="cjq-toolbar-divider hidden lg:block w-[240px] xl:w-[270px] shrink-0 border-r bg-card/30">
           <div className="sticky top-0 max-h-[calc(100vh-64px)] overflow-y-auto p-4">
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-3 flex items-center justify-between">
               <span>Topics</span>
@@ -725,7 +753,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all mb-1.5 border ${
                 !selectedTopic
                   ? "bg-primary/10 border-primary/20 text-foreground"
-                  : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -749,7 +777,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                     className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all border ${
                       isActive
                         ? "bg-primary/5 border-primary/20 text-foreground shadow-sm"
-                        : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                        : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 mb-1.5">
@@ -822,7 +850,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               {groupedTopics.map((group) => (
                 <div key={group.topic.id} className="space-y-4">
                   {/* Topic header */}
-                  <div className="flex items-center gap-4 pb-4 border-b-2 border-border/30">
+                  <div className="cjq-topic-divider flex items-center gap-4 pb-4 border-b-2">
                     <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl shrink-0" aria-hidden="true">
                       {group.topic.icon}
                     </div>
@@ -903,7 +931,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                   className={`w-full text-left px-4 py-3 rounded-xl transition-all mb-2 border ${
                     !selectedTopic
                       ? "bg-primary/10 border-primary/20 text-foreground"
-                      : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -927,7 +955,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                       className={`w-full text-left px-4 py-3 rounded-xl transition-all border ${
                         isActive
                           ? "bg-primary/10 border-primary/20 text-foreground"
-                          : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                          : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-2">

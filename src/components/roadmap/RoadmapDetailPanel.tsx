@@ -56,8 +56,8 @@ export function RoadmapDetailPanel({
       aria-modal="false"
       aria-labelledby="rm-detail-title"
       className={cn(
-        "pointer-events-auto absolute right-0 top-0 z-30 h-full w-full max-w-md",
-        "border-l border-border bg-card shadow-xl",
+        "pointer-events-auto absolute right-4 top-4 z-30 h-[calc(100%-2rem)] w-full max-w-md overflow-hidden rounded-2xl",
+        "border border-border/80 bg-card/95 shadow-2xl backdrop-blur-xl",
         "flex flex-col"
       )}
     >
@@ -124,7 +124,7 @@ export function RoadmapDetailPanel({
             <ListChecks size={11} />
             Prerequisites
           </h3>
-          {node.prerequisites.length === 0 ? (
+          {(!node.prerequisites || node.prerequisites.length === 0) ? (
             <p className="text-xs text-muted-foreground italic">
               No prerequisites — this is a foundational topic.
             </p>

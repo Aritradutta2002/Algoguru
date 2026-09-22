@@ -284,11 +284,11 @@ export default function InterviewCoreJavaQuestionDetailPage() {
                   </span>
                 )}
               </div>
-              <h1 id="question-title" className="text-2xl md:text-[32px] lg:text-[36px] font-bold tracking-tight leading-[1.25] mb-4">
+              <h1 id="question-title" className="cjq-detail-title text-[26px] md:text-[34px] lg:text-[38px] font-bold tracking-tight leading-[1.2] mb-5">
                 {question.question}
               </h1>
               {question.explanation && (
-                <p className="cjd-mental-model text-[15px] md:text-base text-muted-foreground leading-relaxed border-l-2 border-primary/50 pl-4">
+                <p className="cjd-mental-model text-[15px] md:text-base leading-relaxed border-l-2 border-primary/50 pl-4">
                   <span className="font-semibold text-foreground">In short: </span>
                   {question.explanation}
                 </p>
@@ -301,7 +301,7 @@ export default function InterviewCoreJavaQuestionDetailPage() {
                 <span className="cjd-section-icon">⚡</span>
                 Quick Answer
               </h2>
-              <div className="cjd-surface rounded-xl p-5 md:p-6">
+              <div className="cjq-reading rounded-xl p-6 md:p-8">
                 <CoreJavaQuestionAnswer answer={quickAnswer} />
               </div>
             </section>
@@ -320,7 +320,7 @@ export default function InterviewCoreJavaQuestionDetailPage() {
                   <span className="cjd-section-icon">📚</span>
                   Detailed Explanation
                 </h2>
-                <div className="cjd-surface rounded-xl p-5 md:p-6">
+                <div className="cjq-reading rounded-xl p-6 md:p-8">
                   <CoreJavaQuestionAnswer answer={answerSections.slice(1).join("\n\n")} />
                 </div>
               </section>
@@ -344,8 +344,8 @@ export default function InterviewCoreJavaQuestionDetailPage() {
                   <span className="cjd-section-icon">🧠</span>
                   Key Takeaways
                 </h2>
-                <div className="cjd-surface rounded-xl p-5 md:p-6">
-                  <p className="text-[15px] leading-[1.8] text-foreground/90">
+                <div className="cjq-reading rounded-xl p-6 md:p-8">
+                  <p className="text-[15.5px] md:text-base leading-[1.8]">
                     {question.explanation}
                   </p>
                 </div>

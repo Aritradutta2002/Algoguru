@@ -9,9 +9,9 @@ export function RoadmapBackground() {
   return (
     <Background
       variant={BackgroundVariant.Dots}
-      gap={25}
-      size={1.35}
-      color="rgba(133, 133, 142, 0.72)"
+      gap={28}
+      size={1.25}
+      color="hsl(var(--primary) / 0.22)"
     />
   );
 }
