@@ -17,6 +17,7 @@ import { RoadmapControls } from "./RoadmapControls";
 import { RoadmapHeader } from "./RoadmapHeader";
 import { RoadmapDetailPanel } from "./RoadmapDetailPanel";
 import { computeCoggleLayout } from "./coggleLayout";
+import { useAnimatedPositions } from "./useAnimatedPositions";
 import {
   computeCompletion,
   getNodeStatus,
@@ -130,7 +131,7 @@ function RoadmapEngineInner({
     setCollapsedNodeIds(new Set());
     try {
       setTimeout(() => {
-        reactFlow.fitView({ padding: 0.18, duration: 400 });
+        reactFlow.fitView({ padding: 0.06, maxZoom: 1, duration: 400 });
       }, 50);
     } catch {}
   }, [reactFlow]);
@@ -141,7 +142,7 @@ function RoadmapEngineInner({
     setCollapsedNodeIds(new Set(allCatIds));
     try {
       setTimeout(() => {
-        reactFlow.fitView({ padding: 0.22, duration: 400 });
+        reactFlow.fitView({ padding: 0.06, maxZoom: 1, duration: 400 });
       }, 50);
     } catch {}
   }, [roadmap.categories, reactFlow]);
@@ -174,7 +175,7 @@ function RoadmapEngineInner({
   ]);
 
   // Add status and selected state to node data
-  const nodes: Node<CoggleNodeData>[] = useMemo(() => {
+  const baseNodes: Node<CoggleNodeData>[] = useMemo(() => {
     return layoutResult.nodes.map((node) => {
       const nodeStatus = getNodeStatus(progress, node.id);
       return {
@@ -187,6 +188,9 @@ function RoadmapEngineInner({
       };
     });
   }, [layoutResult.nodes, progress, selectedNodeId]);
+
+  // Glide node positions on collapse/search/filter instead of jumping
+  const nodes = useAnimatedPositions(baseNodes, roadmap.id);
 
   // Enrich edges with hover/selection state
   const edges: Edge<CoggleEdgeData>[] = useMemo(() => {
@@ -263,7 +267,7 @@ function RoadmapEngineInner({
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        reactFlow.fitView({ padding: 0.18, duration: 550 });
+        reactFlow.fitView({ padding: 0.06, maxZoom: 1, duration: 550 });
       } catch {}
     }, 200);
     return () => clearTimeout(timer);
@@ -305,7 +309,7 @@ function RoadmapEngineInner({
         handleCenterRoot();
       } else if (e.key === "f" || e.key === "F") {
         try {
-          reactFlow.fitView({ padding: 0.18, duration: 400 });
+          reactFlow.fitView({ padding: 0.06, maxZoom: 1, duration: 400 });
         } catch {}
       }
     };
@@ -416,12 +420,12 @@ function RoadmapEngineInner({
           panOnDrag
           panOnScroll={false}
           zoomOnDoubleClick={false}
-          minZoom={0.2}
-          maxZoom={1.9}
+          minZoom={0.15}
+          maxZoom={2.5}
           defaultEdgeOptions={{ type: "coggleEdge" }}
           proOptions={{ hideAttribution: true }}
           fitView
-          fitViewOptions={{ padding: 0.18 }}
+          fitViewOptions={{ padding: 0.06, maxZoom: 1 }}
           className="coggle-canvas"
         >
           <RoadmapBackground />

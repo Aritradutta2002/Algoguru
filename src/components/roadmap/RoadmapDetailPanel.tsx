@@ -57,7 +57,7 @@ export function RoadmapDetailPanel({
       aria-labelledby="rm-detail-title"
       className={cn(
         "pointer-events-auto absolute right-4 top-4 z-30 h-[calc(100%-2rem)] w-full max-w-md overflow-hidden rounded-2xl",
-        "border border-border/80 bg-card/95 shadow-2xl backdrop-blur-xl",
+        "border border-border/70 bg-card shadow-[0_16px_48px_-16px_rgb(0_0_0/0.45)]",
         "flex flex-col"
       )}
     >
@@ -101,7 +101,7 @@ export function RoadmapDetailPanel({
           <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
             About this topic
           </h3>
-          <p className="text-sm leading-6 text-foreground/90">
+          <p className="text-sm leading-6 text-foreground font-medium">
             {node.description}
           </p>
         </section>
@@ -181,7 +181,7 @@ export function RoadmapDetailPanel({
       </div>
 
       {/* Footer */}
-      <div className="shrink-0 border-t border-border/40 bg-muted/20 px-6 py-3 text-[10px] uppercase tracking-widest text-muted-foreground/70 flex items-center justify-between">
+      <div className="shrink-0 border-t border-border/40 bg-muted/20 px-6 py-3 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold flex items-center justify-between">
         <span>
           Click a prerequisite to jump • Press Esc to close
         </span>
@@ -226,7 +226,7 @@ function StatusButton({
   tone: "muted" | "amber" | "emerald";
 }) {
   const toneCls = {
-    muted: "border-border text-muted-foreground hover:bg-muted",
+    muted: "border-border text-foreground/75 font-semibold hover:bg-muted",
     amber: "border-warning/30 text-warning hover:bg-warning/10",
     emerald: "border-success/30 text-success hover:bg-success/10",
   }[tone];

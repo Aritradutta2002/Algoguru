@@ -1,7 +1,16 @@
 import { memo } from "react";
-import { BaseEdge, getBezierPath, type EdgeProps } from "@xyflow/react";
+import { BaseEdge, type EdgeProps } from "@xyflow/react";
 import { cn } from "@/lib/utils";
+import { getTaperedRibbonPath, getBranchCenterlinePath } from "./edgePath";
 import type { CoggleEdgeData } from "@/types/roadmapGraph";
+
+/** Ribbon widths per tier: [near source, near target] — chunky trunk → thin tip. */
+const TIER_WIDTHS: Record<number, [number, number]> = {
+  1: [20, 8],
+  2: [14, 5.5],
+  3: [10, 4],
+  4: [7.5, 3.5],
+};
 
 function CoggleEdgeImpl(props: EdgeProps) {
   const {
@@ -17,62 +26,55 @@ function CoggleEdgeImpl(props: EdgeProps) {
   } = props;
 
   const edgeData = data as CoggleEdgeData | undefined;
-  const branchColor = edgeData?.branchColor || "hsl(var(--primary))";
+  const branchColor = edgeData?.branchColor || "#7BA7F8";
   const tier = edgeData?.tier ?? 2;
   const isHovered = edgeData?.isHovered ?? false;
   const isActivePath = edgeData?.isActivePath ?? false;
+  const isHighlighted = selected || isHovered || isActivePath;
 
-  const [edgePath] = getBezierPath({
+  const [startWidth, endWidth] = TIER_WIDTHS[tier] ?? [7, 3];
+
+  const ribbonPath = getTaperedRibbonPath(
     sourceX,
     sourceY,
     sourcePosition,
     targetX,
     targetY,
     targetPosition,
-    curvature: 0.45,
-  });
+    startWidth,
+    endWidth,
+  );
 
-  // Tapered stroke width depending on hierarchy tier
-  const baseWidth =
-    tier === 1 ? 3.6 : tier === 2 ? 2.5 : 1.9;
-  const strokeWidth = selected || isHovered || isActivePath ? baseWidth + 1.2 : baseWidth;
-
-  const isHighlighted = selected || isHovered || isActivePath;
+  // Invisible hit-area following the exact same curve as the ribbon
+  const hitPath = getBranchCenterlinePath(
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  );
 
   return (
     <>
-      {/* Outer glow aura when hovered / active */}
-      {isHighlighted && (
-        <BaseEdge
-          id={`${id}-glow`}
-          path={edgePath}
-          style={{
-            stroke: branchColor,
-            strokeWidth: strokeWidth + 4,
-            opacity: 0.35,
-            filter: `blur(4px)`,
-          }}
-        />
-      )}
-
-      {/* Main branch curve */}
-      <BaseEdge
+      <path
         id={id}
-        path={edgePath}
+        d={ribbonPath}
+        fill={branchColor}
+        stroke={branchColor}
+        strokeWidth={0.75}
+        strokeLinejoin="round"
+        className={cn("coggle-edge-ribbon", isHighlighted && "coggle-edge-highlighted")}
         style={{
-          stroke: branchColor,
-          strokeWidth,
-          opacity: isHighlighted ? 1 : 0.85,
-          strokeLinecap: "round",
-          transition: "stroke 200ms ease, stroke-width 200ms ease, opacity 200ms ease",
-          ...(isHighlighted
-            ? {
-                strokeDasharray: "6 4",
-                animation: "coggle-edge-flow 1.2s linear infinite",
-              }
-            : {}),
+          color: branchColor,
+          opacity: isHighlighted ? 1 : 0.92,
+          transition: "opacity 200ms ease, filter 200ms ease",
         }}
-        className={cn("coggle-edge-path", isHighlighted && "coggle-edge-highlighted")}
+      />
+      <BaseEdge
+        id={`${id}-hit`}
+        path={hitPath}
+        style={{ stroke: "transparent", strokeWidth: 16, fill: "none" }}
       />
     </>
   );

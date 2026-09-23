@@ -1,28 +1,28 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Check, Circle, CircleDot, ChevronDown, ChevronRight, Plus, Minus, Layers } from "lucide-react";
+import { Check, Circle, CircleDot, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { CoggleNodeData, NodeStatus } from "@/types/roadmapGraph";
+import { readableInk } from "@/lib/colorUtils";
+import type { CoggleNodeData, CoggleSide, NodeStatus } from "@/types/roadmapGraph";
 
-interface CoggleNodeProps extends NodeProps<{ data: CoggleNodeData }> {
-  // Custom props from React Flow
-}
+/** Which handle ids a node in direction `side` needs. */
+const HANDLES_FOR: Record<CoggleSide, { target: Position; source: Position; targetId: string; sourceId: string }> = {
+  right: { target: Position.Left, source: Position.Right, targetId: "target-left", sourceId: "source-right" },
+  left: { target: Position.Right, source: Position.Left, targetId: "target-right", sourceId: "source-left" },
+  down: { target: Position.Top, source: Position.Bottom, targetId: "target-top", sourceId: "source-bottom" },
+  up: { target: Position.Bottom, source: Position.Top, targetId: "target-bottom", sourceId: "source-top" },
+};
 
-function CoggleNodeImpl({ data, selected }: CoggleNodeProps) {
+function CoggleNodeImpl({ data, selected }: NodeProps<{ data: CoggleNodeData }>) {
   const {
     id,
     title,
-    subtitle,
-    category,
-    resources = 0,
-    recommendedOrder,
     side,
-    tier,
-    isCategory,
     isCollapsed,
     hasChildren,
     childCount = 0,
     branchColor,
+    pillWidth,
     matchedSearch,
     statusHidden,
     onToggleCollapse,
@@ -44,116 +44,15 @@ function CoggleNodeImpl({ data, selected }: CoggleNodeProps) {
     onToggleCollapse?.(id);
   };
 
-  // ── 1. CATEGORY TRUNK PILL ─────────────────────────────────────────────
-  if (isCategory) {
-    return (
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={handleCardClick}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect?.(id);
-          }
-        }}
-        aria-label={`Category ${title} — ${childCount} topics`}
-        className={cn(
-          "coggle-category-node group relative flex min-h-[44px] w-[180px] cursor-pointer select-none items-center justify-between rounded-xl px-3 py-1.5 transition-all duration-200",
-          "border border-border/80 bg-card/95 shadow-md backdrop-blur-md",
-          "hover:scale-[1.03] hover:shadow-lg",
-          selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-          matchedSearch === false && "opacity-25 grayscale hover:opacity-80 transition-opacity",
-          statusHidden && "opacity-20 pointer-events-none"
-        )}
-        style={{
-          borderLeftColor: side === "right" ? branchColor : undefined,
-          borderRightColor: side === "left" ? branchColor : undefined,
-          borderLeftWidth: side === "right" ? "4px" : "1px",
-          borderRightWidth: side === "left" ? "4px" : "1px",
-          boxShadow: `0 4px 14px -6px ${branchColor}66`,
-        }}
-      >
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-white"
-            style={{ background: branchColor }}
-          >
-            <Layers size={13} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-xs font-bold text-foreground">
-              {title}
-            </h3>
-            <span className="text-[10px] font-medium text-muted-foreground">
-              {childCount} topics
-            </span>
-          </div>
-        </div>
+  // Pastel branches always take dark ink — matches the reference diagram
+  const ink = readableInk(branchColor);
+  const hasDarkInk = ink.toLowerCase() !== "#ffffff";
+  const chipIdle = hasDarkInk
+    ? "bg-black/15 text-current hover:bg-black/30"
+    : "bg-white/30 text-white hover:bg-white/45";
 
-        {/* Expand / Collapse badge */}
-        {hasChildren && (
-          <button
-            type="button"
-            onClick={handleToggleCollapse}
-            title={isCollapsed ? `Expand ${childCount} topics` : "Collapse branch"}
-            aria-label={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
-            className={cn(
-              "ml-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all duration-200",
-              isCollapsed
-                ? "border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 scale-105"
-                : "border-border/70 bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            {isCollapsed ? (
-              <span className="text-[10px] font-bold">+{childCount}</span>
-            ) : (
-              <Minus size={12} strokeWidth={2.5} />
-            )}
-          </button>
-        )}
+  const handles = HANDLES_FOR[side] ?? HANDLES_FOR.right;
 
-        {/* Handles */}
-        {side === "right" ? (
-          <>
-            <Handle
-              id="target-left"
-              type="target"
-              position={Position.Left}
-              className="!w-2.5 !h-2.5 !border-2 !border-background !bg-primary transition-transform group-hover:scale-125"
-              style={{ background: branchColor }}
-            />
-            <Handle
-              id="source-right"
-              type="source"
-              position={Position.Right}
-              className="!w-2.5 !h-2.5 !border-2 !border-background !bg-primary transition-transform group-hover:scale-125"
-              style={{ background: branchColor }}
-            />
-          </>
-        ) : (
-          <>
-            <Handle
-              id="target-right"
-              type="target"
-              position={Position.Right}
-              className="!w-2.5 !h-2.5 !border-2 !border-background !bg-primary transition-transform group-hover:scale-125"
-              style={{ background: branchColor }}
-            />
-            <Handle
-              id="source-left"
-              type="source"
-              position={Position.Left}
-              className="!w-2.5 !h-2.5 !border-2 !border-background !bg-primary transition-transform group-hover:scale-125"
-              style={{ background: branchColor }}
-            />
-          </>
-        )}
-      </div>
-    );
-  }
-
-  // ── 2. TOPIC NODE CARD ────────────────────────────────────────────────
   return (
     <div
       role="button"
@@ -167,122 +66,94 @@ function CoggleNodeImpl({ data, selected }: CoggleNodeProps) {
       }}
       aria-label={`${title} — ${status}. Click for details.`}
       className={cn(
-        "coggle-topic-node group relative flex min-h-[64px] w-[204px] cursor-pointer select-none flex-col justify-center rounded-xl p-2.5 transition-all duration-200",
-        "border border-border/80 bg-card/90 shadow-md backdrop-blur-md",
-        "hover:-translate-y-0.5 hover:shadow-lg",
-        selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-        isCompleted && "border-success/50 bg-success/5",
-        isInProgress && "border-warning/50 bg-warning/5",
-        matchedSearch === true && "ring-2 ring-primary shadow-[0_0_16px_var(--coggle-accent)]",
+        "coggle-topic-node group relative flex h-[62px] cursor-pointer select-none items-center gap-2.5 rounded-full pl-4 pr-4 transition-[opacity,box-shadow] duration-200",
         matchedSearch === false && "opacity-25 grayscale hover:opacity-80 transition-opacity",
         statusHidden && "opacity-20 pointer-events-none"
       )}
-      style={{
-        "--coggle-accent": branchColor,
-        borderLeftColor: side === "right" ? branchColor : undefined,
-        borderRightColor: side === "left" ? branchColor : undefined,
-        borderLeftWidth: side === "right" ? "3px" : "1px",
-        borderRightWidth: side === "left" ? "3px" : "1px",
-      } as React.CSSProperties}
+      style={
+        {
+          width: pillWidth && pillWidth > 0 ? pillWidth : undefined,
+          background: branchColor,
+          color: ink,
+          boxShadow: selected
+            ? `0 0 0 2px #f4f6f2, 0 0 0 4px ${branchColor}, 0 8px 20px -8px rgb(0 0 0 / 0.45)`
+            : matchedSearch === true
+              ? `0 0 0 2px #f4f6f2, 0 0 0 4px ${branchColor}, 0 6px 18px -8px rgb(0 0 0 / 0.4)`
+              : `0 5px 14px -5px rgb(0 0 0 / 0.5)`,
+        } as React.CSSProperties
+      }
     >
-      <div className="flex items-start justify-between gap-1.5">
-        <div className="flex items-start gap-1.5 min-w-0 flex-1">
-          {/* Status Badge */}
-          <span
-            className={cn(
-              "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold border transition-colors",
-              isCompleted && "border-success/80 bg-success text-success-foreground",
-              isInProgress && "border-warning/80 bg-warning/25 text-warning",
-              !isCompleted && !isInProgress && "border-border bg-muted/60 text-muted-foreground"
-            )}
-            title={`Status: ${status}`}
-          >
-            {isCompleted ? (
-              <Check size={9} strokeWidth={3} />
-            ) : isInProgress ? (
-              <CircleDot size={9} className="animate-pulse" />
-            ) : (
-              recommendedOrder || <Circle size={8} />
-            )}
-          </span>
-
-          <div className="min-w-0 flex-1">
-            <h4 className="line-clamp-2 text-xs font-bold leading-tight tracking-[-0.01em] text-foreground group-hover:text-primary transition-colors">
-              {title}
-            </h4>
-            {subtitle && (
-              <p className="mt-0.5 line-clamp-1 text-[10px] text-muted-foreground">
-                {subtitle}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Expand / Collapse Subtopics Button */}
-        {hasChildren && (
-          <button
-            type="button"
-            onClick={handleToggleCollapse}
-            title={isCollapsed ? `Expand ${childCount} subtopics` : "Collapse subtopics"}
-            aria-label={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
-            className={cn(
-              "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-[9px] font-bold transition-all",
-              isCollapsed
-                ? "border-primary/60 bg-primary/20 text-primary hover:bg-primary/30"
-                : "border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            {isCollapsed ? `+${childCount}` : <Minus size={9} strokeWidth={2.5} />}
-          </button>
+      {/* Hover/selected sheen — an overlay instead of a filter so the text
+          stays on the base raster layer (filters force GPU promotion → blur) */}
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 rounded-full bg-white transition-opacity duration-150",
+          selected ? "opacity-[0.16]" : "opacity-0 group-hover:opacity-[0.13]"
         )}
-      </div>
+      />
 
-      {/* Resource counter strip */}
-      {resources > 0 && (
-        <div className="mt-1.5 flex items-center justify-between text-[9px] text-muted-foreground/80 pt-1 border-t border-border/40">
-          <span className="truncate max-w-[120px]">{category}</span>
-          <span className="font-semibold text-foreground/80">
-            {resources} {resources === 1 ? "item" : "items"}
+      {/* Status icon — oversized so it stays visible at far zoom */}
+      <span
+        className={cn(
+          "relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-opacity",
+          !isCompleted && !isInProgress && "opacity-45"
+        )}
+        title={`Status: ${status}`}
+      >
+        {isCompleted ? (
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/95">
+            <Check size={14} strokeWidth={3.5} style={{ color: branchColor }} />
           </span>
-        </div>
+        ) : isInProgress ? (
+          <CircleDot size={17} strokeWidth={2.75} className="animate-pulse" />
+        ) : (
+          <Circle size={15} strokeWidth={2.25} />
+        )}
+      </span>
+
+      <h4 className="relative min-w-0 flex-1 truncate text-[18px] font-bold leading-none tracking-[-0.01em]">
+        {title}
+      </h4>
+
+      {/* Expand / Collapse chip — at rest only when collapsed; otherwise on hover */}
+      {hasChildren && (
+        <button
+          type="button"
+          onClick={handleToggleCollapse}
+          title={isCollapsed ? `Expand ${childCount} topics` : "Collapse branch"}
+          aria-label={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
+          className={cn(
+            "relative flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full px-2 text-[13px] font-bold transition-all duration-150",
+            isCollapsed
+              ? "bg-white/95 scale-105 opacity-100"
+              : cn(chipIdle, "opacity-0 group-hover:opacity-100 focus-visible:opacity-100")
+          )}
+          style={isCollapsed ? { color: branchColor } : undefined}
+        >
+          {isCollapsed ? (
+            <span>+{childCount}</span>
+          ) : (
+            <Minus size={14} strokeWidth={3} />
+          )}
+        </button>
       )}
 
-      {/* Handles */}
-      {side === "right" ? (
-        <>
-          <Handle
-            id="target-left"
-            type="target"
-            position={Position.Left}
-            className="!w-2 !h-2 !border !border-background !bg-primary transition-transform group-hover:scale-125"
-            style={{ background: branchColor }}
-          />
-          <Handle
-            id="source-right"
-            type="source"
-            position={Position.Right}
-            className="!w-2 !h-2 !border !border-background !bg-primary transition-transform group-hover:scale-125"
-            style={{ background: branchColor }}
-          />
-        </>
-      ) : (
-        <>
-          <Handle
-            id="target-right"
-            type="target"
-            position={Position.Right}
-            className="!w-2 !h-2 !border !border-background !bg-primary transition-transform group-hover:scale-125"
-            style={{ background: branchColor }}
-          />
-          <Handle
-            id="source-left"
-            type="source"
-            position={Position.Left}
-            className="!w-2 !h-2 !border !border-background !bg-primary transition-transform group-hover:scale-125"
-            style={{ background: branchColor }}
-          />
-        </>
-      )}
+      {/* Handles for this direction (hidden structurally — ribbons attach here) */}
+      <Handle
+        id={handles.targetId}
+        type="target"
+        position={handles.target}
+        className="!w-2 !h-2"
+        style={{ background: branchColor }}
+      />
+      <Handle
+        id={handles.sourceId}
+        type="source"
+        position={handles.source}
+        className="!w-2 !h-2"
+        style={{ background: branchColor }}
+      />
     </div>
   );
 }

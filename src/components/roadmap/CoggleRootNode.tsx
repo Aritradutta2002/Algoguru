@@ -1,14 +1,12 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Sparkles, CheckCircle2, Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CoggleNodeData } from "@/types/roadmapGraph";
 
 function CoggleRootNodeImpl({ data, selected }: NodeProps<{ data: CoggleNodeData }>) {
   const {
     title,
-    subtitle,
-    branchColor,
+    pillWidth,
     totalTopics = 0,
     completedTopics = 0,
     matchedSearch,
@@ -32,85 +30,67 @@ function CoggleRootNodeImpl({ data, selected }: NodeProps<{ data: CoggleNodeData
       }}
       aria-label={`${title} Root Hub — ${percent}% completed`}
       className={cn(
-        "group relative flex min-h-[78px] w-[260px] cursor-pointer select-none flex-col justify-center rounded-2xl p-3.5 text-center transition-all duration-300",
-        "border border-border/80 bg-card/90 shadow-2xl backdrop-blur-xl",
-        "hover:scale-[1.03] hover:shadow-[0_0_35px_-8px_var(--coggle-root-glow)]",
-        selected && "ring-2 ring-primary ring-offset-4 ring-offset-background",
+        "group relative flex min-h-[124px] cursor-pointer select-none flex-col items-center justify-center gap-1 rounded-xl px-7 py-4 text-center transition-[box-shadow,opacity] duration-300",
         matchedSearch === false && "opacity-25 grayscale hover:opacity-80 transition-opacity",
         statusHidden && "opacity-20 pointer-events-none"
       )}
-      style={{
-        "--coggle-root-accent": branchColor,
-        "--coggle-root-glow": `${branchColor}88`,
-      } as React.CSSProperties}
+      style={
+        {
+          width: pillWidth && pillWidth > 0 ? pillWidth : 400,
+          background: "var(--coggle-root, #f4f6f2)",
+          color: "#101828",
+          border: "1.5px solid rgb(255 255 255 / 0.14)",
+          boxShadow: selected
+            ? "0 0 0 2px #0b0f0d, 0 0 0 4px #f4f6f2, 0 14px 34px -12px rgb(0 0 0 / 0.6)"
+            : "0 10px 28px -10px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4)",
+        } as React.CSSProperties
+      }
     >
-      {/* Ambient background glow behind the root */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -inset-2 rounded-3xl opacity-40 blur-xl transition-opacity duration-300 group-hover:opacity-75"
-        style={{
-          background: `radial-gradient(circle, ${branchColor}44 0%, transparent 75%)`,
-        }}
+      {/* Hover sheen (overlay, not a filter — filters blur scaled text) */}
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 rounded-xl bg-black transition-opacity duration-200",
+          selected ? "opacity-[0.04]" : "opacity-0 group-hover:opacity-[0.05]"
+        )}
       />
-
-      {/* Top accent line */}
-      <div
-        className="absolute inset-x-4 top-0 h-[3px] rounded-full"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${branchColor}, transparent)`,
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 flex flex-col items-center gap-1.5">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/60 px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase text-muted-foreground">
-          <Sparkles size={11} style={{ color: branchColor }} />
-          <span>Learning Path Hub</span>
-        </div>
-
-        <h2 className="text-base font-extrabold tracking-tight text-foreground line-clamp-1">
+      <div className="relative z-10 flex flex-col items-center">
+        <h2 className="text-[30px] font-extrabold leading-[1.08] tracking-[-0.02em] line-clamp-2">
           {title}
         </h2>
-
-        {subtitle && (
-          <p className="line-clamp-1 text-[11px] font-medium text-muted-foreground">
-            {subtitle}
-          </p>
-        )}
-
-        <div className="mt-1 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-            <MapIcon size={11} />
-            {totalTopics} topics
-          </span>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold",
-              percent > 0
-                ? "bg-success/15 text-success border border-success/30"
-                : "bg-muted/70 text-muted-foreground"
-            )}
-          >
-            <CheckCircle2 size={11} />
-            {percent}% done
-          </span>
-        </div>
+        <p className="mt-1 text-[15px] font-semibold leading-none text-slate-600">
+          {totalTopics} topics · {percent}% done
+        </p>
       </div>
 
-      {/* Handles: Left for Left wing, Right for Right wing */}
+      {/* Four structural handles — one per radial wing */}
       <Handle
         id="root-left"
         type="source"
         position={Position.Left}
-        className="!w-3 !h-3 !border-2 !border-background !bg-primary transition-transform group-hover:scale-125"
-        style={{ background: branchColor }}
+        className="!w-3 !h-3"
+        style={{ background: "#f4f6f2" }}
       />
       <Handle
         id="root-right"
         type="source"
         position={Position.Right}
-        className="!w-3 !h-3 !border-2 !border-background !bg-primary transition-transform group-hover:scale-125"
-        style={{ background: branchColor }}
+        className="!w-3 !h-3"
+        style={{ background: "#f4f6f2" }}
+      />
+      <Handle
+        id="root-top"
+        type="source"
+        position={Position.Top}
+        className="!w-3 !h-3"
+        style={{ background: "#f4f6f2" }}
+      />
+      <Handle
+        id="root-bottom"
+        type="source"
+        position={Position.Bottom}
+        className="!w-3 !h-3"
+        style={{ background: "#f4f6f2" }}
       />
     </div>
   );

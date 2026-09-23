@@ -99,7 +99,7 @@ export function RoadmapHeader({
   return (
     <header
       className={cn(
-        "relative z-30 flex flex-col gap-2.5 border-b border-border/70 bg-background/85 px-3 py-2.5 sm:px-5 backdrop-blur-xl shadow-sm transition-all",
+        "relative z-30 flex flex-col gap-2.5 border-b border-border/60 bg-card/90 px-3 py-2.5 sm:px-5 backdrop-blur-xl shadow-[0_1px_3px_var(--coggle-raised)] transition-all",
         compact && "border-b-0 py-2"
       )}
     >
@@ -110,7 +110,7 @@ export function RoadmapHeader({
           <button
             type="button"
             onClick={handleBackClick}
-            className="group inline-flex items-center gap-1.5 rounded-xl border border-border/70 bg-card/80 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary/40 hover:bg-muted hover:text-foreground transition-all active:scale-95"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-semibold text-foreground/85 shadow-sm hover:border-primary/40 hover:bg-muted hover:text-foreground transition-all active:scale-95"
             aria-label="Back to home"
           >
             <ArrowLeft size={13} className="transition-transform group-hover:-translate-x-0.5" />
@@ -121,7 +121,7 @@ export function RoadmapHeader({
           <div
             role="tablist"
             aria-label="Roadmap learning path tabs"
-            className="inline-flex items-center gap-1 rounded-xl border border-border/80 bg-muted/40 p-1 shadow-inner"
+            className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/50 p-1"
           >
             {TABS.map((t) => {
               const active = t.id === activeId;
@@ -132,16 +132,17 @@ export function RoadmapHeader({
                   aria-selected={active}
                   onClick={() => handleTabClick(t.id)}
                   className={cn(
-                    "rounded-lg px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap",
+                    "rounded-full px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                     active
-                      ? "bg-card text-foreground shadow-sm ring-1 ring-border/50"
-                      : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+                      ? "bg-card text-foreground font-bold shadow-sm"
+                      : "font-semibold text-foreground/75 hover:bg-card/70 hover:text-foreground"
                   )}
                   style={
                     active
                       ? {
-                          borderLeft: `3px solid ${roadmap.accent}`,
+                          boxShadow: `0 1px 3px rgb(0 0 0 / 0.08), inset 0 0 0 1.5px ${roadmap.accent}`,
+                          color: roadmap.accent,
                         }
                       : undefined
                   }
@@ -182,11 +183,11 @@ export function RoadmapHeader({
           {/* Action buttons */}
           <div className="flex items-center gap-1">
             {onCenterRoot && (
-              <AppTooltip content="Center on root topic (0)">
+              <AppTooltip contentClassName="coggle-tip" content="Center on root topic (0)">
                 <button
                   type="button"
                   onClick={onCenterRoot}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-card text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
                   aria-label="Center view on root topic"
                 >
                   <Crosshair size={14} />
@@ -195,11 +196,11 @@ export function RoadmapHeader({
             )}
 
             {onExpandAll && (
-              <AppTooltip content="Expand all branches">
+              <AppTooltip contentClassName="coggle-tip" content="Expand all branches">
                 <button
                   type="button"
                   onClick={onExpandAll}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-card text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
                   aria-label="Expand all branches"
                 >
                   <ChevronsUpDown size={14} />
@@ -208,11 +209,11 @@ export function RoadmapHeader({
             )}
 
             {onCollapseAll && (
-              <AppTooltip content="Collapse all branches">
+              <AppTooltip contentClassName="coggle-tip" content="Collapse all branches">
                 <button
                   type="button"
                   onClick={onCollapseAll}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-card text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
                   aria-label="Collapse all branches"
                 >
                   <ChevronsDownUp size={14} />
@@ -221,11 +222,11 @@ export function RoadmapHeader({
             )}
 
             {onResetProgress && (
-              <AppTooltip content="Reset roadmap progress">
+              <AppTooltip contentClassName="coggle-tip" content="Reset roadmap progress">
                 <button
                   type="button"
                   onClick={onResetProgress}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-card text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
                   aria-label="Reset roadmap progress"
                 >
                   <RotateCcw size={13} />
@@ -233,11 +234,11 @@ export function RoadmapHeader({
               </AppTooltip>
             )}
 
-            <AppTooltip content={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}>
+            <AppTooltip contentClassName="coggle-tip" content={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}>
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-card text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
                 aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               >
                 {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
@@ -253,26 +254,26 @@ export function RoadmapHeader({
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search
             size={13}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Search topics, algorithms, or concepts... (Ctrl+F)"
-            className="h-8 w-full rounded-lg border border-border/70 bg-card/80 pl-8 pr-16 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
+            className="h-8 w-full rounded-full border border-border/70 bg-card pl-8 pr-16 text-xs font-medium text-foreground placeholder:text-muted-foreground/80 shadow-sm focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
           {searchQuery ? (
             <button
               type="button"
               onClick={() => onSearchChange?.("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               aria-label="Clear search"
             >
               <X size={13} />
             </button>
           ) : (
-            <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border/60 bg-muted px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+            <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border/60 bg-muted px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
               /
             </kbd>
           )}
@@ -288,7 +289,7 @@ export function RoadmapHeader({
         {/* Status Filter Chips */}
         {onStatusFilterChange && (
           <div className="flex items-center gap-1">
-            <span className="hidden lg:inline text-[11px] font-medium text-muted-foreground/80 mr-1">
+            <span className="hidden lg:inline text-[11px] font-semibold text-muted-foreground mr-1">
               Filter:
             </span>
             {(
@@ -305,10 +306,10 @@ export function RoadmapHeader({
                   type="button"
                   onClick={() => onStatusFilterChange(f.id)}
                   className={cn(
-                    "rounded-lg px-2 py-1 text-[10.5px] font-semibold transition-all duration-150",
+                    "rounded-full px-2.5 py-1 text-[10.5px] font-semibold transition-all duration-150 border",
                     active
-                      ? "bg-primary/20 text-primary border border-primary/40"
-                      : "text-muted-foreground hover:bg-muted/70 hover:text-foreground border border-transparent"
+                      ? "bg-card text-primary font-bold border-primary/40 shadow-sm"
+                      : "font-semibold text-foreground/75 bg-card/60 hover:bg-card hover:text-foreground border-border/60"
                   )}
                 >
                   {f.label}

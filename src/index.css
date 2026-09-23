@@ -2151,22 +2151,8 @@
 }
 
 .react-flow__attribution { display: none !important; }
-.react-flow__handle {
-  width: 6px !important;
-  height: 6px !important;
-  border: 0 !important;
-  background: hsl(var(--primary) / 0.6) !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-}
 .react-flow__edge-path {
-  transition: stroke 200ms ease, opacity 200ms ease, stroke-width 200ms ease;
-  filter: drop-shadow(0 2px 4px hsl(var(--primary) / 0.12));
-}
-.react-flow__edge.selected .react-flow__edge-path,
-.react-flow__edge:focus .react-flow__edge-path,
-.react-flow__edge:focus-visible .react-flow__edge-path {
-  stroke-width: 2.5 !important;
+  transition: opacity 200ms ease;
 }
 .react-flow__background {
   background-color: transparent;
@@ -2196,23 +2182,62 @@
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   Coggle-Style Bidirectional Mind-Map Styles
+   Coggle-Style Radial Mind-Map Styles
+   Always-dark canvas matching the reference: near-black paper,
+   vivid pastel branches, white center root.
    ═══════════════════════════════════════════════════════════════════ */
 .coggle-roadmap-shell {
-  --coggle-canvas: hsl(var(--background));
-  --coggle-canvas-glow: hsl(var(--primary) / 0.09);
+  /* Locked dark palette — the roadmap canvas ignores the app theme */
+  --background: 150 8% 5%;
+  --foreground: 210 20% 98%;
+  --card: 150 8% 7%;
+  --card-foreground: 210 20% 98%;
+  --popover: 150 8% 7%;
+  --popover-foreground: 210 20% 98%;
+  --primary: 24 92% 70%;
+  --primary-foreground: 25 40% 8%;
+  --secondary: 217 91% 70%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 150 6% 13%;
+  --muted-foreground: 215 15% 75%;
+  --accent: 43 95% 65%;
+  --accent-foreground: 0 0% 7%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 150 8% 18%;
+  --input: 150 6% 13%;
+  --ring: 24 92% 70%;
+  --success: 145 55% 55%;
+  --success-foreground: 0 0% 100%;
+  --warning: 45 90% 62%;
+  --warning-foreground: 25 40% 8%;
+  --info: 195 85% 65%;
+
+  /* The reference canvas: solid near-black with a faint green cast */
+  --coggle-paper: #0b0f0d;
+  --coggle-dot: #171d1a;
+  --coggle-raised: rgb(0 0 0 / 0.45);
+  --coggle-root: #f4f6f2;
+
+  color-scheme: dark;
 }
+/* Legacy light-paper tokens removed — roadmap stays dark in both app themes */
 .dark .coggle-roadmap-shell {
-  --coggle-canvas: hsl(234 24% 7%);
-  --coggle-canvas-glow: hsl(var(--primary) / 0.16);
+  color-scheme: dark;
 }
 .coggle-canvas {
-  background:
-    radial-gradient(circle at 50% 50%, var(--coggle-canvas-glow) 0%, transparent 65%),
-    var(--coggle-canvas) !important;
+  background: var(--coggle-paper) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 .coggle-canvas .react-flow__pane {
   background: transparent;
+}
+/* Connector handles are structural only — Coggle shows no dots */
+.coggle-roadmap-shell .react-flow__handle {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 .react-flow__node-coggleRoot,
 .react-flow__node-coggleNode {
@@ -2222,18 +2247,22 @@
   box-shadow: none !important;
   border-radius: 0 !important;
 }
-.coggle-category-node,
-.coggle-topic-node {
-  will-change: transform, box-shadow;
+/* Soft shadow under branch ribbons — tuned for the near-black canvas */
+.coggle-edge-ribbon {
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
+  transition: opacity 200ms ease, filter 200ms ease;
 }
-
-@keyframes coggle-edge-flow {
-  from { stroke-dashoffset: 20; }
-  to   { stroke-dashoffset: 0; }
-}
-
 .coggle-edge-highlighted {
-  filter: drop-shadow(0 0 5px currentColor);
+  filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
+}
+/* Tooltips portal outside the shell — always match the dark roadmap */
+.coggle-tip {
+  background: #171d1a !important;
+  color: hsl(210 20% 96%) !important;
+  border-color: hsl(150 8% 20%) !important;
+}
+.coggle-tip > svg {
+  fill: #171d1a !important;
 }
 
 

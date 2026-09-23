@@ -82,7 +82,7 @@ export interface CompletionStats {
   percent: number;
 }
 
-export type CoggleSide = "left" | "right";
+export type CoggleSide = "left" | "right" | "up" | "down";
 
 /** Extra metadata added to nodes when laid out in the Coggle bidirectional tree */
 export interface CoggleNodeData extends RoadmapNodeData {
@@ -96,6 +96,8 @@ export interface CoggleNodeData extends RoadmapNodeData {
   matchedSearch?: boolean;
   statusHidden?: boolean;
   branchColor: string;
+  /** Estimated pill width shared between layout anchors and the rendered node. */
+  pillWidth?: number;
   totalTopics?: number;
   completedTopics?: number;
   onToggleCollapse?: (id: string) => void;
