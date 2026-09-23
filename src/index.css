@@ -2188,7 +2188,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 .coggle-roadmap-shell {
   /* Locked dark palette — the roadmap canvas ignores the app theme */
-  --background: 150 8% 5%;
+  --background: 120 5% 7.843%;
   --foreground: 210 20% 98%;
   --card: 150 8% 7%;
   --card-foreground: 210 20% 98%;
@@ -2213,13 +2213,14 @@
   --warning-foreground: 25 40% 8%;
   --info: 195 85% 65%;
 
-  /* The reference canvas: solid near-black with a faint green cast */
-  --coggle-paper: #0b0f0d;
+  /* The reference canvas */
+  --coggle-paper: #131513;
   --coggle-dot: #171d1a;
   --coggle-raised: rgb(0 0 0 / 0.45);
   --coggle-root: #f4f6f2;
 
   color-scheme: dark;
+  background-color: #131513;
 }
 /* Legacy light-paper tokens removed — roadmap stays dark in both app themes */
 .dark .coggle-roadmap-shell {

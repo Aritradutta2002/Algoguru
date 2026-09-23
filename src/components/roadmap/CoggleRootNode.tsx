@@ -41,7 +41,7 @@ function CoggleRootNodeImpl({ data, selected }: NodeProps<{ data: CoggleNodeData
           color: "#101828",
           border: "1.5px solid rgb(255 255 255 / 0.14)",
           boxShadow: selected
-            ? "0 0 0 2px #0b0f0d, 0 0 0 4px #f4f6f2, 0 14px 34px -12px rgb(0 0 0 / 0.6)"
+            ? "0 0 0 2px var(--coggle-paper, #131513), 0 0 0 4px #f4f6f2, 0 14px 34px -12px rgb(0 0 0 / 0.6)"
             : "0 10px 28px -10px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4)",
         } as React.CSSProperties
       }

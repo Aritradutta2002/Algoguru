@@ -75,7 +75,7 @@ export function RoadmapFullscreenOverlay({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
-          className="fixed inset-0 z-[9999] flex flex-col bg-background text-foreground"
+          className="coggle-roadmap-shell fixed inset-0 z-[9999] flex flex-col bg-background text-foreground"
           role="dialog"
           aria-modal="true"
           aria-label="Roadmaps Studio"
