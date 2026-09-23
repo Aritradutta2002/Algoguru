@@ -994,4 +994,48 @@ export const coreJavaVisualizations: Record<string, Diagram> = {
       { label: "List<String> — compile-time", color: "success", children: [{ label: "Wrong add() = compile error" }, { label: "No casts • self-documenting" }] },
     ],
   },
+  // ── Advanced OOP ──
+  // Keyed by the live question id (q226) rather than the legacy short keys used
+  // above; the lookup in CoreJavaVisualizationBlock is by question id.
+  q226: {
+    type: "flow",
+    title: "Singleton — The getInstance() Guard Path",
+    direction: "vertical",
+    data: [
+      {
+        label: "getInstance() called",
+        color: "primary",
+        children: [{ label: "Read the static volatile field — no lock taken" }],
+      },
+      {
+        label: "instance != null → fast path",
+        color: "info",
+        children: [
+          { label: "Return the cached instance immediately" },
+          { label: "Monitor never acquired • later calls never contend" },
+        ],
+      },
+      {
+        label: "instance == null → first call only",
+        color: "warning",
+        children: [
+          { label: "synchronized (ConfigService.class) — acquire the class monitor" },
+          { label: "A thread that queued here may already have built it — hence the second check" },
+        ],
+      },
+      {
+        label: "Still null → construct",
+        color: "accent",
+        children: [
+          { label: "Private constructor runs • the settings map is loaded once" },
+          { label: "volatile write publishes the fully built object, never a half-built one" },
+        ],
+      },
+      {
+        label: "Release the lock and return",
+        color: "success",
+        children: [{ label: "Every caller from now on sees the same reference" }],
+      },
+    ],
+  },
 };

@@ -11,8 +11,10 @@
  * ---------------------------------------------------------------------------
  * AUTHORING RULES (must be followed exactly)
  * ---------------------------------------------------------------------------
- * 1. IDs are fixed. Use the global ids given in your brief (`q001` ... `q225`),
- *    in ascending order, one per question. Never invent or renumber ids.
+ * 1. IDs are fixed. Use the global ids given in your brief, in ascending order,
+ *    one per question. Never invent or renumber ids — bookmarks and saved
+ *    progress are keyed by id, and ids no longer match rendered question
+ *    numbers once a question is appended inside an existing topic (q226).
  * 2. `question` text is fixed. Copy it verbatim from your brief.
  * 3. Every question object MUST populate all of these fields:
  *      id, question, answer, code, codeLanguage, explanation

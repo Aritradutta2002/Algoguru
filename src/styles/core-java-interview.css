@@ -79,6 +79,240 @@
 
 .cjd-mental-model {
   max-width: 65ch;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Reading pane (theory surfaces, day/night) ────────────────────── */
+.cjq-list-title {
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  color: hsl(var(--reading-heading));
+  letter-spacing: -0.015em;
+}
+
+.cjq-list-body {
+  color: hsl(var(--reading-body));
+  max-width: 72ch;
+}
+
+.cjq-detail-title {
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  color: hsl(var(--reading-heading));
+}
+
+/* Light mode: warm paper surface with a crisp but soft border */
+.cjq-reading {
+  background: hsl(var(--reading-surface));
+  color: hsl(var(--reading-foreground));
+  border: 1px solid hsl(var(--reading-border));
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+}
+
+:root:not(.dark) .cjq-reading {
+  border-color: hsl(220 13% 84%);
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.05),
+    0 8px 24px -12px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+:root:not(.dark) .cjq-reading-content strong {
+  color: hsl(var(--reading-heading));
+}
+
+:root:not(.dark) .cjq-reading-content code {
+  background: hsl(220 14% 94%);
+  color: hsl(222 47% 20%);
+  border-color: hsl(220 13% 86%);
+}
+
+/* Dark mode: keep the deep, softly elevated pane */
+.dark .cjq-reading {
+  border-color: hsl(222 16% 20%);
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.2),
+    0 8px 24px -12px rgba(0, 0, 0, 0.45);
+}
+
+.cjq-reading-content {
+  max-width: 72ch;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.cjq-reading-content h4 {
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+  color: hsl(var(--reading-heading));
+}
+
+.cjq-reading-content p,
+.cjq-reading-content li {
+  font-size: 1.03125rem; /* 16.5px */
+  line-height: 1.85;
+  color: hsl(var(--reading-body));
+}
+
+.cjq-reading-content strong {
+  color: hsl(var(--reading-foreground));
+  font-weight: 700;
+}
+
+.cjq-reading-content code {
+  font-family: "JetBrains Mono", "Roboto Mono", monospace;
+  font-size: 0.86em;
+  font-weight: 500;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.375rem;
+  background: hsl(var(--reading-muted) / 0.12);
+  color: hsl(var(--reading-foreground));
+  border: 1px solid hsl(var(--reading-border));
+}
+
+/* ── Light-mode surface separation (Q&A list page) ──────────────────
+   In day mode the near-white page washes out /30-/40 opacity borders and
+   muted tints, so cards and controls lose their boundaries. These give
+   every surface a crisp, visible edge without touching dark mode. */
+.cjq-qcard:not(.cjq-qcard--done):not(.cjq-qcard--active) {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border) / 0.45);
+}
+
+:root:not(.dark) .cjq-qcard:not(.cjq-qcard--done):not(.cjq-qcard--active) {
+  background: hsl(0 0% 100%);
+  border-color: hsl(220 14% 85.5%);
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.05),
+    0 8px 24px -14px rgba(15, 23, 42, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+:root:not(.dark) .cjq-qcard--idle:hover {
+  border-color: hsl(220 14% 77%);
+  box-shadow:
+    0 2px 5px 0 rgba(15, 23, 42, 0.07),
+    0 16px 38px -16px rgba(15, 23, 42, 0.24);
+}
+
+:root:not(.dark) .cjq-card-divider,
+:root:not(.dark) .cjq-toolbar-divider {
+  border-color: hsl(220 13% 86%);
+}
+
+:root:not(.dark) .cjq-topic-divider {
+  border-color: hsl(220 13% 82.5%);
+}
+
+:root:not(.dark) .cjq-btn-ghost {
+  background: hsl(220 14% 93%);
+  color: hsl(220 9% 35%);
+}
+
+:root:not(.dark) .cjq-btn-ghost:hover {
+  background: hsl(220 14% 88.5%);
+  color: hsl(222 25% 14%);
+}
+
+:root:not(.dark) .cjq-toolbar-btn {
+  background: hsl(0 0% 100%);
+  border-color: hsl(220 13% 84.5%);
+}
+
+:root:not(.dark) .cjq-toolbar-btn:hover {
+  background: hsl(220 14% 94%);
+  border-color: hsl(220 13% 77%);
+}
+
+:root:not(.dark) .cjq-filter-pill[aria-pressed="false"] {
+  background: hsl(220 14% 93%);
+  border-color: hsl(220 13% 85%);
+  color: hsl(220 9% 35%);
+}
+
+:root:not(.dark) .cjq-filter-pill[aria-pressed="false"]:hover {
+  background: hsl(220 14% 88.5%);
+  color: hsl(222 25% 14%);
+}
+
+:root:not(.dark) .cjq-nav-btn:hover {
+  background: hsl(220 14% 93%);
+  border-color: hsl(220 13% 87%);
+  color: hsl(222 25% 14%);
+}
+
+:root:not(.dark) .cjq-qbadge {
+  background: hsl(220 14% 90%);
+  color: hsl(220 11% 37%);
+}
+
+:root:not(.dark) .cjq-input {
+  background: hsl(0 0% 100%);
+  border-color: hsl(220 13% 84%);
+}
+
+:root:not(.dark) .cjq-input:focus {
+  background: hsl(0 0% 100%);
+  border-color: hsl(var(--primary));
+}
+
+/* ── Expand panel (fold/unfold) ────────────────────────────────────── */
+.cjq-panel {
+  background: hsl(var(--card));
+}
+
+:root:not(.dark) .cjq-panel {
+  background: hsl(220 24% 97.5%);
+}
+
+.dark .cjq-panel {
+  background: hsl(222 22% 10.5%);
+}
+
+.cjq-panel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.75rem 0;
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: hsl(var(--muted-foreground));
+  transition: color 0.15s ease;
+}
+
+.cjq-panel-toggle:hover {
+  color: hsl(var(--foreground));
+}
+
+.cjq-panel-toggle .cjq-panel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 0.5rem;
+  background: hsl(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
+}
+
+.cjq-panel-chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.cjq-panel-toggle[aria-expanded="true"] .cjq-panel-chevron {
+  transform: rotate(180deg);
 }
 
 /* ── Hub Page ─────────────────────────────────────────────────────── */

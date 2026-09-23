@@ -63,12 +63,12 @@
     --gradient-card: hsl(0 0% 100%);
     --gradient-sidebar: hsl(210 20% 96%);
 
-    --reading-surface: 0 0% 100%;
-    --reading-foreground: 222 35% 12%;
+    --reading-surface: 40 33% 98.5%;
+    --reading-foreground: 222 35% 14%;
     --reading-heading: 222 47% 11%;
-    --reading-body: 222 25% 18%;
+    --reading-body: 222 20% 24%;
     --reading-highlight: 222 47% 11%;
-    --reading-muted: 220 12% 46%;
+    --reading-muted: 220 10% 40%;
     --reading-border: 220 13% 89%;
     --code-inline-bg: 220 14% 94%;
     --code-inline-text: 222 47% 18%;
@@ -1004,32 +1004,8 @@
     100% { background-position: -200% center; }
   }
 
-  /* ═══════════════════════════════════════════════════════════════════
-     Roadmap edge flowing animation
-
-     The @keyframes (`rm-edge-dash`) and the `.react-flow__edge-path.animated`
-     rule that consume it are defined at the very bottom of this file,
-     OUTSIDE any @layer — so they aren't weakened by Tailwind's
-     utility-layer specificity ordering. The roadmap edge component
-     simply adds the `.animated` class to the path when its source or
-     target node is hovered.
-     ═══════════════════════════════════════════════════════════════════ */
-  @keyframes roadmap-flow-forward {
-    from { stroke-dashoffset: 20; }
-    to   { stroke-dashoffset: 0; }
-  }
-
-  @keyframes roadmap-flow-backward {
-    from { stroke-dashoffset: 0; }
-    to   { stroke-dashoffset: 20; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .react-flow__edge-path[style*="roadmap-flow"] {
-      animation: none !important;
-    }
-  }
 }
+
 
 /* Note markdown rendering styles */
 .note-rendered strong {
@@ -2174,36 +2150,9 @@
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   NeetCode-style Roadmap (React Flow) overrides
-   ═══════════════════════════════════════════════════════════════════ */
-.react-flow {
-  background: transparent;
-}
 .react-flow__attribution { display: none !important; }
-.react-flow__handle {
-  width: 6px !important;
-  height: 6px !important;
-  border: 0 !important;
-  background: hsl(var(--primary) / 0.6) !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-}
-.react-flow__node-roadmap {
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-}
 .react-flow__edge-path {
-  transition: stroke 200ms ease, opacity 200ms ease, stroke-width 200ms ease;
-}
-.react-flow__edge.selected .react-flow__edge-path,
-.react-flow__edge:focus .react-flow__edge-path,
-.react-flow__edge:focus-visible .react-flow__edge-path {
-  stroke-width: 2.5 !important;
+  transition: opacity 200ms ease;
 }
 .react-flow__background {
   background-color: transparent;
@@ -2231,24 +2180,90 @@
 }
 .react-flow__controls-button svg { fill: currentColor; }
 
-/* Animated dashed flow for edges when their source/target node is hovered.
-   The line is broken into 10px dashes with 10px gaps, and the dash offset
-   shifts continuously so it appears to "march" toward the target. */
-@keyframes rm-edge-dash {
-  from { stroke-dashoffset: 12; }
-  to   { stroke-dashoffset: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Coggle-Style Radial Mind-Map Styles
+   Always-dark canvas matching the reference: near-black paper,
+   vivid pastel branches, white center root.
+   ═══════════════════════════════════════════════════════════════════ */
+.coggle-roadmap-shell {
+  /* Locked dark palette — the roadmap canvas ignores the app theme */
+  --background: 120 5% 7.843%;
+  --foreground: 210 20% 98%;
+  --card: 150 8% 7%;
+  --card-foreground: 210 20% 98%;
+  --popover: 150 8% 7%;
+  --popover-foreground: 210 20% 98%;
+  --primary: 24 92% 70%;
+  --primary-foreground: 25 40% 8%;
+  --secondary: 217 91% 70%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 150 6% 13%;
+  --muted-foreground: 215 15% 75%;
+  --accent: 43 95% 65%;
+  --accent-foreground: 0 0% 7%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 150 8% 18%;
+  --input: 150 6% 13%;
+  --ring: 24 92% 70%;
+  --success: 145 55% 55%;
+  --success-foreground: 0 0% 100%;
+  --warning: 45 90% 62%;
+  --warning-foreground: 25 40% 8%;
+  --info: 195 85% 65%;
+
+  /* The reference canvas */
+  --coggle-paper: #131513;
+  --coggle-dot: #171d1a;
+  --coggle-raised: rgb(0 0 0 / 0.45);
+  --coggle-root: #f4f6f2;
+
+  color-scheme: dark;
+  background-color: #131513;
+}
+/* Legacy light-paper tokens removed — roadmap stays dark in both app themes */
+.dark .coggle-roadmap-shell {
+  color-scheme: dark;
+}
+.coggle-canvas {
+  background: var(--coggle-paper) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+.coggle-canvas .react-flow__pane {
+  background: transparent;
+}
+/* Connector handles are structural only — Coggle shows no dots */
+.coggle-roadmap-shell .react-flow__handle {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.react-flow__node-coggleRoot,
+.react-flow__node-coggleNode {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+/* Soft shadow under branch ribbons — tuned for the near-black canvas */
+.coggle-edge-ribbon {
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
+  transition: opacity 200ms ease, filter 200ms ease;
+}
+.coggle-edge-highlighted {
+  filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
+}
+/* Tooltips portal outside the shell — always match the dark roadmap */
+.coggle-tip {
+  background: #171d1a !important;
+  color: hsl(210 20% 96%) !important;
+  border-color: hsl(150 8% 20%) !important;
+}
+.coggle-tip > svg {
+  fill: #171d1a !important;
 }
 
-/* The `.animated` class is added to the path element by the roadmap edge
-   component when its source or target node is hovered. Targeting the path
-   directly avoids relying on the wrapper <g> having the same class. */
-.react-flow__edge-path.animated {
-  stroke-dasharray: 5 4;
-  stroke-linecap: round;
-  animation: rm-edge-dash 0.42s linear infinite;
-  stroke: hsl(var(--primary)) !important;
-  stroke-width: 3.8 !important;
-  opacity: 1 !important;
-  filter: drop-shadow(0 0 3px hsl(var(--primary) / 0.75));
-}
 

@@ -1,9 +1,10 @@
 /**
  * Chunk aggregator for the Core Java interview question bank.
  *
- * Each `chunk-*.ts` file owns a disjoint range of global question ids
- * (q001..q225). This module concatenates them in global-id order, groups them
- * by topic, and exposes a single merged metadata map.
+ * Each `chunk-*.ts` file owns a disjoint range of global question ids.
+ * This module concatenates them in chunk order, groups them by topic, and
+ * exposes a single merged metadata map. Chunk order — not id order — decides
+ * the rendered question numbering.
  *
  * Invariants enforced here (development-time only, zero runtime cost in prod):
  * - ids are unique across all chunks
@@ -108,9 +109,9 @@ if (import.meta.env?.DEV) {
       );
     }
   }
-  if (allCoreJavaQuestions.length !== 225) {
+  if (allCoreJavaQuestions.length !== 226) {
     console.warn(
-      `[coreJavaQuestions] Expected 225 questions, found ${allCoreJavaQuestions.length}.`
+      `[coreJavaQuestions] Expected 226 questions, found ${allCoreJavaQuestions.length}.`
     );
   }
 }

@@ -81,3 +81,35 @@ export interface CompletionStats {
   total: number;
   percent: number;
 }
+
+export type CoggleSide = "left" | "right" | "up" | "down";
+
+/** Extra metadata added to nodes when laid out in the Coggle bidirectional tree */
+export interface CoggleNodeData extends RoadmapNodeData {
+  side: CoggleSide;
+  tier: number; // 0 = root, 1 = category trunk, 2 = topic, 3+ = subtopic
+  isRoot?: boolean;
+  isCategory?: boolean;
+  isCollapsed?: boolean;
+  hasChildren?: boolean;
+  childCount?: number;
+  matchedSearch?: boolean;
+  statusHidden?: boolean;
+  branchColor: string;
+  /** Estimated pill width shared between layout anchors and the rendered node. */
+  pillWidth?: number;
+  totalTopics?: number;
+  completedTopics?: number;
+  onToggleCollapse?: (id: string) => void;
+  onSelect?: (id: string) => void;
+}
+
+/** Coggle edge styling metadata */
+export interface CoggleEdgeData extends Record<string, unknown> {
+  side: CoggleSide;
+  branchColor: string;
+  tier: number;
+  isHovered?: boolean;
+  isActivePath?: boolean;
+  flowDirection?: "forward" | "backward";
+}
