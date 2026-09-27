@@ -72,6 +72,15 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
+## Interview preparation tracks
+
+- **Core Java Q&A** — `/interview/java/core-java-qa` (226 questions, 15 topics)
+- **Spring Boot & Backend Engineering** — `/interview/java/spring-boot` (138 questions,
+  155 annotations, 41 practice problems). See
+  [`docs/SPRING_BOOT_INTERVIEW_TRACK.md`](docs/SPRING_BOOT_INTERVIEW_TRACK.md) for the full
+  breakdown and [`src/data/backendInterview/README.md`](src/data/backendInterview/README.md)
+  for the authoring guide.
+
 ## Health Check / Monitoring
 
 A lightweight health-check endpoint is available for uptime monitoring services like UptimeRobot.

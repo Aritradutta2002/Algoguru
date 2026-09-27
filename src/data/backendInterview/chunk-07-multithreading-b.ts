@@ -1223,7 +1223,7 @@ management.endpoint.health.show-details: always
     b095: { difficulty: "medium", priority: "very-high", tags: ["threadpool", "executor", "rejection"], readMinutes: 6 },
     b096: { difficulty: "medium", priority: "very-high", tags: ["future", "completablefuture", "async"], readMinutes: 5 },
     b097: { difficulty: "hard", priority: "medium", tags: ["forkjoin", "work-stealing", "parallel"], readMinutes: 5 },
-    b098: { difficulty: "medium", priority: "very-high", tags: ["virtual-threads", "loom", "java-21"], readMinutes: 5, versions: ["21"] },
+    b098: { difficulty: "medium", priority: "very-high", tags: ["virtual-threads", "loom", "java-21"], readMinutes: 5, versions: ["Java 21"] },
     b099: { difficulty: "medium", priority: "high", tags: ["blockingqueue", "producer-consumer", "backpressure"], readMinutes: 5 },
     b100: { difficulty: "hard", priority: "very-high", tags: ["concurrenthashmap", "lock-striping", "cas"], readMinutes: 6 },
     b101: { difficulty: "medium", priority: "very-high", tags: ["spring", "async", "executor"], readMinutes: 5 },
