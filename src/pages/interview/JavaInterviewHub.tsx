@@ -22,6 +22,7 @@ import {
   ListChecks,
   Sparkles,
   Target,
+  Rocket,
   Timer,
   TrendingUp,
 } from "lucide-react";
@@ -35,6 +36,8 @@ import {
   type InterviewPriority,
 } from "@/data/coreJavaInterviewMetadata";
 import { DifficultyBadge } from "@/components/interview/CoreJavaBadges";
+import { BACKEND_TOTAL_QUESTIONS } from "@/lib/backendQuestionIndex";
+import { PRACTICE_PROBLEM_COUNT } from "@/data/backendInterview/practiceProblems";
 import { cn } from "@/lib/utils";
 import "@/styles/java-interview-hub.css";
 
@@ -220,13 +223,14 @@ const SECTIONS = [
 
 const SECTION_IDS = SECTIONS.map((s) => s.id);
 
-type TrackColor = "primary" | "accent" | "info" | "success";
+type TrackColor = "primary" | "accent" | "info" | "success" | "warning";
 
 const TRACK_COLOR_STYLES: Record<TrackColor, { icon: string; track: string }> = {
   primary: { icon: "bg-primary/10 border-primary/25 text-primary", track: "hsl(var(--primary))" },
   accent: { icon: "bg-accent/10 border-accent/30 text-accent", track: "hsl(var(--accent))" },
   info: { icon: "bg-info/10 border-info/25 text-info", track: "hsl(var(--info))" },
   success: { icon: "bg-success/10 border-success/25 text-success", track: "hsl(var(--success))" },
+  warning: { icon: "bg-warning/10 border-warning/25 text-warning", track: "hsl(var(--warning))" },
 };
 
 const LEARNING_TRACKS: Array<{
@@ -246,6 +250,16 @@ const LEARNING_TRACKS: Array<{
     color: "primary",
     route: "/interview/java/core-java-qa",
     meta: null, // filled with the live question count
+  },
+  {
+    id: "spring-boot",
+    title: "Spring Boot & Backend",
+    description:
+      "Every annotation with its internals, Collections, HashMap internals, multithreading, Spring Security and JWT — with practice problems.",
+    icon: Rocket,
+    color: "warning",
+    route: "/interview/java/spring-boot",
+    meta: null, // filled with the live backend question count
   },
   {
     id: "data-structure",
@@ -416,11 +430,13 @@ export default function JavaInterviewHub() {
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const tracks = LEARNING_TRACKS.map((track) =>
-    track.id === "core-java-qa"
-      ? { ...track, meta: `${totalQuestions} questions` }
-      : track
-  );
+  const tracks = LEARNING_TRACKS.map((track) => {
+    if (track.id === "core-java-qa") return { ...track, meta: `${totalQuestions} questions` };
+    if (track.id === "spring-boot") {
+      return { ...track, meta: `${BACKEND_TOTAL_QUESTIONS} questions · ${PRACTICE_PROBLEM_COUNT} labs` };
+    }
+    return track;
+  });
 
   const startCta = progressPct > 0 ? "Continue learning" : "Start learning";
 

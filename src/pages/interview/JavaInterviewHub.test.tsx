@@ -120,7 +120,7 @@ describe("JavaInterviewHub (redesigned)", () => {
     expect(within(nav).getByRole("button", { name: /hot list/i })).toBeInTheDocument();
   });
 
-  it("renders the five-cell stat strip and the four learning tracks", () => {
+  it("renders the five-cell stat strip and the five learning tracks", () => {
     renderHub();
 
     for (const label of ["Questions", "Topics", "Must-know", "Full read", "Quick revision"]) {
@@ -129,6 +129,7 @@ describe("JavaInterviewHub (redesigned)", () => {
 
     for (const [title, href] of [
       ["Core Java Q&A", "/interview/java/core-java-qa"],
+      ["Spring Boot & Backend", "/interview/java/spring-boot"],
       ["Data Structures", "/interview/java/data-structure"],
       ["System Design", "/interview/java/system-design"],
       ["SQL Questions", "/interview/java/sql-structure"],

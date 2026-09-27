@@ -9,6 +9,7 @@ import {
   Code2,
   Coffee,
   Layers,
+  Rocket,
   Target,
 } from "lucide-react";
 import JavaInterviewHub from "./interview/JavaInterviewHub";
@@ -26,7 +27,13 @@ interface LanguageOption {
 }
 
 interface LearningPathOption {
-  id: "data-structure" | "core-java-qa" | "language-questions" | "system-design" | "sql-structure";
+  id:
+    | "data-structure"
+    | "core-java-qa"
+    | "language-questions"
+    | "spring-boot"
+    | "system-design"
+    | "sql-structure";
   title: string;
   subtitle: string;
   icon: JSX.Element;
@@ -76,6 +83,14 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
         icon: <Coffee size={24} />,
         color: "hsl(var(--primary))",
         route: "core-java-qa",
+      },
+      {
+        id: "spring-boot",
+        title: "Spring Boot & Backend",
+        subtitle: "Annotations, collections, concurrency, security & JWT",
+        icon: <Rocket size={24} />,
+        color: "hsl(var(--warning))",
+        route: "spring-boot",
       },
       {
         id: "system-design",
