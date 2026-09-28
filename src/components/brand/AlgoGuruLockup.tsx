@@ -18,7 +18,7 @@ const WORDMARK_FONT = "'Space Grotesk','Outfit','Inter',system-ui,sans-serif";
 
 /**
  * "Algo" inherits `currentColor` so the lockup adapts to light/dark surfaces;
- * "Guru" stays on-brand orange in both.
+ * "Guru" stays on-brand blue in both.
  */
 export function AlgoGuruLockup({
   size = 40,
@@ -48,8 +48,8 @@ export function AlgoGuruLockup({
 
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FB923C" />
-          <stop offset="1" stopColor="#E1542F" />
+          <stop offset="0" stopColor="#3B82F6" />
+          <stop offset="1" stopColor="#2563EB" />
         </linearGradient>
         <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
           <rect width="64" height="64" fill="#fff" />
@@ -86,7 +86,7 @@ export function AlgoGuruLockup({
             letterSpacing="-0.6"
           >
             <tspan fill="currentColor">Algo</tspan>
-            <tspan fill="#E1542F">Guru</tspan>
+            <tspan fill="#2563EB">Guru</tspan>
           </text>
         </>
       ) : (
@@ -115,7 +115,7 @@ export function AlgoGuruLockup({
             letterSpacing="-0.8"
           >
             <tspan fill="currentColor">Algo</tspan>
-            <tspan fill="#E1542F">Guru</tspan>
+            <tspan fill="#2563EB">Guru</tspan>
           </text>
         </>
       )}

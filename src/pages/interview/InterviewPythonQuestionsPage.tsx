@@ -137,7 +137,7 @@ const _QuestionCard = ({
                 </span>
               )}
               {(meta.priority === "high" || meta.priority === "very-high") && (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full">
                   <Flame size={10} /> Hot
                 </span>
               )}

@@ -1,1043 +1,291 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-  type RefObject,
-} from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Progress } from "@/components/ui/progress";
+import { PageContainer } from "@/components/layout/PagePrimitives";
+import { ResetProgressDialog } from "@/components/interview/ResetProgressDialog";
+import { ContinueLearningCard } from "@/components/interview/java-hub/ContinueLearningCard";
+import { CurriculumSection } from "@/components/interview/java-hub/CurriculumSection";
+import { LocalSectionNavigation } from "@/components/interview/java-hub/LocalSectionNavigation";
+import { PracticeResources } from "@/components/interview/java-hub/PracticeResources";
+import { StudyPlanTimeline } from "@/components/interview/java-hub/StudyPlanTimeline";
+import { handleSectionLinkClick, type SectionLink } from "@/components/interview/java-hub/useSectionNavigation";
 import {
-  ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  CheckCircle2,
-  ChevronRight,
-  Coffee,
-  Database,
-  Flame,
-  Layers,
-  ListChecks,
-  Sparkles,
-  Target,
-  Timer,
-  TrendingUp,
-} from "lucide-react";
+  buildPreparationSummary,
+  buildStudyPlan,
+  buildTopicStats,
+  deriveStudyFocus,
+  pickMostAsked,
+  QUESTION_BANK_PATH,
+  type StudyFocus,
+} from "@/components/interview/java-hub/javaHubData";
 import { coreJavaInterviewTopics } from "@/data/coreJavaInterviewData";
+import { PRACTICE_PROBLEM_COUNT } from "@/data/backendInterview/practiceProblems";
+import { useBackendInterviewProgress } from "@/hooks/useBackendInterviewProgress";
 import { useCoreJavaUserState } from "@/hooks/useCoreJavaUserState";
-import { useCoreJavaBookmarks } from "@/hooks/useCoreJavaBookmarks";
-import { getAllCoreJavaQuestions, getCoreJavaTopicCount } from "@/lib/coreJavaQuestionIndex";
-import {
-  getCoreJavaQuestionDetailPath,
-  getCoreJavaQuestionMeta,
-  type InterviewPriority,
-} from "@/data/coreJavaInterviewMetadata";
-import { DifficultyBadge } from "@/components/interview/CoreJavaBadges";
-import { cn } from "@/lib/utils";
-import "@/styles/java-interview-hub.css";
+import { getAllCoreJavaQuestions } from "@/lib/coreJavaQuestionIndex";
+import "@/styles/core-java-interview.css";
 
-/* ────────────────────────────────────────────────────────────────────
-   Motion primitives
-   ──────────────────────────────────────────────────────────────────── */
-
-const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
-
-/** Scroll-reveal preset; pass a delay to offset siblings. */
-const reveal = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-70px" },
-  transition: { duration: 0.55, ease: EASE, delay },
-});
-
-const fadeUp = reveal();
-
-function useInViewOnce<T extends Element>(ref: RefObject<T | null>, rootMargin = "-60px"): boolean {
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin, threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [ref, rootMargin]);
-  return inView;
-}
-
-/** Eased count-up that starts when `start` flips true. */
-function useCountUp(target: number, start: boolean, duration = 950): number {
-  const reduced = useReducedMotion();
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    if (reduced) {
-      setDisplay(target);
-      return;
-    }
-    let raf = 0;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - t0) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(Math.round(target * eased));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, start, duration, reduced]);
-  return display;
-}
-
-interface ProgressRingProps {
-  value: number;
-  size?: number;
-  strokeWidth?: number;
-  className?: string;
-  children?: ReactNode;
-  label?: string;
-}
-
-/** SVG progress ring with an animated sweep on mount. */
-function ProgressRing({ value, size = 120, strokeWidth = 10, className, children, label }: ProgressRingProps) {
-  const reduced = useReducedMotion();
-  const clamped = Math.min(100, Math.max(0, value));
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - clamped / 100);
-
-  return (
-    <div
-      className={cn("relative inline-flex flex-shrink-0 items-center justify-center", className)}
-      style={{ width: size, height: size }}
-      role="img"
-      aria-label={label ?? `${Math.round(clamped)} percent complete`}
-    >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden="true">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          strokeWidth={strokeWidth}
-          className="stroke-muted"
-        />
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={reduced ? { strokeDashoffset: offset } : { strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: reduced ? 0 : 1.15, ease: EASE, delay: 0.2 }}
-          className="stroke-primary"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
-    </div>
-  );
-}
-
-interface ProgressBarProps {
-  value: number;
-  fillClassName?: string;
-  className?: string;
-  ariaLabel?: string;
-  delay?: number;
-}
-
-/** Thin progress bar that sweeps in when it scrolls into view. */
-function ProgressBar({ value, fillClassName, className, ariaLabel, delay = 0.15 }: ProgressBarProps) {
-  const reduced = useReducedMotion();
-  const clamped = Math.min(100, Math.max(0, value));
-  return (
-    <div
-      className={cn("h-1 w-full overflow-hidden rounded-full bg-muted", className)}
-      role="progressbar"
-      aria-label={ariaLabel}
-      aria-valuenow={Math.round(clamped)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-    >
-      <motion.div
-        className={cn("h-full rounded-full bg-primary", fillClassName)}
-        initial={reduced ? { width: `${clamped}%` } : { width: "0%" }}
-        whileInView={{ width: `${clamped}%` }}
-        viewport={{ once: true, margin: "-30px" }}
-        transition={{ duration: reduced ? 0 : 0.9, ease: EASE, delay }}
-      />
-    </div>
-  );
-}
-
-/** Stacked easy / medium / hard distribution bar. */
-function DifficultyBar({ easy, medium, hard, className }: { easy: number; medium: number; hard: number; className?: string }) {
-  const total = easy + medium + hard;
-  const seg = (n: number) => (total > 0 ? `${(n / total) * 100}%` : "0%");
-  return (
-    <div className={cn("jvh-diffbar", className)} aria-hidden="true">
-      <span className="bg-success" style={{ width: seg(easy) }} />
-      <span className="bg-warning" style={{ width: seg(medium) }} />
-      <span className="bg-destructive" style={{ width: seg(hard) }} />
-    </div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────
-   Data
-   ──────────────────────────────────────────────────────────────────── */
-
-const PRIORITY_RANK: Record<InterviewPriority, number> = {
-  "very-high": 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
-const SECTIONS = [
+const SECTIONS: readonly SectionLink[] = [
   { id: "overview", label: "Overview" },
-  { id: "tracks", label: "Tracks" },
-  { id: "roadmap", label: "Roadmap" },
-  { id: "hotlist", label: "Hot list" },
-  { id: "revision", label: "Revision" },
-] as const;
-
-const SECTION_IDS = SECTIONS.map((s) => s.id);
-
-type TrackColor = "primary" | "accent" | "info" | "success";
-
-const TRACK_COLOR_STYLES: Record<TrackColor, { icon: string; track: string }> = {
-  primary: { icon: "bg-primary/10 border-primary/25 text-primary", track: "hsl(var(--primary))" },
-  accent: { icon: "bg-accent/10 border-accent/30 text-accent", track: "hsl(var(--accent))" },
-  info: { icon: "bg-info/10 border-info/25 text-info", track: "hsl(var(--info))" },
-  success: { icon: "bg-success/10 border-success/25 text-success", track: "hsl(var(--success))" },
-};
-
-const LEARNING_TRACKS: Array<{
-  id: string;
-  title: string;
-  description: string;
-  icon: typeof Coffee;
-  color: TrackColor;
-  route: string;
-  meta: string | null;
-}> = [
-  {
-    id: "core-java-qa",
-    title: "Core Java Q&A",
-    description: "Theory, code and interview-ready answers for the questions that come up in every Java round.",
-    icon: Coffee,
-    color: "primary",
-    route: "/interview/java/core-java-qa",
-    meta: null, // filled with the live question count
-  },
-  {
-    id: "data-structure",
-    title: "Data Structures",
-    description: "The DSA patterns and Java idioms interviewers probe in screening rounds.",
-    icon: Target,
-    color: "accent",
-    route: "/interview/java/data-structure",
-    meta: "DSA focus",
-  },
-  {
-    id: "system-design",
-    title: "System Design",
-    description: "Scalable system thinking — load balancing, caching, data stores and trade-offs.",
-    icon: Layers,
-    color: "info",
-    route: "/interview/java/system-design",
-    meta: "Design thinking",
-  },
-  {
-    id: "sql-structure",
-    title: "SQL Questions",
-    description: "Interview-grade SQL: joins, subqueries, window functions and query tuning.",
-    icon: Database,
-    color: "success",
-    route: "/interview/java/sql-structure",
-    meta: "Query mastery",
-  },
+  { id: "topics", label: "Topics" },
+  { id: "practice", label: "Practice" },
+  { id: "plan", label: "Study plan" },
 ];
 
-function useActiveSection(): string {
-  const [active, setActive] = useState<string>(SECTION_IDS[0]);
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible.length > 0) setActive(visible[0].target.id);
-      },
-      { rootMargin: "-160px 0px -55% 0px", threshold: 0 }
-    );
-    for (const id of SECTION_IDS) {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, []);
-  return active;
-}
-
-/* ────────────────────────────────────────────────────────────────────
-   Page
-   ──────────────────────────────────────────────────────────────────── */
+const FOOTER_LINKS = [
+  { id: "core-java-qa", label: "Core Java Q&A", to: "/interview/java/core-java-qa" },
+  { id: "spring-boot", label: "Spring Boot & Backend", to: "/interview/java/spring-boot" },
+  { id: "data-structure", label: "Data Structures", to: "/interview/java/data-structure" },
+  { id: "system-design", label: "System Design", to: "/interview/java/system-design" },
+  { id: "sql-structure", label: "SQL Questions", to: "/interview/java/sql-structure" },
+];
 
 export default function JavaInterviewHub() {
-  const navigate = useNavigate();
-  const { doneMap } = useCoreJavaUserState();
-  const { bookmarkedIds } = useCoreJavaBookmarks();
-  const activeSection = useActiveSection();
+  const { doneMap, updatedAtMap, loading, toggleDone } = useCoreJavaUserState();
+  const practice = useBackendInterviewProgress();
+  const [resetOpen, setResetOpen] = useState(false);
 
   useEffect(() => {
     const previous = document.title;
-    document.title = "Java Interview | AlgoGuru";
+    document.title = "Java Backend Interview Preparation | AlgoGuru";
     return () => {
       document.title = previous;
     };
   }, []);
 
-  /* ── Derived data ─────────────────────────────────────────────── */
+  /* ── Derived once; every section reads from here ─────────────── */
 
-  const allQuestions = useMemo(() => getAllCoreJavaQuestions(), []);
-  const totalQuestions = allQuestions.length;
-  const topicCount = getCoreJavaTopicCount();
+  const topicStats = useMemo(() => buildTopicStats(coreJavaInterviewTopics, doneMap), [doneMap]);
 
-  const { easyCount, mediumCount, hardCount, veryHighCount } = useMemo(() => {
-    let easy = 0,
-      medium = 0,
-      hard = 0,
-      veryHigh = 0;
-    for (const q of allQuestions) {
-      const difficulty = q.meta.difficulty;
-      if (difficulty === "easy") easy += 1;
-      else if (difficulty === "medium") medium += 1;
-      else if (difficulty === "hard") hard += 1;
-      if (q.meta.priority === "very-high") veryHigh += 1;
+  const summary = useMemo(
+    () => buildPreparationSummary(topicStats, practice.practiceSolvedCount, PRACTICE_PROBLEM_COUNT),
+    [topicStats, practice.practiceSolvedCount]
+  );
+
+  const focus: StudyFocus = useMemo(
+    () => (loading ? { kind: "loading" } : deriveStudyFocus(topicStats, updatedAtMap)),
+    [loading, topicStats, updatedAtMap]
+  );
+
+  const weeks = useMemo(() => buildStudyPlan(topicStats), [topicStats]);
+  const hotQuestions = useMemo(() => pickMostAsked(getAllCoreJavaQuestions(), 6), []);
+  const mustKnow = useMemo(() => topicStats.reduce((sum, stat) => sum + stat.mustKnow, 0), [topicStats]);
+
+  const handleResetConfirm = useCallback(() => {
+    for (const id of Object.keys(doneMap)) {
+      if (doneMap[id]) void toggleDone(id);
     }
-    return { easyCount: easy, mediumCount: medium, hardCount: hard, veryHighCount: veryHigh };
-  }, [allQuestions]);
+    setResetOpen(false);
+  }, [doneMap, toggleDone]);
 
-  const doneCount = useMemo(() => allQuestions.filter((q) => doneMap[q.question.id]).length, [allQuestions, doneMap]);
-  const progressPct = totalQuestions > 0 ? Math.round((doneCount / totalQuestions) * 100) : 0;
-  const remainingCount = totalQuestions - doneCount;
-  const bookmarkedCount = bookmarkedIds.length;
-
-  const { fullReadMinutes, quickRevisionMinutes } = useMemo(() => {
-    const totalWords = allQuestions.reduce(
-      (sum, q) => sum + (q.question.answer?.split(/\s+/).length ?? 0),
-      0
-    );
-    const quickWords = allQuestions
-      .filter((q) => q.meta.priority === "very-high" || q.meta.priority === "high")
-      .reduce((sum, q) => sum + (q.question.explanation?.split(/\s+/).length ?? 0), 0);
-    return {
-      fullReadMinutes: Math.max(5, Math.round(totalWords / 200)),
-      quickRevisionMinutes: Math.max(10, Math.round(quickWords / 250)),
-    };
-  }, [allQuestions]);
-
-  const topicStats = useMemo(
-    () =>
-      coreJavaInterviewTopics.map((topic, i) => {
-        let done = 0,
-          easy = 0,
-          medium = 0,
-          hard = 0,
-          words = 0;
-        for (const q of topic.questions) {
-          if (doneMap[q.id]) done += 1;
-          const difficulty = getCoreJavaQuestionMeta(q.id).difficulty;
-          if (difficulty === "easy") easy += 1;
-          else if (difficulty === "medium") medium += 1;
-          else if (difficulty === "hard") hard += 1;
-          words += q.answer?.split(/\s+/).length ?? 0;
-        }
-        return {
-          topic,
-          number: i + 1,
-          done,
-          total: topic.questions.length,
-          pct: topic.questions.length > 0 ? Math.round((done / topic.questions.length) * 100) : 0,
-          easy,
-          medium,
-          hard,
-          minutes: Math.max(1, Math.round(words / 200)),
-        };
-      }),
-    [doneMap]
-  );
-
-  const mostAsked = useMemo(
-    () =>
-      [...allQuestions]
-        .sort(
-          (a, b) =>
-            PRIORITY_RANK[a.meta.priority ?? "low"] - PRIORITY_RANK[b.meta.priority ?? "low"] ||
-            a.index - b.index
-        )
-        .slice(0, 6),
-    [allQuestions]
-  );
-
-  const nextQuestion = useMemo(() => {
-    const notDone = allQuestions.filter((q) => !doneMap[q.question.id]);
-    if (notDone.length === 0) return undefined;
-    return notDone.find((q) => q.meta.priority === "very-high") ?? notDone[0];
-  }, [allQuestions, doneMap]);
-
-  const goStart = () => {
-    if (nextQuestion) navigate(getCoreJavaQuestionDetailPath(nextQuestion.question));
-    else navigate("/interview/java/core-java-qa");
-  };
-
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const tracks = LEARNING_TRACKS.map((track) =>
-    track.id === "core-java-qa"
-      ? { ...track, meta: `${totalQuestions} questions` }
-      : track
-  );
-
-  const startCta = progressPct > 0 ? "Continue learning" : "Start learning";
-
-  /* ── Render ───────────────────────────────────────────────────── */
+  // While progress is loading, the primary action stays honest: it opens the
+  // question bank instead of claiming a "start" or "continue" state too early.
+  const primaryAction =
+    focus.kind === "loading"
+      ? { label: "Open question bank", href: QUESTION_BANK_PATH }
+      : { label: focus.ctaLabel, href: focus.ctaHref };
 
   return (
-    <div className="jvh-page min-h-full text-foreground">
-      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10 py-6 md:py-9">
-        {/* Breadcrumb */}
-        <motion.nav
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          aria-label="Breadcrumb"
-          className="jvh-breadcrumb mb-5"
-        >
-          <Link to="/">Home</Link>
-          <span aria-hidden="true" className="opacity-40">
-            /
-          </span>
-          <Link to="/interview">Interview</Link>
-          <span aria-hidden="true" className="opacity-40">
-            /
-          </span>
-          <span className="font-semibold text-foreground">Java</span>
-        </motion.nav>
+    <div className="cjh-page">
+      <PageContainer className="cjh-page-inner">
+        {/* A. Breadcrumb */}
+        <Breadcrumb className="cjh-breadcrumb" aria-label="Breadcrumb">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/interview">Interview Prep</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/interview/java">Java</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Backend</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
-        {/* Sticky section nav */}
-        <div className="sticky top-3 z-30 mb-6 flex justify-center lg:justify-start">
-          <nav className="jvh-sitenav" aria-label="Page sections">
-            {SECTIONS.map((section) => (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => scrollToSection(section.id)}
-                className={cn(
-                  "jvh-sitenav-link",
-                  activeSection === section.id && "jvh-sitenav-link--active"
-                )}
-              >
-                <span className="jvh-sitenav-dot" aria-hidden="true" />
-                {section.label}
-              </button>
-            ))}
-            <span className="mx-1 h-5 w-px flex-shrink-0 bg-border" aria-hidden="true" />
-            <span
-              className="flex flex-shrink-0 items-center gap-2 pr-1 pl-0.5 font-mono text-[11px] font-semibold tabular-nums text-muted-foreground"
-              aria-label={`Overall progress ${progressPct} percent`}
-            >
-              <ProgressRing
-                value={progressPct}
-                size={24}
-                strokeWidth={3.5}
-                label={`Overall progress ${progressPct} percent`}
-              >
-                <span className="h-1 w-1 rounded-full bg-primary" />
-              </ProgressRing>
-              {progressPct}%
-            </span>
-          </nav>
-        </div>
+        {/* B. Local section navigation */}
+        <LocalSectionNavigation sections={SECTIONS} />
 
-        {/* ── Hero ─────────────────────────────────────────────── */}
-        <motion.header
-          id="overview"
-          initial={{ opacity: 0, y: 26 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="jvh-hero scroll-mt-16 p-6 sm:p-8 lg:p-12"
-        >
-          <div className="jvh-hero-glow-a" aria-hidden="true" />
-          <div className="jvh-hero-glow-b" aria-hidden="true" />
+        {/* B. Dashboard header (Two-column desktop overview) */}
+        <header id="overview" className="cjh-header cjh-anchor">
+          <div className="cjh-header-main">
+            <p className="cjh-header-eyebrow">
+              Interview prep track
+            </p>
+            <h1 className="cjh-header-title">Java Backend Interview Preparation</h1>
+            <p className="cjh-header-desc">
+              Study the questions Java backend interviewers ask, in curriculum order, with full
+              answers, practice labs and a fast revision path.
+            </p>
 
-          <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12">
-            {/* Left: headline + CTAs */}
-            <div>
-              <div className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-border bg-background/80 py-1.5 pr-3.5 pl-1.5 shadow-sm backdrop-blur">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Coffee size={13} />
-                </span>
-                <span className="text-xs font-semibold tracking-tight">Java Interview Track</span>
-                <span className="hidden h-3 w-px bg-border sm:block" aria-hidden="true" />
-                <span className="hidden font-mono text-[11px] text-muted-foreground sm:block">
-                  core → advanced
-                </span>
-              </div>
-
-              <h1 className="font-display text-[2.1rem] leading-[1.06] font-bold tracking-[-0.035em] sm:text-5xl xl:text-[3.4rem]">
-                Master Java.
-                <br />
-                <span className="text-primary">Crack the interview.</span>
-              </h1>
-
-              <p className="mt-5 max-w-xl text-[15px] leading-7 text-muted-foreground">
-                {totalQuestions} expert-curated questions across OOP, Strings, Collections,
-                Multithreading, JVM and Java 8+ — with runnable code, diagrams and
-                interview-ready answers for every single one.
-              </p>
-
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <button type="button" onClick={goStart} className="jvh-btn-primary">
-                  {startCta}
-                  <ArrowRight size={15} />
-                </button>
-                <Link to="/interview/java/core-java-qa" className="jvh-btn-secondary">
-                  <BookOpen size={15} className="text-muted-foreground" />
-                  Browse all questions
-                </Link>
-              </div>
-
-              <div className="mt-7 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-mono text-[11px] text-muted-foreground">
-                <span>{topicCount} topics in order</span>
-                <span className="text-border" aria-hidden="true">
-                  •
-                </span>
-                <span>{veryHighCount} must-know questions</span>
-                <span className="text-border" aria-hidden="true">
-                  •
-                </span>
-                <span>~{fullReadMinutes} min full read</span>
-              </div>
-            </div>
-
-            {/* Right: live progress dashboard */}
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
-              className="jvh-dashboard jvh-divide-y p-5 sm:p-6"
-              aria-label="Your Java interview progress"
-            >
-              <div className="flex items-center justify-between gap-3 pb-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp size={14} className="text-primary" />
-                  <h2 className="text-[13px] font-semibold tracking-tight">Your progress</h2>
-                </div>
-                {progressPct > 0 ? (
-                  <span className="rounded-md bg-primary/10 border border-primary/20 px-2 py-0.5 font-mono text-[11px] font-bold text-primary">
-                    {progressPct}%
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                    <Sparkles size={11} className="text-accent" />
-                    Ready when you are
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-5 py-4">
-                <ProgressRing value={progressPct} size={128} strokeWidth={11}>
-                  <span className="font-display text-[1.65rem] leading-none font-bold tracking-tight">
-                    {progressPct}
-                    <span className="text-sm font-semibold text-muted-foreground">%</span>
-                  </span>
-                  <span className="mt-1 font-mono text-[10px] text-muted-foreground">
-                    {doneCount}/{totalQuestions}
-                  </span>
-                </ProgressRing>
-
-                <dl className="grid flex-1 gap-2.5 text-sm">
-                  {[
-                    { label: "Completed", value: doneCount, dot: "bg-success" },
-                    { label: "Remaining", value: remainingCount, dot: "bg-primary" },
-                    { label: "Bookmarked", value: bookmarkedCount, dot: "bg-accent" },
-                  ].map((row) => (
-                    <div key={row.label} className="flex items-center justify-between gap-3">
-                      <dt className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
-                        <span className={cn("h-1.5 w-1.5 rounded-full", row.dot)} aria-hidden="true" />
-                        {row.label}
-                      </dt>
-                      <dd className="font-mono text-[13px] font-semibold tabular-nums">{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-
-              <div className="py-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                    Difficulty mix
-                  </span>
-                  <span className="font-mono text-[10.5px] tabular-nums text-muted-foreground">
-                    <span className="text-success font-semibold">{easyCount}E</span> ·{" "}
-                    <span className="text-warning font-semibold">{mediumCount}M</span> ·{" "}
-                    <span className="text-destructive font-semibold">{hardCount}H</span>
-                  </span>
-                </div>
-                <DifficultyBar easy={easyCount} medium={mediumCount} hard={hardCount} />
-              </div>
-
-              <div className="pt-4">
-                <span className="mb-2 block font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  Next up
-                </span>
-                {nextQuestion ? (
-                  <button
-                    type="button"
-                    onClick={() => navigate(getCoreJavaQuestionDetailPath(nextQuestion.question))}
-                    className="group flex w-full items-center gap-3 rounded-lg border border-border bg-background px-3.5 py-3 text-left transition-colors hover:border-primary/40"
-                  >
-                    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 font-mono text-[10.5px] font-bold text-primary">
-                      Q{String(nextQuestion.index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium group-hover:text-primary transition-colors">
-                      {nextQuestion.question.question}
-                    </span>
-                    <ArrowUpRight
-                      size={14}
-                      className="flex-shrink-0 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
-                    />
-                  </button>
-                ) : (
-                  <p className="rounded-lg border border-success/30 bg-success/5 px-3.5 py-3 text-[13px] font-medium text-success">
-                    <CheckCircle2 size={14} className="mr-1.5 inline -mt-0.5" />
-                    Every question completed — review mode unlocked.
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        </motion.header>
-
-        {/* ── Stat strip ─────────────────────────────────────────── */}
-        <StatsStrip
-          totalQuestions={totalQuestions}
-          topicCount={topicCount}
-          veryHighCount={veryHighCount}
-          fullReadMinutes={fullReadMinutes}
-          quickRevisionMinutes={quickRevisionMinutes}
-        />
-
-        {/* ── Learning tracks ────────────────────────────────────── */}
-        <motion.section
-          id="tracks"
-          className="mt-14 scroll-mt-16"
-          aria-labelledby="tracks-heading"
-        >
-          <motion.div {...fadeUp} className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <h2 id="tracks-heading" className="jvh-section-title">
-              <span className="jvh-section-icon">
-                <ListChecks size={16} />
-              </span>
-              Choose your track
-            </h2>
-            <span className="font-mono text-[11px] text-muted-foreground">
-              4 tracks · built for the Java hiring loop
-            </span>
-          </motion.div>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {tracks.map((track, i) => {
-              const Icon = track.icon;
-              const styles = TRACK_COLOR_STYLES[track.color];
-              return (
-                <motion.div key={track.id} {...reveal(i * 0.06)}>
-                  <Link
-                    to={track.route}
-                    className="jvh-track-card group"
-                    style={{ "--jvh-track": styles.track } as CSSProperties}
-                  >
-                    <div className="mb-4 flex items-start justify-between gap-3">
-                      <span className={cn("jvh-track-icon", styles.icon)}>
-                        <Icon size={20} />
-                      </span>
-                      <span className="mt-1 font-mono text-[10px] font-semibold tracking-wider text-muted-foreground/60 uppercase">
-                        Track 0{i + 1}
-                      </span>
-                    </div>
-                    <h3 className="relative z-10 mb-1.5 text-[15px] font-bold tracking-tight transition-colors group-hover:text-primary">
-                      {track.title}
-                    </h3>
-                    <p className="relative z-10 flex-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                      {track.description}
-                    </p>
-                    <span className="relative z-10 mt-3 inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 font-mono text-[10px] font-semibold text-muted-foreground">
-                      {track.meta}
-                    </span>
-                    <span className="jvh-track-arrow relative z-10">
-                      Open track <ArrowRight size={12} />
-                    </span>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.section>
-
-        {/* ── Roadmap ────────────────────────────────────────────── */}
-        <motion.section
-          id="roadmap"
-          className="mt-14 scroll-mt-16"
-          aria-labelledby="roadmap-heading"
-        >
-          <motion.div {...fadeUp} className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <h2 id="roadmap-heading" className="jvh-section-title">
-              <span className="jvh-section-icon">
-                <Target size={16} />
-              </span>
-              Interview roadmap
-            </h2>
-            <span className="font-mono text-[11px] text-muted-foreground">
-              {topicCount} topics · {totalQuestions} questions · curriculum order
-            </span>
-          </motion.div>
-
-          <div className="grid gap-5 lg:grid-cols-[290px_minmax(0,1fr)]">
-            {/* Sticky overview rail */}
-            <motion.aside {...fadeUp} className="hidden lg:block">
-              <div className="jvh-rail">
-                <div className="jvh-panel p-5">
-                  <div className="flex items-center gap-4">
-                    <ProgressRing value={progressPct} size={84} strokeWidth={8}>
-                      <span className="font-display text-lg leading-none font-bold">
-                        {progressPct}
-                        <span className="text-[11px] text-muted-foreground">%</span>
-                      </span>
-                    </ProgressRing>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold tracking-tight">
-                        {doneCount}
-                        <span className="text-muted-foreground"> / {totalQuestions}</span>
-                      </p>
-                      <p className="mt-0.5 text-[11.5px] leading-snug text-muted-foreground">
-                        questions completed
-                        {bookmarkedCount > 0 && (
-                          <span className="block">
-                            {bookmarkedCount} bookmarked for later
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5">
-                    <div className="mb-2 flex items-center justify-between font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                      <span>Difficulty mix</span>
-                      <span className="tabular-nums normal-case">
-                        {easyCount}E · {mediumCount}M · {hardCount}H
-                      </span>
-                    </div>
-                    <DifficultyBar easy={easyCount} medium={mediumCount} hard={hardCount} />
-                    <div className="mt-2.5 flex gap-3 text-[10.5px] text-muted-foreground">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-success" /> Easy
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-warning" /> Medium
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-destructive" /> Hard
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 border-t border-border pt-4">
-                    <span className="mb-2 block font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                      Jump to topic
-                    </span>
-                    <div className="jvh-rail-scroll">
-                      {topicStats.map(({ topic, number, done, total }) => (
-                        <Link
-                          key={topic.id}
-                          to={`/interview/java/core-java-qa?topic=${topic.id}`}
-                          className="jvh-rail-item"
-                          title={`${topic.title} — ${done}/${total} completed`}
-                        >
-                          <span className="w-5 flex-shrink-0 font-mono text-[10px] font-semibold text-muted-foreground/60">
-                            {String(number).padStart(2, "0")}
-                          </span>
-                          <span className="jvh-rail-item-title flex-1">{topic.title}</span>
-                          <span
-                            className={cn(
-                              "flex-shrink-0 font-mono text-[10px] tabular-nums",
-                              done === total && total > 0 ? "text-success font-bold" : "text-muted-foreground"
-                            )}
-                          >
-                            {done}/{total}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.aside>
-
-            {/* Topic cards */}
-            <motion.div
-              className="grid gap-3.5 sm:grid-cols-2 2xl:grid-cols-3"
-            >
-              {topicStats.map(({ topic, number, done, total, pct, easy, medium, hard, minutes }, i) => (
-                <motion.div key={topic.id} {...reveal(Math.min(i * 0.035, 0.35))}>
-                  <Link
-                    to={`/interview/java/core-java-qa?topic=${topic.id}`}
-                    className={cn("jvh-topic-card group", pct === 100 && "jvh-topic-card--complete")}
-                  >
-                    <div className="mb-3 flex items-start gap-3">
-                      <span className="jvh-topic-emoji" aria-hidden="true">
-                        {topic.icon}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="flex items-center gap-1.5 text-[13.5px] leading-tight font-bold tracking-tight transition-colors group-hover:text-primary">
-                          <span className="truncate">{topic.title}</span>
-                          {pct === 100 && <CheckCircle2 size={13} className="flex-shrink-0 text-success" aria-label="Complete" />}
-                        </h3>
-                        <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                          Topic {String(number).padStart(2, "0")} · {total} questions · ~{minutes} min
-                        </p>
-                      </div>
-                    </div>
-
-                    <DifficultyBar easy={easy} medium={medium} hard={hard} className="mb-2.5" />
-
-                    <div className="flex items-center gap-2.5">
-                      <ProgressBar
-                        value={pct}
-                        ariaLabel={`${topic.title} progress`}
-                        delay={0.1 + Math.min(i * 0.03, 0.3)}
-                        fillClassName={pct === 100 ? "bg-success" : undefined}
-                        className="flex-1"
-                      />
-                      <span className="font-mono text-[10.5px] font-semibold tabular-nums text-muted-foreground">
-                        {done}/{total}
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </motion.section>
-
-        {/* ── Hot list ───────────────────────────────────────────── */}
-        <motion.section
-          id="hotlist"
-          className="mt-14 scroll-mt-16"
-          aria-labelledby="hotlist-heading"
-        >
-          <motion.div {...fadeUp} className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <h2 id="hotlist-heading" className="jvh-section-title">
-              <span className="jvh-section-icon">
-                <Flame size={16} />
-              </span>
-              Most asked in interviews
-            </h2>
-            <Link
-              to="/interview/java/core-java-qa?filter=most-asked"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-            >
-              View the full bank <ArrowRight size={12} />
-            </Link>
-          </motion.div>
-
-          <motion.div {...fadeUp} className="jvh-panel jvh-hotlist">
-            {mostAsked.map((entry, i) => (
-              <Link
-                key={entry.question.id}
-                to={getCoreJavaQuestionDetailPath(entry.question)}
-                className="jvh-hot-row group"
-              >
-                <span className="jvh-hot-rank" aria-hidden="true">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-semibold tracking-tight transition-colors group-hover:text-primary">
-                    {entry.question.question}
-                  </span>
-                  <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <span className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-[9.5px] font-semibold text-muted-foreground">
-                      Q{String(entry.index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {entry.topic.title}
-                    </span>
-                    {entry.meta.difficulty && <DifficultyBadge difficulty={entry.meta.difficulty} />}
-                    {entry.meta.priority === "very-high" && (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-primary/25 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                        <Flame size={9} />
-                        Must know
-                      </span>
-                    )}
-                  </span>
-                </span>
-                <ChevronRight
-                  size={16}
-                  className="flex-shrink-0 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary"
-                  aria-hidden="true"
-                />
+            <div className="cjh-header-actions">
+              <Link to={primaryAction.href} className="cjh-btn-primary">
+                {primaryAction.label}
+                <ArrowRight size={15} />
               </Link>
-            ))}
-          </motion.div>
-        </motion.section>
-
-        {/* ── Quick revision banner ──────────────────────────────── */}
-        <motion.section
-          id="revision"
-          className="mt-14 scroll-mt-16"
-          aria-labelledby="revision-heading"
-        >
-          <motion.div {...fadeUp} className="jvh-revision p-7 sm:p-10">
-            <span className="jvh-revision-watermark" aria-hidden="true">
-              public class Interview
-            </span>
-            <div className="relative z-10 flex flex-col gap-7 md:flex-row md:items-center">
-              <div className="flex-1">
-                <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] font-bold tracking-widest text-accent uppercase">
-                  <Timer size={11} />
-                  Last-minute prep
-                </span>
-                <h2
-                  id="revision-heading"
-                  className="font-display text-[1.55rem] leading-tight font-bold tracking-[-0.02em] text-white sm:text-3xl"
-                >
-                  Interview tomorrow?
-                </h2>
-                <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-white/65">
-                  Skim the {veryHighCount} must-know questions in ~{quickRevisionMinutes} minutes —
-                  theory, code and one-line takeaways for a fast, confident run-through.
-                </p>
-              </div>
-              <div className="flex flex-shrink-0 items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate("/interview/java/core-java-qa?filter=most-asked")}
-                  className="jvh-btn-primary"
-                >
-                  Start quick revision
-                  <ArrowRight size={15} />
-                </button>
-              </div>
+              <a
+                href="#topics"
+                className="cjh-btn-secondary"
+                onClick={(event) => handleSectionLinkClick(event, "topics")}
+              >
+                Browse all topics
+              </a>
             </div>
-          </motion.div>
-        </motion.section>
+          </div>
 
-        {/* ── Footer ─────────────────────────────────────────────── */}
-        <motion.footer
-          {...fadeUp}
-          className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 pb-4"
-        >
-          <p className="font-mono text-[11px] text-muted-foreground">
-            Java Interview · {totalQuestions} questions · {topicCount} topics
+          <aside className="cjh-progress-panel" aria-label="Preparation progress">
+            <h2 className="cjh-progress-panel-title">Preparation progress</h2>
+            <div className="cjh-progress-panel-stat">
+              <span className="cjh-progress-panel-pct">{loading ? "—" : `${summary.overallPct}%`}</span>
+              <span className="cjh-progress-panel-label">Complete</span>
+            </div>
+            {!loading && summary.totalQuestions > 0 && (
+              <Progress
+                value={summary.overallPct}
+                className="cjh-summary-bar"
+                aria-label={`Overall preparation progress: ${summary.studiedQuestions} of ${summary.totalQuestions} questions studied`}
+              />
+            )}
+            <dl className="cjh-summary">
+              <div className="cjh-summary-item">
+                <dt>Overall complete</dt>
+                <dd className="cjh-num">{loading ? "—" : `${summary.overallPct}%`}</dd>
+              </div>
+              <div className="cjh-summary-item">
+                <dt>Questions studied</dt>
+                <dd className="cjh-num">
+                  {loading ? "—" : `${summary.studiedQuestions} of ${summary.totalQuestions}`}
+                </dd>
+              </div>
+              <div className="cjh-summary-item">
+                <dt>Topics complete</dt>
+                <dd className="cjh-num">
+                  {loading ? "—" : `${summary.completedTopics} of ${summary.totalTopics}`}
+                </dd>
+              </div>
+              {summary.practiceTotal > 0 && (
+                <div className="cjh-summary-item">
+                  <dt>Practice solved</dt>
+                  <dd className="cjh-num">
+                    {summary.practiceSolved} of {summary.practiceTotal}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </aside>
+        </header>
+
+        {/* C. Continue learning */}
+        <section className="cjh-section cjh-anchor" aria-labelledby="continue-heading">
+          <h2 id="continue-heading" className="cjh-section-title cjh-section-title--lg">
+            Continue learning
+          </h2>
+          <ContinueLearningCard focus={focus} />
+        </section>
+
+        {/* D. Curriculum */}
+        <section id="topics" className="cjh-section cjh-anchor" aria-labelledby="topics-heading">
+          <div className="cjh-section-head">
+            <h2 id="topics-heading" className="cjh-section-title cjh-section-title--lg">
+              Topics
+            </h2>
+            <p className="cjh-section-desc">
+              The curriculum in order. Each row shows how far you are and opens the topic in the
+              question bank.
+            </p>
+          </div>
+          <CurriculumSection topics={topicStats} hotQuestions={hotQuestions} />
+        </section>
+
+        {/* E. Practice and resources */}
+        <section id="practice" className="cjh-section cjh-anchor" aria-labelledby="practice-heading">
+          <div className="cjh-section-head">
+            <h2 id="practice-heading" className="cjh-section-title cjh-section-title--lg">
+              Practice and resources
+            </h2>
+            <p className="cjh-section-desc">
+              Question banks, practice labs and references, each keeping its own progress.
+            </p>
+          </div>
+          <PracticeResources
+            summary={summary}
+            backendStudied={practice.studiedCount}
+            mustKnow={mustKnow}
+          />
+        </section>
+
+        {/* F. Four-week study plan */}
+        <section id="plan" className="cjh-section cjh-anchor" aria-labelledby="plan-heading">
+          <div className="cjh-section-head">
+            <h2 id="plan-heading" className="cjh-section-title cjh-section-title--lg">
+              Four-week study plan
+            </h2>
+            <p className="cjh-section-desc">
+              A recommended order over the curriculum. Week progress reflects the questions you
+              have studied.
+            </p>
+          </div>
+          <StudyPlanTimeline weeks={weeks} />
+        </section>
+
+        {/* Learning-progress management: resets live here, out of the main flow */}
+        <section className="cjh-manage" aria-labelledby="manage-heading">
+          <div className="cjh-manage-copy">
+            <h2 id="manage-heading" className="cjh-manage-title">
+              Learning progress
+            </h2>
+            <p className="cjh-manage-desc">
+              Marks you make are saved to your AlgoGuru account as you study.
+            </p>
+          </div>
+          {!loading && summary.studiedQuestions > 0 && (
+            <button type="button" className="cjh-btn-quiet-danger" onClick={() => setResetOpen(true)}>
+              Reset progress
+            </button>
+          )}
+        </section>
+
+        {/* G. Footer */}
+        <footer className="cjh-footer">
+          <p className="cjh-footer-note">
+            Java backend interview preparation — study in order, revise by priority.
           </p>
-          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2" aria-label="Jump into a track">
-            {tracks.map((track) => (
-              <Link key={track.id} to={track.route} className="jvh-footer-link">
-                {track.title}
-                <ArrowUpRight size={11} />
+          <nav className="cjh-footer-nav" aria-label="Interview tracks">
+            {FOOTER_LINKS.map((link) => (
+              <Link key={link.id} to={link.to} className="cjh-footer-link">
+                {link.label}
               </Link>
             ))}
           </nav>
-        </motion.footer>
-      </div>
+        </footer>
+      </PageContainer>
+
+      <ResetProgressDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        onConfirm={handleResetConfirm}
+        title="Reset Java interview progress?"
+        description="This clears how far you are in the Core Java question bank. It deletes:"
+        impactLines={[
+          `Completion marks on ${summary.studiedQuestions} studied Core Java questions, saved in your AlgoGuru account`,
+        ]}
+        reversibility="It cannot be undone, but you can mark questions as studied again at any time. Notes, bookmarks and practice-lab progress are kept."
+      />
     </div>
-  );
-}
-
-/* ────────────────────────────────────────────────────────────────────
-   Stat strip (isolated so its count-up hooks stay hook-rule friendly)
-   ──────────────────────────────────────────────────────────────────── */
-
-interface StatsStripProps {
-  totalQuestions: number;
-  topicCount: number;
-  veryHighCount: number;
-  fullReadMinutes: number;
-  quickRevisionMinutes: number;
-}
-
-function StatCell({
-  value,
-  prefix = "",
-  suffix = "",
-  label,
-  sub,
-  inView,
-}: {
-  value: number;
-  prefix?: string;
-  suffix?: string;
-  label: string;
-  sub: string;
-  inView: boolean;
-}) {
-  const display = useCountUp(value, inView);
-  return (
-    <div className="jvh-stat-cell">
-      <p className="font-mono text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className="mt-1.5 font-display text-[1.55rem] leading-none font-bold tracking-tight tabular-nums">
-        {prefix}
-        {display}
-        {suffix}
-      </p>
-      <p className="mt-1.5 text-[11px] text-muted-foreground">{sub}</p>
-    </div>
-  );
-}
-
-function StatsStrip({
-  totalQuestions,
-  topicCount,
-  veryHighCount,
-  fullReadMinutes,
-  quickRevisionMinutes,
-}: StatsStripProps) {
-  const stripRef = useRef<HTMLDivElement>(null);
-  const inView = useInViewOnce(stripRef);
-  return (
-    <motion.div {...fadeUp} className="mt-6" ref={stripRef}>
-      <div className="jvh-stat-strip">
-        <StatCell value={totalQuestions} label="Questions" sub="expert-curated & tested" inView={inView} />
-        <StatCell value={topicCount} label="Topics" sub="in curriculum order" inView={inView} />
-        <StatCell value={veryHighCount} label="Must-know" sub="very-high priority" inView={inView} />
-        <StatCell value={fullReadMinutes} prefix="~" suffix=" min" label="Full read" sub="every answer, cover to cover" inView={inView} />
-        <StatCell value={quickRevisionMinutes} prefix="~" suffix=" min" label="Quick revision" sub="high-priority essentials" inView={inView} />
-      </div>
-    </motion.div>
   );
 }

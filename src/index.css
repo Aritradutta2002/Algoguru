@@ -15,11 +15,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 25% 10%;
 
-    --primary: 18 78% 58%;
-    --primary-foreground: 25 40% 12%;
+    --primary: 217 91% 57%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 55% 82%;
-    --secondary-foreground: 25 40% 18%;
+    --secondary: 214 45% 88%;
+    --secondary-foreground: 221 45% 18%;
 
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 46%;
@@ -32,18 +32,18 @@
 
     --border: 220 13% 90%;
     --input: 220 14% 96%;
-    --ring: 18 78% 58%;
+    --ring: 217 91% 57%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 25% 10%;
-    --sidebar-primary: 18 78% 58%;
-    --sidebar-primary-foreground: 25 40% 12%;
+    --sidebar-primary: 217 91% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 96%;
     --sidebar-accent-foreground: 222 25% 10%;
     --sidebar-border: 220 13% 90%;
-    --sidebar-ring: 18 78% 58%;
+    --sidebar-ring: 217 91% 57%;
 
     --success: 145 55% 40%;
     --success-foreground: 0 0% 100%;
@@ -57,8 +57,8 @@
     --code-border: 210 20% 88%;
     --code-header: 210 20% 92%;
 
-    --gradient-primary: hsl(18 78% 58%);
-    --gradient-accent: hsl(43 95% 55%);
+    --gradient-primary: hsl(217 91% 57%);
+    --gradient-accent: hsl(217 91% 57%);
     --gradient-hero: transparent;
     --gradient-card: hsl(0 0% 100%);
     --gradient-sidebar: hsl(210 20% 96%);
@@ -91,17 +91,17 @@
   /* ===== Premium dark mode ===== */
   .dark {
     /* Background: deep neutral */
-    --background: 222 25% 6%;
+    --background: 216 22% 5%;
     --foreground: 210 20% 96%;
 
-    --card: 222 22% 9%;
+    --card: 220 18% 9%;
     --card-foreground: 210 20% 96%;
 
-    --popover: 222 22% 9%;
+    --popover: 220 18% 9%;
     --popover-foreground: 210 20% 96%;
 
-    --primary: 18 80% 60%;
-    --primary-foreground: 25 40% 8%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217 91% 60%;
     --secondary-foreground: 0 0% 100%;
@@ -117,21 +117,21 @@
 
     --border: 222 16% 18%;
     --input: 222 18% 14%;
-    --ring: 18 80% 60%;
+    --ring: 217 91% 60%;
 
     --sidebar-background: 222 25% 7%;
     --sidebar-foreground: 210 20% 96%;
-    --sidebar-primary: 18 80% 60%;
-    --sidebar-primary-foreground: 25 40% 8%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 18% 14%;
     --sidebar-accent-foreground: 210 20% 96%;
     --sidebar-border: 222 16% 18%;
-    --sidebar-ring: 18 80% 60%;
+    --sidebar-ring: 217 91% 60%;
 
-    --gradient-primary: hsl(43 95% 55%);
+    --gradient-primary: hsl(217 91% 60%);
     --gradient-accent: hsl(217 91% 60%);
-    --gradient-card: hsl(0 0% 10%);
-    --gradient-sidebar: hsl(0 0% 7%);
+    --gradient-card: hsl(220 18% 9%);
+    --gradient-sidebar: hsl(220 18% 7%);
 
     --reading-surface: 222 24% 9.5%;
     --reading-foreground: 210 20% 98%;

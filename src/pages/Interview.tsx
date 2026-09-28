@@ -9,6 +9,7 @@ import {
   Code2,
   Coffee,
   Layers,
+  Rocket,
   Target,
 } from "lucide-react";
 import JavaInterviewHub from "./interview/JavaInterviewHub";
@@ -26,7 +27,13 @@ interface LanguageOption {
 }
 
 interface LearningPathOption {
-  id: "data-structure" | "core-java-qa" | "language-questions" | "system-design" | "sql-structure";
+  id:
+    | "data-structure"
+    | "core-java-qa"
+    | "language-questions"
+    | "spring-boot"
+    | "system-design"
+    | "sql-structure";
   title: string;
   subtitle: string;
   icon: JSX.Element;
@@ -40,21 +47,21 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     label: "Java",
     subtitle: "Strong OOP and backend interview focus",
     icon: <Coffee size={24} />,
-    color: "hsl(var(--primary))",
+    color: "#2563EB",
   },
   {
     id: "cpp",
     label: "C++",
     subtitle: "Performance-first problem solving",
     icon: <Code2 size={24} />,
-    color: "hsl(var(--accent))",
+    color: "#60A5FA",
   },
   {
     id: "python",
     label: "Python",
     subtitle: "Fast prototyping and concise coding",
     icon: <BrainCircuit size={24} />,
-    color: "hsl(var(--info))",
+    color: "#93C5FD",
   },
 ];
 
@@ -66,7 +73,7 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
         title: "Data Structure",
         subtitle: "Master core DSA patterns used in rounds",
         icon: <Target size={24} />,
-        color: "hsl(var(--accent))",
+        color: "#60A5FA",
         route: "data-structure",
       },
       {
@@ -74,15 +81,23 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
         title: "Core Java Q&A",
         subtitle: "Most asked Java interview theory and scenarios",
         icon: <Coffee size={24} />,
-        color: "hsl(var(--primary))",
+        color: "#2563EB",
         route: "core-java-qa",
+      },
+      {
+        id: "spring-boot",
+        title: "Spring Boot & Backend",
+        subtitle: "Annotations, collections, concurrency, security & JWT",
+        icon: <Rocket size={24} />,
+        color: "#93C5FD",
+        route: "spring-boot",
       },
       {
         id: "system-design",
         title: "System Design",
         subtitle: "Design thinking for scalable systems",
         icon: <Layers size={24} />,
-        color: "hsl(var(--destructive))",
+        color: "#9BE2C3",
         route: "system-design",
       },
       {
@@ -90,7 +105,7 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
         title: "SQL Questions",
         subtitle: "Interview-focused SQL concepts and patterns",
         icon: <Code2 size={24} />,
-        color: "hsl(var(--primary))",
+        color: "#F472B6",
         route: "sql-structure",
       },
     ];
@@ -104,7 +119,7 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
       title: "Data Structure",
       subtitle: "Master core DSA patterns used in rounds",
       icon: <Target size={24} />,
-      color: "hsl(var(--accent))",
+      color: "#60A5FA",
       route: "data-structure",
     },
     {
@@ -114,7 +129,7 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
         ? "Most asked C++ interview theory and scenarios"
         : "Most asked Python interview theory and scenarios",
       icon: isCpp ? <Code2 size={24} /> : <BrainCircuit size={24} />,
-      color: isCpp ? "hsl(var(--accent))" : "hsl(var(--info))",
+      color: isCpp ? "#60A5FA" : "#93C5FD",
       route: "language-questions",
     },
     {
@@ -122,7 +137,7 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
       title: "System Design",
       subtitle: "Design thinking for scalable systems",
       icon: <Layers size={24} />,
-      color: "hsl(var(--destructive))",
+      color: "#9BE2C3",
       route: "system-design",
     },
     {
@@ -130,7 +145,7 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
       title: "SQL Questions",
       subtitle: "Interview-focused SQL concepts and patterns",
       icon: <Code2 size={24} />,
-      color: "hsl(var(--primary))",
+      color: "#F472B6",
       route: "sql-structure",
     },
   ];
@@ -165,9 +180,12 @@ export default function Interview() {
   return (
     <div className="bg-background text-foreground selection:bg-primary/25">
 
-      <section className="relative border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_35%)]" />
-        <div className="relative mx-auto max-w-7xl px-5 py-16 md:px-10 md:py-24 lg:px-16">
+      <section className="relative overflow-hidden border-b border-border/60">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_-10%,hsl(var(--primary)/0.16),transparent_38%),radial-gradient(circle_at_8%_20%,hsl(var(--accent)/0.10),transparent_30%),radial-gradient(circle_at_50%_110%,hsl(var(--primary)/0.06),transparent_40%)]" />
+          <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(hsl(var(--foreground)/0.06)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,black,transparent)]" />
+        </div>
+        <div className="relative mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -177,11 +195,12 @@ export default function Interview() {
               <Target size={13} className="text-primary" /> Comprehensive interview preparation
             </div>
 
-            <h1 className="max-w-3xl text-4xl font-bold leading-[1.04] tracking-[-0.045em] md:text-6xl">
-              Interview <span className="text-primary">roadmap</span>
+            <h1 className="max-w-3xl font-display text-[2.75rem] font-bold leading-[1.04] tracking-[-0.045em] sm:text-5xl md:text-6xl">
+              Interview{" "}
+              <span className="bg-gradient-to-r from-primary via-[#60A5FA] to-accent bg-clip-text text-transparent">roadmap</span>
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
               Start by selecting your preferred programming language. Then pick a focused learning path to jump into the interview track you need.
             </p>
           </motion.div>
@@ -209,31 +228,45 @@ export default function Interview() {
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -2 }}
                 onClick={() => navigate(`/interview/${option.id}`)}
-                className="group relative flex min-h-[260px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/35 hover:shadow-lg hover:shadow-black/5"
+                className="group relative flex min-h-[280px] cursor-pointer flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:border-transparent hover:shadow-overlay"
               >
-                <div className="flex h-full flex-col">
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                  style={{ background: "radial-gradient(130% 100% at 50% 0%, " + option.color + "16, transparent 55%)" }}
+                />
+                <div
+                  className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 transition-transform duration-500 ease-premium group-hover:scale-x-100"
+                  style={{ background: "linear-gradient(90deg, " + option.color + ", transparent)" }}
+                />
+                <div className="relative flex h-full flex-col">
                   <div className="mb-7 flex items-center justify-between">
                     <div
-                      className="rounded-xl border p-3"
-                      style={{ background: `${option.color}10`, borderColor: `${option.color}25`, color: option.color }}
+                      className="rounded-2xl border p-3.5 shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-110"
+                      style={{ background: option.color + "12", borderColor: option.color + "26", color: option.color }}
                     >
                       {option.icon}
                     </div>
-                    <span className="text-xs font-medium text-muted-foreground">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                       Step 1
                     </span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold tracking-tight mb-2 group-hover:text-primary transition-colors">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Language</p>
+                    <h3 className="font-display text-[1.55rem] font-bold leading-tight tracking-[-0.02em] group-hover:text-primary transition-colors">
                       {option.label}
                     </h3>
-                    <p className="text-sm leading-6 text-muted-foreground">
+                    <p className="mt-3 text-[14.5px] leading-7 text-muted-foreground">
                       {option.subtitle}
                     </p>
                   </div>
-                  <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4">
-                    <span className="text-xs text-muted-foreground">{option.label}</span>
-                    <ArrowRight size={16} className="text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+                  <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
+                    <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: option.color }} />
+                      Start here
+                    </span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                      <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </span>
                   </div>
                 </div>
               </motion.div>
@@ -264,33 +297,45 @@ export default function Interview() {
                   transition={{ delay: index * 0.05 }}
                   whileHover={{ y: -2 }}
                   onClick={() => navigate(`/interview/${selectedLanguage}/${path.route}`)}
-                  className="group relative flex min-h-[240px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/35 hover:shadow-lg hover:shadow-black/5"
+                  className="group relative flex min-h-[260px] cursor-pointer flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:border-transparent hover:shadow-overlay"
                 >
-                  <div className="flex h-full flex-col">
+                  <div
+                    className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                    style={{ background: "radial-gradient(130% 100% at 50% 0%, " + path.color + "16, transparent 55%)" }}
+                  />
+                  <div
+                    className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 transition-transform duration-500 ease-premium group-hover:scale-x-100"
+                    style={{ background: "linear-gradient(90deg, " + path.color + ", transparent)" }}
+                  />
+                  <div className="relative flex h-full flex-col">
                     <div className="mb-7 flex items-center justify-between">
                       <div
-                        className="rounded-xl border p-3"
-                        style={{ background: `${path.color}10`, borderColor: `${path.color}25`, color: path.color }}
+                        className="rounded-2xl border p-3.5 shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-110"
+                        style={{ background: path.color + "12", borderColor: path.color + "26", color: path.color }}
                       >
                         {path.icon}
                       </div>
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                         Step 2
                       </span>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold tracking-tight mb-2 group-hover:text-primary transition-colors">
+                      <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Learning path</p>
+                      <h3 className="font-display text-[1.55rem] font-bold leading-tight tracking-[-0.02em] group-hover:text-primary transition-colors">
                         {path.title}
                       </h3>
-                      <p className="text-sm leading-6 text-muted-foreground">
+                      <p className="mt-3 text-[14.5px] leading-7 text-muted-foreground">
                         {path.subtitle}
                       </p>
                     </div>
-                    <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4">
-                      <span className="text-xs text-muted-foreground">
+                    <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
+                      <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: path.color }} />
                         {selectedLanguageOption?.label}
                       </span>
-                      <ArrowRight size={16} className="text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                        <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                      </span>
                     </div>
                   </div>
                 </motion.div>

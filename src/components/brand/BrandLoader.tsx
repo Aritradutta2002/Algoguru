@@ -56,8 +56,8 @@ export function BrandLoader({
       <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#FB923C" />
-            <stop offset="1" stopColor="#E1542F" />
+            <stop offset="0" stopColor="#3B82F6" />
+                        <stop offset="1" stopColor="#2563EB" />
           </linearGradient>
           <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
             <rect width="64" height="64" fill="#fff" />

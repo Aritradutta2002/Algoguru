@@ -47,9 +47,17 @@ import InterviewCoreJavaQuestionDetailPage from "./pages/interview/InterviewCore
 import InterviewSystemDesignPage from "./pages/interview/InterviewSystemDesignPage";
 import InterviewSqlStructurePage from "./pages/interview/InterviewSqlStructurePage";
 import InterviewLanguageQuestionsPage, { InterviewLanguageQuestionDetailPage } from "./pages/interview/InterviewLanguageQuestionsPage";
+import BackendInterviewHubPage from "./pages/interview/BackendInterviewHubPage";
+import BackendQuestionsPage from "./pages/interview/BackendQuestionsPage";
+import BackendQuestionDetailPage from "./pages/interview/BackendQuestionDetailPage";
+import BackendAnnotationsPage from "./pages/interview/BackendAnnotationsPage";
+import BackendPracticePage from "./pages/interview/BackendPracticePage";
+import BackendPracticeDetailPage from "./pages/interview/BackendPracticeDetailPage";
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
+import { backendQuestionIndex } from "@/lib/backendQuestionIndex";
+import { ANNOTATION_CATALOGUE } from "@/data/backendInterview/annotations";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 
@@ -140,6 +148,31 @@ const allSearchItems = (() => {
         parent: `System Design — ${topic.title}`,
         subtopicCount: 0,
       });
+    });
+  });
+
+  // Add Spring Boot / Backend interview questions + annotations to global search
+  backendQuestionIndex.forEach((entry) => {
+    items.push({
+      id: `backend-${entry.question.id}`,
+      title: entry.question.question,
+      icon: entry.topic.icon,
+      type: "subtopic",
+      path: `/interview/java/spring-boot/questions/${entry.slug}`,
+      parent: `Spring Boot — ${entry.topic.shortTitle}`,
+      subtopicCount: 0,
+    });
+  });
+
+  ANNOTATION_CATALOGUE.forEach((annotation) => {
+    items.push({
+      id: `annotation-${annotation.name}`,
+      title: annotation.name,
+      icon: "🏷️",
+      type: "subtopic",
+      path: `/interview/java/spring-boot/annotations#${annotation.category}`,
+      parent: `Annotation — ${annotation.purpose.slice(0, 60)}`,
+      subtopicCount: 0,
     });
   });
 
@@ -597,6 +630,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               visitor clicks "Choose where to focus next." */}
           {showSidebarPanel && (
           <Panel
+            id="app-sidebar-panel"
+            order={1}
             ref={sidebarRef}
             defaultSize={20}
             minSize={14}
@@ -682,7 +717,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           )}
 
 
-          <Panel defaultSize={80} minSize={50} className="flex flex-col min-h-0">
+          <Panel
+            id="app-main-panel"
+            order={2}
+            defaultSize={showSidebarPanel ? 80 : 100}
+            minSize={50}
+            className="flex flex-col min-h-0"
+          >
           {/* Top bar — Premium redesign */}
           <header
             className={cn(
@@ -922,6 +963,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 }}
               >
                 <ResizablePanel
+                  id="content-main-panel"
+                  order={1}
                   defaultSize={splitPct}
                   minSize={MAIN_PANEL_MIN_SIZE}
                 >
@@ -945,6 +988,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 />
 
                 <ResizablePanel
+                  id="content-guru-panel"
+                  order={2}
                   ref={guruPanelRef}
                   defaultSize={clamp(
                     100 - splitPct,
@@ -1062,7 +1107,7 @@ const App = () => (
         <ModeProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <ScrollToTopOnRouteChange />
             <AuthProvider>
               <Routes>
@@ -1094,6 +1139,12 @@ const App = () => (
                         <Route path="/interview/:language/language-questions/:questionSlug" element={<InterviewLanguageQuestionDetailPage />} />
                         <Route path="/interview/:language/core-java-qa" element={<InterviewCoreJavaQuestionsPage />} />
                         <Route path="/interview/:language/core-java-qa/:questionSlug" element={<InterviewCoreJavaQuestionDetailPage />} />
+                        <Route path="/interview/:language/spring-boot" element={<BackendInterviewHubPage />} />
+                        <Route path="/interview/:language/spring-boot/questions" element={<BackendQuestionsPage />} />
+                        <Route path="/interview/:language/spring-boot/questions/:questionSlug" element={<BackendQuestionDetailPage />} />
+                        <Route path="/interview/:language/spring-boot/annotations" element={<BackendAnnotationsPage />} />
+                        <Route path="/interview/:language/spring-boot/practice" element={<BackendPracticePage />} />
+                        <Route path="/interview/:language/spring-boot/practice/:problemId" element={<BackendPracticeDetailPage />} />
                         <Route path="/interview/:language/system-design" element={<InterviewSystemDesignPage />} />
                         <Route path="/interview/:language/sql-structure" element={<InterviewSqlStructurePage />} />
                         <Route path="/practice/solution/:problemId" element={<PracticeSolution />} />
