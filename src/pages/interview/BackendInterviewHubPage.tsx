@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -11,7 +11,6 @@ import {
   Dumbbell,
   Flame,
   Layers,
-  RotateCcw,
   Sparkles,
   Tag,
   Target,
@@ -30,6 +29,7 @@ import {
   PRACTICE_PROBLEM_COUNT,
   PRACTICE_TOTAL_MINUTES,
 } from "@/data/backendInterview/practiceProblems";
+import { ResetProgressDialog } from "@/components/interview/ResetProgressDialog";
 import { useBackendInterviewProgress } from "@/hooks/useBackendInterviewProgress";
 import { scrollPageToTop } from "@/lib/scrollUtils";
 import { cn } from "@/lib/utils";
@@ -155,6 +155,7 @@ function PillarCard({
 export default function BackendInterviewHubPage() {
   const { language = "java" } = useParams<{ language?: string }>();
   const progress = useBackendInterviewProgress();
+  const [resetOpen, setResetOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Spring Boot & Backend Interview Prep | AlgoGuru";
@@ -202,7 +203,7 @@ export default function BackendInterviewHubPage() {
             {language}
           </Link>
           <ChevronRight className="h-3 w-3" />
-          <span className="font-medium text-foreground">Spring Boot &amp; Backend</span>
+          <span className="font-medium text-foreground" aria-current="page">Spring Boot &amp; Backend</span>
         </nav>
 
         {/* Hero */}
@@ -212,7 +213,6 @@ export default function BackendInterviewHubPage() {
           transition={{ duration: 0.35 }}
           className="cjh-hero relative overflow-hidden rounded-3xl border border-border/50 bg-card/70 p-6 backdrop-blur sm:p-8"
         >
-          <div className="cjh-hero-glow" aria-hidden="true" />
           <div className="relative">
             <span className="cjh-hero-badge inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
               <Sparkles className="h-3 w-3" />
@@ -304,18 +304,6 @@ export default function BackendInterviewHubPage() {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-2xl font-black text-primary">{studiedPercent}%</span>
-              {(progress.studiedCount > 0 ||
-                progress.practiceSolvedCount > 0 ||
-                progress.bookmarkCount > 0) && (
-                <button
-                  type="button"
-                  onClick={progress.resetProgress}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
-                >
-                  <RotateCcw className="h-3 w-3" />
-                  Reset
-                </button>
-              )}
             </div>
           </div>
           <div className="cjh-progress-track mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -516,17 +504,45 @@ export default function BackendInterviewHubPage() {
           </div>
         </section>
 
-        <footer className="mt-10 rounded-2xl border border-border/50 bg-card/50 p-5 text-center">
-          <p className="text-sm font-semibold text-foreground">
-            {BACKEND_TOTAL_QUESTIONS} questions · {ANNOTATION_COUNT} annotations ·{" "}
-            {PRACTICE_PROBLEM_COUNT} practice problems
-          </p>
-          <p className="mx-auto mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+        {/* Learning progress: the reset lives here, out of the main flow */}
+        <section className="cjh-manage mt-8" aria-labelledby="backend-manage-heading">
+          <div className="cjh-manage-copy">
+            <h2 id="backend-manage-heading" className="cjh-manage-title">
+              Learning progress
+            </h2>
+            <p className="cjh-manage-desc">Study marks are saved in this browser only.</p>
+          </div>
+          {(progress.studiedCount > 0 || progress.practiceSolvedCount > 0 || progress.bookmarkCount > 0) && (
+            <button type="button" className="cjh-btn-quiet-danger" onClick={() => setResetOpen(true)}>
+              Reset progress
+            </button>
+          )}
+        </section>
+
+        <footer className="cjh-footer mt-8">
+          <p className="cjh-footer-note">
             Everything here is written to be said out loud in an interview. If you can explain an answer without
             looking at it and then solve the matching practice problem, that topic is done.
           </p>
         </footer>
       </div>
+
+      <ResetProgressDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        onConfirm={() => {
+          progress.resetProgress();
+          setResetOpen(false);
+        }}
+        title="Reset Spring Boot progress?"
+        description="This clears the study marks saved in this browser for the Spring Boot and backend track. It deletes:"
+        impactLines={[
+          `${progress.studiedCount} questions marked studied`,
+          `${progress.practiceSolvedCount} solved practice problems`,
+          `${progress.bookmarkCount} bookmarks`,
+        ]}
+        reversibility="It cannot be undone. Everything is stored in this browser only, so nothing in your AlgoGuru account is affected."
+      />
     </div>
   );
 }

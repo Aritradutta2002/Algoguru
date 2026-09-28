@@ -18,11 +18,11 @@ export default {
       },
       colors: {
         category: {
-          dsa: "#F4A396",
+          dsa: "#93C5FD",
           interview: "#9BE2C3",
           core: "#A8A4F5",
           system: "#99C2F8",
-          playlist: "#FCBA7C",
+          playlist: "#60A5FA",
         },
         accentLine: {
           system: "#10B981",

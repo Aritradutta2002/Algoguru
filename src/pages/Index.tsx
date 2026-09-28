@@ -26,7 +26,7 @@ const SECTIONS = [
     subtitle: "Land FAANG roles",
     desc: "Curated top-company DSA questions, system design patterns, and behavioral frameworks to crush technical interviews.",
     icon: <Target size={24} />,
-    color: "#F4A396",
+    color: "#93C5FD",
     tag: "DSA Sheets",
     route: "/practice",
     stats: "500+ Questions",
@@ -37,7 +37,7 @@ const SECTIONS = [
     subtitle: "Pattern-based mastery",
     desc: "A curated collection of essential coding interview problems categorized by sub-patterns and topics.",
     icon: <Code2 size={24} />,
-    color: "#FCBA7C",
+    color: "#60A5FA",
     tag: "Playlist",
     route: "/arrays",
     stats: "Pattern Wise Problems",
@@ -70,7 +70,7 @@ const SECTIONS = [
     subtitle: "Solve today's problem",
     desc: "A fresh LeetCode problem every day, with a built-in Java editor to craft and test your solution.",
     icon: <CalendarDays size={24} />,
-    color: "#F4A396",
+    color: "#93C5FD",
     tag: "Today",
     route: "/problem-solver",
     stats: "Updated Daily",
@@ -113,7 +113,7 @@ export default function Index() {
           >
             <h1 className="max-w-2xl font-display text-[2.75rem] font-bold leading-[1.03] tracking-[-0.045em] sm:text-6xl lg:text-[4.4rem]">
               Become the engineer{" "}
-              <span className="bg-gradient-to-r from-primary via-[#f0a24b] to-accent bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-[#60A5FA] to-accent bg-clip-text text-transparent">
                 teams fight to hire.
               </span>
             </h1>

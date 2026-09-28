@@ -630,6 +630,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               visitor clicks "Choose where to focus next." */}
           {showSidebarPanel && (
           <Panel
+            id="app-sidebar-panel"
+            order={1}
             ref={sidebarRef}
             defaultSize={20}
             minSize={14}
@@ -715,7 +717,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           )}
 
 
-          <Panel defaultSize={80} minSize={50} className="flex flex-col min-h-0">
+          <Panel
+            id="app-main-panel"
+            order={2}
+            defaultSize={showSidebarPanel ? 80 : 100}
+            minSize={50}
+            className="flex flex-col min-h-0"
+          >
           {/* Top bar — Premium redesign */}
           <header
             className={cn(
@@ -955,6 +963,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 }}
               >
                 <ResizablePanel
+                  id="content-main-panel"
+                  order={1}
                   defaultSize={splitPct}
                   minSize={MAIN_PANEL_MIN_SIZE}
                 >
@@ -978,6 +988,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 />
 
                 <ResizablePanel
+                  id="content-guru-panel"
+                  order={2}
                   ref={guruPanelRef}
                   defaultSize={clamp(
                     100 - splitPct,
@@ -1095,7 +1107,7 @@ const App = () => (
         <ModeProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <ScrollToTopOnRouteChange />
             <AuthProvider>
               <Routes>

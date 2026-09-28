@@ -58,8 +58,6 @@ export default function CppInterviewHub(){
         </motion.nav>
 
         <motion.header initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.55, ease:[0.22,1,0.36,1]}} className="cjh-hero p-6 md:p-10 lg:p-12 mb-10">
-          <div className="cjh-hero-glow" aria-hidden="true"/>
-          <div className="cjh-hero-accent" aria-hidden="true"/>
           <div className="relative z-10 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
               <div className="cjh-hero-badge mb-5"><Code2 size={13}/> C++ Interview Preparation</div>
@@ -115,7 +113,7 @@ export default function CppInterviewHub(){
             <span className="cjh-section-meta">4 tracks · pick your focus</span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {learningPaths.map((path,i)=>{ const Icon=path.icon; return (<motion.div key={path.id} variants={fadeUp} transition={{delay:i*0.05}}><Link to={path.route} className={`cjh-path-card cjh-path-card--${path.color} group`}><div className={`cjh-path-icon border ${PATH_ICON_STYLES[path.color]}`}><Icon size={20}/></div><h3 className="text-[15px] font-bold mb-1.5 group-hover:text-primary transition-colors relative z-10">{path.title}</h3><p className="text-xs text-muted-foreground leading-relaxed relative z-10 flex-1">{path.subtitle}</p><span className="cjh-path-arrow relative z-10">Open track <ArrowRight size={12}/></span></Link></motion.div>); })}
+            {learningPaths.map((path,i)=>{ const Icon=path.icon; return (<motion.div key={path.id} variants={fadeUp} transition={{delay:i*0.05}}><Link to={path.route} className="cjh-path-card group"><div className={`cjh-path-icon border ${PATH_ICON_STYLES[path.color]}`}><Icon size={20}/></div><h3 className="text-[15px] font-bold mb-1.5 group-hover:text-primary transition-colors relative z-10">{path.title}</h3><p className="text-xs text-muted-foreground leading-relaxed relative z-10 flex-1">{path.subtitle}</p><span className="cjh-path-arrow relative z-10">Open track <ArrowRight size={12}/></span></Link></motion.div>); })}
           </div>
         </motion.section>
 

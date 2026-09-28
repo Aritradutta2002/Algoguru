@@ -27,9 +27,10 @@ const _buildIndex = (): IndexedCoreJavaQuestion[] => {
         console.warn(`[coreJavaQuestionIndex] Duplicate question id "${question.id}" ignored.`);
         continue;
       }
-      const slug = getCoreJavaQuestionSlug(question);
+      let slug = getCoreJavaQuestionSlug(question);
       if (seenSlugs.has(slug)) {
-        console.warn(`[coreJavaQuestionIndex] Duplicate slug "${slug}" for "${question.id}".`);
+        console.warn(`[coreJavaQuestionIndex] Duplicate slug "${slug}" for "${question.id}". Appending question ID.`);
+        slug = `${slug}-${question.id}`;
       }
       seenIds.add(question.id);
       seenSlugs.add(slug);
