@@ -11,7 +11,7 @@ import {
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
-import { ChevronDown, Home, Layers, Coffee, Search, X, Code2, LogOut, Trophy, ChevronRight, PanelLeftClose } from "lucide-react";
+import { ChevronDown, Home, Layers, Coffee, Search, X, Code2, LogOut, Trophy, ChevronRight, PanelLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
@@ -109,7 +109,7 @@ const DifficultyPill = ({ difficulty }: { difficulty: string }) => {
   );
 };
 
-export function AppSidebar() {
+export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentMode } = useMode();
@@ -207,16 +207,15 @@ export function AppSidebar() {
     >
 
       {/* ── Brand Header ──────────────────────────────────── */}
-      <Link to="/" className="block flex-shrink-0">
-        <div
-          className="relative flex items-center gap-3 px-4 py-4 overflow-hidden transition-colors hover:bg-muted/20"
-          style={{ borderBottom: "1px solid hsl(var(--border) / 0.4)" }}
-        >
-          <div className="absolute inset-0 pointer-events-none opacity-40"
-            style={{ background: "radial-gradient(ellipse at 0% 50%, hsl(var(--primary)/0.12) 0%, transparent 65%)" }} />
-
+      <div
+        className="relative flex items-center gap-2 px-3 py-3 flex-shrink-0"
+        style={{ borderBottom: "1px solid hsl(var(--border) / 0.4)" }}
+      >
+        <div className="absolute inset-0 pointer-events-none opacity-40"
+          style={{ background: "radial-gradient(ellipse at 0% 50%, hsl(var(--primary)/0.12) 0%, transparent 65%)" }} />
+        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-xl p-1 transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <div
-            className="relative flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0"
+            className="flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.65) 100%)",
               boxShadow: "0 0 16px hsl(var(--primary)/0.35), inset 0 1px 0 rgba(255,255,255,0.25)",
@@ -224,9 +223,8 @@ export function AppSidebar() {
           >
             <AlgoGuruLogo size={22} showText={false} className="text-white" />
           </div>
-
           <div className="flex flex-col min-w-0">
-            <span className="text-[14.5px] font-bold tracking-tight text-foreground leading-tight">AlgoGuru</span>
+            <span className="text-[14.5px] font-bold tracking-tight text-foreground leading-tight truncate">AlgoGuru</span>
             <span className={cn(
               "inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border w-fit",
               meta.badge
@@ -235,8 +233,19 @@ export function AppSidebar() {
               {meta.label}
             </span>
           </div>
-        </div>
-      </Link>
+        </Link>
+        <AppTooltip content={<span>Collapse sidebar <kbd className="ml-2 rounded border border-border px-1 py-0.5 text-[10px]">Alt + B</kbd></span>} side="right">
+          <button
+            type="button"
+            onClick={onCollapse}
+            aria-label="Collapse sidebar"
+            aria-keyshortcuts="Alt+B"
+            className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-border/50 bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <PanelLeft size={16} aria-hidden="true" />
+          </button>
+        </AppTooltip>
+      </div>
 
       <div className="flex flex-col gap-0 px-0 py-0 overflow-y-auto overflow-x-hidden flex-1 min-h-0">
 
@@ -313,12 +322,12 @@ export function AppSidebar() {
                               {item.icon}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-[12px] font-medium truncate text-foreground group-hover:text-primary transition-colors">{item.title}</span>
+                              <div className="flex min-w-0 items-center gap-1.5">
+                                <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-foreground group-hover:text-primary transition-colors" title={item.title}>{item.title}</span>
                                 {item.difficulty && <DifficultyPill difficulty={item.difficulty} />}
                               </div>
                               {item.parent && (
-                                <div className="text-[10px] text-muted-foreground/55 mt-0.5 truncate">{item.parent}</div>
+                                <div className="text-[10px] text-muted-foreground/55 mt-0.5 truncate" title={item.parent}>{item.parent}</div>
                               )}
                             </div>
                             <ChevronRight size={11} className="text-muted-foreground/25 group-hover:text-primary/50 flex-shrink-0 transition-colors" />
@@ -342,7 +351,7 @@ export function AppSidebar() {
                 key={path}
                 onClick={() => navigate(path)}
                 className={cn(
-                  "touch-manipulation flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group",
+                  "touch-manipulation flex items-center gap-2.5 w-full min-w-0 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
@@ -351,7 +360,7 @@ export function AppSidebar() {
                 <span className={cn("flex items-center justify-center w-5 h-5 transition-all", isActive ? "text-primary" : "text-muted-foreground/65 group-hover:text-foreground")}>
                   <Icon size={15} />
                 </span>
-                <span className="flex-1 text-left">{label}</span>
+                <span className="min-w-0 flex-1 truncate text-left" title={label}>{label}</span>
                 {isActive && (
                   <span className="w-1.5 h-1.5 rounded-full bg-primary" style={{ boxShadow: "0 0 6px hsl(var(--primary)/0.8)" }} />
                 )}
@@ -383,13 +392,13 @@ export function AppSidebar() {
                     <button
                       onClick={() => { toggleTopic(topic.id); navigate(`/${topic.id}`); }}
                       className={cn(
-                        "touch-manipulation flex items-center justify-between w-full px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group",
+                        "touch-manipulation flex items-center justify-between w-full min-w-0 gap-2 overflow-hidden px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group",
                         isActive
                           ? "bg-muted/80 text-foreground"
                           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                       )}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex flex-1 items-center gap-2.5 min-w-0">
                         <div
                           className="flex items-center justify-center w-7 h-7 rounded-lg text-[13px] flex-shrink-0 border transition-all duration-200"
                           style={{
@@ -403,7 +412,7 @@ export function AppSidebar() {
                         >
                           {topic.icon}
                         </div>
-                        <span className={cn("truncate", isActive && "font-semibold text-foreground")}>
+                        <span title={topic.title} className={cn("min-w-0 flex-1 truncate text-left", isActive && "font-semibold text-foreground")}>
                           {topic.title}
                         </span>
                       </div>
@@ -450,7 +459,7 @@ export function AppSidebar() {
                                         className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-200", active ? "scale-110" : "opacity-25 group-hover:opacity-55")}
                                         style={{ background: active ? color.from : "currentColor" }}
                                       />
-                                      <span className="truncate leading-snug">{sub.title}</span>
+                                      <span className="min-w-0 flex-1 truncate leading-snug">{sub.title}</span>
                                     </button>
                                   </AppTooltip>
                                 </SidebarMenuSubButton>

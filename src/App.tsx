@@ -513,8 +513,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // otherwise the panel lags behind the cursor. The transition is only enabled
   // for programmatic fold/unfold so those animate smoothly.
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
-  // Track hover over the sidebar zone to show the fold tab
-  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
 
   // On the home page the left sidebar panel is hidden by default (including
   // its fold/unfold handle). It only becomes visible when the user clicks the
@@ -524,6 +522,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // Sidebar panel should only mount on non-home routes, or when the home
   // visitor explicitly opens it via the heading.
   const showSidebarPanel = !isHomeRoute || homeSidebarOpen;
+  useEffect(() => {
+    // The panel unmounts on the home route; reset its state before it remounts.
+    if (!showSidebarPanel) setIsSidebarCollapsed(false);
+  }, [showSidebarPanel]);
   const toggleHomeSidebar = useCallback(() => {
     setHomeSidebarOpen((open) => {
       const next = !open;
@@ -551,10 +553,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     sidebarRef.current?.resize(restoreSize);
   }, []);
 
-  const toggleSidebarFold = useCallback(() => {
-    if (isSidebarCollapsed) unfoldSidebar();
-    else foldSidebar();
-  }, [isSidebarCollapsed, foldSidebar, unfoldSidebar]);
+  useEffect(() => {
+    const handleSidebarShortcut = (event: KeyboardEvent) => {
+      if (!showSidebarPanel || !event.altKey || event.ctrlKey || event.metaKey || event.key.toLowerCase() !== "b") return;
+      event.preventDefault();
+      if (isSidebarCollapsed) unfoldSidebar();
+      else foldSidebar();
+    };
+    window.addEventListener("keydown", handleSidebarShortcut);
+    return () => window.removeEventListener("keydown", handleSidebarShortcut);
+  }, [showSidebarPanel, isSidebarCollapsed, foldSidebar, unfoldSidebar]);
 
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
@@ -653,51 +661,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <div
               className={cn(
                 "h-full w-full overflow-hidden transition-opacity duration-250 ease-out",
-                isSidebarCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+                isSidebarCollapsed ? "invisible opacity-0 pointer-events-none" : "opacity-100"
               )}
+              aria-hidden={isSidebarCollapsed}
             >
-              <AppSidebar />
+              <AppSidebar onCollapse={foldSidebar} />
             </div>
-
-            {/* ── Fold tab — floats on the right edge of the sidebar ─────
-                Lives here (not in the drag handle) so click and drag are
-                completely separate pointer surfaces. Appears on hover or
-                when the sidebar is about to be folded. */}
-            {!isSidebarCollapsed && (
-              <div
-                className={cn(
-                  "absolute top-1/2 -translate-y-1/2 right-0 translate-x-full z-50",
-                  "transition-opacity duration-200",
-                  isResizingSidebar ? "opacity-0 pointer-events-none" : "opacity-0 sidebar-panel-hover:opacity-100"
-                )}
-                style={{ pointerEvents: isResizingSidebar ? "none" : "auto" }}
-              >
-                <AppTooltip content="Collapse sidebar" side="right">
-                  <button
-                    onClick={foldSidebar}
-                    aria-label="Collapse sidebar"
-                    className={cn(
-                      "group flex items-center justify-center",
-                      "w-5 h-10 rounded-r-lg",
-                      "bg-card border border-l-0 border-border/70",
-                      "text-muted-foreground/60 hover:text-foreground",
-                      "hover:bg-muted/80",
-                      "shadow-[2px_0_8px_hsl(var(--foreground)/0.06)]",
-                      "transition-all duration-150",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    )}
-                  >
-                    <FoldGlyph direction="fold" size={11} strokeWidth={2.5} />
-                  </button>
-                </AppTooltip>
-              </div>
-            )}
           </Panel>
           )}
 
-          {/* ── Resize handle — pure drag zone, NO button inside ─────────
-              The fold button lives on the sidebar panel above. This element
-              is solely responsible for resizing via drag. */}
+          {/* Drag zone for resizing the sidebar. */}
           {showSidebarPanel && (
           <PanelResizeHandle
             onDragging={setIsResizingSidebar}
@@ -752,7 +725,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             {/* ── Left: sidebar toggle + logo ──────────────────── */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
               <AnimatePresence initial={false}>
-                {isSidebarCollapsed && (
+                {showSidebarPanel && isSidebarCollapsed && (
                   <motion.div
                     key="unfold-beside-logo"
                     initial={{ width: 0, opacity: 0 }}
@@ -763,7 +736,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   >
                     <button
                       onClick={unfoldSidebar}
-                      aria-label="Unfold sidebar"
+                      aria-label="Expand sidebar"
+                      aria-keyshortcuts="Alt+B"
                       className={cn(
                         "group relative touch-manipulation w-8 h-8 rounded-lg flex-shrink-0",
                         "flex items-center justify-center",
