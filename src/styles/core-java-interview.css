@@ -256,6 +256,17 @@
 :root:not(.dark) .cjq-input {
   background: hsl(0 0% 100%);
   border-color: hsl(220 13% 84%);
+  color: hsl(222 25% 14%);
+}
+
+.cjq-input {
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+}
+
+.cjq-input::placeholder {
+  color: hsl(var(--muted-foreground) / 0.6);
+  opacity: 1;
 }
 
 :root:not(.dark) .cjq-input:focus {
@@ -382,6 +393,7 @@
 .cjh-btn-primary {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
+  border-radius: 0.75rem;
 }
 
 .cjh-btn-primary {
@@ -484,9 +496,12 @@
   letter-spacing: -0.02em;
 }
 
-/* Solid accent — no gradient text clip */
+/* Solid accent — gradient text clip, matching the home hero */
 .cjh-hero-title span {
-  color: hsl(var(--primary));
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* ── Shared surfaces: flattened, no elevation tricks ───────────────── */
@@ -497,11 +512,11 @@
 .cjh-question-card,
 .cjh-revision-banner,
 .cjh-footer-stat {
-  border-radius: 0.875rem;
+  border-radius: 1rem;
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  box-shadow: none;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .cjh-stat-card:hover,
@@ -509,9 +524,9 @@
 .cjh-topic-card:hover,
 .cjh-question-card:hover,
 .cjh-footer-stat:hover {
-  border-color: hsl(var(--primary) / 0.3);
-  box-shadow: none;
-  transform: none;
+  border-color: hsl(var(--primary) / 0.35);
+  box-shadow: 0 2px 6px -2px hsl(var(--foreground) / 0.08), 0 18px 40px -18px hsl(var(--foreground) / 0.25);
+  transform: translateY(-3px);
 }
 
 .cjh-path-card:hover .cjh-path-arrow {
@@ -690,8 +705,16 @@
 .cjh-header {
   display: grid;
   gap: 1.5rem;
-  padding: 1.75rem 0 2rem;
+  padding: 2.25rem 1.75rem;
   position: relative;
+  border-radius: 1.25rem;
+  border: 1px solid hsl(var(--border));
+  background:
+    radial-gradient(120% 140% at 85% -20%, hsl(var(--primary) / 0.14), transparent 50%),
+    radial-gradient(80% 120% at 0% 110%, hsl(var(--accent) / 0.08), transparent 55%),
+    hsl(var(--card));
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
 }
 
 @media (min-width: 960px) {
@@ -750,10 +773,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  padding: 1.4rem;
-  border-radius: 0.875rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
   border: 1px solid hsl(var(--border));
-  background: hsl(var(--card));
+  background:
+    radial-gradient(120% 120% at 80% -10%, hsl(var(--primary) / 0.07), transparent 55%),
+    hsl(var(--card));
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
@@ -858,10 +883,11 @@
   display: grid;
   gap: 0.65rem;
   padding: 1.6rem;
-  border-radius: 0.875rem;
+  border-radius: 1rem;
   border: 1px solid hsl(var(--primary) / 0.25);
   background:
-    linear-gradient(135deg, hsl(var(--primary) / 0.05), transparent 55%),
+    linear-gradient(135deg, hsl(var(--primary) / 0.07), transparent 55%),
+    radial-gradient(110% 140% at 90% -10%, hsl(var(--primary) / 0.08), transparent 50%),
     hsl(var(--card));
   box-shadow: var(--shadow-card);
   overflow: hidden;
@@ -997,15 +1023,18 @@
   align-items: center;
   gap: 0.65rem 1.25rem;
   padding: 1.05rem 1.2rem;
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  box-shadow: var(--shadow-card);
+  transition: background-color 0.15s ease, border-color 0.2s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .cjh-topic-row:hover {
   background: hsl(var(--muted) / 0.4);
-  border-color: hsl(var(--primary) / 0.3);
+  border-color: hsl(var(--primary) / 0.35);
+  box-shadow: 0 2px 6px -2px hsl(var(--foreground) / 0.08), 0 18px 40px -18px hsl(var(--foreground) / 0.25);
+  transform: translateY(-2px);
 }
 
 .cjh-topic-num {
@@ -1257,15 +1286,18 @@
   align-items: flex-start;
   gap: 0.75rem 0.9rem;
   padding: 1rem 1.15rem;
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease, background-color 0.15s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .cjh-resource:hover {
-  border-color: hsl(var(--primary) / 0.3);
+  border-color: hsl(var(--primary) / 0.35);
   background: hsl(var(--muted) / 0.35);
+  box-shadow: 0 2px 6px -2px hsl(var(--foreground) / 0.08), 0 18px 40px -18px hsl(var(--foreground) / 0.25);
+  transform: translateY(-2px);
 }
 
 .cjh-resource-icon {
@@ -1327,10 +1359,11 @@
 
 .cjh-plan-week {
   border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   background: hsl(var(--card));
+  box-shadow: var(--shadow-card);
   overflow: hidden;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
 }
 
 .cjh-plan-week.is-current {

@@ -76,13 +76,13 @@ export function BrandSplash({
     >
       <BrandLoader size={64} label={null} />
 
-      {/* Wordmark set in the brand face — "Guru" carries the brand orange in both themes. */}
+      {/* Wordmark set in the brand face — "Guru" carries the brand blue in both themes. */}
       <div
         className="text-xl font-semibold tracking-tight"
         style={{ fontFamily: "'Space Grotesk','Outfit','Inter',system-ui,sans-serif", color: "hsl(var(--foreground))" }}
       >
         <span>Algo</span>
-        <span style={{ color: "#E1542F" }}>Guru</span>
+        <span style={{ color: "#2563EB" }}>Guru</span>
       </div>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">

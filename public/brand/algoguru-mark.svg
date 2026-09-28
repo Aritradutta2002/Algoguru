@@ -2,8 +2,8 @@
   <title id="t">AlgoGuru</title>
   <defs>
     <linearGradient id="agBadgeGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FB923C"/>
-      <stop offset="1" stop-color="#E1542F"/>
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#2563EB"/>
     </linearGradient>
     <!-- Punches the 5 graph nodes out of the glyph so the badge gradient reads through. -->
     <mask id="agNodeMask" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
