@@ -9,7 +9,6 @@ import {
   Check,
   ChevronRight,
   ChevronUp,
-  Coffee,
   Code2,
   Download,
   FileText,
@@ -105,9 +104,9 @@ const _QuestionCard = ({
             title={isDone ? "Mark undone" : "Mark as learned"}
             aria-pressed={isDone}
             aria-label={isDone ? "Mark as not learned" : "Mark as learned"}
-            className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+            className={`mt-1.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
               isDone
-                ? "bg-success border-success text-white shadow-sm"
+                ? "bg-success border-success text-white"
                 : "border-border/50 hover:border-success/60 bg-card hover:bg-success/10"
             }`}
           >
@@ -116,29 +115,27 @@ const _QuestionCard = ({
 
           <div className="flex-1 min-w-0">
             {/* Meta row */}
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="cjq-qbadge text-[11px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-md">
-                Q{String(entry.index + 1).padStart(2, "0")}
-              </span>
-              <span className="text-[10px] font-semibold text-muted-foreground/70 flex items-center gap-1">
+            <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+              <span className="cjq-chip cjq-chip--accent">Q{String(entry.index + 1).padStart(2, "0")}</span>
+              <span className="cjq-chip">
                 {topic.icon} {topic.title}
               </span>
               {meta.difficulty && <DifficultyBadge difficulty={meta.difficulty} />}
               {meta.priority === "very-high" && <PriorityBadge priority="very-high" />}
               {meta.javaVersions?.map((v) => <JavaVersionBadge key={v} version={v} />)}
               {isDone && (
-                <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
+                <span className="cjq-chip" style={{ color: "hsl(var(--success))", borderColor: "hsl(var(--success) / 0.35)" }}>
                   Learned
                 </span>
               )}
               {hasNote && (
-                <span className="text-[10px] font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full">
-                  Note Added
+                <span className="cjq-chip" style={{ color: "hsl(var(--warning))", borderColor: "hsl(var(--warning) / 0.35)" }}>
+                  Note added
                 </span>
               )}
               {hasCoreJavaVisualization(question.id) && (
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-info bg-info/10 px-2 py-0.5 rounded-full">
-                  <Network size={10} /> Visual
+                <span className="cjq-chip hidden sm:inline-flex">
+                  <Network size={10} /> Diagram
                 </span>
               )}
             </div>
@@ -146,8 +143,8 @@ const _QuestionCard = ({
             {/* Question title — links to detail page */}
             <Link to={detailPath} className="group/title block">
               <h3
-                className={`cjq-list-title text-[20px] font-bold leading-[1.45] mb-3 transition-colors group-hover/title:text-primary ${
-                  isDone ? "opacity-40 line-through" : ""
+                className={`cjq-list-title mb-2.5 transition-colors group-hover/title:text-[hsl(var(--reader-accent))] ${
+                  isDone ? "opacity-50" : ""
                 }`}
               >
                 {question.question}
@@ -156,9 +153,7 @@ const _QuestionCard = ({
 
             {/* One-line mental model */}
             {question.explanation && (
-              <p className={`cjq-list-body text-[16px] leading-[1.8] mb-4 ${isDone ? "opacity-40" : ""}`}>
-                {question.explanation}
-              </p>
+              <p className={`cjq-list-body mb-4 ${isDone ? "opacity-50" : ""}`}>{question.explanation}</p>
             )}
 
             {/* Action buttons */}
@@ -264,18 +259,17 @@ const _QuestionCard = ({
               </div>
               <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
                 {activeView === "theory" && (
-                  <div className="cjq-reading rounded-xl p-5 md:p-6">
+                  <div className="cjq-doc-box">
                     <CoreJavaQuestionAnswer answer={question.answer} />
                   </div>
                 )}
                 {activeView === "code" && question.code && (
-                  <div className="rounded-xl overflow-hidden shadow-lg border border-border/30">
-                    <CodeBlock
-                      language={question.codeLanguage || "java"}
-                      code={question.code}
-                      title="Implementation"
-                    />
-                  </div>
+                  <CodeBlock
+                    surface="reader"
+                    language={question.codeLanguage || "java"}
+                    code={question.code}
+                    title="Implementation"
+                  />
                 )}
               </div>
             </div>
@@ -593,102 +587,109 @@ export default function InterviewCoreJavaQuestionsPage() {
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
-    <div className="cjq-page min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
+    <div className="cjq-list-root cjq-page min-h-screen flex flex-col">
       {/* ── Page Header ──────────────────────────────────────────── */}
-      <header className="cjq-toolbar-divider shrink-0 bg-card/90 backdrop-blur-xl border-b relative z-30">
-        <div className="px-4 md:px-6 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 md:gap-4 min-w-0">
-            <button
-              onClick={() => navigate(backRoute)}
-              className="cjq-toolbar-btn group flex items-center justify-center w-9 h-9 rounded-full border transition-all shrink-0"
-              aria-label="Go back"
-            >
-              <ArrowLeft size={16} className="text-muted-foreground group-hover:text-primary transition-transform group-hover:-translate-x-0.5" />
-            </button>
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0 hidden sm:block">
-                <Coffee size={16} className="text-primary" />
-              </div>
-              <div className="min-w-0">
-                <nav aria-label="Breadcrumb" className="hidden md:flex items-center gap-1 text-[10px] text-muted-foreground/70 font-mono mb-0.5">
-                  <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-                  <ChevronRight size={9} aria-hidden="true" />
-                  <Link to="/interview/java" className="hover:text-primary transition-colors">Interview</Link>
-                  <ChevronRight size={9} aria-hidden="true" />
-                  <span className="text-foreground/70">Core Java</span>
-                </nav>
-                <h1 className="text-lg md:text-xl font-bold tracking-tight truncate">
-                  Core Java <span className="text-primary">Q&A</span>
-                </h1>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end shrink-0">
-            {/* Search */}
-            <div className="relative hidden md:block">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" aria-hidden="true" />
-              <input
-                ref={searchInputRef}
-                type="search"
-                role="searchbox"
-                placeholder="Search questions… ( / )"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search Java interview questions"
-                className="cjq-input pl-9 pr-3 py-1.5 text-sm border rounded-full w-48 lg:w-64 outline-none transition-all placeholder:text-muted-foreground/50"
-              />
-            </div>
-
-            {/* Notes Modal Trigger */}
-            <button
-              onClick={() => setShowNotesPanel(true)}
-              className="cjq-toolbar-btn px-4 py-1.5 rounded-full text-sm font-semibold border flex items-center gap-2 shrink-0 transition-all min-h-[36px]"
-            >
-              <StickyNote size={14} />
-              <span className="hidden sm:inline">Notes</span>
-              {Object.keys(notesMap).length > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-warning/20 text-warning text-[11px] font-bold">
-                  {Object.keys(notesMap).length}
-                </span>
-              )}
-            </button>
-
-            {/* Global sidebar toggle */}
-            <AppTooltip content="Toggle App Sidebar">
+      <header className="cjq-reader-bar shrink-0">
+        <div className="mx-auto w-full max-w-[1400px] px-4 md:px-6">
+          <div className="py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4 min-w-0">
               <button
-                onClick={() => setGlobalSidebarOpen((prev) => !prev)}
-                className="cjq-toolbar-btn w-9 h-9 rounded-full flex items-center justify-center border shrink-0 transition-all"
-                aria-label="Toggle App Sidebar"
+                onClick={() => navigate(backRoute)}
+                className="cjq-toolbar-btn group flex items-center justify-center w-9 h-9 rounded-full border shrink-0"
+                aria-label="Go back"
               >
-                <PanelLeftOpen size={16} />
+                <ArrowLeft size={16} className="text-muted-foreground group-hover:text-primary" />
               </button>
-            </AppTooltip>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="min-w-0">
+                  <h1 className="text-lg md:text-xl font-bold tracking-tight truncate">
+                    Core Java <span className="text-primary">Q&amp;A</span>
+                  </h1>
+                </div>
+                <nav aria-label="Breadcrumb" className="cjq-crumbs hidden lg:flex">
+                  <Link to="/">Home</Link>
+                  <ChevronRight size={10} className="cjq-crumbs-sep" aria-hidden="true" />
+                  <Link to="/interview/java">Interview</Link>
+                  <ChevronRight size={10} className="cjq-crumbs-sep" aria-hidden="true" />
+                  <span className="text-[hsl(var(--reader-heading))]">Core Java</span>
+                </nav>
+              </div>
+            </div>
 
-            {/* Mobile Topic Sidebar Toggle */}
-            <button
-              onClick={() => setTopicSidebarOpen(true)}
-              className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-primary/10 text-primary hover:bg-primary/20 shrink-0 lg:hidden transition-all"
-              aria-label="Open Topics"
-            >
-              <BookOpen size={16} />
-            </button>
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end shrink-0">
+              {/* Search */}
+              <div className="relative hidden md:block">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" aria-hidden="true" />
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  role="searchbox"
+                  placeholder="Search questions… ( / )"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search Java interview questions"
+                  className="cjq-input pl-9 pr-3 py-1.5 text-sm border rounded-full w-48 lg:w-64 outline-none transition-all placeholder:text-muted-foreground/50"
+                />
+              </div>
+
+              {/* Notes Modal Trigger */}
+              <button
+                onClick={() => setShowNotesPanel(true)}
+                className="cjq-toolbar-btn px-4 py-1.5 rounded-full text-sm font-semibold border flex items-center gap-2 shrink-0 transition-all min-h-[36px]"
+              >
+                <StickyNote size={14} />
+                <span className="hidden sm:inline">Notes</span>
+                {Object.keys(notesMap).length > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-warning/20 text-warning text-[11px] font-bold">
+                    {Object.keys(notesMap).length}
+                  </span>
+                )}
+              </button>
+
+              {/* Global sidebar toggle */}
+              <AppTooltip content="Toggle App Sidebar">
+                <button
+                  onClick={() => setGlobalSidebarOpen((prev) => !prev)}
+                  className="cjq-toolbar-btn w-9 h-9 rounded-full flex items-center justify-center border shrink-0 transition-all"
+                  aria-label="Toggle App Sidebar"
+                >
+                  <PanelLeftOpen size={16} />
+                </button>
+              </AppTooltip>
+
+              {/* Mobile Topic Sidebar Toggle */}
+              <button
+                onClick={() => setTopicSidebarOpen(true)}
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-primary/10 text-primary hover:bg-primary/20 shrink-0 lg:hidden transition-all"
+                aria-label="Open Topics"
+              >
+                <BookOpen size={16} />
+              </button>
+            </div>
           </div>
-        </div>
 
         {/* Global Progress Bar under header */}
-        <div className="h-[2px] w-full bg-muted/40 relative" role="progressbar" aria-label="Overall progress" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
+        <div
+          className="cjq-progress"
+          role="progressbar"
+          aria-label="Overall progress"
+          aria-valuenow={progressPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <motion.div
-            className="absolute left-0 top-0 bottom-0 bg-primary"
+            className="h-full"
+            style={{ background: "hsl(var(--reader-accent))" }}
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
+        </div>
       </header>
 
       {/* ── Search + Filter toolbar (mobile search included) ─────── */}
-      <div className="cjq-toolbar-divider shrink-0 px-4 md:px-6 py-3 bg-card border-b">
+      <div className="cjq-toolbar-divider shrink-0 px-4 md:px-6 py-3 border-b">
         {/* Mobile search */}
         <div className="relative md:hidden mb-3">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" aria-hidden="true" />
@@ -848,17 +849,15 @@ export default function InterviewCoreJavaQuestionsPage() {
 
               {/* Topic groups */}
               {groupedTopics.map((group) => (
-                <div key={group.topic.id} className="space-y-4">
+                <div key={group.topic.id}>
                   {/* Topic header */}
-                  <div className="cjq-topic-divider flex items-center gap-4 pb-4 border-b-2">
-                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl shrink-0" aria-hidden="true">
+                  <div className="flex items-end gap-3 mb-4">
+                    <span className="text-2xl leading-none shrink-0" aria-hidden="true">
                       {group.topic.icon}
-                    </div>
+                    </span>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-[20px] font-bold tracking-tight text-foreground leading-tight">
-                        {group.topic.title}
-                      </h2>
-                      <p className="text-[13px] text-muted-foreground mt-0.5">
+                      <h2 className="cjq-list-topic">{group.topic.title}</h2>
+                      <p className="text-[12.5px] text-[hsl(var(--reader-note))] mt-1.5">
                         {group.entries.length} question{group.entries.length !== 1 ? "s" : ""}
                         {selectedTopic && ` · filtered from ${group.topic.questions.length}`}
                       </p>

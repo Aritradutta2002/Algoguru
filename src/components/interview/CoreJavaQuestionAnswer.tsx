@@ -1,24 +1,49 @@
 import { memo } from "react";
 import type { ReactNode } from "react";
 
-/** Parse inline **bold** and `code` tokens */
+/**
+ * Renders the answer dialect documented in
+ * `src/data/coreJavaQuestions/contract.ts`:
+ *
+ *   **bold**   `code`   - bullet   1. numbered   short line ending in ":"
+ *
+ * The output is a plain documentation column — paragraphs, a dotted-ruled
+ * sub-heading, bullets and an ordered list — styled entirely by the
+ * `cjq-ans*` classes so day and night mode share one set of rules.
+ */
+
+/** Strip a trailing `:` or `#` markers from a heading line. */
+function cleanHeading(raw: string): string {
+  return raw
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/^[-*]\s+/, "")
+    .replace(/:$/, "")
+    .replace(/\*\*/g, "")
+    .trim();
+}
+
+/** Parse inline **bold** and `code` tokens. */
 export function parseInline(text: string): ReactNode {
   const parts: ReactNode[] = [];
-  const regex = /(\*\*[^*]+\*\*|\`[^\`]+\`)/g;
-  let last = 0,
-    k = 0;
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+  let last = 0;
+  let k = 0;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(text)) !== null) {
     if (match.index > last) parts.push(text.slice(last, match.index));
     const token = match[0];
     if (token.startsWith("**")) {
       parts.push(
-        <strong key={k++} className="font-bold">
+        <strong key={k++} className="cjq-ans-strong">
           {token.slice(2, -2)}
         </strong>
       );
     } else {
-      parts.push(<code key={k++}>{token.slice(1, -1)}</code>);
+      parts.push(
+        <code key={k++} className="cjq-ans-c">
+          {token.slice(1, -1)}
+        </code>
+      );
     }
     last = match.index + token.length;
   }
@@ -28,75 +53,72 @@ export function parseInline(text: string): ReactNode {
   return <>{parts}</>;
 }
 
+const BULLET_RE = /^\s*[-*•]\s+/;
+const NUMBERED_RE = /^\s*(\d+)[.)]\s+/;
+
+/**
+ * A single line is only a sub-heading when it says so explicitly. The
+ * previous heuristic ("short line without a full stop") turned ordinary
+ * opening sentences into headings, which is what made answers read badly.
+ */
+function isHeadingLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  if (/^#{1,6}\s+/.test(trimmed)) return true;
+  // "Why it matters:" / "**Key point:**" style lead-ins.
+  if (trimmed.length <= 80 && trimmed.endsWith(":")) return true;
+  if (/^\*\*[^*]{1,60}:\*\*$/.test(trimmed)) return true;
+  return false;
+}
+
 function renderTheoryContent(answer: string): ReactNode {
   if (!answer) return null;
-  const sections = answer.split("\n\n").filter(Boolean);
-  return (
-    <div className="space-y-7 cjq-reading-content">
-      {sections.map((section, idx) => {
-        const lines = section.split("\n").filter(Boolean);
-        const isBullet = lines.every((l) => l.trim().startsWith("- "));
-        const isNumbered = lines.every((l) => /^\d+\./.test(l.trim()));
-        const isHeading =
-          lines.length === 1 &&
-          (lines[0].startsWith("##") ||
-            (lines[0].endsWith(":") && lines[0].length < 70) ||
-            (lines[0].length < 55 && !lines[0].endsWith(".") && !lines[0].startsWith("-")));
+  const sections = answer.split(/\n{2,}/).filter(Boolean);
 
-        if (isHeading) {
+  return (
+    <div className="cjq-ans">
+      {sections.map((section, idx) => {
+        const lines = section.split("\n").filter((l) => l.trim().length > 0);
+        if (lines.length === 0) return null;
+
+        if (isHeadingLine(lines[0]) && (lines.length === 1 || lines.slice(1).every((l) => BULLET_RE.test(l)))) {
           return (
-            <div key={idx} className="flex items-center gap-3 pt-2">
-              <span
-                className="w-1 h-7 rounded-full shrink-0"
-                style={{ background: "hsl(var(--primary))" }}
-                aria-hidden="true"
-              />
-              <h4>{lines[0].replace(/^#{1,3}\s*/, "").replace(/:$/, "")}</h4>
-            </div>
+            <h4 key={idx} className="cjq-ans-h">
+              {cleanHeading(lines[0])}
+            </h4>
           );
         }
-        if (isBullet) {
+
+        if (lines.every((l) => BULLET_RE.test(l))) {
           return (
-            <ul key={idx} className="space-y-3.5">
+            <ul key={idx} className="cjq-ans-ul">
               {lines.map((l, i) => (
-                <li key={i} className="flex items-start gap-3.5">
-                  <span
-                    className="mt-[11px] w-2 h-2 rounded-full shrink-0"
-                    style={{ background: "hsl(var(--primary) / 0.65)" }}
-                    aria-hidden="true"
-                  />
-                  <span>{parseInline(l.replace(/^- /, ""))}</span>
+                <li key={i} className="cjq-ans-li">
+                  {parseInline(l.replace(BULLET_RE, ""))}
                 </li>
               ))}
             </ul>
           );
         }
-        if (isNumbered) {
+
+        if (lines.every((l) => NUMBERED_RE.test(l))) {
           return (
-            <ol key={idx} className="space-y-4">
+            <ol key={idx} className="cjq-ans-ol">
               {lines.map((l, i) => (
-                <li key={i} className="flex items-start gap-4">
-                  <span
-                    className="shrink-0 w-6 h-6 rounded-full text-[12px] font-bold flex items-center justify-center mt-[3px]"
-                    style={{
-                      background: "hsl(var(--primary) / 0.1)",
-                      border: "1px solid hsl(var(--primary) / 0.25)",
-                      color: "hsl(var(--primary))",
-                    }}
-                    aria-hidden="true"
-                  >
-                    {i + 1}
-                  </span>
-                  <span>{parseInline(l.replace(/^\d+\.\s*/, ""))}</span>
+                <li key={i} className="cjq-ans-li">
+                  {parseInline(l.replace(NUMBERED_RE, ""))}
                 </li>
               ))}
             </ol>
           );
         }
+
         return (
-          <div key={idx} className="space-y-3">
+          <div key={idx}>
             {lines.map((l, i) => (
-              <p key={i}>{parseInline(l)}</p>
+              <p key={i} className="cjq-ans-p">
+                {parseInline(BULLET_RE.test(l) ? l.replace(BULLET_RE, "") : l)}
+              </p>
             ))}
           </div>
         );
@@ -107,14 +129,16 @@ function renderTheoryContent(answer: string): ReactNode {
 
 interface CoreJavaQuestionAnswerProps {
   answer: string;
+  className?: string;
 }
 
 /**
- * Shared renderer for Core Java answer content (used by list page and detail page).
- * Preserves the existing markdown-lite rendering behavior.
+ * Shared renderer for Core Java answer content (used by the list page and
+ * the detail reader). `BackendAnswer` aliases this component.
  */
 export const CoreJavaQuestionAnswer = memo(function CoreJavaQuestionAnswer({
   answer,
+  className,
 }: CoreJavaQuestionAnswerProps) {
-  return <>{renderTheoryContent(answer)}</>;
+  return <div className={className}>{renderTheoryContent(answer)}</div>;
 });

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -74,6 +74,24 @@
     --code-inline-text: 222 47% 18%;
     --code-inline-border: 220 13% 86%;
 
+    /* ── Long-form Q&A reader (document reading surface) ──────────────
+       Tuned for sustained prose reading: near-black body text on pure
+       white paper, a single restrained accent, and dotted rules in the
+       spirit of a documentation page rather than a dashboard card. */
+    --reader-font: 'Source Sans 3', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --reader-code-font: 'Source Code Pro', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --reader-page: 0 0% 100%;
+    --reader-surface: 0 0% 100%;
+    --reader-surface-alt: 214 45% 97.5%;
+    --reader-body: 220 15% 22%;
+    --reader-heading: 222 47% 10%;
+    --reader-note: 220 11% 40%;
+    --reader-accent: 217 91% 42%;
+    --reader-link: 217 91% 42%;
+    --reader-rule: 220 14% 78%;
+    --reader-border: 220 14% 87%;
+    --reader-quote: 220 14% 96%;
+
     --shadow-glow: none;
     --shadow-glow-strong: none;
     /* Restrained, layered elevation — no offset/hard shadows */
@@ -144,10 +162,34 @@
     --code-inline-text: 210 30% 94%;
     --code-inline-border: 222 16% 25%;
 
+    /* ── Long-form Q&A reader, night mode ─────────────────────────────
+       Same structure as day mode, one step off pure black so the page
+       does not glare, and body text lifted to keep a 7:1+ ratio. */
+    --reader-font: 'Source Sans 3', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --reader-code-font: 'Source Code Pro', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --reader-page: 222 24% 7%;
+    --reader-surface: 222 22% 10.5%;
+    --reader-surface-alt: 222 20% 14%;
+    --reader-body: 214 22% 87%;
+    --reader-heading: 0 0% 98%;
+    --reader-note: 215 16% 68%;
+    --reader-accent: 213 94% 72%;
+    --reader-link: 213 94% 72%;
+    --reader-rule: 217 20% 30%;
+    --reader-border: 222 16% 22%;
+    --reader-quote: 222 20% 15%;
+
     /* Code Blocks: One Dark style */
     --code-bg: 220 13% 18%;
     --code-border: 0 0% 25%;
     --code-header: 220 13% 15%;
+
+    /* Difficulty chips need their own night ramp — the day values are
+       tuned for white and go muddy on a dark surface. */
+    --difficulty-easy: 145 55% 55%;
+    --difficulty-medium: 38 92% 62%;
+    --difficulty-hard: 4 85% 66%;
+    --difficulty-expert: 320 70% 68%;
 
     /* Restrained, layered elevation for dark surfaces */
     --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4);

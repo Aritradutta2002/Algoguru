@@ -1655,6 +1655,655 @@
   display: none;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   Q&A Reader — documentation-style question & answer document
+   ══════════════════════════════════════════════════════════════════════
+   Modelled on a reference/documentation Q&A page rather than a dashboard:
+   one calm column of prose, a dotted rule under every heading, a single
+   accent colour, a question index down the left, and Previous | Next at
+   the foot of every answer.
+
+   Every colour resolves through a --reader-* token so day and night share
+   one set of rules and only the token block differs.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── Page shell ─────────────────────────────────────────────────────── */
+.cjq-reader {
+  background: hsl(var(--reader-page));
+  color: hsl(var(--reader-body));
+  font-family: var(--reader-font);
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.cjq-reader ::selection {
+  background: hsl(var(--reader-accent) / 0.22);
+  color: hsl(var(--reader-heading));
+}
+
+/* Three-column document grid: index · prose · contents */
+.cjq-doc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.25rem;
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .cjq-doc-grid {
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .cjq-doc-grid {
+    grid-template-columns: 250px minmax(0, 38rem) 200px;
+    gap: 2.5rem;
+  }
+}
+
+/* ── The prose column ───────────────────────────────────────────────── */
+.cjq-doc {
+  min-width: 0;
+  width: 100%;
+  max-width: 38rem;
+  margin-inline: auto;
+  font-family: var(--reader-font);
+}
+
+.cjq-doc > * + * {
+  margin-top: 2.25rem;
+}
+
+.cjq-doc > :first-child {
+  margin-top: 0;
+}
+
+/* ── Question heading — reference-page style, dotted rule ───────────── */
+.cjq-doc-qtitle {
+  font-family: var(--reader-font);
+  font-size: clamp(1.75rem, 1.15rem + 2.2vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.021em;
+  color: hsl(var(--reader-heading));
+  text-wrap: balance;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dotted hsl(var(--reader-rule));
+}
+
+/* ── Section headings (Answer, Code Example, …) ─────────────────────── */
+.cjq-doc-h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-family: var(--reader-font);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  color: hsl(var(--reader-heading));
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dotted hsl(var(--reader-rule));
+  text-wrap: balance;
+}
+
+.cjq-doc-h2-num {
+  font-family: var(--reader-code-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--reader-accent));
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+/* ── Small uppercase label used above blocks (Question / Answer) ────── */
+.cjq-doc-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: hsl(var(--reader-accent));
+}
+
+/* ── The question itself, set larger than the answer ────────────────── */
+.cjq-doc-ask {
+  font-family: var(--reader-font);
+  font-size: 1.1875rem;
+  line-height: 1.7;
+  font-weight: 500;
+  color: hsl(var(--reader-heading));
+  background: hsl(var(--reader-quote));
+  border: 1px solid hsl(var(--reader-border));
+  border-left: 3px solid hsl(var(--reader-accent));
+  border-radius: 0.5rem;
+  padding: 1.125rem 1.25rem;
+  text-wrap: pretty;
+}
+
+/* ── Generic document surface (answers, takeaways, code) ────────────── */
+.cjq-doc-box {
+  background: hsl(var(--reader-surface));
+  border: 1px solid hsl(var(--reader-border));
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.5rem 1.625rem;
+}
+
+@media (min-width: 768px) {
+  .cjq-doc-box {
+    padding: 1.875rem 2.125rem 2rem;
+  }
+}
+
+.cjq-doc-box > * + * {
+  margin-top: 1.25rem;
+}
+
+.cjq-doc-box--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ── "In short" one-liner under the question ────────────────────────── */
+.cjq-doc-note {
+  font-family: var(--reader-font);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: hsl(var(--reader-note));
+  text-wrap: pretty;
+}
+
+.cjq-doc-note b {
+  color: hsl(var(--reader-heading));
+  font-weight: 600;
+}
+
+/* ── Meta chips above the question ──────────────────────────────────── */
+.cjq-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.3125rem;
+  border: 1px solid hsl(var(--reader-border));
+  background: hsl(var(--reader-surface-alt));
+  color: hsl(var(--reader-note));
+  white-space: nowrap;
+}
+
+.cjq-chip--accent {
+  border-color: hsl(var(--reader-accent) / 0.32);
+  background: hsl(var(--reader-accent) / 0.1);
+  color: hsl(var(--reader-accent));
+  font-weight: 600;
+}
+
+/* ── Answer prose ───────────────────────────────────────────────────── */
+.cjq-ans {
+  font-family: var(--reader-font);
+  color: hsl(var(--reader-body));
+}
+
+.cjq-ans > * + * {
+  margin-top: 1.35rem;
+}
+
+.cjq-ans-p {
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: hsl(var(--reader-body));
+  text-wrap: pretty;
+}
+
+.cjq-ans-h {
+  font-family: var(--reader-font);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.008em;
+  color: hsl(var(--reader-heading));
+  margin-top: 2.25rem !important;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dotted hsl(var(--reader-rule));
+  text-wrap: balance;
+}
+
+.cjq-ans-h:first-child {
+  margin-top: 0 !important;
+}
+
+.cjq-ans-ul,
+.cjq-ans-ol {
+  padding-left: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.cjq-ans-ul {
+  list-style: none;
+  padding-left: 1.15rem;
+}
+
+.cjq-ans-ol {
+  list-style: decimal;
+}
+
+.cjq-ans-ul > li {
+  position: relative;
+}
+
+.cjq-ans-ul > li::before {
+  content: "";
+  position: absolute;
+  left: -1.05rem;
+  top: 0.72em;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: hsl(var(--reader-accent) / 0.75);
+}
+
+.cjq-ans-li {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: hsl(var(--reader-body));
+  padding-left: 0.15rem;
+  text-wrap: pretty;
+}
+
+.cjq-ans-ol > .cjq-ans-li {
+  padding-left: 0.35rem;
+}
+
+.cjq-ans-ol > .cjq-ans-li::marker {
+  font-family: var(--reader-code-font);
+  font-size: 0.875em;
+  font-weight: 600;
+  color: hsl(var(--reader-accent));
+}
+
+.cjq-ans strong {
+  font-weight: 650;
+  color: hsl(var(--reader-heading));
+}
+
+.cjq-ans code,
+.cjq-ans-c {
+  font-family: var(--reader-code-font);
+  font-size: 0.9em;
+  font-weight: 500;
+  padding: 0.12em 0.36em;
+  border-radius: 0.25rem;
+  background: hsl(var(--code-inline-bg));
+  color: hsl(var(--code-inline-text));
+  border: 1px solid hsl(var(--code-inline-border));
+  overflow-wrap: break-word;
+}
+
+:root:not(.dark) .cjq-ans code,
+:root:not(.dark) .cjq-ans-c {
+  /* Documentation pages lean on a warm keyword tint for inline code. */
+  color: hsl(222 62% 34%);
+  background: hsl(214 45% 96.5%);
+  border-color: hsl(214 32% 87%);
+}
+
+/* ── Left column: question index ────────────────────────────────────── */
+.cjq-index {
+  position: sticky;
+  top: 4.5rem;
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-family: var(--reader-font);
+  padding-right: 0.25rem;
+}
+
+.cjq-index-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--reader-note));
+  padding: 0 0.5rem 0.6rem;
+  border-bottom: 1px solid hsl(var(--reader-border));
+  margin-bottom: 0.6rem;
+}
+
+.cjq-index-group {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: hsl(var(--reader-heading));
+  padding: 0.85rem 0.5rem 0.35rem;
+}
+
+.cjq-index-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: hsl(var(--reader-note));
+  padding: 0.4rem 0.5rem 0.4rem 0.65rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 0.3125rem 0.3125rem 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  text-wrap: pretty;
+}
+
+.cjq-index-link:hover {
+  color: hsl(var(--reader-heading));
+  background: hsl(var(--reader-accent) / 0.07);
+  border-left-color: hsl(var(--reader-accent) / 0.4);
+}
+
+.cjq-index-link--active {
+  color: hsl(var(--reader-accent));
+  font-weight: 600;
+  background: hsl(var(--reader-accent) / 0.1);
+  border-left-color: hsl(var(--reader-accent));
+}
+
+.cjq-index-num {
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  color: hsl(var(--reader-note) / 0.7);
+  margin-right: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cjq-index-link--active .cjq-index-num {
+  color: hsl(var(--reader-accent));
+}
+
+/* ── Right column: on this page ─────────────────────────────────────── */
+.cjq-toc-head {
+  display: block;
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--reader-note));
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid hsl(var(--reader-border));
+  margin-bottom: 0.5rem;
+}
+
+.cjq-toc-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--reader-font);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: hsl(var(--reader-note));
+  padding: 0.375rem 0.5rem 0.375rem 0.65rem;
+  border-left: 2px solid hsl(var(--reader-border));
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.cjq-toc-link:hover {
+  color: hsl(var(--reader-heading));
+  border-left-color: hsl(var(--reader-accent) / 0.5);
+}
+
+.cjq-toc-link--active {
+  color: hsl(var(--reader-accent));
+  font-weight: 600;
+  border-left-color: hsl(var(--reader-accent));
+}
+
+/* ── Related questions ──────────────────────────────────────────────── */
+.cjq-related {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .cjq-related {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.cjq-related-link {
+  display: block;
+  background: hsl(var(--reader-surface));
+  border: 1px solid hsl(var(--reader-border));
+  border-radius: 0.625rem;
+  padding: 0.9rem 1rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.cjq-related-link:hover {
+  border-color: hsl(var(--reader-accent) / 0.55);
+  background: hsl(var(--reader-accent) / 0.05);
+}
+
+.cjq-related-q {
+  display: block;
+  font-family: var(--reader-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: hsl(var(--reader-heading));
+  margin-top: 0.3rem;
+  text-wrap: pretty;
+}
+
+.cjq-related-link:hover .cjq-related-q {
+  color: hsl(var(--reader-accent));
+}
+
+/* ── Previous | Next, the documentation footer ──────────────────────── */
+.cjq-prevnext {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-family: var(--reader-font);
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid hsl(var(--reader-border));
+}
+
+.cjq-pn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: hsl(var(--reader-link));
+  text-decoration: none;
+  max-width: 46%;
+  text-wrap: pretty;
+}
+
+.cjq-pn:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cjq-pn--next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.cjq-pn-label {
+  color: hsl(var(--reader-note));
+  font-weight: 500;
+}
+
+.cjq-pn-sep {
+  font-size: 0.9375rem;
+  color: hsl(var(--reader-rule));
+}
+
+/* ── Action row under an answer ─────────────────────────────────────── */
+.cjq-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: var(--reader-font);
+}
+
+/* ── Day mode: paper needs a hairline the tokens alone do not give ──── */
+:root:not(.dark) .cjq-doc-box,
+:root:not(.dark) .cjq-doc-ask,
+:root:not(.dark) .cjq-related-link,
+:root:not(.dark) .cjq-chip {
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+}
+
+:root:not(.dark) .cjq-doc-box {
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.04),
+    0 10px 28px -18px rgba(15, 23, 42, 0.22);
+}
+
+/* ── Sticky top bar ─────────────────────────────────────────────────── */
+.cjq-reader-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: hsl(var(--reader-page) / 0.92);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid hsl(var(--reader-border));
+  font-family: var(--reader-font);
+}
+
+/* ── Breadcrumb ─────────────────────────────────────────────────────── */
+.cjq-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-family: var(--reader-code-font);
+  font-size: 0.75rem;
+  color: hsl(var(--reader-note));
+}
+
+.cjq-crumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cjq-crumbs a:hover {
+  color: hsl(var(--reader-accent));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cjq-crumbs-sep {
+  color: hsl(var(--reader-rule));
+}
+
+/* ── Reading progress hairline ──────────────────────────────────────── */
+.cjq-progress {
+  height: 2px;
+  width: 100%;
+  background: hsl(var(--reader-border));
+  overflow: hidden;
+}
+
+.cjq-progress-fill {
+  height: 100%;
+  background: hsl(var(--reader-accent));
+  transition: width 0.15s linear;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Q&A list — the browse surface uses the same reading language
+   ══════════════════════════════════════════════════════════════════════ */
+.cjq-list-root {
+  background: hsl(var(--reader-page));
+  color: hsl(var(--reader-body));
+  font-family: var(--reader-font);
+}
+
+.cjq-list-title {
+  font-family: var(--reader-font);
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.012em;
+  color: hsl(var(--reader-heading));
+  text-wrap: pretty;
+}
+
+.cjq-list-body {
+  font-family: var(--reader-font);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: hsl(var(--reader-note));
+  max-width: 72ch;
+  text-wrap: pretty;
+}
+
+.cjq-list-topic {
+  font-family: var(--reader-font);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  line-height: 1.25;
+  color: hsl(var(--reader-heading));
+  padding-bottom: 0.55rem;
+  border-bottom: 1px dotted hsl(var(--reader-rule));
+}
+
+:root:not(.dark) .cjq-list-root .cjq-qcard:not(.cjq-qcard--done):not(.cjq-qcard--active) {
+  background: hsl(0 0% 100%);
+  border-color: hsl(220 14% 88%);
+  box-shadow:
+    0 1px 2px 0 rgba(15, 23, 42, 0.04),
+    0 8px 22px -16px rgba(15, 23, 42, 0.2);
+}
+
+.dark .cjq-list-root .cjq-qcard:not(.cjq-qcard--done):not(.cjq-qcard--active) {
+  background: hsl(222 22% 10.5%);
+  border-color: hsl(222 16% 20%);
+}
+
+.cjq-list-root .cjq-qcard {
+  border-radius: 0.875rem;
+}
+
+/* The browse grid can run wide — cap the measure so an expanded answer
+   never turns into a 900px-long line. */
+.cjq-list-root .cjq-ans,
+.cjq-list-root .cjq-doc-ask,
+.cjq-list-root .cjq-list-body {
+  max-width: 68ch;
+}
+
+.cjq-list-root .cjq-qcard--done .cjq-list-title,
+.cjq-list-root .cjq-qcard--done .cjq-list-body {
+  text-decoration: line-through;
+  text-decoration-color: hsl(var(--reader-note) / 0.5);
+}
+
 /* ── Keyboard focus rings ─────────────────────────────────────────── */
 .cjh-page :is(a, button, summary):focus-visible,
 .cjh-dialog :is(a, button):focus-visible {
@@ -1668,6 +2317,8 @@
   .cjd-page *,
   .cjh-page *,
   .cjq-page *,
+  .cjq-reader *,
+  .cjq-list-root *,
   .cjh-dialog * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

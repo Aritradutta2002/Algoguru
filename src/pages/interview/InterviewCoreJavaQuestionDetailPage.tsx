@@ -24,6 +24,7 @@ import { useCoreJavaBookmarks } from "@/hooks/useCoreJavaBookmarks";
 import { useCoreJavaUserState } from "@/hooks/useCoreJavaUserState";
 import { useOnThisPage, useReadingProgress, scrollToSection, type TocSection } from "@/hooks/useOnThisPage";
 import {
+  getAllCoreJavaQuestions,
   getCoreJavaQuestionBySlug,
   getAdjacentCoreJavaQuestions,
   getCoreJavaQuestionById,
@@ -34,12 +35,11 @@ import { scrollPageToTop } from "@/lib/scrollUtils";
 import "@/styles/core-java-interview.css";
 
 function buildTocSections(questionId: string): TocSection[] {
-  const sections: TocSection[] = [{ id: "quick-answer", label: "Quick Answer" }];
-  if (hasCoreJavaVisualization(questionId)) {
-    sections.push({ id: "visualization", label: "Visualization" });
-  }
-  sections.push({ id: "detailed-answer", label: "Detailed Explanation" });
   const question = getCoreJavaQuestionById(questionId);
+  const sections: TocSection[] = [{ id: "answer", label: "Answer" }];
+  if (hasCoreJavaVisualization(questionId)) {
+    sections.push({ id: "visualization", label: "Diagram" });
+  }
   if (question?.question.code) {
     sections.push({ id: "code-example", label: "Code Example" });
   }
@@ -59,14 +59,10 @@ export default function InterviewCoreJavaQuestionDetailPage() {
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const { isBookmarked, toggleBookmark } = useCoreJavaBookmarks();
-  const {
-    doneMap,
-    toggleDone,
-    isUpserting,
-  } = useCoreJavaUserState();
+  const { doneMap, toggleDone, isUpserting } = useCoreJavaUserState();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerButtonRef = useRef<HTMLButtonElement>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   const entry = questionSlug ? getCoreJavaQuestionBySlug(questionSlug) : undefined;
   const question = entry?.question;
@@ -76,14 +72,27 @@ export default function InterviewCoreJavaQuestionDetailPage() {
   const tocSections = useMemo(() => (entry ? buildTocSections(entry.question.id) : []), [entry]);
   const activeSection = useOnThisPage({ sections: tocSections });
 
-  // Always open the question at the top when navigating via "Read" (or when
-  // the question changes). Previously the saved reading position was restored
-  // here, which sent revisits straight to the bottom (e.g. related-questions).
+  // Question index for the left rail, grouped by topic in roadmap order.
+  const indexGroups = useMemo(() => {
+    const groups: { id: string; title: string; icon?: string; items: { id: string; slug: string; title: string; n: number }[] }[] = [];
+    const byId = new Map<string, (typeof groups)[number]>();
+    for (const e of getAllCoreJavaQuestions()) {
+      let g = byId.get(e.topic.id);
+      if (!g) {
+        g = { id: e.topic.id, title: e.topic.title, icon: e.topic.icon, items: [] };
+        byId.set(e.topic.id, g);
+        groups.push(g);
+      }
+      g.items.push({ id: e.question.id, slug: e.slug, title: e.question.question, n: e.index + 1 });
+    }
+    return groups;
+  }, []);
+
+  // Always open a question at the top when the route changes.
   useEffect(() => {
-    scrollPageToTop(document.querySelector(".cjd-page"), "auto");
+    scrollPageToTop(pageRef.current, "auto");
   }, [questionSlug]);
 
-  // SEO title
   useEffect(() => {
     if (question) {
       document.title = `${question.question} — Core Java Interview | AlgoGuru`;
@@ -93,7 +102,6 @@ export default function InterviewCoreJavaQuestionDetailPage() {
     };
   }, [question]);
 
-  // Close drawer on Escape + focus trap basics
   useEffect(() => {
     if (!drawerOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -106,25 +114,18 @@ export default function InterviewCoreJavaQuestionDetailPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [drawerOpen]);
 
-  // Progressive disclosure: first section is the quick answer; the full
-  // answer becomes a deep-dive section when it contains more than one block.
-  const answerSections = useMemo(
-    () => (question?.answer ? question.answer.split("\n\n").filter(Boolean) : []),
-    [question?.answer]
-  );
-
   if (!entry || !question) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground px-4">
         <p className="text-lg font-semibold mb-2">Question not found</p>
         <p className="text-sm text-muted-foreground mb-6">
-          The question you're looking for doesn't exist or the link is broken.
+          The question you&apos;re looking for doesn&apos;t exist or the link is broken.
         </p>
         <button
           onClick={() => navigate(`/interview/${language ?? "java"}/core-java-qa`)}
           className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
         >
-          Back to Core Java Q&A
+          Back to Core Java Q&amp;A
         </button>
       </div>
     );
@@ -133,12 +134,18 @@ export default function InterviewCoreJavaQuestionDetailPage() {
   const { previous, next } = getAdjacentCoreJavaQuestions(question.id);
   const listPath = `/interview/${language ?? "java"}/core-java-qa`;
   const shareUrl = typeof window !== "undefined" ? window.location.href : getCoreJavaQuestionDetailPath(question);
-  const quickAnswer = answerSections[0] ?? "";
-  const hasDeepDive = answerSections.length > 1;
+  const questionNumber = String(entry.index + 1).padStart(2, "0");
+  const progressPct = Math.round(progress * 100);
+
+  /** Section ordinal follows the visible order, so it never skips a block. */
+  const sectionNumber = (id: string) => {
+    const i = tocSections.findIndex((s) => s.id === id);
+    return i < 0 ? "" : String(i + 1).padStart(2, "0");
+  };
 
   const handleQuestionNavigate = (slug: string) => {
     navigate(`/interview/${language ?? "java"}/core-java-qa/${slug}`);
-    scrollPageToTop(document.querySelector(".cjd-page"), "auto");
+    scrollPageToTop(pageRef.current, "auto");
   };
 
   const handleBookmark = (id: string) => {
@@ -168,198 +175,214 @@ export default function InterviewCoreJavaQuestionDetailPage() {
   };
 
   return (
-    <div className="cjd-page min-h-screen bg-background text-foreground">
-      {/* ── Sticky reading header ─────────────────────────────────── */}
-      <header className="cjd-sticky-bar sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-8 flex items-center gap-3 py-2.5">
-          <Link
-            to={listPath}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-[36px] rounded-lg border border-border/40 bg-muted/30 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            aria-label="Back to question list"
-          >
-            <ArrowLeft size={14} />
-            <span className="hidden sm:inline">All Questions</span>
-          </Link>
-          <span className="font-mono text-[11px] font-bold text-primary shrink-0">
-            Q{String(entry.index + 1).padStart(2, "0")}
-          </span>
-          <span className="text-sm font-semibold truncate flex-1 min-w-0 hidden sm:block">
-            {question.question}
-          </span>
-          {/* Reading progress */}
-          <div className="hidden md:flex items-center gap-2 w-32">
-            <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden" role="progressbar" aria-label="Reading progress" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}>
-              <div className="h-full bg-primary transition-[width] duration-150" style={{ width: `${Math.round(progress * 100)}%` }} />
-            </div>
-            <span className="text-[10px] font-mono text-muted-foreground">{Math.round(progress * 100)}%</span>
-          </div>
-          <CoreJavaBookmarkButton questionId={question.id} isBookmarked={isBookmarked(question.id)} onToggle={handleBookmark} compact />
-          <CoreJavaLearnedButton questionId={question.id} isLearned={!!doneMap[question.id]} isUpserting={isUpserting(question.id)} onToggle={handleLearned} compact />
-          <CoreJavaShareButton url={shareUrl} title={question.question} compact />
-        </div>
-      </header>
-
-      {/* ── Three-column layout ───────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6 md:py-10 cjd-grid">
-        {/* Left sidebar — question navigation */}
-        <aside className="cjd-sidebar hidden lg:block">
-          <div className="cjd-sidebar-inner sticky top-[57px] max-h-[calc(100vh-116px)] overflow-y-auto pr-2">
-            <div className="flex items-center gap-2 mb-4">
-              <BookOpen size={14} className="text-primary" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground font-mono">
-                Java Interview
-              </span>
-            </div>
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="w-full text-left px-3 py-2 rounded-lg border border-border/40 bg-muted/20 hover:bg-muted/50 transition-colors mb-2"
+    <div ref={pageRef} className="cjq-reader cjd-page min-h-screen">
+      {/* ── Sticky reading bar ──────────────────────────────────────── */}
+      <div className="cjq-reader-bar">
+        <div className="mx-auto w-full max-w-[1400px] px-4 md:px-6">
+          <div className="flex items-center gap-3 h-14">
+            <Link
+              to={listPath}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-[34px] rounded-lg text-xs font-semibold text-[hsl(var(--reader-note))] hover:text-[hsl(var(--reader-heading))] hover:bg-[hsl(var(--reader-accent)/0.08)] transition-colors"
+              aria-label="Back to question list"
             >
-              <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
-                <List size={12} />
-                Browse all topics
-              </span>
+              <ArrowLeft size={14} />
+              <span className="hidden sm:inline">All questions</span>
+            </Link>
+
+            <button
+              ref={drawerButtonRef}
+              onClick={() => setDrawerOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-[34px] rounded-lg text-xs font-semibold text-[hsl(var(--reader-note))] hover:text-[hsl(var(--reader-heading))] hover:bg-[hsl(var(--reader-accent)/0.08)] transition-colors lg:hidden"
+              aria-label="Browse all questions"
+            >
+              <List size={14} />
             </button>
-            <nav aria-label="Question navigation">
-              {previous && (
-                <button
-                  onClick={() => handleQuestionNavigate(previous.slug)}
-                  className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group"
-                >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 font-mono mb-0.5">
-                    ← Previous
-                  </span>
-                  <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground leading-snug line-clamp-2">
-                    {previous.question.question}
-                  </span>
-                </button>
-              )}
-              {next && (
-                <button
-                  onClick={() => handleQuestionNavigate(next.slug)}
-                  className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group"
-                >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 font-mono mb-0.5">
-                    Next →
-                  </span>
-                  <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground leading-snug line-clamp-2">
-                    {next.question.question}
-                  </span>
-                </button>
-              )}
-            </nav>
+
+            <span className="cjq-chip cjq-chip--accent shrink-0">Q{questionNumber}</span>
+            <span className="cjq-chip hidden md:inline-flex shrink-0">
+              {topic?.icon} {topic?.title}
+            </span>
+
+            <span className="flex-1 min-w-0 truncate text-sm font-semibold text-[hsl(var(--reader-heading))] hidden lg:block">
+              {question.question}
+            </span>
+
+            <div className="flex-1" />
+
+            <span className="hidden md:inline font-mono text-[11px] tabular-nums text-[hsl(var(--reader-note))]">
+              {progressPct}%
+            </span>
+            <CoreJavaBookmarkButton
+              questionId={question.id}
+              isBookmarked={isBookmarked(question.id)}
+              onToggle={handleBookmark}
+              compact
+            />
+            <CoreJavaLearnedButton
+              questionId={question.id}
+              isLearned={!!doneMap[question.id]}
+              isUpserting={isUpserting(question.id)}
+              onToggle={handleLearned}
+              compact
+            />
+            <CoreJavaShareButton url={shareUrl} title={question.question} compact />
           </div>
-        </aside>
+          <div
+            className="cjq-progress"
+            role="progressbar"
+            aria-label="Reading progress"
+            aria-valuenow={progressPct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div className="cjq-progress-fill" style={{ width: `${progressPct}%` }} />
+          </div>
+        </div>
+      </div>
 
-        {/* Main content */}
-        <main className="cjd-main min-w-0">
-          {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-6 flex-wrap font-mono">
-            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-            <ChevronRight size={11} aria-hidden="true" />
-            <Link to="/interview/java" className="hover:text-primary transition-colors">Interview</Link>
-            <ChevronRight size={11} aria-hidden="true" />
-            <Link to={listPath} className="hover:text-primary transition-colors">Core Java</Link>
-            <ChevronRight size={11} aria-hidden="true" />
-            <span className="text-foreground/80 truncate max-w-[220px]">{question.question}</span>
-          </nav>
+      {/* ── Document grid: index · prose · contents ──────────────────── */}
+      <div className="px-4 md:px-6 py-6 md:py-10">
+        <div className="cjq-doc-grid">
+          {/* Left rail — every question, grouped by topic */}
+          <aside className="hidden lg:block">
+            <div className="cjq-index">
+              <div className="cjq-index-head">
+                <span>Core Java</span>
+                <span className="tabular-nums">{entry.index + 1}/{getAllCoreJavaQuestions().length}</span>
+              </div>
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="w-full text-left cjq-index-link"
+              >
+                <List size={12} className="inline mr-1 -mt-0.5" aria-hidden="true" />
+                Browse all topics
+              </button>
+              {indexGroups.map((group) => (
+                <div key={group.id}>
+                  <div className="cjq-index-group">
+                    {group.icon} {group.title}
+                  </div>
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleQuestionNavigate(item.slug)}
+                      aria-current={item.id === question.id ? "true" : undefined}
+                      className={cn(
+                        "cjq-index-link",
+                        item.id === question.id && "cjq-index-link--active"
+                      )}
+                    >
+                      <span className="cjq-index-num">{String(item.n).padStart(2, "0")}</span>
+                      {item.title}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </aside>
 
-          <article className="cjd-article" aria-labelledby="question-title">
-            {/* ── Question header ─────────────────────────────────── */}
-            <header className="cjd-question-header mb-8">
-              <div className="flex items-center gap-2.5 flex-wrap mb-4">
-                <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary">
-                  Q{String(entry.index + 1).padStart(2, "0")}
-                </span>
-                <span className="text-[11px] font-semibold text-muted-foreground">{topic?.icon} {topic?.title}</span>
+          {/* The answer itself */}
+          <main className="cjq-doc">
+            <nav aria-label="Breadcrumb" className="cjq-crumbs">
+              <Link to="/">Home</Link>
+              <ChevronRight size={11} className="cjq-crumbs-sep" aria-hidden="true" />
+              <Link to="/interview/java">Interview</Link>
+              <ChevronRight size={11} className="cjq-crumbs-sep" aria-hidden="true" />
+              <Link to={listPath}>Core Java</Link>
+              <ChevronRight size={11} className="cjq-crumbs-sep" aria-hidden="true" />
+              <span className="truncate max-w-[240px] text-[hsl(var(--reader-heading))]">{question.question}</span>
+            </nav>
+
+            <header>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="cjq-chip cjq-chip--accent">Q{questionNumber}</span>
                 {meta.difficulty && <DifficultyBadge difficulty={meta.difficulty} />}
                 {meta.priority && <PriorityBadge priority={meta.priority} />}
-                {meta.javaVersions?.map((v) => <JavaVersionBadge key={v} version={v} />)}
-                {meta.tags && meta.tags.length > 0 && (
-                  <span className="hidden md:flex items-center gap-1.5">
-                    {meta.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="text-[10px] font-mono text-muted-foreground/70 px-2 py-0.5 rounded-full bg-muted/40 border border-border/30">
-                        {tag}
-                      </span>
-                    ))}
+                {meta.javaVersions?.slice(0, 2).map((v) => (
+                  <JavaVersionBadge key={v} version={v} />
+                ))}
+                {meta.tags?.slice(0, 3).map((tag) => (
+                  <span key={tag} className="cjq-chip">
+                    {tag}
                   </span>
-                )}
+                ))}
               </div>
-              <h1 id="question-title" className="cjq-detail-title text-[26px] md:text-[34px] lg:text-[38px] font-bold tracking-tight leading-[1.2] mb-5">
+              <h1 id="question-title" className="cjq-doc-qtitle mt-4">
                 {question.question}
               </h1>
+            </header>
+
+            <section aria-labelledby="question-text-label">
+              <span className="cjq-doc-label" id="question-text-label">
+                Question
+              </span>
+              <p className="cjq-doc-ask mt-2">{question.question}</p>
               {question.explanation && (
-                <p className="cjd-mental-model text-[15px] md:text-base leading-relaxed border-l-2 border-primary/50 pl-4">
-                  <span className="font-semibold text-foreground">In short: </span>
+                <p className="cjq-doc-note mt-3">
+                  <b>In short: </b>
                   {question.explanation}
                 </p>
               )}
-            </header>
+            </section>
 
-            {/* ── Quick Answer ────────────────────────────────────── */}
-            <section id="quick-answer" className="cjd-section scroll-mt-36" aria-labelledby="quick-answer-heading">
-              <h2 id="quick-answer-heading" className="cjd-section-heading">
-                <span className="cjd-section-icon">⚡</span>
-                Quick Answer
+            <section id="answer" className="scroll-mt-28" aria-labelledby="answer-heading">
+              <h2 id="answer-heading" className="cjq-doc-h2">
+                <span className="cjq-doc-h2-num">{sectionNumber("answer")}</span>
+                Answer
               </h2>
-              <div className="cjq-reading rounded-xl p-6 md:p-8">
-                <CoreJavaQuestionAnswer answer={quickAnswer} />
+              <div className="cjq-doc-box mt-4">
+                <CoreJavaQuestionAnswer answer={question.answer} />
               </div>
             </section>
 
-            {/* ── Visualization ───────────────────────────────────── */}
             {hasCoreJavaVisualization(question.id) && (
-              <div id="visualization" className="scroll-mt-36">
-                <CoreJavaVisualizationBlock questionId={question.id} />
-              </div>
-            )}
-
-            {/* ── Deep dive (progressive disclosure) ──────────────── */}
-            {hasDeepDive && (
-              <section id="detailed-answer" className="cjd-section scroll-mt-36" aria-labelledby="detailed-answer-heading">
-                <h2 id="detailed-answer-heading" className="cjd-section-heading">
-                  <span className="cjd-section-icon">📚</span>
-                  Detailed Explanation
+              <section id="visualization" className="scroll-mt-28" aria-labelledby="visualization-heading">
+                <h2 id="visualization-heading" className="cjq-doc-h2">
+                  <span className="cjq-doc-h2-num">{sectionNumber("visualization")}</span>
+                  Diagram
                 </h2>
-                <div className="cjq-reading rounded-xl p-6 md:p-8">
-                  <CoreJavaQuestionAnswer answer={answerSections.slice(1).join("\n\n")} />
+                <div className="mt-4">
+                  <CoreJavaVisualizationBlock questionId={question.id} />
                 </div>
               </section>
             )}
 
-            {/* ── Code example ────────────────────────────────────── */}
             {question.code && (
-              <section id="code-example" className="cjd-section scroll-mt-36" aria-labelledby="code-example-heading">
-                <h2 id="code-example-heading" className="cjd-section-heading">
-                  <span className="cjd-section-icon">💻</span>
+              <section id="code-example" className="scroll-mt-28" aria-labelledby="code-example-heading">
+                <h2 id="code-example-heading" className="cjq-doc-h2">
+                  <span className="cjq-doc-h2-num">{sectionNumber("code-example")}</span>
                   Code Example
                 </h2>
-                <CodeBlock language={question.codeLanguage || "java"} code={question.code} title="Example" />
-              </section>
-            )}
-
-            {/* ── Key takeaways ───────────────────────────────────── */}
-            {question.explanation && (
-              <section id="key-takeaways" className="cjd-section scroll-mt-36" aria-labelledby="key-takeaways-heading">
-                <h2 id="key-takeaways-heading" className="cjd-section-heading">
-                  <span className="cjd-section-icon">🧠</span>
-                  Key Takeaways
-                </h2>
-                <div className="cjq-reading rounded-xl p-6 md:p-8">
-                  <p className="text-[15.5px] md:text-base leading-[1.8]">
-                    {question.explanation}
-                  </p>
+                <div className="mt-4">
+                  <CodeBlock
+                    surface="reader"
+                    language={question.codeLanguage || "java"}
+                    code={question.code}
+                    title="Example"
+                  />
                 </div>
               </section>
             )}
 
-            {/* ── Related questions ───────────────────────────────── */}
+            {question.explanation && (
+              <section id="key-takeaways" className="scroll-mt-28" aria-labelledby="key-takeaways-heading">
+                <h2 id="key-takeaways-heading" className="cjq-doc-h2">
+                  <span className="cjq-doc-h2-num">{sectionNumber("key-takeaways")}</span>
+                  Key Takeaways
+                </h2>
+                <div className="cjq-doc-box mt-4">
+                  <p className="cjq-ans-p">{question.explanation}</p>
+                </div>
+              </section>
+            )}
+
             {meta.relatedQuestionIds && meta.relatedQuestionIds.length > 0 && (
-              <section id="related-questions" className="cjd-section scroll-mt-36" aria-labelledby="related-questions-heading">
-                <h2 id="related-questions-heading" className="cjd-section-heading">
-                  <span className="cjd-section-icon">🔗</span>
+              <section id="related-questions" className="scroll-mt-28" aria-labelledby="related-questions-heading">
+                <h2 id="related-questions-heading" className="cjq-doc-h2">
+                  <span className="cjq-doc-h2-num">{sectionNumber("related-questions")}</span>
                   Related Questions
                 </h2>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="cjq-related mt-4">
                   {meta.relatedQuestionIds.map((rid) => {
                     const related = getCoreJavaQuestionById(rid);
                     if (!related) return null;
@@ -367,15 +390,13 @@ export default function InterviewCoreJavaQuestionDetailPage() {
                       <Link
                         key={rid}
                         to={getCoreJavaQuestionDetailPath(related.question)}
-                        className="cjd-surface rounded-xl p-4 border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
+                        className="cjq-related-link group"
                       >
-                        <span className="block text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground/60 mb-1.5">
-                          Q{String(related.index + 1).padStart(2, "0")} · {related.topic.title}
+                        <span className="cjq-chip cjq-chip--accent">
+                          Q{String(related.index + 1).padStart(2, "0")}
                         </span>
-                        <span className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors">
-                          {related.question.question}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary mt-2">
+                        <span className="cjq-related-q">{related.question.question}</span>
+                        <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-[hsl(var(--reader-link))]">
                           Read <ArrowRight size={12} />
                         </span>
                       </Link>
@@ -385,93 +406,100 @@ export default function InterviewCoreJavaQuestionDetailPage() {
               </section>
             )}
 
-            {/* ── Question actions ────────────────────────────────── */}
-            <div className="flex items-center gap-2.5 flex-wrap mt-10 pt-6 border-t border-border/30">
-              <CoreJavaBookmarkButton questionId={question.id} isBookmarked={isBookmarked(question.id)} onToggle={handleBookmark} />
-              <CoreJavaLearnedButton questionId={question.id} isLearned={!!doneMap[question.id]} isUpserting={isUpserting(question.id)} onToggle={handleLearned} />
+            <div className="cjq-actions">
+              <CoreJavaBookmarkButton
+                questionId={question.id}
+                isBookmarked={isBookmarked(question.id)}
+                onToggle={handleBookmark}
+              />
+              <CoreJavaLearnedButton
+                questionId={question.id}
+                isLearned={!!doneMap[question.id]}
+                isUpserting={isUpserting(question.id)}
+                onToggle={handleLearned}
+              />
               <CoreJavaShareButton url={shareUrl} title={question.question} />
-              {question.explanation && (
-                <CoreJavaCopyTextButton text={`${question.question}\n\n${question.explanation}`} label="Copy Summary" />
-              )}
+              <CoreJavaCopyTextButton
+                text={`${question.question}\n\n${question.explanation ?? ""}\n\n${question.answer}`}
+                label="Copy answer"
+              />
             </div>
 
-            {/* ── Previous / Next ─────────────────────────────────── */}
-            <nav className="grid sm:grid-cols-2 gap-3 mt-8" aria-label="Question pagination">
+            {/* Previous | Next — the documentation footer */}
+            <nav className="cjq-prevnext" aria-label="Question pagination">
               {previous ? (
-                <button
-                  onClick={() => handleQuestionNavigate(previous.slug)}
-                  className="cjd-surface rounded-xl p-4 text-left border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
-                >
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 font-mono mb-1.5">
-                    <ArrowLeft size={12} className="group-hover:-translate-x-0.5 transition-transform" /> Previous
-                  </span>
-                  <span className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                <Link to={`/interview/${language ?? "java"}/core-java-qa/${previous.slug}`} className="cjq-pn">
+                  <ArrowLeft size={14} aria-hidden="true" />
+                  <span>
+                    <span className="cjq-pn-label">Previous </span>
                     {previous.question.question}
                   </span>
-                </button>
+                </Link>
               ) : (
-                <div className="hidden sm:block" />
-              )}
-              {next && (
-                <button
-                  onClick={() => handleQuestionNavigate(next.slug)}
-                  className="cjd-surface rounded-xl p-4 text-right border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
-                >
-                  <span className="flex items-center justify-end gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 font-mono mb-1.5">
-                    Next <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                <Link to={listPath} className="cjq-pn">
+                  <ArrowLeft size={14} aria-hidden="true" />
+                  <span>
+                    <span className="cjq-pn-label">Back to </span>All questions
                   </span>
-                  <span className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                </Link>
+              )}
+
+              <span className="cjq-pn-sep" aria-hidden="true">
+                |
+              </span>
+
+              {next ? (
+                <Link to={`/interview/${language ?? "java"}/core-java-qa/${next.slug}`} className="cjq-pn cjq-pn--next">
+                  <span className="text-right">
+                    <span className="cjq-pn-label">Next </span>
                     {next.question.question}
                   </span>
-                </button>
+                  <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              ) : (
+                <Link to={listPath} className="cjq-pn cjq-pn--next">
+                  <span className="text-right">
+                    <span className="cjq-pn-label">Back to </span>All questions
+                  </span>
+                </Link>
               )}
             </nav>
-          </article>
-        </main>
+          </main>
 
-        {/* Right TOC */}
-        <aside className="cjd-toc hidden xl:block">
-          <div className="sticky top-[57px]">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground font-mono block mb-3">
-              On This Page
-            </span>
-            <nav aria-label="On this page" className="space-y-0.5">
-              {tocSections.map((section) => (
-                <button
-                  key={section.id}
-                  onClick={() => scrollToSection(section.id)}
-                  aria-current={activeSection === section.id ? "true" : undefined}
-                  className={cn(
-                    "w-full text-left px-3 py-1.5 rounded-md text-xs border-l-2 transition-colors",
-                    activeSection === section.id
-                      ? "border-primary text-primary font-semibold bg-primary/5"
-                      : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                  )}
-                >
-                  {section.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </aside>
+          {/* Right rail — on this page */}
+          <aside className="hidden xl:block">
+            <div className="sticky top-24">
+              <span className="cjq-toc-head">On this page</span>
+              <nav aria-label="On this page">
+                {tocSections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => scrollToSection(section.id)}
+                    aria-current={activeSection === section.id ? "true" : undefined}
+                    className={cn("cjq-toc-link", activeSection === section.id && "cjq-toc-link--active")}
+                  >
+                    {section.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
+        </div>
       </div>
 
-      {/* ── Mobile drawer: browse topics ─────────────────────────── */}
+      {/* ── Mobile drawer: browse the index ──────────────────────────── */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true" aria-label="Browse topics">
+        <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label="Browse questions">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
-          <div
-            ref={drawerRef}
-            className="absolute left-0 top-0 bottom-0 w-[300px] max-w-[85vw] bg-card border-r border-border/50 shadow-overlay flex flex-col animate-in slide-in-from-left duration-200"
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
+          <div className="cjq-reader absolute left-0 top-0 bottom-0 w-[300px] max-w-[85vw] border-r border-[hsl(var(--reader-border))] flex flex-col animate-in slide-in-from-left duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--reader-border))]">
               <span className="text-sm font-bold flex items-center gap-2">
-                <BookOpen size={15} className="text-primary" /> Topics
+                <BookOpen size={15} className="text-[hsl(var(--reader-accent))]" /> All questions
               </span>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
-                aria-label="Close topics drawer"
+                className="p-2 rounded-lg hover:bg-[hsl(var(--reader-accent)/0.08)] transition-colors"
+                aria-label="Close questions drawer"
               >
                 <X size={16} />
               </button>
@@ -479,21 +507,30 @@ export default function InterviewCoreJavaQuestionDetailPage() {
             <div className="flex-1 overflow-y-auto p-4">
               <button
                 onClick={() => navigate(listPath)}
-                className="w-full text-left px-3 py-2.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-3"
+                className="w-full text-left px-3 py-2.5 rounded-lg border border-[hsl(var(--reader-accent)/0.3)] bg-[hsl(var(--reader-accent)/0.1)] text-[hsl(var(--reader-accent))] text-sm font-semibold mb-3"
               >
-                ← All Core Java Questions
+                ← Back to the question list
               </button>
-              {/* Simple topic list linking to the list page */}
-              {entry && (
-                <button
-                  onClick={() => {
-                    navigate(`${listPath}?topic=${entry.topic.id}`);
-                  }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg bg-muted/40 border border-border/40 text-sm font-semibold mb-2"
-                >
-                  {entry.topic.icon} {entry.topic.title} (current)
-                </button>
-              )}
+              {indexGroups.map((group) => (
+                <div key={group.id} className="mb-2">
+                  <div className="cjq-index-group">
+                    {group.icon} {group.title}
+                  </div>
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        handleQuestionNavigate(item.slug);
+                        setDrawerOpen(false);
+                      }}
+                      className={cn("cjq-index-link", item.id === question.id && "cjq-index-link--active")}
+                    >
+                      <span className="cjq-index-num">{String(item.n).padStart(2, "0")}</span>
+                      {item.title}
+                    </button>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         </div>

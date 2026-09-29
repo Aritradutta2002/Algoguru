@@ -15,6 +15,10 @@ export default {
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
         sans: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
         display: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
+        /* Long-form reading: humanist, high x-height, tuned for prose. */
+        reading: ["Source Sans 3", "Inter", "system-ui", "sans-serif"],
+        /* Documentation-grade code face for the Q&A reader. */
+        code: ["Source Code Pro", "JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
         category: {
