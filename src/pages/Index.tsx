@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Code2, Trophy, BrainCircuit, Target,
   ArrowRight, ArrowUpRight, Check, CalendarDays, Map as MapIcon, Play, Sparkles, Coffee,
-  Zap, Layers, MousePointerClick
+  Zap, Layers, MousePointerClick, Shuffle
 } from "lucide-react";
 import { RoadmapFullscreenOverlay } from "@/components/roadmap/RoadmapFullscreenOverlay";
+import { QuizSection } from "@/components/quiz/QuizSection";
 import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
 
 const SECTIONS = [
@@ -148,6 +149,14 @@ export default function Index() {
                   {item}
                 </span>
               ))}
+              <button
+                type="button"
+                onClick={() => document.getElementById("quiz")?.scrollIntoView({ behavior: "smooth" })}
+                className="group flex items-center gap-2 rounded-md text-left font-semibold text-foreground underline decoration-primary/40 decoration-2 underline-offset-4 transition-colors hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Shuffle size={14} className="text-primary" />
+                Or take a 10-question quiz
+              </button>
             </div>
 
             <div className="mt-12 grid max-w-lg grid-cols-2 gap-x-8 gap-y-6 border-t border-border/70 pt-8 sm:grid-cols-4">
@@ -306,6 +315,8 @@ export default function Index() {
           ))}
         </div>
       </section>
+      {/* TAKE A QUIZ */}
+      <QuizSection />
       {/* HOW IT WORKS */}
       <section className="relative border-y border-border/60 bg-muted/30">
         <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24 lg:px-16">
