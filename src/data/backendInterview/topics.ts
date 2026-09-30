@@ -102,6 +102,28 @@ export const BACKEND_TOPICS: BackendTopicDefinition[] = [
     accent: "hsl(var(--primary))",
   },
   {
+    id: "sql-jpa",
+    title: "SQL, Transactions, JPA & Hibernate",
+    shortTitle: "SQL & JPA",
+    icon: "🗄️",
+    blurb:
+      "Relational fundamentals, indexes and EXPLAIN, ACID and isolation levels, locking, the JPA persistence model, N+1, fetch strategies, pagination and SQL injection.",
+    interviewerIntent:
+      "Can you keep data correct under concurrency and make Hibernate fast — not just write derived query methods?",
+    accent: "hsl(var(--warning))",
+  },
+  {
+    id: "http-rest",
+    title: "HTTP, REST APIs & Microservices",
+    shortTitle: "HTTP & REST",
+    icon: "🌐",
+    blurb:
+      "HTTP method/status semantics, resource design, idempotency, versioning, pagination, error contracts, caching, CORS, resilience (timeouts, retries, circuit breakers) and monolith-vs-microservices trade-offs.",
+    interviewerIntent:
+      "Can you design a web API and reason about failure in a distributed system, not just annotate a controller?",
+    accent: "hsl(var(--info))",
+  },
+  {
     id: "jwt",
     title: "JWT, Stateless Auth & OAuth2",
     shortTitle: "JWT & OAuth2",
@@ -111,6 +133,39 @@ export const BACKEND_TOPICS: BackendTopicDefinition[] = [
     interviewerIntent:
       "Do you understand the security trade-offs, or did you copy a tutorial filter into production?",
     accent: "hsl(var(--info))",
+  },
+  {
+    id: "testing",
+    title: "Testing, Debugging & Coding Exercises",
+    shortTitle: "Testing",
+    icon: "🧪",
+    blurb:
+      "The testing pyramid, JUnit 5 & Mockito, Spring test slices and Testcontainers, transactional-test traps, a structured production-debugging approach, and the small live-coding exercises.",
+    interviewerIntent:
+      "Do you write fast, trustworthy tests and debug production methodically — and can you code the classic exercises cleanly?",
+    accent: "hsl(var(--success))",
+  },
+  {
+    id: "messaging-caching",
+    title: "Messaging & Caching",
+    shortTitle: "Messaging & Cache",
+    icon: "📨",
+    blurb:
+      "Queue vs topic, Kafka partitions/consumer-groups/offsets, delivery semantics and idempotency, DLQs, plus Redis data structures, cache-aside, stampede protection and distributed locks.",
+    interviewerIntent:
+      "Can you reason about async delivery guarantees and cache correctness — not just call send() and get()?",
+    accent: "hsl(var(--accent))",
+  },
+  {
+    id: "production-ops",
+    title: "Deployment, Observability & Production Ops",
+    shortTitle: "Deploy & Ops",
+    icon: "📈",
+    blurb:
+      "Docker & layered jars, Kubernetes health probes and graceful shutdown, the three pillars of observability, JVM incident triage (OOM/GC/threads) and running an incident.",
+    interviewerIntent:
+      "Can you ship a service, keep it healthy, and lead the response when it breaks at 3am?",
+    accent: "hsl(var(--destructive))",
   },
 ];
 
