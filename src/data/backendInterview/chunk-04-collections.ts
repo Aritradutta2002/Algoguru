@@ -566,8 +566,9 @@ public class MapDefaults {
         "**Unmodifiable** means the *view* rejects mutation. **Immutable** means nothing can change the contents. They are not the same thing.\n\n" +
         "`Collections.unmodifiableList(list)`:\n\n" +
         "- Returns a **wrapper view**. Mutating methods throw `UnsupportedOperationException`, but the **underlying list is still mutable** — change it and the view changes too. This is a read-only *view*, not a guarantee.\n\n" +
+        "- If you need a read-only snapshot of a mutable source, copy first: `Collections.unmodifiableList(new ArrayList<>(source))`. That freezes the collection structure at the copy point, but its elements still need to be immutable or defensively copied.\n\n" +
         "`List.of(...)`, `Set.of(...)`, `Map.of(...)` (Java 9):\n\n" +
-        "- Genuinely **immutable**, structurally shared, memory-optimised (specialised classes for 0, 1 and 2 elements).\n" +
+        "- Genuinely **structurally immutable**, with implementation-optimised representations (including specialised small-size forms).\n" +
         "- **Null-hostile**: `List.of(null)` throws `NullPointerException`, and `list.contains(null)` throws too — a real migration surprise from `Arrays.asList`.\n" +
         "- `Set.of` and `Map.of` **reject duplicates** at construction with `IllegalArgumentException`.\n" +
         "- Iteration order of `Set.of`/`Map.of` is **deliberately randomised per JVM run** so nobody accidentally depends on it.\n" +
@@ -575,6 +576,7 @@ public class MapDefaults {
         "`List.copyOf(collection)` / `Map.copyOf` (Java 10) — an immutable snapshot copy; returns the argument unchanged if it is already an immutable instance of the same kind.\n\n" +
         "`Arrays.asList(array)` — the odd one out: a **fixed-size view backed by the array**. `set(i, v)` works and writes through to the array; `add`/`remove` throw. `Arrays.asList(intArray)` with a primitive array gives a single-element `List<int[]>`, a classic puzzle.\n\n" +
         "**Shallow vs deep:** an immutable collection of mutable objects is still mutable in practice. `List.of(mutableUser)` prevents replacing the element, not editing the user. Defensive copies or immutable element types are the real answer.\n\n" +
+        "**Interview rule:** return `List.copyOf(...)` or another immutable snapshot from an API when callers must not change the collection. Use `Collections.unmodifiableList(...)` when you intentionally want a live read-only view, and document that live-view behaviour.\n\n" +
         "Streams: `collect(Collectors.toList())` gives *some* mutable list; `Stream.toList()` (Java 16) gives an **unmodifiable** one; `toUnmodifiableList()` is explicit.",
       code: `import java.util.*;
 import java.util.stream.*;

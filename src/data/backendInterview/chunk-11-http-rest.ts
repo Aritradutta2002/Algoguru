@@ -16,7 +16,7 @@ export const chunk11HttpRest = defineBackendChunk({
       question: "Explain the HTTP methods and their semantics — safe vs idempotent.",
       answer:
         "Each method carries a contract clients and proxies rely on:\n\n" +
-        "- **GET** — read a resource. **Safe** (no side effects) and **idempotent**. Cacheable. No body.\n" +
+        "- **GET** — read a resource. **Safe** (no side effects) and **idempotent**. Cacheable. A request body has no generally defined semantics, so use query parameters or headers for inputs.\n" +
         "- **HEAD** — like GET but headers only.\n" +
         "- **POST** — create/append or 'process this'. **Neither safe nor idempotent** — two POSTs may create two resources.\n" +
         "- **PUT** — replace a resource at a known URI. **Idempotent** — repeating it yields the same state.\n" +
@@ -139,7 +139,7 @@ POST   /api/orders/99/refunds         # create a refund on the order
         "3. On a first request, do the work and save the response under the key.\n" +
         "4. On a retry with the same key, **return the stored response** without repeating the side effect.\n\n" +
         "Use a `UNIQUE` constraint on the key so concurrent duplicates collide at the DB rather than both executing. Give keys a TTL. This is exactly how Stripe/PayPal-style APIs make payments safe.\n\n" +
-        "A robust implementation records the key in a `PENDING` state before doing the work and flips it to `COMPLETED` with the stored response afterwards, all in one transaction; that way a second request arriving while the first is still running can be told to wait or retry rather than double-executing. Decide how strict to be about the request body: many APIs also hash the payload against the key so that reusing a key with *different* content is rejected as a client error rather than silently returning the old result. Note the distinction from ordinary HTTP idempotency — GET/PUT/DELETE are idempotent because repeating them converges on the same state, whereas POST needs this explicit key mechanism because each call would otherwise create a new side effect.",
+        "A robust implementation records the key in a `PENDING` state before doing the work and flips it to `COMPLETED` with the stored response afterwards. For an external payment provider, the provider must receive the same idempotency key or the workflow must use an outbox/state machine; a local database transaction cannot roll back a charge that happened in another system. That lets a second request arriving while the first is running wait or retry rather than double-executing. Also hash the request body so reusing a key with *different* content is rejected instead of silently returning the old result. Note the distinction from ordinary HTTP idempotency — GET/PUT/DELETE are idempotent because repeating them converges on the same state, whereas POST needs this explicit key mechanism because each call would otherwise create a new side effect.",
       code: `@PostMapping("/api/payments")
 @Transactional
 ResponseEntity<Payment> pay(@RequestHeader("Idempotency-Key") String key,
@@ -149,8 +149,9 @@ ResponseEntity<Payment> pay(@RequestHeader("Idempotency-Key") String key,
     if (existing.isPresent()) {
         return ResponseEntity.ok(existing.get().response());   // replay result
     }
-    Payment p = paymentService.charge(req);                    // the side effect
-    idempotencyRepo.save(new IdempotencyRecord(key, p));       // same tx
+    // The provider must also receive key, or use an outbox/state machine.
+    Payment p = paymentService.charge(key, req);               // external side effect
+    idempotencyRepo.save(new IdempotencyRecord(key, p));       // local result
     return ResponseEntity.status(HttpStatus.CREATED).body(p);
 }`,
       codeLanguage: "java",

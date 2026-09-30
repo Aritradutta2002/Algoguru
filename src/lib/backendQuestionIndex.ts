@@ -30,7 +30,7 @@ export interface IndexedBackendQuestion {
   meta: BackendQuestionMeta;
   /** 0-based position across the whole flat list. */
   index: number;
-  /** 1-based display number ("Question 42 of 138"). */
+  /** 1-based display number ("Question 42 of 257"). */
   number: number;
   slug: string;
   /** 1-based position within its own topic. */

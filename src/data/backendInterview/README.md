@@ -8,7 +8,7 @@ which is frozen at 226 questions with DEV-time count assertions.
 
 | Artefact | Count | File |
 | --- | --- | --- |
-| Questions with full answers | 138 (`b001`–`b138`) | `chunk-01…chunk-09*.ts` |
+| Questions with full answers | 257 (`b001`–`b257`) | `chunk-01…chunk-19*.ts` |
 | Annotations, with internals | 155 across 16 categories | `annotations.ts` |
 | Hands-on practice problems | 41 (`p01`–`p41`), ~21 hours | `practiceProblems.ts` |
 
@@ -27,6 +27,16 @@ Every question carries a 190–345 word answer, a self-contained code sample, a 
 | `multithreading` | 26 | `b081`–`b106` |
 | `spring-security` | 18 | `b107`–`b124` |
 | `jwt` | 14 | `b125`–`b138` |
+| `sql-jpa` | 30 | `b139`–`b168` |
+| `http-rest` | 25 | `b169`–`b193` |
+| `testing` | 13 | `b194`–`b206` |
+| `messaging-caching` | 10 | `b207`–`b216` |
+| `production-ops` | 5 | `b217`–`b221` |
+| `core-java-lang` | 12 | `b222`–`b233` |
+| `streams-generics` | 5 | `b234`–`b238` |
+| `jvm` | 9 | `b239`–`b247` |
+| `spring-web-ops` | 7 | `b248`–`b254` |
+| `security-hardening` | 3 | `b255`–`b257` |
 
 ## Layout
 

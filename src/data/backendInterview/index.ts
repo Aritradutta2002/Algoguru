@@ -105,7 +105,7 @@ for (const chunk of CHUNKS) {
   }
 }
 
-/** Flat list in topic-registry order — this is what drives "Question N of 138". */
+/** Flat list in topic-registry order — this is what drives "Question N of 257". */
 export const allBackendQuestions: BackendQuestion[] = BACKEND_TOPICS.flatMap(
   (topic) => questionsByTopic[topic.id] ?? [],
 );
