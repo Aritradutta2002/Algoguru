@@ -167,6 +167,61 @@ export const BACKEND_TOPICS: BackendTopicDefinition[] = [
       "Can you ship a service, keep it healthy, and lead the response when it breaks at 3am?",
     accent: "hsl(var(--destructive))",
   },
+  {
+    id: "core-java-lang",
+    title: "Core Java Language & Modern Features",
+    shortTitle: "Core Java Lang",
+    icon: "☕",
+    blurb:
+      "The senior language topics: composition vs inheritance, records, Optional, pass-by-value, var, sealed classes, pattern matching, java.time, final/finally/finalize, NPE strategy, Unicode and copying.",
+    interviewerIntent:
+      "Do you know modern Java (17/21) idioms and the value/reference semantics behind everyday bugs?",
+    accent: "hsl(var(--primary))",
+  },
+  {
+    id: "streams-generics",
+    title: "Streams & Generics — Advanced",
+    shortTitle: "Streams & Generics",
+    icon: "🌊",
+    blurb:
+      "Raw types & heap pollution, map/flatMap/filter/reduce, Collectors in practice, stream pitfalls and the streams-vs-loops trade-off.",
+    interviewerIntent:
+      "Can you use the functional toolkit correctly — pure pipelines, right collector, no heap pollution?",
+    accent: "hsl(var(--warning))",
+  },
+  {
+    id: "jvm",
+    title: "JVM Internals & Advanced Concurrency",
+    shortTitle: "JVM Internals",
+    icon: "⚙️",
+    blurb:
+      "Livelock/starvation, structured concurrency, JVM memory areas, GC, memory leaks, container-aware sizing, performance triage, thread/heap dumps and class-loading errors.",
+    interviewerIntent:
+      "Can you reason about the runtime and diagnose OOM/GC/contention with the right tools?",
+    accent: "hsl(var(--accent))",
+  },
+  {
+    id: "spring-web-ops",
+    title: "Spring — Web Pipeline, AOP & Operations",
+    shortTitle: "Spring Web & Ops",
+    icon: "🍃",
+    blurb:
+      "Filters vs interceptors vs AOP, logging & MDC, diagnosing startup failures and circular dependencies, Boot performance tuning, file upload/streaming and service structure.",
+    interviewerIntent:
+      "Do you understand the Spring request pipeline and how to operate and tune a real service?",
+    accent: "hsl(var(--success))",
+  },
+  {
+    id: "security-hardening",
+    title: "Application Security Hardening",
+    shortTitle: "Security Hardening",
+    icon: "🛡️",
+    blurb:
+      "Transport security (TLS/HTTPS/mTLS), security logging & auditing, and input validation / injection / path-traversal defenses.",
+    interviewerIntent:
+      "Beyond auth: can you secure transport, keep a safe audit trail and defend the input boundary?",
+    accent: "hsl(var(--info))",
+  },
 ];
 
 export const BACKEND_TOPIC_BY_ID: Record<string, BackendTopicDefinition> =

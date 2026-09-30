@@ -51,7 +51,8 @@ class PriceCalculatorTest {
         "- **Nested/structure:** `@Nested` groups related cases; `@Tag` filters (e.g. `slow`).\n" +
         "- **Assumptions:** `assumeTrue(...)` skips rather than fails when a precondition isn't met.\n" +
         "- **Extensions:** `@ExtendWith` replaces JUnit 4 runners/rules (e.g. `MockitoExtension`, `SpringExtension`).\n\n" +
-        "Follow **Arrange-Act-Assert**, one logical assertion per test, deterministic (no real time/random/network), and name tests by behaviour.",
+        "Follow **Arrange-Act-Assert**, one logical assertion per test, deterministic (no real time/random/network), and name tests by behaviour.\n\n" +
+        "JUnit 5 is modular — the Jupiter API you write against, the Jupiter engine that runs it, and the Platform that launches engines (so JUnit 4/Vintage tests can run alongside). That architecture is why `@ExtendWith` (the extension model) replaced JUnit 4's rigid runners and rules: extensions compose, so you can combine `SpringExtension`, `MockitoExtension` and your own on one class. Other things worth knowing: `@TestInstance(Lifecycle.PER_CLASS)` lets non-static `@BeforeAll` and enables stateful `@MethodSource`; `@RepeatedTest` and `@Timeout` cover flakiness and performance bounds; and dependency injection into test methods (e.g. `TestInfo`, `TestReporter`) comes from the same extension mechanism.",
       code: `class DiscountTest {
 
     @ParameterizedTest(name = "qty {0} -> rate {1}")
@@ -86,7 +87,8 @@ class PriceCalculatorTest {
         "- **Spy** — wraps a **real** object; real methods run unless stubbed (use `doReturn().when(spy)` to avoid calling the real method while stubbing).\n" +
         "- **Verify** — assert interactions happened: `verify(repo).save(order)`, `verify(x, times(2))`, `never()`, `verifyNoMoreInteractions()`.\n" +
         "- **Argument matchers** — `any()`, `eq()`, `argThat(...)`; **ArgumentCaptor** captures the exact argument passed for assertions.\n\n" +
-        "Set up with `@ExtendWith(MockitoExtension.class)` + `@Mock`/`@InjectMocks`. Mock the direct collaborators of the class under test, assert on its outputs and (where behaviour is defined by interaction) on the calls it makes.",
+        "Set up with `@ExtendWith(MockitoExtension.class)` + `@Mock`/`@InjectMocks`. Mock the direct collaborators of the class under test, assert on its outputs and (where behaviour is defined by interaction) on the calls it makes.\n\n" +
+        "Two judgement points that separate good from over-mocked tests. First, prefer **state/output verification over interaction verification** — asserting return values keeps tests coupled to behaviour, whereas verifying every call couples them to implementation and makes refactors painful; reserve `verify` for interactions that *are* the contract (a message published, an email sent). Second, don't mock types you don't own (third-party clients) or value objects — mock roles/collaborators, and wrap external libraries behind your own interface to mock that instead. Watch for `MockitoExtension`'s strict stubbing, which flags unused stubs (a smell), and remember that `@InjectMocks` fills constructor/field dependencies from the declared `@Mock`s, so a missing mock silently injects null.",
       code: `@ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
     @Mock OrderRepository repo;
@@ -154,7 +156,8 @@ assertThat(result.total()).isEqualTo(expected);  // behaviour, not interaction`,
         "- **`@JsonTest`** — Jackson serialization/deserialization only.\n" +
         "- **`@RestClientTest`** — test an HTTP client with a mock server.\n" +
         "- **`@SpringBootTest`** — the **full** context; use sparingly for true integration/E2E (add `webEnvironment=RANDOM_PORT` + `TestRestTemplate`/`WebTestClient` to hit real HTTP).\n\n" +
-        "`@MockBean` swaps a bean in the context with a Mockito mock. Prefer the narrowest slice that exercises what you're testing; reserve `@SpringBootTest` for wiring you can't cover otherwise (it's slow and reloads context on config changes).",
+        "`@MockBean` swaps a bean in the context with a Mockito mock. Prefer the narrowest slice that exercises what you're testing; reserve `@SpringBootTest` for wiring you can't cover otherwise (it's slow and reloads context on config changes).\n\n" +
+        "The reason slices are fast is that they activate only the relevant auto-configuration and register a limited set of beans, so the ApplicationContext is small. A key performance lever across the whole suite is **context caching**: Spring caches and reuses a context keyed by its configuration, so tests that share the exact same setup (same slice, same `@MockBean`s, same properties) reuse one context instead of rebuilding it. Every unique combination creates a new cached context, which is why sprinkling ad-hoc `@TestPropertySource`/`@MockBean` variations everywhere silently multiplies startup cost. Keep configurations consistent, and think of the testing pyramid: many fast unit tests, fewer slice tests, and a small number of full `@SpringBootTest` integration tests at the top.",
       code: `@WebMvcTest(OrderController.class)
 class OrderControllerTest {
     @Autowired MockMvc mvc;
@@ -182,7 +185,8 @@ class OrderControllerTest {
       answer:
         "`@DataJpaTest` spins up just the JPA layer. By default Spring Boot uses an **embedded H2**, but H2 is a *different database*: it doesn't behave like PostgreSQL for JSONB, arrays, sequences, upserts, specific SQL, locking, or constraint error messages. Tests can pass on H2 and fail in production — false confidence.\n\n" +
         "**Testcontainers** runs the **real** database (the same PostgreSQL/MySQL version as prod) in a throwaway Docker container for the test. You get true SQL behaviour, real migrations (Flyway), real constraints and error codes.\n\n" +
-        "Use `@ServiceConnection` (Boot 3.1+) or `@DynamicPropertySource` to point the datasource at the container. Share one container across the suite (static / singleton) for speed. Run Flyway migrations against it so you test the actual schema. This is the standard for trustworthy persistence tests.",
+        "Use `@ServiceConnection` (Boot 3.1+) or `@DynamicPropertySource` to point the datasource at the container. Share one container across the suite (static / singleton) for speed. Run Flyway migrations against it so you test the actual schema. This is the standard for trustworthy persistence tests.\n\n" +
+        "The cost is startup time and a Docker dependency, so optimize deliberately: use the **singleton container pattern** (a static container started once and reused across all test classes, never stopped — Ryuk cleans it up) rather than one per class, and consider Testcontainers' reuse mode locally for even faster reruns. Because each `@DataJpaTest` still rolls back its transaction, the shared container stays clean between tests without re-creating it. This gives you the best of both worlds: production-fidelity SQL (real JSONB, sequences, constraint error codes, locking) with acceptable suite speed. The same approach extends beyond databases — Testcontainers can spin up Kafka, Redis, LocalStack and more for integration tests against real dependencies.",
       code: `@DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // no H2
 @Testcontainers
@@ -220,7 +224,8 @@ class OrderRepositoryTest {
         "- **No flush by default** — the persistence context may satisfy a `find` from the L1 cache without ever hitting the DB, so a broken mapping or constraint isn't caught. Call `flush()`/`saveAndFlush` (or `TestEntityManager.flush()`) to force SQL and surface constraint violations.\n" +
         "- **Lazy loading 'works'** in the test because the session stays open — masking `LazyInitializationException` that would happen in production.\n" +
         "- Auto-generated ids/sequences behave differently under rollback.\n\n" +
-        "Fixes: flush to force SQL, `@Commit` when you need real commit semantics, and complement rolled-back slice tests with a few Testcontainers integration tests that actually commit.",
+        "Fixes: flush to force SQL, `@Commit` when you need real commit semantics, and complement rolled-back slice tests with a few Testcontainers integration tests that actually commit.\n\n" +
+        "It helps to name the underlying tension: the rollback is a **test-isolation convenience**, but it means the test runs inside a single long transaction with an always-open persistence context, which is precisely the environment production code rarely sees. So a test can 'prove' a mapping works while a real request — which opens and closes a session per call — throws `LazyInitializationException`, and a `save` can appear to succeed while a deferred unique-constraint violation only fires at commit time you never reach. The disciplined approach is to `flush()`/`clear()` to simulate a fresh session and force SQL, keep the transactional boundary in the code under test (not the test method) where you're verifying it, and back the fast rolled-back tests with a thin layer of committing end-to-end tests.",
       code: `@DataJpaTest
 class MappingTest {
     @Autowired TestEntityManager em;
@@ -251,7 +256,8 @@ class MappingTest {
         "- **`@WebMvcTest` + `MockMvc`** (Spring MVC) — perform requests against the dispatcher, mock the service with `@MockBean`, assert with `status()`, `jsonPath()`, `header()`. Fast and focused.\n" +
         "- **`WebTestClient`** — the reactive/WebFlux equivalent; also usable end-to-end against a running server.\n\n" +
         "Cover: happy path (200/201 + body), validation failures (400/422 + error shape from your `@ControllerAdvice`), not-found (404), and auth (with `@WithMockUser`/`spring-security-test` when the security filter is in the slice). Assert the **JSON structure** (`jsonPath`), not just the status, so response-shape regressions are caught. For request bodies, test binding and `@Valid` rejection.\n\n" +
-        "Keep business assertions in service unit tests; the controller test's job is the HTTP boundary.",
+        "Keep business assertions in service unit tests; the controller test's job is the HTTP boundary.\n\n" +
+        "A subtlety with `@WebMvcTest` + `MockMvc` is that it drives the dispatcher through mock request/response objects rather than a real network socket, so it's fast but won't catch servlet-container-specific behaviour; when you need the real stack use `@SpringBootTest(webEnvironment=RANDOM_PORT)` with `TestRestTemplate`/`WebTestClient`. Remember to include Spring Security in the slice when it affects the endpoint (otherwise a protected route may behave unexpectedly), using `spring-security-test` helpers like `@WithMockUser` and CSRF postProcessors. For robust JSON assertions, prefer matching the structure and key fields with `jsonPath` (and JSONAssert for whole-document comparison) over brittle full-string equality, so harmless formatting changes don't break tests while genuine contract regressions still do.",
       code: `@WebMvcTest(OrderController.class)
 class OrderControllerWebTest {
     @Autowired MockMvc mvc;
@@ -326,7 +332,8 @@ EXPLAIN (ANALYZE, BUFFERS) SELECT ...;`,
         "1. Tokenize — split on non-letters, lowercase, drop empties.\n" +
         "2. Count — `Map<String,Long>` via `groupingBy(counting())` (or `merge(w,1,Integer::sum)`).\n" +
         "3. Top N — sort entries by count descending (tie-break alphabetically for determinism) and take N — ideally with a bounded **min-heap** of size N for `O(m log N)` instead of sorting everything `O(m log m)`.\n\n" +
-        "**Edge cases to mention:** null/empty input, punctuation and case, Unicode, ties (define an order), N larger than the vocabulary, and huge input (stream line-by-line rather than loading all text). Talk through complexity: counting is `O(total tokens)`; top-N heap is `O(m log N)` where m is distinct words.",
+        "**Edge cases to mention:** null/empty input, punctuation and case, Unicode, ties (define an order), N larger than the vocabulary, and huge input (stream line-by-line rather than loading all text). Talk through complexity: counting is `O(total tokens)`; top-N heap is `O(m log N)` where m is distinct words.\n\n" +
+        "In an interview the discipline matters as much as the algorithm: clarify requirements first (case sensitivity, what counts as a word, how ties break, whether output must be stable), then write it test-first — a couple of JUnit cases covering the empty string, a tie, and N greater than the vocabulary make your intent explicit and catch the off-by-one in the heap logic. For the min-heap approach, the trick is to keep a `PriorityQueue` ordered by ascending count and evict the smallest whenever size exceeds N, so the heap always holds the current top N; reverse at the end for descending output. If asked to scale to a file too big for memory, describe streaming the input and, beyond a single machine, a map-reduce style count-then-merge — showing you can move from an in-memory solution to a distributed one.",
       code: `static List<Map.Entry<String, Long>> topWords(String text, int n) {
     if (text == null || text.isBlank() || n <= 0) return List.of();
 
@@ -364,7 +371,8 @@ EXPLAIN (ANALYZE, BUFFERS) SELECT ...;`,
         "- **groupingBy** with a **downstream collector**: count, sum, average, or map to another shape.\n" +
         "- `summingDouble`/`averagingInt`, `mapping(...)`, `toMap` with a **merge function** to avoid `IllegalStateException` on duplicate keys.\n" +
         "- Sorting a grouped result, finding max per group (`maxBy`), partitioning.\n\n" +
-        "**Pitfalls to call out:** `Collectors.toMap` throws on duplicate keys unless you pass a merge function; streams shouldn't mutate external state (no side effects in `forEach` for logic); null keys break `groupingBy` (guard them); and prefer readable pipelines over one giant unreadable chain. Mention time complexity is `O(n)` for the grouping pass.",
+        "**Pitfalls to call out:** `Collectors.toMap` throws on duplicate keys unless you pass a merge function; streams shouldn't mutate external state (no side effects in `forEach` for logic); null keys break `groupingBy` (guard them); and prefer readable pipelines over one giant unreadable chain. Mention time complexity is `O(n)` for the grouping pass.\n\n" +
+        "Extend the answer by showing the **downstream collectors compose arbitrarily**: `groupingBy(Order::region, groupingBy(Order::status, counting()))` gives a two-level report in one pass, and `collectingAndThen` post-processes each group (unwrap a `maxBy` Optional, or make the map unmodifiable). Point out the ordering caveat — `groupingBy` returns a `HashMap`, so if the report needs deterministic order supply a map factory (`TreeMap::new`) or use a `LinkedHashMap`. If the interviewer pushes on scale, note that these collectors also work with `parallelStream()` when the accumulation is associative, and that for a genuinely large dataset a database `GROUP BY` is usually the right place to aggregate rather than pulling everything into the JVM.",
       code: `record Order(String customer, String status, BigDecimal amount) {}
 
 // Revenue per customer, only PAID orders, sorted high -> low
@@ -402,7 +410,8 @@ Map<String, BigDecimal> latest = orders.stream()
         "Two approaches:\n\n" +
         "1. **`LinkedHashMap` with access order** — pass `accessOrder=true` and override `removeEldestEntry`. It maintains a doubly-linked list in access order for you; eviction is automatic. Simplest correct answer.\n" +
         "2. **Hand-rolled `HashMap` + doubly-linked list** — the map gives O(1) lookup to a node; the list tracks recency (move-to-front on access, remove-from-tail on evict). This is the version interviewers usually want you to code, to prove you understand the O(1) mechanics.\n\n" +
-        "**Follow-ups:** thread safety (wrap with locks or use a striped/segment design; `Collections.synchronizedMap` isn't enough for the compound get-then-move), and for production use **Caffeine** (near-optimal hit rate, TTL, size, async). Mention concurrency and TTL to score points.",
+        "**Follow-ups:** thread safety (wrap with locks or use a striped/segment design; `Collections.synchronizedMap` isn't enough for the compound get-then-move), and for production use **Caffeine** (near-optimal hit rate, TTL, size, async). Mention concurrency and TTL to score points.\n\n" +
+        "When you hand-roll it, the details interviewers probe are: use a **doubly**-linked list (not singly) so you can unlink a node in O(1) given its map reference, and keep sentinel head/tail nodes to avoid null checks at the boundaries. On `get`, move the node to the front and return its value; on `put`, update-and-move if present, otherwise insert at front and, if over capacity, remove the tail node and delete its key from the map. The classic bug is forgetting to remove the evicted key from the map (a slow memory leak) or updating only one of the two structures. If asked about smarter eviction, contrast LRU with LFU and mention that Caffeine's W-TinyLFU admission policy resists scan/one-hit-wonder pollution that plain LRU suffers from.",
       code: `// Simplest: LinkedHashMap in access order with automatic eviction
 class LruCache<K, V> extends LinkedHashMap<K, V> {
     private final int capacity;
@@ -436,7 +445,8 @@ cache.put(4, "d");                         // evicts 2 (least-recent)`,
         "Two very common SQL live-coding asks.\n\n" +
         "**Find duplicates** — `GROUP BY` the candidate columns and keep groups with `COUNT(*) > 1` via `HAVING`. To list the actual duplicate rows (not just the keys), use a window function `COUNT(*) OVER (PARTITION BY ...)`.\n\n" +
         "**Second highest** — several correct approaches: `DENSE_RANK()` (handles ties correctly — 'second distinct salary'), a `LIMIT 1 OFFSET 1` over distinct ordered values (simple but ties/edge cases), or a correlated subquery. Prefer `DENSE_RANK` and clarify whether ties count as the same rank.\n\n" +
-        "**Edge cases to state:** NULLs (excluded by aggregates; decide handling), ties (RANK vs DENSE_RANK vs ROW_NUMBER), and 'what if there is no second value' (returns no row). Mentioning tie semantics is what separates a strong answer.",
+        "**Edge cases to state:** NULLs (excluded by aggregates; decide handling), ties (RANK vs DENSE_RANK vs ROW_NUMBER), and 'what if there is no second value' (returns no row). Mentioning tie semantics is what separates a strong answer.\n\n" +
+        "Be precise about the three window ranking functions because they answer different questions: `ROW_NUMBER()` gives a strict 1,2,3 with arbitrary tie-breaking, `RANK()` leaves gaps after ties (1,1,3), and `DENSE_RANK()` doesn't (1,1,2) — so 'the second highest *distinct* salary' is a `DENSE_RANK() = 2` question. For a per-group version (second highest per department), add `PARTITION BY department` to the window. For the duplicate case, the `COUNT(*) OVER (PARTITION BY ...)` approach lets you return the full offending rows in one pass without a self-join. Finally, note performance: these scan and sort, so on large tables the right index on the ordering/partitioning columns is what keeps the query fast.",
       code: `-- Duplicate emails (the keys)
 SELECT email, COUNT(*) AS n
 FROM   users

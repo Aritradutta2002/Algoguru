@@ -21,7 +21,8 @@ export const chunk14Ops = defineBackendChunk({
         "- **Slim base** — `eclipse-temurin:21-jre` or distroless; fewer packages = smaller attack surface.\n" +
         "- **Run as non-root**, expose the port, and set sensible JVM flags.\n" +
         "- **Container-aware JVM** — modern JVMs read cgroup limits; prefer `-XX:MaxRAMPercentage` over a fixed `-Xmx` so the heap scales with the container memory.\n\n" +
-        "Alternatives to a Dockerfile: Spring Boot's `bootBuildImage` (Cloud Native Buildpacks) or Jib produce optimized, layered images without hand-writing one.",
+        "Alternatives to a Dockerfile: Spring Boot's `bootBuildImage` (Cloud Native Buildpacks) or Jib produce optimized, layered images without hand-writing one.\n\n" +
+        "A few more hardening details: pin base-image tags (and rescan regularly) rather than floating on `latest`, so a rebuild is reproducible and you can track CVEs; keep secrets out of the image (inject them at runtime via env/secret mounts, never `COPY` a properties file with credentials); and add a `.dockerignore` so build context and local artefacts don't bloat the image or leak into it. For faster cold starts consider Class Data Sharing (`-XX:+UseAppCDS`) or, for serverless/scale-to-zero workloads, GraalVM native images via Spring Native — trading longer build times and some reflection configuration for near-instant startup and a much smaller memory footprint.",
       code: `# Multi-stage + Spring Boot layered jar for fast, cache-friendly rebuilds
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
@@ -57,7 +58,8 @@ ENTRYPOINT ["sh","-c","java $JAVA_OPTS org.springframework.boot.loader.launch.Ja
         "- **Readiness** — 'can it serve traffic *now*?' Failing it removes the pod from the Service load balancer **without** killing it. Depend on critical downstreams here (DB reachable, caches warm).\n" +
         "- **Startup** — for slow starters; disables the others until the app is up.\n\n" +
         "Spring Boot Actuator exposes `/actuator/health/liveness` and `/readiness` (via `management.endpoint.health.probes.enabled`).\n\n" +
-        "**Graceful shutdown** — on deploy/scale-down K8s sends **SIGTERM**, waits `terminationGracePeriodSeconds`, then SIGKILLs. Spring Boot's `server.shutdown=graceful` stops accepting new requests and lets in-flight ones finish within a timeout. Combine with readiness flipping to 'down' (so traffic drains) *before* the app stops — otherwise you drop requests mid-deploy.",
+        "**Graceful shutdown** — on deploy/scale-down K8s sends **SIGTERM**, waits `terminationGracePeriodSeconds`, then SIGKILLs. Spring Boot's `server.shutdown=graceful` stops accepting new requests and lets in-flight ones finish within a timeout. Combine with readiness flipping to 'down' (so traffic drains) *before* the app stops — otherwise you drop requests mid-deploy.\n\n" +
+        "The full zero-downtime choreography during a rolling deploy: the pod is marked Terminating, its readiness probe starts failing, and the endpoints controller removes it from the Service — but that propagation isn't instant, so a short `preStop` sleep (a few seconds) gives the load balancer time to stop routing before SIGTERM lands. Always set `terminationGracePeriodSeconds` larger than the Spring shutdown timeout so the JVM finishes draining before the kubelet resorts to SIGKILL. Tune the probe `initialDelaySeconds`, `periodSeconds`, and `failureThreshold` to the app's real timings; overly aggressive liveness probes are a classic self-inflicted outage that restart-loops healthy pods under load.",
       code: `# application.yml
 server:
   shutdown: graceful

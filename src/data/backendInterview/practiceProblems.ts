@@ -7244,6 +7244,584 @@ ALERTS TO ADD AFTERWARDS
       "The opening move is the whole answer in miniature: 8% across 12 pods is 1/12, so before touching any code you should suspect a single bad instance. That arithmetic instinct — matching the failure *rate* to the fleet topology — is what experienced operators do first. Beyond that, the marks are for instrumentation design rather than guesswork: a counter tagged by `reason` **and** `instance` turns a week-long mystery into a thirty-second dashboard read, and the reason buckets map one-to-one onto distinct root causes (expired → clock or lazy refresh; unknown-kid → stale JWKS; bad-signature → config drift). Two professional details worth stating explicitly: never log the token, because it is a live credential and logs are aggregated, retained and broadly readable — log `jti`, `kid`, `sub` and `exp` instead; and comparing your clock against the auth server's `Date` response header is a free, continuous skew detector you can wire straight into a health indicator. Finish with the preventive measures, especially proactive client refresh at 80% of TTL, which eliminates an entire class of 401s by design.",
     relatedQuestionIds: ["b138", "b133", "b129"],
   },
+
+  /* ================================================================ */
+  /* SQL & JPA                                                         */
+  /* ================================================================ */
+  {
+    id: "p42",
+    topic: "sql-jpa",
+    title: "Find and fix an N+1 query in a JPA repository",
+    difficulty: "medium",
+    estimatedMinutes: 30,
+    scenario:
+      "An `/orders` endpoint lists 50 orders and, for each, renders its line items. Latency is 800ms and the SQL log shows 51 queries: one for the orders and one per order for its items.\n\n" +
+      "Fix the N+1 without breaking pagination, and explain the trade-offs of each approach.",
+    tasks: [
+      "Explain why a `LAZY` `@OneToMany` produces 51 queries when the view touches `order.getItems()`.",
+      "Rewrite the fetch using a `JOIN FETCH` (or an entity graph) so the items load in one round trip.",
+      "Explain why `JOIN FETCH` + `setFirstResult/setMaxResults` pagination is dangerous, and give a safe alternative.",
+      "Show how `@BatchSize` / `hibernate.default_batch_fetch_size` reduces N+1 to a handful of `IN` queries.",
+    ],
+    starterCode: `@Entity
+class Order {
+    @Id Long id;
+    @OneToMany(mappedBy = "order") // LAZY by default
+    List<OrderItem> items;
+}
+
+interface OrderRepository extends JpaRepository<Order, Long> {
+    // TODO: fetch items efficiently
+}`,
+    hints: [
+      "LAZY collections initialize on first access — one extra SELECT per parent row.",
+      "JOIN FETCH multiplies the result set, so paginating in the DB no longer maps 1:1 to parent rows; Hibernate warns and paginates in memory.",
+      "Batch fetching keeps the collection lazy but loads many parents' children with a single `WHERE id IN (...)`.",
+    ],
+    solution: `// Option A: JOIN FETCH for a bounded, non-paginated fetch
+interface OrderRepository extends JpaRepository<Order, Long> {
+
+    @Query("select distinct o from Order o join fetch o.items where o.id in :ids")
+    List<Order> findWithItems(@Param("ids") List<Long> ids);
+
+    // Option B: entity graph keeps the derived-query name, adds the fetch plan
+    @EntityGraph(attributePaths = "items")
+    List<Order> findByStatus(String status);
+}
+
+// Safe pagination WITHOUT JOIN FETCH: page the parents first, then batch-fetch children.
+// application.yml:
+//   spring.jpa.properties.hibernate.default_batch_fetch_size: 100
+//
+// Page<Order> page = repo.findAll(PageRequest.of(0, 50));   // 1 query, correct paging
+// page.forEach(o -> o.getItems().size());                    // ~1 batched IN query, not 50
+
+// Why JOIN FETCH + pagination is wrong:
+//   select ... from orders o join order_items i ...  LIMIT 50
+// The LIMIT applies to the JOINED rows, not to orders, so you get a partial/incorrect
+// page. Hibernate detects a fetch join with pagination and pulls ALL rows into memory
+// then paginates there (HHH000104) — an OOM risk on large tables.`,
+    solutionLanguage: "java",
+    discussion:
+      "N+1 is the single most common performance bug in JPA apps, so interviewers love it. The signal they want: you can read the SQL log, recognize the 1+N pattern, and reach for the right tool for the situation rather than blindly adding `JOIN FETCH` everywhere. The subtle, senior point is that `JOIN FETCH` and pagination do not mix — the LIMIT applies to the Cartesian-product rows, so Hibernate silently paginates in memory (the HHH000104 warning). The clean answer for a paginated list is to page the parent IDs in the database, then let batch fetching (`default_batch_fetch_size`) load the children with a bounded number of `IN` queries. Mentioning DTO projections for read-only views, and `distinct` to collapse duplicated parents, shows real depth.",
+    relatedQuestionIds: ["b139"],
+  },
+
+  /* ================================================================ */
+  /* HTTP & REST                                                       */
+  /* ================================================================ */
+  {
+    id: "p43",
+    topic: "http-rest",
+    title: "Design an idempotent payment endpoint",
+    difficulty: "medium",
+    estimatedMinutes: 30,
+    scenario:
+      "Clients retry `POST /payments` on network timeouts. Today a retry can charge the customer twice. Make the endpoint safe to retry while keeping the semantics of `POST`.\n\n" +
+      "Design the contract, the storage, and the status codes for first-call vs replayed-call.",
+    tasks: [
+      "Define an `Idempotency-Key` header contract and explain who generates the key and its lifetime.",
+      "Describe the server-side store that maps key -> saved response, and how concurrent duplicates are handled.",
+      "Return the correct status codes: the real result on the first call, the same result on a replay.",
+      "Explain why PUT/GET/DELETE are naturally idempotent but POST is not, and where retries are safe.",
+    ],
+    hints: [
+      "Store the key with a uniqueness constraint so the second concurrent insert fails fast instead of double-charging.",
+      "Persist the final response body + status against the key so a replay returns the identical result.",
+      "A replay should not re-execute the side effect; it should return the recorded outcome.",
+    ],
+    solution: `// Contract: client sends a stable key it can safely resend on retry.
+//   POST /payments
+//   Idempotency-Key: 8f14e45f-ea6e-4b...   (client-generated, per logical request)
+
+@PostMapping("/payments")
+ResponseEntity<PaymentResult> pay(@RequestHeader("Idempotency-Key") String key,
+                                  @Valid @RequestBody PaymentRequest req) {
+
+    // 1) Try to claim the key. UNIQUE constraint => only ONE request wins the race.
+    Optional<IdempotencyRecord> existing = store.find(key);
+    if (existing.isPresent()) {
+        IdempotencyRecord r = existing.get();
+        // Replay: return the recorded outcome, do NOT charge again.
+        return ResponseEntity.status(r.status()).body(r.body());
+    }
+
+    try {
+        store.claim(key);                         // INSERT ... may throw on duplicate
+    } catch (DuplicateKeyException race) {
+        IdempotencyRecord r = store.find(key).orElseThrow();
+        return ResponseEntity.status(r.status()).body(r.body());
+    }
+
+    // 2) First time only: perform the side effect exactly once.
+    PaymentResult result = gateway.charge(req);   // the real charge
+    store.save(key, 201, result);                 // persist outcome for future replays
+    return ResponseEntity.status(HttpStatus.CREATED).body(result);
+}`,
+    solutionLanguage: "java",
+    discussion:
+      "This is a favourite systems-design-in-the-small question because it forces you to reason about retries, races, and HTTP semantics at once. The core insight is that idempotency for POST is not automatic — you engineer it by attaching a client-supplied key and recording the outcome so replays return the stored result instead of re-running the side effect. The senior details are the concurrency story (a database uniqueness constraint turns a double-charge race into a fast failure the loser can convert into a replay) and correct status codes (the first call returns the true result; a replay returns the same one). Contrast with PUT/DELETE, which are idempotent by definition, and note a sensible TTL for keys so the store does not grow forever.",
+    relatedQuestionIds: [],
+  },
+
+  /* ================================================================ */
+  /* Testing                                                          */
+  /* ================================================================ */
+  {
+    id: "p44",
+    topic: "testing",
+    title: "Write a focused @WebMvcTest slice for a controller",
+    difficulty: "easy",
+    estimatedMinutes: 25,
+    scenario:
+      "A `UserController` validates input and delegates to a `UserService`. You want fast tests of the HTTP layer — status codes, JSON shape, validation errors — without booting the whole context or hitting a database.\n\n" +
+      "Write the slice test and explain why it is faster and more focused than `@SpringBootTest`.",
+    tasks: [
+      "Use `@WebMvcTest(UserController.class)` and `MockMvc`; mock the service with `@MockBean`.",
+      "Assert a 201 with the created body on a valid POST.",
+      "Assert a 400 with field errors on an invalid POST (blank name).",
+      "Explain what `@WebMvcTest` loads and does NOT load, and when you would use `@SpringBootTest` instead.",
+    ],
+    starterCode: `@WebMvcTest(UserController.class)
+class UserControllerTest {
+    @Autowired MockMvc mvc;
+    @MockBean UserService service;
+    // TODO: tests
+}`,
+    hints: [
+      "@WebMvcTest loads only the MVC layer (controllers, filters, Jackson, validation) — no services, no repositories.",
+      "Stub the mocked service with Mockito's when(...).thenReturn(...).",
+      "Use jsonPath to assert the response body and the validation error structure.",
+    ],
+    solution: `@WebMvcTest(UserController.class)
+class UserControllerTest {
+
+    @Autowired MockMvc mvc;
+    @Autowired ObjectMapper json;
+    @MockBean UserService service;   // the ONLY collaborator, mocked
+
+    @Test
+    void createsUser() throws Exception {
+        when(service.create(any())).thenReturn(new User(1L, "Ada"));
+
+        mvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("name", "Ada"))))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.name").value("Ada"));
+    }
+
+    @Test
+    void rejectsBlankName() throws Exception {
+        mvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\\"name\\":\\"\\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors[0].field").value("name"));
+
+        verifyNoInteractions(service);   // validation failed before the service ran
+    }
+}`,
+    solutionLanguage: "java",
+    discussion:
+      "The interviewer is checking whether you know Spring's test slices and choose the smallest one that proves the behaviour. `@WebMvcTest` boots only the web layer — controllers, `@ControllerAdvice`, Jackson, converters and validation — with everything else mocked, so it starts in a fraction of the time of a full `@SpringBootTest` and fails for one clear reason. The strong candidate articulates the boundary: use `@WebMvcTest` for request mapping, serialization, status codes and validation; `@DataJpaTest` for repository/query behaviour against an embedded or Testcontainers database; and reserve `@SpringBootTest` for a few true end-to-end wiring tests. Verifying `verifyNoInteractions(service)` on the validation path is a nice touch that proves the request was rejected before business logic ran.",
+    relatedQuestionIds: [],
+  },
+
+  /* ================================================================ */
+  /* Messaging & Caching                                              */
+  /* ================================================================ */
+  {
+    id: "p45",
+    topic: "messaging-caching",
+    title: "Make a Kafka consumer safe against duplicates and poison messages",
+    difficulty: "hard",
+    estimatedMinutes: 35,
+    scenario:
+      "A consumer processes `OrderPlaced` events. At-least-once delivery means messages can arrive more than once, and one malformed message currently blocks the whole partition by being retried forever.\n\n" +
+      "Make processing idempotent and route un-processable messages aside so the partition keeps moving.",
+    tasks: [
+      "Explain why at-least-once delivery makes consumers responsible for deduplication.",
+      "Make the handler idempotent using the event's unique id (processed-ids table or upsert).",
+      "Add bounded retries with backoff, then route to a dead-letter topic instead of blocking the partition.",
+      "Explain when to commit offsets so a crash mid-processing does not lose or double-apply a message.",
+    ],
+    hints: [
+      "Idempotency key = the business event id; record it in the same transaction as the side effect.",
+      "A poison message must not be retried indefinitely — cap attempts and DLQ it.",
+      "Commit the offset only after the side effect + dedup record are durably written.",
+    ],
+    solution: `@Component
+class OrderConsumer {
+
+    private final ProcessedEventRepo processed;   // stores handled event ids
+    private final OrderService orders;
+
+    // Bounded retry, then dead-letter — the partition never stalls on a poison message.
+    @RetryableTopic(attempts = "4",
+                    backoff = @Backoff(delay = 1000, multiplier = 2.0),
+                    dltStrategy = DltStrategy.FAIL_ON_ERROR)
+    @KafkaListener(topics = "order-placed", groupId = "billing")
+    @Transactional
+    public void handle(OrderPlaced event) {
+        // Idempotency: skip if we've already applied this event id.
+        if (processed.existsById(event.id())) return;
+
+        orders.bill(event);                 // the side effect
+        processed.save(new ProcessedEvent(event.id()));   // same tx as the side effect
+        // Offset is committed by the container AFTER this method returns successfully.
+    }
+
+    @DltHandler
+    public void onDlt(OrderPlaced event, @Header(KafkaHeaders.EXCEPTION_MESSAGE) String err) {
+        alerting.raise("order-placed poison message " + event.id() + ": " + err);
+    }
+}`,
+    solutionLanguage: "java",
+    discussion:
+      "This problem separates people who have run Kafka in production from people who have only read about it. The two non-negotiables are idempotency and poison-message handling. Because Kafka gives at-least-once delivery by default, the consumer — not the broker — owns deduplication; recording the event id in the same transaction as the side effect makes reprocessing a no-op. The second insight is that a message that can never succeed must not be retried forever, or it head-of-line-blocks its entire partition; `@RetryableTopic` gives bounded exponential backoff and then a dead-letter topic so the rest of the stream keeps flowing. Finishing with offset-commit timing (commit only after durable success) and a note that exactly-once needs the transactional producer/consumer shows complete command of the delivery-semantics spectrum.",
+    relatedQuestionIds: [],
+  },
+
+  /* ================================================================ */
+  /* Production ops                                                   */
+  /* ================================================================ */
+  {
+    id: "p46",
+    topic: "production-ops",
+    title: "Wire health checks and graceful shutdown for zero-downtime deploys",
+    difficulty: "medium",
+    estimatedMinutes: 25,
+    scenario:
+      "During rolling deploys the service drops in-flight requests and briefly returns errors because Kubernetes routes traffic to pods that are not ready and kills pods that are still working.\n\n" +
+      "Configure readiness/liveness probes and graceful shutdown so deploys are seamless.",
+    tasks: [
+      "Explain the difference between liveness and readiness probes and the failure mode of confusing them.",
+      "Expose Actuator's readiness/liveness groups and point the Kubernetes probes at them.",
+      "Enable graceful shutdown so in-flight requests finish before the JVM exits.",
+      "Explain why a preStop delay + readiness flip prevents the load balancer from sending traffic to a terminating pod.",
+    ],
+    hints: [
+      "Liveness failing => the pod is RESTARTED; readiness failing => it is only removed from the load balancer.",
+      "Spring Boot has built-in liveness/readiness groups under /actuator/health.",
+      "server.shutdown=graceful drains the request thread pool up to a timeout.",
+    ],
+    solution: `# application.yml
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true          # exposes /actuator/health/liveness and /readiness
+server:
+  shutdown: graceful           # finish in-flight requests before exit
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+# Kubernetes deployment (excerpt)
+# readinessProbe:  { httpGet: { path: /actuator/health/readiness, port: 8080 } }
+# livenessProbe:   { httpGet: { path: /actuator/health/liveness,  port: 8080 } }
+# lifecycle:
+#   preStop:
+#     exec: { command: ["sh","-c","sleep 5"] }   # let readiness flip + LB deregister
+# terminationGracePeriodSeconds: 40              # >= shutdown timeout
+
+# Sequence on shutdown:
+#  1. Pod marked Terminating -> readiness fails -> removed from Service endpoints.
+#  2. preStop sleep gives the LB time to stop routing new requests.
+#  3. SIGTERM -> Spring graceful shutdown drains in-flight requests.
+#  4. JVM exits before terminationGracePeriodSeconds elapses (no SIGKILL).`,
+    solutionLanguage: "yaml",
+    discussion:
+      "Zero-downtime deploys are where 'it works on my machine' meets orchestration reality, so this is a strong ops signal. The first thing to get right is the probe semantics: liveness answers 'is the process wedged and in need of a restart?' while readiness answers 'should traffic be sent right now?'. Wiring liveness to a slow dependency is a classic outage amplifier — a blip restarts every pod. The second is the shutdown choreography: flipping readiness first (plus a short preStop delay) lets the load balancer deregister the pod before SIGTERM, and Spring's graceful shutdown then drains in-flight requests within a grace period larger than the shutdown timeout so the kubelet never has to SIGKILL. Being able to narrate that four-step termination sequence is exactly what the interviewer is listening for.",
+    relatedQuestionIds: [],
+  },
+
+  /* ================================================================ */
+  /* Core Java language & modern features                             */
+  /* ================================================================ */
+  {
+    id: "p47",
+    topic: "core-java-lang",
+    title: "Model a domain with records, sealed types and pattern matching",
+    difficulty: "medium",
+    estimatedMinutes: 30,
+    scenario:
+      "You are modelling the result of a payment attempt. It is exactly one of: Approved (with an auth code), Declined (with a reason), or Error (with an exception). Callers must handle every case.\n\n" +
+      "Use modern Java (records + sealed interface + switch pattern matching) to make illegal states unrepresentable and the handling exhaustive.",
+    tasks: [
+      "Declare a `sealed interface PaymentResult permits ...` with a `record` per case.",
+      "Explain how records give you immutability, equals/hashCode and a canonical constructor for free.",
+      "Write a `switch` with record-deconstruction patterns that returns a user message.",
+      "Explain why the compiler can prove the switch is exhaustive (no default needed).",
+    ],
+    starterCode: `sealed interface PaymentResult permits /* TODO */ {}
+// TODO: records + a switch that handles every case`,
+    hints: [
+      "A sealed type restricts its implementations to a known set, which the switch can enumerate.",
+      "Record patterns let you destructure the components directly in the case label.",
+      "If every permitted subtype is covered, the switch is exhaustive and needs no default.",
+    ],
+    solution: `sealed interface PaymentResult
+        permits Approved, Declined, Error {}
+
+record Approved(String authCode)          implements PaymentResult {}
+record Declined(String reason)            implements PaymentResult {}
+record Error(Throwable cause)             implements PaymentResult {}
+
+class Messages {
+    // Exhaustive switch with record-deconstruction patterns (Java 21).
+    static String describe(PaymentResult result) {
+        return switch (result) {
+            case Approved(var code)   -> "Approved, auth " + code;
+            case Declined(var reason) -> "Declined: " + reason;
+            case Error(var cause)     -> "Payment error: " + cause.getMessage();
+            // No default: the compiler knows the permitted set is complete.
+            // Add a 4th permitted subtype and this switch fails to compile
+            // until you handle it — illegal states become compile errors.
+        };
+    }
+}`,
+    solutionLanguage: "java",
+    discussion:
+      "This exercise checks whether you can use modern Java to encode a domain rather than reaching for enums-plus-nullable-fields or an inheritance hierarchy with instanceof chains. The payoff of a sealed interface is exhaustiveness: because the permitted implementations are known at compile time, a pattern-matching `switch` needs no `default`, and adding a new case turns every unhandled `switch` into a compile error — the compiler becomes your checklist. Records supply immutability, value-based `equals`/`hashCode`, `toString` and a canonical constructor (where you can validate invariants) for almost no code. Naming record deconstruction patterns and contrasting this with the old visitor pattern or `instanceof` ladders demonstrates fluency with Java 17–21 idioms, which is exactly what a senior interview is probing.",
+    relatedQuestionIds: [],
+  },
+
+  /* ================================================================ */
+  /* Streams & generics                                              */
+  /* ================================================================ */
+  {
+    id: "p48",
+    topic: "streams-generics",
+    title: "Aggregate data with Collectors (groupingBy + downstream)",
+    difficulty: "medium",
+    estimatedMinutes: 25,
+    scenario:
+      "Given a list of `Sale(region, product, amount)`, produce several reports in single passes: total revenue per region, the set of products sold per region, and the highest single sale per region.\n\n" +
+      "Do it with the Streams `Collectors` API and avoid manual mutable maps.",
+    tasks: [
+      "Compute `Map<String, Double>` of total amount per region with `groupingBy` + `summingDouble`.",
+      "Compute `Map<String, Set<String>>` of products per region with a downstream `mapping` + `toSet`.",
+      "Compute the max sale per region with `maxBy` and unwrap the resulting `Optional`.",
+      "Explain why `toMap` needs a merge function and how downstream collectors compose.",
+    ],
+    hints: [
+      "The second argument to groupingBy is itself a collector applied per group.",
+      "mapping(fn, toSet()) transforms elements before collecting them into each group.",
+      "collectingAndThen can unwrap the Optional that maxBy produces.",
+    ],
+    solution: `record Sale(String region, String product, double amount) {}
+
+// Total revenue per region
+Map<String, Double> revenue = sales.stream()
+    .collect(Collectors.groupingBy(Sale::region,
+             Collectors.summingDouble(Sale::amount)));
+
+// Distinct products per region (downstream mapping -> set)
+Map<String, Set<String>> products = sales.stream()
+    .collect(Collectors.groupingBy(Sale::region,
+             Collectors.mapping(Sale::product, Collectors.toSet())));
+
+// Highest single sale per region, Optional unwrapped via collectingAndThen
+Map<String, Sale> topSale = sales.stream()
+    .collect(Collectors.groupingBy(Sale::region,
+             Collectors.collectingAndThen(
+                 Collectors.maxBy(Comparator.comparingDouble(Sale::amount)),
+                 Optional::orElseThrow)));
+
+// toMap needs a merge function when keys can collide:
+Map<String, Double> byProduct = sales.stream()
+    .collect(Collectors.toMap(Sale::product, Sale::amount, Double::sum)); // merge!`,
+    solutionLanguage: "java",
+    discussion:
+      "Aggregation with `Collectors` is one of the most common live-coding tasks for backend roles, and it separates people who write imperative loops with mutable maps from people fluent in the functional toolkit. The key concept is the downstream collector: `groupingBy` partitions the stream, and its second argument decides how each group is summarized — `counting`, `summingDouble`, `mapping(...).toSet()`, or a nested `groupingBy` for two-level reports. Two details mark a strong answer: `collectingAndThen` to post-process (here unwrapping the `Optional` from `maxBy`), and knowing that `toMap` throws `IllegalStateException` on duplicate keys unless you supply a merge function. Being able to build these one-pass aggregations without a single explicit `Map.put` is the fluency the interviewer is looking for.",
+    relatedQuestionIds: ["b235", "b236"],
+  },
+
+  /* ================================================================ */
+  /* JVM internals & advanced concurrency                            */
+  /* ================================================================ */
+  {
+    id: "p49",
+    topic: "jvm",
+    title: "Diagnose an OutOfMemoryError from a heap dump",
+    difficulty: "hard",
+    estimatedMinutes: 35,
+    scenario:
+      "A service crashes every few days with `OutOfMemoryError: Java heap space`. Restarts fix it temporarily, and heap usage climbs steadily between restarts. You suspect a leak.\n\n" +
+      "Lay out how you capture and analyze the evidence, and identify the classic culprit in the starter code.",
+    tasks: [
+      "Configure the JVM to capture a heap dump automatically on OOM.",
+      "Describe how you would analyze the dump in Eclipse MAT (dominator tree, path to GC roots).",
+      "Identify the leak in the starter code and explain why the GC cannot reclaim it.",
+      "Fix it with a bounded cache and explain how you would confirm the fix.",
+    ],
+    starterCode: `class PriceCache {
+    // Grows forever: every distinct key is retained for the life of the JVM.
+    private static final Map<String, Price> CACHE = new HashMap<>();
+    static Price get(String sku) {
+        return CACHE.computeIfAbsent(sku, PriceCache::load);
+    }
+}`,
+    hints: [
+      "-XX:+HeapDumpOnOutOfMemoryError writes a .hprof you can open in MAT.",
+      "A leak means objects are still reachable from a GC root; the dominator tree shows the biggest retainer.",
+      "An unbounded static map is reachable forever — nothing can evict entries.",
+    ],
+    solution: `# 1) Capture evidence automatically on the next crash
+JAVA_OPTS="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/dumps"
+# or on demand:  jmap -dump:live,format=b,file=heap.hprof <pid>
+
+# 2) Analyze in Eclipse MAT
+#    - Leak Suspects report -> flags the dominant retainer
+#    - Dominator Tree       -> PriceCache.CACHE retains ~90% of the heap
+#    - Path to GC Roots     -> held by a static field (a GC root) => never collectible
+
+// 3) The leak: a static, unbounded HashMap. Static => reachable from a GC root for
+//    the whole JVM lifetime; unbounded => entries are only ever added, never evicted.
+//    The GC works perfectly; the objects are simply still referenced.
+
+// 4) Fix: a bounded cache with size + TTL eviction (Caffeine).
+class PriceCache {
+    private static final Cache<String, Price> CACHE = Caffeine.newBuilder()
+            .maximumSize(50_000)
+            .expireAfterWrite(Duration.ofMinutes(10))
+            .build();
+    static Price get(String sku) { return CACHE.get(sku, PriceCache::load); }
+}
+// Confirm: watch old-gen usage after full GCs flatten instead of trending up,
+// and re-run a load test / take a follow-up heap dump to verify the retainer is gone.`,
+    solutionLanguage: "java",
+    discussion:
+      "Memory-leak triage is a rite of passage, and interviewers want a methodical evidence-driven process, not guesswork. The strong answer starts by making the next failure diagnosable (`-XX:+HeapDumpOnOutOfMemoryError`), then reads the heap dump in MAT: the dominator tree names the object retaining the most memory, and 'path to GC roots' proves why it survives — here a `static` field, which is itself a GC root, pins the map for the JVM's whole life. The conceptual point worth stating out loud is that Java 'leaks' are not GC failures; they are unintended reachability. The fix is to bound the cache with a size cap and TTL, and — crucially — to verify: healthy heaps show old-gen usage flattening after full GCs rather than a monotonic climb. That capture-analyze-fix-verify loop is the whole signal.",
+    relatedQuestionIds: ["b242", "b245"],
+  },
+
+  /* ================================================================ */
+  /* Spring web pipeline, AOP & operations                           */
+  /* ================================================================ */
+  {
+    id: "p50",
+    topic: "spring-web-ops",
+    title: "Add a request correlation id across the whole pipeline",
+    difficulty: "medium",
+    estimatedMinutes: 25,
+    scenario:
+      "Debugging production is painful because a single request's log lines cannot be tied together, and the id is lost when the app calls a downstream service.\n\n" +
+      "Add a correlation id that appears on every log line for a request and propagates to downstream calls.",
+    tasks: [
+      "Add a `OncePerRequestFilter` that reads `X-Trace-Id` or generates one, and stores it in the SLF4J MDC.",
+      "Configure the Logback pattern so every line includes the id.",
+      "Clear the MDC in a `finally` and explain why this is mandatory in a thread pool.",
+      "Propagate the id on outbound calls via a `RestClient`/`RestTemplate` interceptor.",
+    ],
+    starterCode: `@Component
+class TraceIdFilter extends OncePerRequestFilter {
+    // TODO: set MDC, ensure cleanup, propagate
+}`,
+    hints: [
+      "OncePerRequestFilter runs before the controller and sees every request.",
+      "%X{traceId} in the Logback pattern injects the MDC value.",
+      "Pooled threads are reused, so a stale MDC value leaks into the next request unless you remove it.",
+    ],
+    solution: `@Component
+class TraceIdFilter extends OncePerRequestFilter {
+    static final String HEADER = "X-Trace-Id";
+    static final String KEY = "traceId";
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
+                                    FilterChain chain) throws ServletException, IOException {
+        String traceId = Optional.ofNullable(req.getHeader(HEADER))
+                                 .filter(s -> !s.isBlank())
+                                 .orElse(UUID.randomUUID().toString());
+        MDC.put(KEY, traceId);
+        res.setHeader(HEADER, traceId);          // echo back for the client
+        try {
+            chain.doFilter(req, res);
+        } finally {
+            MDC.remove(KEY);                     // MUST clear: pooled threads are reused
+        }
+    }
+}
+
+// Propagate downstream so the trace spans services
+@Bean
+RestClient restClient(RestClient.Builder builder) {
+    return builder.requestInterceptor((request, body, execution) -> {
+        String id = MDC.get(TraceIdFilter.KEY);
+        if (id != null) request.getHeaders().add(TraceIdFilter.HEADER, id);
+        return execution.execute(request, body);
+    }).build();
+}
+
+// logback-spring.xml pattern:
+//   %d %-5level [%X{traceId}] %logger{20} - %msg%n`,
+    solutionLanguage: "java",
+    discussion:
+      "Correlation ids are the cheapest observability win in a distributed system, and this exercise tests whether you understand the Spring request pipeline and the MDC's threading model. The right extension point is a `OncePerRequestFilter`, because it runs before the controller and wraps the whole request, so the id is present for every log line the request produces via the `%X{traceId}` pattern. The detail that trips people up — and the one interviewers wait for — is clearing the MDC in a `finally`: request threads come from a pool and are reused, so a value left behind bleeds into an unrelated later request. Extending the id across service boundaries with an outbound interceptor (and mentioning that Micrometer Tracing / OpenTelemetry automate all of this and link logs to traces) rounds out a complete, production-minded answer.",
+    relatedQuestionIds: ["b248", "b249"],
+  },
+
+  /* ================================================================ */
+  /* Application security hardening                                   */
+  /* ================================================================ */
+  {
+    id: "p51",
+    topic: "security-hardening",
+    title: "Serve a user file download without a path-traversal hole",
+    difficulty: "medium",
+    estimatedMinutes: 25,
+    scenario:
+      "An endpoint `GET /files?name=...` returns a file from an uploads directory. A pentester reports that `name=../../../../etc/passwd` leaks system files.\n\n" +
+      "Close the path-traversal vulnerability and explain the general defensive principle.",
+    tasks: [
+      "Explain how `../` sequences escape the intended base directory.",
+      "Canonicalize the resolved path and verify it stays inside the base directory.",
+      "Add allowlist validation of the filename so obviously bad input is rejected early.",
+      "Explain why mapping an opaque id to a stored path is even safer than accepting a filename.",
+    ],
+    starterCode: `@GetMapping("/files")
+ResponseEntity<Resource> download(@RequestParam String name) throws IOException {
+    Path file = Paths.get("/data/uploads", name);   // VULNERABLE: name may contain ../
+    return ResponseEntity.ok(new UrlResource(file.toUri()));
+}`,
+    hints: [
+      "resolve(userInput) will happily walk up the tree with ../.",
+      "normalize() collapses .. and . so you can compare against the base.",
+      "Check the canonical path startsWith the canonical base directory.",
+    ],
+    solution: `private static final Path BASE = Paths.get("/data/uploads").toAbsolutePath().normalize();
+
+@GetMapping("/files")
+ResponseEntity<Resource> download(@RequestParam String name) throws IOException {
+    // 1) Allowlist: reject anything that isn't a simple filename.
+    if (!name.matches("[A-Za-z0-9._-]{1,100}") || name.contains("..")) {
+        return ResponseEntity.badRequest().build();
+    }
+
+    // 2) Resolve + canonicalize, then CONTAINMENT check against the base dir.
+    Path target = BASE.resolve(name).normalize();
+    if (!target.startsWith(BASE)) {              // blocks ../../ escapes definitively
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+    if (!Files.isReadable(target)) return ResponseEntity.notFound().build();
+
+    Resource body = new UrlResource(target.toUri());
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\\"" + name + "\\"")
+        .body(body);
+}
+
+// Safest of all: never accept a path. Store files keyed by an opaque id and look up
+// the real location server-side:  GET /files/{id} -> repo.find(id).storagePath()`,
+    solutionLanguage: "java",
+    discussion:
+      "Path traversal is a perennial OWASP entry, and this task checks whether you truly understand the fix rather than pattern-matching on `..`. The robust defence is containment: resolve the user input against a fixed base, canonicalize with `normalize()` so any `..` segments are collapsed, and then assert the result still `startsWith` the base directory — a blocklist of `../` alone is bypassable via encodings and absolute paths. Layering an allowlist regex on the filename rejects junk early and cheaply. The senior insight to voice is that the best way to avoid the whole class of bug is to not let the client name a path at all: expose an opaque id that the server maps to a stored location. Tying this back to the general principle — validate/allowlist on input, and never trust client-supplied paths — shows security maturity beyond the single endpoint.",
+    relatedQuestionIds: ["b257"],
+  },
 ];
 
 /* ------------------------------------------------------------------ */
