@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import TopicPage from "./pages/TopicPage";
 import Playground from "./pages/Playground";
 import Practice from "./pages/Practice";
+import Quiz from "./pages/Quiz";
 import PracticeSolution from "./pages/PracticeSolution";
 import ProblemSolver from "./pages/ProblemSolver";
 import Interview from "./pages/Interview";
@@ -1087,6 +1088,7 @@ const App = () => (
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
                 {/* Chrome-free fullscreen roadmap routes — no AppLayout, no
                     sidebar, no header, no footer. Just the roadmaps. */}
                 <Route path="/roadmap" element={

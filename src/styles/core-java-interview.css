@@ -1701,7 +1701,7 @@
 
 @media (min-width: 1280px) {
   .cjq-doc-grid {
-    grid-template-columns: 250px minmax(0, 38rem) 200px;
+    grid-template-columns: 250px minmax(0, 1fr) 200px;
     gap: 2.5rem;
   }
 }
@@ -1713,6 +1713,12 @@
   max-width: 38rem;
   margin-inline: auto;
   font-family: var(--reader-font);
+}
+
+@media (min-width: 1280px) {
+  .cjq-doc {
+    max-width: none;
+  }
 }
 
 .cjq-doc > * + * {
@@ -2310,6 +2316,1154 @@
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
   border-radius: 0.375rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   WIDE READING SCALE  (hub surfaces)
+   ----------------------------------------------------------------------
+   The hub is a full-bleed surface: it fills whatever width the app shell
+   gives it, with gutters that scale rather than a hard max-width. Every
+   line of prose still carries its own ch-based measure, so widening the
+   page never produces unreadably long lines — instead the extra room goes
+   into multi-column layouts (resource cards, the most-asked list, the
+   study plan) and into a wider progress rail in the hero.
+
+   PageContainer applies Tailwind's max-w-7xl. Both rules are single-class
+   selectors, so specificity does not separate them — in the production
+   bundle Tailwind's utility is emitted last and simply wins, which is why
+   these rules need the extra `.cjh-page` to outrank it (0-2-0 vs 0-1-0).
+   Order alone is not reliable here.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.cjh-page .cjh-page-inner {
+  max-width: none;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .cjh-page .cjh-page-inner {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+/* Gutters keep growing so the edge of the content stays a comfortable
+   distance from the viewport edge on ultrawide displays. */
+@media (min-width: 1280px) {
+  .cjh-page .cjh-page-inner {
+    padding-left: 3.5rem;
+    padding-right: 3.5rem;
+  }
+}
+
+@media (min-width: 1800px) {
+  .cjh-page .cjh-page-inner {
+    padding-left: 4.5rem;
+    padding-right: 4.5rem;
+  }
+}
+
+@media (min-width: 2400px) {
+  .cjh-page .cjh-page-inner {
+    padding-left: 6rem;
+    padding-right: 6rem;
+  }
+}
+
+/* ── Navigation, breadcrumb and buttons ────────────────────────────── */
+.cjh-page .cjh-breadcrumb {
+  font-size: 0.875rem;
+}
+
+.cjh-page .cjh-nav-link {
+  min-height: 3rem;
+  font-size: 0.9375rem;
+}
+
+.cjh-page .cjh-btn-primary,
+.cjh-page .cjh-btn-secondary {
+  min-height: 3rem;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.9375rem;
+}
+
+.cjh-page .cjh-btn-quiet-danger {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+.cjh-page .cjh-link {
+  min-height: 3rem;
+  font-size: 0.9375rem;
+}
+
+/* ── Dashboard header ──────────────────────────────────────────────── */
+.cjh-page .cjh-header {
+  padding: 2.75rem 2.5rem;
+}
+
+/* The rail grows with the viewport instead of sitting at a fixed 400px,
+   so the hero fills a wide screen rather than stranding empty gutter. */
+@media (min-width: 960px) {
+  .cjh-page .cjh-header {
+    grid-template-columns: minmax(0, 1fr) clamp(20rem, 26vw, 30rem);
+  }
+}
+
+@media (min-width: 1800px) {
+  .cjh-page .cjh-header {
+    padding: 3.25rem 3rem;
+    gap: 3.5rem;
+  }
+}
+
+.cjh-page .cjh-header-title {
+  font-size: clamp(2.5rem, 1.9rem + 2vw, 3.5rem);
+  line-height: 1.06;
+}
+
+.cjh-page .cjh-header-desc {
+  max-width: 82ch;
+  font-size: 1.1875rem;
+  line-height: 1.7;
+}
+
+.cjh-page .cjh-header-eyebrow {
+  font-size: 0.8125rem;
+}
+
+.cjh-page .cjh-progress-panel-title {
+  font-size: 0.8125rem;
+}
+
+.cjh-page .cjh-progress-panel-pct {
+  font-size: 2.75rem;
+}
+
+.cjh-page .cjh-progress-panel-label {
+  font-size: 0.9375rem;
+}
+
+.cjh-page .cjh-summary-item dt {
+  font-size: 0.75rem;
+}
+
+.cjh-page .cjh-summary-item dd {
+  font-size: 1.25rem;
+}
+
+/* ── Section headings and descriptions ─────────────────────────────── */
+.cjh-page .cjh-section {
+  margin-top: 4rem;
+}
+
+.cjh-page .cjh-section-head {
+  max-width: none;
+}
+
+.cjh-page .cjh-section-title {
+  font-size: 1.1875rem;
+}
+
+.cjh-page .cjh-section-title--lg {
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+}
+
+.cjh-page .cjh-section-desc {
+  max-width: 88ch;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.cjh-page .cjh-subheading {
+  font-size: 1.25rem;
+}
+
+.cjh-page .cjh-subheading-desc {
+  margin-top: 0.35rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* ── Continue learning ─────────────────────────────────────────────── */
+.cjh-page .cjh-continue {
+  padding: 2rem;
+}
+
+/* On a wide screen the card splits: the story on the left, the progress
+   meter and the actions stacked on the right. The card stays one surface —
+   only the internal columns change. */
+@media (min-width: 1100px) {
+  .cjh-page .cjh-continue {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
+    grid-template-areas:
+      "eyebrow side"
+      "title   side"
+      "desc    side"
+      "note    side"
+      "meter   side"
+      "actions side";
+    column-gap: 3rem;
+    align-items: start;
+  }
+
+  .cjh-page .cjh-continue > .cjh-eyebrow { grid-area: eyebrow; }
+  .cjh-page .cjh-continue-title { grid-area: title; }
+  .cjh-page .cjh-continue-desc { grid-area: desc; }
+  .cjh-page .cjh-continue-note { grid-area: note; }
+  .cjh-page .cjh-continue-loading { grid-area: desc; }
+  .cjh-page .cjh-continue-progress { grid-area: meter; }
+  .cjh-page .cjh-continue-actions { grid-area: actions; }
+}
+
+.cjh-page .cjh-continue-title {
+  font-size: 1.625rem;
+}
+
+.cjh-page .cjh-continue-desc {
+  max-width: 74ch;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.cjh-page .cjh-continue-note,
+.cjh-page .cjh-continue-count {
+  font-size: 0.9375rem;
+}
+
+.cjh-page .cjh-continue-loading {
+  min-height: 3.5rem;
+  font-size: 1.0625rem;
+}
+
+.cjh-page .cjh-continue-progress {
+  max-width: none;
+}
+
+/* ── Curriculum rows ───────────────────────────────────────────────── */
+.cjh-page .cjh-curriculum {
+  gap: 0.85rem;
+}
+
+.cjh-page .cjh-curriculum-input {
+  height: 3rem;
+  font-size: 1rem;
+}
+
+.cjh-page .cjh-curriculum-clear {
+  font-size: 0.8125rem;
+}
+
+.cjh-page .cjh-curriculum-empty {
+  font-size: 0.9375rem;
+}
+
+.cjh-page .cjh-topic-row {
+  gap: 0.85rem 1.5rem;
+  padding: 1.35rem 1.5rem;
+}
+
+/* Wide screens get a true four-column grid instead of a wrapping flex row,
+   so the progress meter and the action button line up in the same place on
+   all fifteen rows rather than drifting with each row's text length. */
+@media (min-width: 1100px) {
+  .cjh-page .cjh-topic-row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(9.5rem, 15rem) auto;
+    grid-template-areas:
+      "num main progress action"
+      ".   details details details";
+    align-items: center;
+    column-gap: 1.75rem;
+    row-gap: 0.6rem;
+  }
+
+  .cjh-page .cjh-topic-row > .cjh-topic-num { grid-area: num; align-self: start; }
+  .cjh-page .cjh-topic-row > .cjh-topic-main { grid-area: main; }
+  .cjh-page .cjh-topic-row > .cjh-topic-progress { grid-area: progress; }
+  .cjh-page .cjh-topic-row > .cjh-topic-action { grid-area: action; margin-left: 0; }
+  .cjh-page .cjh-topic-row > .cjh-topic-details { grid-area: details; }
+}
+
+.cjh-page .cjh-topic-num {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.8125rem;
+}
+
+.cjh-page .cjh-topic-main {
+  flex: 1 1 28rem;
+}
+
+.cjh-page .cjh-topic-title {
+  font-size: 1.1875rem;
+}
+
+.cjh-page .cjh-topic-desc {
+  max-width: 92ch;
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.cjh-page .cjh-topic-meta,
+.cjh-page .cjh-topic-count,
+.cjh-page .cjh-topic-details,
+.cjh-page .cjh-topic-mix,
+.cjh-page .cjh-status {
+  font-size: 0.8125rem;
+}
+
+.cjh-page .cjh-topic-progress {
+  flex: 0 1 14rem;
+  min-width: 9.5rem;
+}
+
+/* ── Most asked list ───────────────────────────────────────────────── */
+.cjh-page .cjh-hot-row {
+  padding: 1.1rem 1.35rem;
+}
+
+/* Two columns on a wide screen. The single-column dividers are replaced by
+   a shared hairline on every cell plus a vertical rule between columns, so
+   no row ends up with a stray border in a two-up layout. */
+@media (min-width: 1280px) {
+  .cjh-page .cjh-hotlist {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cjh-page .cjh-hotlist li .cjh-hot-row {
+    border-top: 1px solid hsl(var(--border) / 0.7);
+    border-left: 1px solid transparent;
+  }
+
+  .cjh-page .cjh-hotlist li:nth-child(-n + 2) .cjh-hot-row {
+    border-top-color: transparent;
+  }
+
+  .cjh-page .cjh-hotlist li:nth-child(odd) .cjh-hot-row {
+    border-left: 0;
+  }
+
+  .cjh-page .cjh-hotlist li:nth-child(even) .cjh-hot-row {
+    border-left-color: hsl(var(--border) / 0.7);
+  }
+}
+
+.cjh-page .cjh-hot-rank {
+  width: 2rem;
+  font-size: 0.875rem;
+}
+
+.cjh-page .cjh-hot-title {
+  font-size: 1.0625rem;
+}
+
+.cjh-page .cjh-chip {
+  font-size: 0.8125rem;
+}
+
+/* ── Practice and resources ────────────────────────────────────────── */
+.cjh-page .cjh-resources {
+  gap: 0.85rem;
+}
+
+/* Cards are short enough to read comfortably in narrower tracks, so the
+   grid gains columns as the page widens instead of stretching each card. */
+@media (min-width: 1400px) {
+  .cjh-page .cjh-resources {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2000px) {
+  .cjh-page .cjh-resources {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.cjh-page .cjh-resource {
+  padding: 1.25rem 1.4rem;
+}
+
+/* In a multi-column track the action sits under the body rather than
+   floating to the right, so no card ends with a ragged empty gutter. */
+@media (min-width: 1400px) {
+  .cjh-page .cjh-resource {
+    align-content: start;
+  }
+
+  .cjh-page .cjh-resource-body {
+    flex: 1 1 100%;
+  }
+
+  .cjh-page .cjh-resource-action {
+    flex: 1 0 100%;
+    margin-left: 0;
+    padding-top: 0.15rem;
+  }
+}
+
+.cjh-page .cjh-resource-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.cjh-page .cjh-resource-title {
+  font-size: 1.0625rem;
+}
+
+.cjh-page .cjh-resource-desc {
+  max-width: 74ch;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.cjh-page .cjh-resource-meta {
+  font-size: 0.8125rem;
+}
+
+/* ── Four-week study plan ──────────────────────────────────────────── */
+.cjh-page .cjh-plan {
+  gap: 0.85rem;
+}
+
+/* Two weeks per row on a wide screen. Each week is its own self-contained
+   accordion, so opening one never affects its neighbour. */
+@media (min-width: 1280px) {
+  .cjh-page .cjh-plan {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.cjh-page .cjh-plan-toggle {
+  min-height: 4.25rem;
+  padding: 1.15rem 1.5rem;
+}
+
+.cjh-page .cjh-plan-marker {
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 0.8125rem;
+}
+
+.cjh-page .cjh-plan-week-name,
+.cjh-page .cjh-plan-meta,
+.cjh-page .cjh-plan-topic-count {
+  font-size: 0.8125rem;
+}
+
+.cjh-page .cjh-plan-focus {
+  font-size: 1.125rem;
+}
+
+.cjh-page .cjh-plan-outcome {
+  max-width: 94ch;
+  padding: 0 1.5rem;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.cjh-page .cjh-plan-topic-title {
+  font-size: 1rem;
+}
+
+/* ── Management row and footer ─────────────────────────────────────── */
+.cjh-page .cjh-manage-title {
+  font-size: 1.0625rem;
+}
+
+.cjh-page .cjh-manage-desc,
+.cjh-page .cjh-footer-note,
+.cjh-page .cjh-footer-link {
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 640px) {
+  .cjh-page .cjh-header-title {
+    font-size: 2rem;
+  }
+
+  .cjh-page .cjh-header-desc,
+  .cjh-page .cjh-section-desc,
+  .cjh-page .cjh-continue-desc,
+  .cjh-page .cjh-topic-desc,
+  .cjh-page .cjh-resource-desc,
+  .cjh-page .cjh-plan-outcome {
+    font-size: 0.9375rem;
+  }
+
+  .cjh-page .cjh-topic-row,
+  .cjh-page .cjh-resource {
+    padding: 1rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DOCUMENTATION-STYLE Q&A LIST  (.cjq-w3)
+   ----------------------------------------------------------------------
+   A flat, print-like reading surface in the spirit of a tutorial page:
+   no card boxes, no shadows, no pill-heavy chrome. Section titles are
+   underlined with a dotted rule, every question is a numbered heading
+   followed by an "Answer:" block, and questions are separated by a single
+   hairline instead of being boxed in. All colours come from the reader
+   tokens, so day and night mode share one set of rules.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.cjq-w3 {
+  --w3-gap: 0.5rem;
+}
+
+/* ── Page shell ────────────────────────────────────────────────────── */
+.cjq-w3.cjq-list-root {
+  background: hsl(var(--reader-page));
+}
+
+.cjq-w3 .cjq-reader-bar {
+  background: hsl(var(--reader-page));
+  border-bottom: 1px solid hsl(var(--reader-border));
+  box-shadow: none;
+}
+
+.cjq-w3 .cjq-progress {
+  height: 2px;
+  background: hsl(var(--reader-border));
+}
+
+/* ── Toolbar / filters ─────────────────────────────────────────────── */
+.cjq-w3 .cjq-toolbar-divider {
+  background: hsl(var(--reader-page));
+}
+
+.cjq-w3.cjq-w3 .cjq-toolbar-btn {
+  background: transparent;
+  border-color: transparent;
+  color: hsl(var(--reader-note));
+  border-radius: 0.375rem;
+}
+
+.cjq-w3.cjq-w3 .cjq-toolbar-btn:hover {
+  background: hsl(var(--reader-accent) / 0.08);
+  border-color: transparent;
+  color: hsl(var(--reader-accent));
+}
+
+.cjq-w3.cjq-w3 .cjq-input {
+  background: transparent;
+  border-color: hsl(var(--reader-border));
+  color: hsl(var(--reader-heading));
+  border-radius: 0.375rem;
+}
+
+.cjq-w3 .cjq-input:focus {
+  border-color: hsl(var(--reader-accent));
+  background: hsl(var(--reader-accent) / 0.04);
+}
+
+/* Filter pills become plain text tabs with an underline for the active one */
+.cjq-w3 .cjq-filter-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0 0.8rem;
+  font-family: var(--reader-font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  color: hsl(var(--reader-note));
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.cjq-w3 .cjq-filter-tab::after {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 2px;
+  height: 2px;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.cjq-w3 .cjq-filter-tab:hover {
+  color: hsl(var(--reader-heading));
+}
+
+.cjq-w3 .cjq-filter-tab[aria-pressed="true"] {
+  color: hsl(var(--reader-accent));
+}
+
+.cjq-w3 .cjq-filter-tab[aria-pressed="true"]::after {
+  background: hsl(var(--reader-accent));
+}
+
+.cjq-w3 .cjq-filter-count {
+  font-family: var(--reader-code-font);
+  font-size: 0.75rem;
+  color: hsl(var(--reader-note) / 0.75);
+}
+
+.cjq-w3 .cjq-filter-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 34px;
+  padding: 0 0.6rem;
+  font-family: var(--reader-font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--destructive));
+  background: transparent;
+  border: 0;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.cjq-w3 .cjq-filter-reset:hover {
+  opacity: 0.7;
+}
+
+/* ── Sidebar: a plain index of links ───────────────────────────────── */
+.cjq-w3 .cjq-side {
+  background: hsl(var(--reader-page));
+  border-right: 1px solid hsl(var(--reader-border));
+}
+
+.cjq-w3 .cjq-side-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--reader-note));
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid hsl(var(--reader-border));
+  margin-bottom: 0.5rem;
+}
+
+.cjq-w3 .cjq-side-count {
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  color: hsl(var(--reader-note) / 0.8);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cjq-w3 .cjq-side-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--reader-font);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: hsl(var(--reader-note));
+  padding: 0.45rem 0.5rem 0.45rem 0.65rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 0.3125rem 0.3125rem 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  text-wrap: pretty;
+}
+
+.cjq-w3 .cjq-side-link:hover {
+  color: hsl(var(--reader-heading));
+  background: hsl(var(--reader-accent) / 0.07);
+  border-left-color: hsl(var(--reader-accent) / 0.4);
+}
+
+.cjq-w3 .cjq-side-link[aria-pressed="true"] {
+  color: hsl(var(--reader-accent));
+  font-weight: 600;
+  background: hsl(var(--reader-accent) / 0.1);
+  border-left-color: hsl(var(--reader-accent));
+}
+
+.cjq-w3 .cjq-side-link-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.cjq-w3 .cjq-side-link-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cjq-w3 .cjq-side-link-num {
+  font-family: var(--reader-code-font);
+  font-size: 0.6875rem;
+  color: hsl(var(--reader-note) / 0.7);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.cjq-w3 .cjq-side-link[aria-pressed="true"] .cjq-side-link-num {
+  color: hsl(var(--reader-accent));
+}
+
+.cjq-w3 .cjq-side-progress {
+  height: 2px;
+  margin: 0.3rem 0 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: hsl(var(--reader-border));
+  overflow: hidden;
+}
+
+.cjq-w3 .cjq-side-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: hsl(var(--reader-accent));
+  transition: width 0.4s ease;
+}
+
+.cjq-w3 .cjq-side-progress-fill--complete {
+  background: hsl(var(--success));
+}
+
+/* ── Section heading: dotted rule, print style ─────────────────────── */
+.cjq-w3 .cjq-w3-section {
+  padding-top: 2.25rem;
+}
+
+.cjq-w3 .cjq-w3-section:first-child {
+  padding-top: 0;
+}
+
+.cjq-w3 .cjq-w3-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+}
+
+.cjq-w3 .cjq-w3-section-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cjq-w3 .cjq-list-topic {
+  font-family: var(--reader-font);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: hsl(var(--reader-heading));
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dotted hsl(var(--reader-rule));
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  text-wrap: balance;
+}
+
+.cjq-w3 .cjq-w3-section-meta {
+  font-family: var(--reader-font);
+  font-size: 0.875rem;
+  color: hsl(var(--reader-note));
+  margin-bottom: 0.5rem;
+}
+
+/* ── Question: a numbered heading + a flat body, no card box ──────── */
+.cjq-w3 .cjq-w3-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.cjq-w3 .cjq-w3-item {
+  position: relative;
+  padding: 1.85rem 0 1.85rem 3rem;
+  border-bottom: 1px solid hsl(var(--reader-border));
+}
+
+.cjq-w3 .cjq-w3-item:last-child {
+  border-bottom: 0;
+}
+
+/* The done toggle doubles as the list's leading mark */
+.cjq-w3 .cjq-w3-mark {
+  position: absolute;
+  left: 0.35rem;
+  top: 2.05rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px solid hsl(var(--reader-rule));
+  background: transparent;
+  color: transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.cjq-w3 .cjq-w3-mark:hover {
+  border-color: hsl(var(--success));
+  background: hsl(var(--success) / 0.12);
+}
+
+.cjq-w3 .cjq-w3-mark[aria-pressed="true"] {
+  background: hsl(var(--success));
+  border-color: hsl(var(--success));
+  color: hsl(var(--success-foreground));
+}
+
+.cjq-w3 .cjq-w3-item--done .cjq-w3-q {
+  color: hsl(var(--reader-note));
+}
+
+/* Numbered question heading — the visual anchor of each entry */
+.cjq-w3 .cjq-w3-qrow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin-bottom: 0.4rem;
+}
+
+.cjq-w3 .cjq-w3-num {
+  font-family: var(--reader-code-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: hsl(var(--reader-accent));
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  padding-top: 0.12em;
+}
+
+.cjq-w3 .cjq-w3-q {
+  font-family: var(--reader-font);
+  font-size: 1.4375rem;
+  font-weight: 650;
+  line-height: 1.38;
+  letter-spacing: -0.014em;
+  color: hsl(var(--reader-heading));
+  text-wrap: pretty;
+  transition: color 0.15s ease;
+}
+
+.cjq-w3 a.cjq-w3-qlink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cjq-w3 a.cjq-w3-qlink:hover .cjq-w3-q {
+  color: hsl(var(--reader-accent));
+}
+
+/* Meta line: a single muted row, not a wall of pills */
+.cjq-w3 .cjq-w3-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  font-family: var(--reader-font);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: hsl(var(--reader-note));
+  margin-bottom: 0.65rem;
+}
+
+.cjq-w3 .cjq-w3-meta > * + *::before {
+  content: "·";
+  margin-right: 0.6rem;
+  color: hsl(var(--reader-rule));
+}
+
+.cjq-w3 .cjq-w3-meta-id {
+  font-family: var(--reader-code-font);
+  font-size: 0.75rem;
+  color: hsl(var(--reader-note) / 0.8);
+}
+
+.cjq-w3 .cjq-w3-dot {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: currentColor;
+  margin-right: 0.3rem;
+  vertical-align: 0.06em;
+}
+
+.cjq-w3 .cjq-w3-meta--easy { color: hsl(var(--difficulty-easy)); }
+.cjq-w3 .cjq-w3-meta--medium { color: hsl(var(--difficulty-medium)); }
+.cjq-w3 .cjq-w3-meta--hard { color: hsl(var(--difficulty-hard)); }
+.cjq-w3 .cjq-w3-meta--learned { color: hsl(var(--success)); }
+.cjq-w3 .cjq-w3-meta--note { color: hsl(var(--warning)); }
+
+/* The one-line mental model */
+.cjq-w3 .cjq-w3-blurb {
+  font-family: var(--reader-font);
+  font-size: 1.1875rem;
+  line-height: 1.7;
+  color: hsl(var(--reader-body));
+  max-width: min(100%, 96ch);
+  text-wrap: pretty;
+}
+
+/* Actions read as inline text links, the way a tutorial page would */
+.cjq-w3 .cjq-w3-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+  margin-top: 0.85rem;
+}
+
+.cjq-w3 .cjq-w3-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 30px;
+  padding: 0;
+  font-family: var(--reader-font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--reader-note));
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.cjq-w3 .cjq-w3-action:hover {
+  color: hsl(var(--reader-accent));
+}
+
+.cjq-w3 .cjq-w3-action[aria-expanded="true"],
+.cjq-w3 .cjq-w3-action--on {
+  color: hsl(var(--reader-accent));
+}
+
+.cjq-w3 .cjq-w3-action--note:hover {
+  color: hsl(var(--warning));
+}
+
+.cjq-w3 .cjq-w3-chev {
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+.cjq-w3 .cjq-w3-spacer {
+  flex: 1;
+}
+
+/* Flatten the shared bookmark button to match the text-link row */
+.cjq-w3.cjq-w3 button.cjq-w3-bookmark {
+  background: transparent;
+  border-color: transparent;
+  color: hsl(var(--reader-note));
+  box-shadow: none;
+  padding: 0;
+  min-height: 28px;
+  border-radius: 0.25rem;
+}
+
+.cjq-w3.cjq-w3 button.cjq-w3-bookmark:hover {
+  background: transparent;
+  color: hsl(var(--reader-accent));
+}
+
+.cjq-w3.cjq-w3 button.cjq-w3-bookmark[aria-pressed="true"] {
+  background: transparent;
+  border-color: transparent;
+  color: hsl(var(--warning));
+  box-shadow: none;
+}
+
+/* ── Expanded answer sits on the page, not in a nested card ───────── */
+.cjq-w3 .cjq-w3-answer {
+  margin-top: 1.25rem;
+  padding-top: 1.15rem;
+  border-top: 1px dotted hsl(var(--reader-rule));
+}
+
+.cjq-w3 .cjq-w3-answer-label {
+  display: block;
+  font-family: var(--reader-font);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: hsl(var(--reader-accent));
+  margin-bottom: 0.9rem;
+}
+
+.cjq-w3.cjq-w3 .cjq-panel {
+  background: transparent;
+  border: 0;
+}
+
+/* The answer fills the reading column — a tutorial page does not wrap its
+   prose into a narrow measure while the page around it stays wide. */
+.cjq-w3 .cjq-w3-body {
+  max-width: min(100%, 104ch);
+  font-size: 1.1875rem;
+}
+
+/* Tighten the answer prose so it reads as part of the page flow */
+.cjq-w3 .cjq-ans > * + * {
+  margin-top: 1.2rem;
+}
+
+.cjq-w3 .cjq-ans-p,
+.cjq-w3 .cjq-ans-li {
+  font-size: 1.1875rem;
+  line-height: 1.8;
+}
+
+.cjq-w3 .cjq-ans-h {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-top: 2rem !important;
+  padding-bottom: 0.4rem;
+}
+
+.cjq-w3 .cjq-ans-h:first-child {
+  margin-top: 0 !important;
+}
+
+.cjq-w3 .cjq-ans-ul,
+.cjq-w3 .cjq-ans-ol {
+  gap: 0.65rem;
+}
+
+.cjq-w3 .cjq-ans-ul > li::before {
+  top: 0.7em;
+  background: hsl(var(--reader-accent) / 0.6);
+}
+
+.cjq-w3 .cjq-ans-c,
+.cjq-w3 .cjq-ans code {
+  font-size: 0.88em;
+  padding: 0.12em 0.36em;
+}
+
+.cjq-w3.cjq-w3 .cjq-doc-box {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.cjq-w3 .cjq-w3-code {
+  margin-top: 1rem;
+}
+
+/* ── Sign-in nudge: one quiet line, not an alert card ──────────────── */
+.cjq-w3 .cjq-w3-signin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid hsl(var(--reader-border));
+  border-left: 3px solid hsl(var(--warning));
+  border-radius: 0.25rem;
+  background: transparent;
+}
+
+.cjq-w3 .cjq-w3-signin-text {
+  font-family: var(--reader-font);
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: hsl(var(--reader-note));
+  flex: 1;
+  min-width: 14rem;
+}
+
+.cjq-w3 .cjq-w3-signin-text strong {
+  color: hsl(var(--reader-heading));
+  font-weight: 650;
+}
+
+.cjq-w3 .cjq-w3-signin-btn {
+  padding: 0.4rem 1rem;
+  font-family: var(--reader-font);
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: hsl(var(--reader-accent));
+  background: transparent;
+  border: 1px solid hsl(var(--reader-accent) / 0.45);
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.cjq-w3 .cjq-w3-signin-btn:hover {
+  background: hsl(var(--reader-accent) / 0.1);
+}
+
+/* ── Empty state ───────────────────────────────────────────────────── */
+.cjq-w3 .cjq-w3-empty-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--reader-border));
+  border-radius: 999px;
+  color: hsl(var(--reader-note) / 0.6);
+  margin-bottom: 1.25rem;
+}
+
+.cjq-w3 .cjq-w3-empty-title {
+  font-family: var(--reader-font);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--reader-heading));
+  margin-bottom: 0.35rem;
+}
+
+.cjq-w3 .cjq-w3-empty-body {
+  font-family: var(--reader-font);
+  font-size: 0.9375rem;
+  color: hsl(var(--reader-note));
+  max-width: 32rem;
+}
+
+/* ── Focus rings for the flat controls ─────────────────────────────── */
+.cjq-w3 :is(a, button, input):focus-visible {
+  outline: 2px solid hsl(var(--reader-accent));
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .cjq-w3 .cjq-w3-item {
+    padding-left: 2.25rem;
+  }
+
+  .cjq-w3 .cjq-w3-mark {
+    top: 1.95rem;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .cjq-w3 .cjq-w3-q {
+    font-size: 1.25rem;
+  }
+
+  .cjq-w3 .cjq-ans-p,
+  .cjq-w3 .cjq-ans-li,
+  .cjq-w3 .cjq-w3-blurb,
+  .cjq-w3 .cjq-w3-body {
+    font-size: 1.0625rem;
+  }
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────── */
