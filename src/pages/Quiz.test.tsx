@@ -214,7 +214,12 @@ describe("Quiz setup and randomized session", () => {
     expect(
       screen.queryByRole("button", { name: "Next question" }),
     ).not.toBeInTheDocument();
-  });
+    // This test renders a complete 5-question exam and then walks every
+    // question, asserting focus, option labels and hidden explanations for each
+    // one. It costs ~1.3s on its own and several seconds under parallel test
+    // load, which overruns vitest's 5s default once the suite has grown. The
+    // timeout is raised for that reason only; no assertion is relaxed.
+  }, 20_000);
 });
 
 describe("Quiz answers, navigation and submission", () => {

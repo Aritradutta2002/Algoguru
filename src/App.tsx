@@ -18,7 +18,6 @@ import Index from "./pages/Index";
 import TopicPage from "./pages/TopicPage";
 import Playground from "./pages/Playground";
 import Practice from "./pages/Practice";
-import Quiz from "./pages/Quiz";
 import PracticeSolution from "./pages/PracticeSolution";
 import ProblemSolver from "./pages/ProblemSolver";
 import Interview from "./pages/Interview";
@@ -30,13 +29,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { ModeProvider } from "@/contexts/ModeContext";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GuruBot, GURU_PANEL_CONSTANTS } from "@/components/GuruBot";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import {
+  contestAppRoutes,
+  contestStandaloneRoutes,
+} from "@/components/contest/ContestRoutes";
 import Profile from "./pages/Profile";
 import NotesDashboard from "./pages/NotesDashboard";
 import Admin from "./pages/Admin";
@@ -459,28 +463,6 @@ function ScrollToTopOnRouteChange() {
   return null;
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth();
-  if (loading) return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-background"
-    >
-      <div className="z-10">
-        <AlgoGuruLogo size={180} showText={true} className="text-foreground" />
-      </div>
-
-      <div className="w-32 h-[2px] mt-6 rounded-full overflow-hidden z-10 bg-muted">
-        <div className="h-full rounded-full animate-pulse bg-primary" />
-      </div>
-      <p className="text-xs text-muted-foreground mt-4 z-10">
-        Loading…
-      </p>
-    </div>
-  );
-  if (!session) return <Navigate to="/auth" replace />;
-  return <>{children}</>;
-}
-
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [guruOpen, setGuruOpen] = useState(false);
@@ -520,9 +502,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // "Choose where to focus next." heading, which toggles `homeSidebarOpen`.
   const [homeSidebarOpen, setHomeSidebarOpen] = useState(false);
   const isHomeRoute = location.pathname === "/";
-  // Sidebar panel should only mount on non-home routes, or when the home
-  // visitor explicitly opens it via the heading.
-  const showSidebarPanel = !isHomeRoute || homeSidebarOpen;
+  // The contest landing page is a focused entry surface: no sidebar panel and
+  // no resize slider, while the header keeps search / account / Guru access.
+  const isContestLandingRoute = location.pathname === "/contest";
+  // Sidebar panel should only mount on routes that want it: non-home,
+  // non-contest-landing, or when the home visitor explicitly opens it via
+  // the heading.
+  const showSidebarPanel =
+    (!isHomeRoute && !isContestLandingRoute) || homeSidebarOpen;
   useEffect(() => {
     // The panel unmounts on the home route; reset its state before it remounts.
     if (!showSidebarPanel) setIsSidebarCollapsed(false);
@@ -636,7 +623,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         {/* ── Sidebar + Content split ── */}
         <PanelGroup direction="horizontal" className="h-full w-full">
           {/* Sidebar panel — hidden entirely on the home page until the
-              visitor clicks "Choose where to focus next." */}
+              visitor clicks "Choose where to focus next.", and on the contest
+              landing page so it reads as a focused surface. */}
           {showSidebarPanel && (
           <Panel
             id="app-sidebar-panel"
@@ -1088,7 +1076,8 @@ const App = () => (
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+                {/* Contest exam screens are chrome-free, like the old /quiz. */}
+                {contestStandaloneRoutes()}
                 {/* Chrome-free fullscreen roadmap routes — no AppLayout, no
                     sidebar, no header, no footer. Just the roadmaps. */}
                 <Route path="/roadmap" element={
@@ -1108,6 +1097,10 @@ const App = () => (
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/practice" element={<Practice />} />
                         <Route path="/problem-solver" element={<ProblemSolver />} />
+                        {/* Contest landing / instructions / result. Declared
+                            above the `/:topicId` catch-all below, which would
+                            otherwise match `/contest`. */}
+                        {contestAppRoutes()}
                         <Route path="/interview" element={<Interview />} />
                         <Route path="/interview/:language" element={<Interview />} />
                         <Route path="/interview/:language/data-structure" element={<InterviewDataStructurePage />} />

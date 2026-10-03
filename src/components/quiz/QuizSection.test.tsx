@@ -18,7 +18,8 @@ function renderSection() {
     <MemoryRouter>
       <Routes>
         <Route path="/" element={<QuizSection />} />
-        <Route path="/quiz" element={<Destination />} />
+        <Route path="/contest" element={<div>Contest landing</div>} />
+        <Route path="/contest/quiz" element={<Destination />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -37,10 +38,15 @@ describe("QuizSection", () => {
     expect(screen.getByText(/learn from every attempt/i)).toBeInTheDocument();
   });
 
-  it("opens a dedicated quiz page rather than an overlay", () => {
+  it("is branded as the Contest MCQ mode rather than a separate Studio", () => {
     renderSection();
-    fireEvent.click(screen.getByRole("link", { name: /open quiz studio/i }));
-    expect(screen.getByText("Quiz page: /quiz")).toBeInTheDocument();
+    expect(screen.getByText(/Contest · MCQ Quiz/)).toBeInTheDocument();
+  });
+
+  it("sends the main call to action to the Contest landing page", () => {
+    renderSection();
+    fireEvent.click(screen.getByRole("link", { name: /open contest/i }));
+    expect(screen.getByText("Contest landing")).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -52,7 +58,7 @@ describe("QuizSection", () => {
     renderSection();
     fireEvent.click(screen.getByRole("link", { name: label }));
     expect(
-      screen.getByText(`Quiz page: /quiz?language=${id}`),
+      screen.getByText(`Quiz page: /contest/quiz?language=${id}`),
     ).toBeInTheDocument();
   });
 });

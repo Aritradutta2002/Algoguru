@@ -43,6 +43,8 @@ import {
   type QuizLanguage,
 } from "@/lib/quizBank";
 import { cn } from "@/lib/utils";
+import { MAX_EXAM_WARNINGS as MAX_WARNINGS } from "@/lib/examConstants";
+import { formatExamTime } from "@/lib/formatTime";
 
 type Language = QuizLanguage | "mixed";
 type Difficulty = QuizDifficulty | "mixed";
@@ -52,8 +54,6 @@ interface Session {
   startedAt: number;
   deadline: number | null;
 }
-
-const MAX_WARNINGS = 4;
 
 const languages: { value: Language; label: string }[] = [
   { value: "mixed", label: "All languages" },
@@ -104,9 +104,7 @@ const EXAM_RULES = [
 ];
 
 export function formatQuizTime(seconds: number) {
-  return `${Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+  return formatExamTime(seconds);
 }
 
 export default function Quiz() {
@@ -373,17 +371,17 @@ export default function Quiz() {
             </Button>
           ) : (
             <Link
-              to="/"
+              to="/contest"
               onClick={() => void exitFullscreen()}
               className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft size={16} />
-              Back to home
+              Back to Contest
             </Link>
           )}
           <span className="flex items-center gap-2 font-display font-bold">
             <Shuffle size={20} className="text-primary" />
-            Quiz Studio
+            Contest · MCQ Quiz
           </span>
           <div className="flex items-center gap-3">
             {/* Warning badge visible during running phase */}
@@ -1074,7 +1072,7 @@ export default function Quiz() {
                   <div className="mt-7 flex flex-wrap gap-3">
                     <Button onClick={() => void start()} disabled={starting}>
                       <RotateCcw size={16} className="mr-2" />
-                      Try a fresh quiz
+                      Try another quiz
                     </Button>
                     <Button variant="outline" onClick={reset}>
                       Change settings
