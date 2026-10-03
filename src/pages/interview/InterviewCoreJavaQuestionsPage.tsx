@@ -35,11 +35,11 @@ import { useCoreJavaUserState } from "@/hooks/useCoreJavaUserState";
 import { useCoreJavaBookmarks } from "@/hooks/useCoreJavaBookmarks";
 import { getAllCoreJavaQuestions, type IndexedCoreJavaQuestion } from "@/lib/coreJavaQuestionIndex";
 import { getCoreJavaQuestionDetailPath } from "@/data/coreJavaInterviewMetadata";
-import { hasCoreJavaVisualization } from "@/components/interview/CoreJavaVisualizationBlock";
+import { CoreJavaVisualizationBlock, hasCoreJavaVisualization } from "@/components/interview/CoreJavaVisualizationBlock";
 import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
 import "@/styles/core-java-interview.css";
 
-type SolutionView = "theory" | "code" | null;
+type SolutionView = "theory" | "code" | "diagram" | null;
 type FilterKind = "all" | "most-asked" | "easy" | "medium" | "hard" | "bookmarked" | "completed";
 
 const FILTER_OPTIONS: { id: FilterKind; label: string; icon?: string }[] = [
@@ -165,6 +165,23 @@ const _QuestionCard = ({
           </button>
         )}
 
+        {hasCoreJavaVisualization(question.id) && (
+          <button
+            onClick={() => onToggleView(question.id, "diagram")}
+            aria-expanded={activeView === "diagram"}
+            className="cjq-w3-action"
+          >
+            <Network size={13} aria-hidden="true" />
+            Diagram
+            <ChevronUp
+              size={12}
+              className="cjq-w3-chev"
+              style={{ transform: activeView === "diagram" ? "rotate(0deg)" : "rotate(180deg)" }}
+              aria-hidden="true"
+            />
+          </button>
+        )}
+
         <button
           onClick={() => onOpenNote(question.id)}
           aria-label={hasNote ? "Edit note for this question" : "Add note for this question"}
@@ -201,7 +218,7 @@ const _QuestionCard = ({
           >
             <div className="cjq-w3-answer">
               <span className="cjq-w3-answer-label">
-                {activeView === "theory" ? "Answer:" : "Example:"}
+                {activeView === "theory" ? "Answer:" : activeView === "code" ? "Example:" : "Diagram:"}
               </span>
               <div className="cjq-w3-body">
                 {activeView === "theory" && (
@@ -217,6 +234,11 @@ const _QuestionCard = ({
                       code={question.code}
                       title="Implementation"
                     />
+                  </div>
+                )}
+                {activeView === "diagram" && hasCoreJavaVisualization(question.id) && (
+                  <div className="mt-2">
+                    <CoreJavaVisualizationBlock questionId={question.id} />
                   </div>
                 )}
               </div>

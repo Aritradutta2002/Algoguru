@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import {
+  AlertTriangle,
   ArrowRight,
   CheckCircle2,
   Clock3,
   Code2,
   Maximize2,
+  Shield,
   Shuffle,
   Sparkles,
 } from "lucide-react";
@@ -23,8 +25,12 @@ export function QuizSection() {
       id="quiz"
       className="relative overflow-hidden border-y border-border/60 bg-muted/30"
     >
+      {/* Background glow effects */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,hsl(var(--primary)/0.14),transparent_50%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_90%,hsl(var(--primary)/0.08),transparent_40%)]" />
+
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 py-20 md:px-10 lg:grid-cols-[1.2fr_1fr] lg:px-16">
+        {/* ── Left: CTA ── */}
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
             <Shuffle size={14} />
@@ -36,8 +42,8 @@ export function QuizSection() {
             <span className="text-primary">Know where you stand.</span>
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-8 text-muted-foreground">
-            A fresh set of random MCQs, a focused space to solve, and answers
-            that explain the why. Pick your language or mix them up.
+            A fresh set of random MCQs in a strict, exam-grade environment.
+            Fullscreen lockdown, focus monitoring, and automatic scoring.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             {[
@@ -66,11 +72,13 @@ export function QuizSection() {
             <ArrowRight size={18} />
           </Link>
         </div>
+
+        {/* ── Right: Feature card ── */}
         <div className="overflow-hidden rounded-3xl border border-primary/20 bg-card shadow-xl">
           <div className="flex items-center justify-between border-b border-border bg-primary/5 px-6 py-4">
             <span className="flex items-center gap-2 text-sm font-semibold">
               <Sparkles size={16} className="text-primary" />
-              Your next challenge
+              Exam-Grade Challenge
             </span>
             <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
               MCQ
@@ -91,8 +99,14 @@ export function QuizSection() {
                 },
                 {
                   icon: Maximize2,
-                  title: "Mandatory fullscreen. Stay focused.",
-                  text: "Exam-style fullscreen with warnings if you exit, switch tabs, or minimize.",
+                  title: "Mandatory fullscreen lockdown",
+                  text: "Exam-style fullscreen with tab-switching detection and focus monitoring.",
+                },
+                {
+                  icon: Shield,
+                  title: "Strict 3-warning policy",
+                  text: "Exit fullscreen, switch tabs, or lose focus — 3 warnings, then auto-submit.",
+                  highlight: true,
                 },
                 {
                   icon: CheckCircle2,
@@ -101,7 +115,13 @@ export function QuizSection() {
                 },
               ].map((item) => (
                 <div key={item.title} className="flex items-start gap-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                      item.highlight
+                        ? "bg-amber-500/10 text-amber-500"
+                        : "bg-primary/10 text-primary"
+                    }`}
+                  >
                     <item.icon size={20} />
                   </span>
                   <div>
@@ -112,6 +132,15 @@ export function QuizSection() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Exam rules mini-banner */}
+            <div className="mt-6 flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+              <AlertTriangle size={16} className="shrink-0 text-amber-500" />
+              <p className="text-xs leading-5 text-muted-foreground">
+                <span className="font-semibold text-foreground">Strict exam mode:</span>{" "}
+                3 warnings before auto-submission. Timer never pauses.
+              </p>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-﻿import { defineChunk } from "@/data/coreJavaQuestions/contract";
+import { defineChunk } from "@/data/coreJavaQuestions/contract";
 
 /**
  * New Features - global questions 222-225.
@@ -219,7 +219,7 @@ export const chunk22NewFeatures = defineChunk({
       difficulty: "medium",
       priority: "high",
       tags: ["java5", "generics", "concurrency"],
-      relatedQuestionIds: ["g1", "mt8"],
+      relatedQuestionIds: ["q178", "q192"],
       estimatedReadMinutes: 4,
       javaVersions: ["Java 5"],
     },
@@ -227,7 +227,7 @@ export const chunk22NewFeatures = defineChunk({
       difficulty: "medium",
       priority: "medium",
       tags: ["java6", "performance", "scripting"],
-      relatedQuestionIds: ["mt8"],
+      relatedQuestionIds: ["q192", "q156"],
       estimatedReadMinutes: 3,
       javaVersions: ["Java 6"],
     },
@@ -235,7 +235,7 @@ export const chunk22NewFeatures = defineChunk({
       difficulty: "medium",
       priority: "high",
       tags: ["java7", "nio", "try-with-resources"],
-      relatedQuestionIds: ["e4", "mt14"],
+      relatedQuestionIds: ["q106", "q202"],
       estimatedReadMinutes: 4,
       javaVersions: ["Java 7"],
     },
@@ -243,7 +243,7 @@ export const chunk22NewFeatures = defineChunk({
       difficulty: "medium",
       priority: "very-high",
       tags: ["java8", "lambda", "streams"],
-      relatedQuestionIds: ["ic3", "st1"],
+      relatedQuestionIds: ["q210", "q215"],
       estimatedReadMinutes: 5,
       javaVersions: ["Java 8+"],
     },

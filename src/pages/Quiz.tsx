@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   Check,
   CheckCircle2,
   Clock3,
@@ -10,6 +12,9 @@ import {
   Maximize2,
   Minimize2,
   RotateCcw,
+  Shield,
+  ShieldAlert,
+  ShieldX,
   Shuffle,
   Sparkles,
   Trophy,
@@ -47,6 +52,9 @@ interface Session {
   startedAt: number;
   deadline: number | null;
 }
+
+const MAX_WARNINGS = 4;
+
 const languages: { value: Language; label: string }[] = [
   { value: "mixed", label: "All languages" },
   { value: "java", label: "Java" },
@@ -71,6 +79,30 @@ const containerClass =
    form control under 16px. */
 const fieldClass =
   "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+
+const EXAM_RULES = [
+  {
+    icon: Maximize2,
+    title: "Mandatory Fullscreen",
+    desc: "The exam runs in fullscreen mode. Exiting fullscreen triggers a warning.",
+  },
+  {
+    icon: ShieldAlert,
+    title: "No Tab Switching",
+    desc: "Switching tabs, minimizing, or losing focus triggers a warning. Stay on the exam.",
+  },
+  {
+    icon: AlertTriangle,
+    title: "3 Warnings Before Termination",
+    desc: "You get 3 chances to return. On the 4th violation, your exam is auto-submitted.",
+  },
+  {
+    icon: Clock3,
+    title: "Timer Never Pauses",
+    desc: "The countdown keeps running during warnings. Time lost is time gone.",
+  },
+];
+
 export function formatQuizTime(seconds: number) {
   return `${Math.floor(seconds / 60)
     .toString()
@@ -177,7 +209,16 @@ export default function Quiz() {
       if (interruptionRef.current) return;
       interruptionRef.current = reason;
       setExamWarning(reason);
-      setWarningCount((current) => current + 1);
+      setWarningCount((current) => {
+        const next = current + 1;
+        // Auto-submit on the 4th warning — exam terminated
+        if (next >= MAX_WARNINGS) {
+          setTimeout(() => {
+            finish();
+          }, 0);
+        }
+        return next;
+      });
       setConfirmation(null);
     };
     const checkFullscreen = () => {
@@ -304,8 +345,25 @@ export default function Quiz() {
     void exitFullscreen();
   }
 
+  /* ── warning severity helpers ── */
+  const warningsRemaining = MAX_WARNINGS - warningCount;
+  const warningTerminated = warningCount >= MAX_WARNINGS;
+
+  function getWarningIcon() {
+    if (warningCount >= 3) return ShieldX;
+    if (warningCount >= 2) return ShieldAlert;
+    return Shield;
+  }
+
+  function getWarningColor() {
+    if (warningCount >= 3) return "text-red-500";
+    if (warningCount >= 2) return "text-orange-500";
+    return "text-amber-500";
+  }
+
   return (
     <div className="min-h-screen overflow-y-auto bg-background text-foreground selection:bg-primary/20">
+      {/* ─── HEADER ─── */}
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-xl">
         <div className={cn(containerClass, "flex flex-wrap items-center justify-between gap-3 py-4")}>
           {phase === "running" ? (
@@ -327,27 +385,45 @@ export default function Quiz() {
             <Shuffle size={20} className="text-primary" />
             Quiz Studio
           </span>
-          {phase === "running" ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
-              <Maximize2 size={15} />
-              Fullscreen required
-            </span>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                void (fullscreen ? exitFullscreen() : enterFullscreen())
-              }
-            >
-              {fullscreen ? (
-                <Minimize2 size={16} className="mr-2" />
-              ) : (
-                <Maximize2 size={16} className="mr-2" />
-              )}
-              {fullscreen ? "Exit fullscreen" : "Fullscreen"}
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            {/* Warning badge visible during running phase */}
+            {phase === "running" && warningCount > 0 && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold tabular-nums",
+                  warningCount >= 3
+                    ? "border-red-500/30 bg-red-500/10 text-red-500"
+                    : warningCount >= 2
+                      ? "border-orange-500/30 bg-orange-500/10 text-orange-500"
+                      : "border-amber-500/30 bg-amber-500/10 text-amber-500",
+                )}
+              >
+                <AlertTriangle size={13} />
+                {warningCount}/{MAX_WARNINGS}
+              </span>
+            )}
+            {phase === "running" ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
+                <Maximize2 size={15} />
+                Fullscreen required
+              </span>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  void (fullscreen ? exitFullscreen() : enterFullscreen())
+                }
+              >
+                {fullscreen ? (
+                  <Minimize2 size={16} className="mr-2" />
+                ) : (
+                  <Maximize2 size={16} className="mr-2" />
+                )}
+                {fullscreen ? "Exit fullscreen" : "Fullscreen"}
+              </Button>
+            )}
+          </div>
         </div>
       </header>
       {fullscreenMessage && (
@@ -358,22 +434,25 @@ export default function Quiz() {
           {fullscreenMessage}
         </p>
       )}
+
+      {/* ─── MAIN ─── */}
       <main className={cn(containerClass, "py-8 sm:py-12")}>
+        {/* ═══════════ SETUP PHASE ═══════════ */}
         {phase === "setup" && (
           <>
+            {/* ── Hero Section ── */}
             <section
-              className="mb-9 overflow-hidden rounded-3xl border border-border bg-card"
+              className="relative mb-9 overflow-hidden rounded-3xl border border-border bg-card"
               aria-labelledby="setup-hero-title"
             >
-              {/* Split hero: the promise on the left, the session the user is
-                  about to build on the right. The proof (question count,
-                  language mix) sits under the promise instead of in a row of
-                  floating chips. */}
-              <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:p-10">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,hsl(var(--primary)/0.12),transparent_60%)]" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_100%,hsl(var(--primary)/0.08),transparent_60%)]" />
+
+              <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:p-10">
                 <div className="flex flex-col justify-center">
                   <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                     <Sparkles size={14} aria-hidden="true" />
-                    A fresh challenge, every time
+                    Exam-grade MCQ challenge
                   </span>
                   <h1
                     id="setup-hero-title"
@@ -384,13 +463,11 @@ export default function Quiz() {
                     <span className="text-primary">Big confidence.</span>
                   </h1>
                   <p className="mt-5 max-w-prose text-base leading-7 text-muted-foreground">
-                    Test what you know with random multiple-choice questions.
-                    Practice at your pace, or race the clock in a focused,
-                    fullscreen challenge.
+                    Test what you know with random multiple-choice questions in a
+                    strict, distraction-free exam environment. Practice at your
+                    pace, or race the clock under real exam conditions.
                   </p>
                 </div>
-                {/* Three cells in one row on wide screens; the gap-px over a
-                    bordered background draws the dividers between them. */}
                 <dl className="grid grid-cols-3 gap-px self-center overflow-hidden rounded-2xl border border-border bg-border">
                   {[
                     ["Question bank", `${MCQ_QUESTIONS.length}`, "curated MCQs"],
@@ -412,6 +489,81 @@ export default function Quiz() {
                 </dl>
               </div>
             </section>
+
+            {/* ── Exam Rules Section ── */}
+            <section className="mb-9 rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-card to-red-500/5 p-6 sm:p-8">
+              <div className="mb-6 flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500">
+                  <Shield size={22} />
+                </span>
+                <div>
+                  <h2 className="font-display text-xl font-bold">
+                    Strict Exam Rules
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Read carefully before starting. Violations lead to
+                    auto-submission.
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {EXAM_RULES.map((rule, i) => (
+                  <div
+                    key={rule.title}
+                    className={cn(
+                      "flex items-start gap-4 rounded-2xl border p-4 transition-colors",
+                      i === 2
+                        ? "border-red-500/25 bg-red-500/5"
+                        : "border-border bg-card/60",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                        i === 2
+                          ? "bg-red-500/15 text-red-500"
+                          : "bg-amber-500/10 text-amber-500",
+                      )}
+                    >
+                      <rule.icon size={20} />
+                    </span>
+                    <div>
+                      <h3 className="text-sm font-bold">{rule.title}</h3>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        {rule.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Warning escalation visual */}
+              <div className="mt-6 rounded-2xl border border-border bg-card/80 p-4">
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Warning Escalation
+                </p>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div key={step} className="flex flex-1 flex-col items-center gap-2">
+                      <div
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold",
+                          step <= 3
+                            ? "border-amber-500/30 bg-amber-500/10 text-amber-500"
+                            : "border-red-500/40 bg-red-500/15 text-red-500",
+                        )}
+                      >
+                        {step <= 3 ? step : "✕"}
+                      </div>
+                      <span className="text-center text-[10px] font-medium leading-tight text-muted-foreground">
+                        {step <= 3 ? `Warning ${step}` : "Auto-submit"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* ── Configuration + Start Panel ── */}
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)]">
               <section
                 className="rounded-3xl border border-border bg-card p-6 sm:p-8"
@@ -424,7 +576,7 @@ export default function Quiz() {
                   Build your challenge
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Choose your focus. We’ll shuffle the questions and choices.
+                  Choose your focus. We'll shuffle the questions and choices.
                 </p>
                 <div className="mt-7 grid gap-5 sm:grid-cols-2">
                   <label className="text-sm font-medium">
@@ -495,9 +647,6 @@ export default function Quiz() {
                   <legend className="mb-3 text-sm font-medium">
                     Quiz mode
                   </legend>
-                  {/* The radio input stays in the DOM for its accessible name
-                      and keyboard behaviour, but the card itself is the
-                      control, so the whole surface is clickable. */}
                   <div className="grid gap-3 sm:grid-cols-2">
                     {(["practice", "timed"] as const).map((value) => (
                       <label
@@ -533,20 +682,26 @@ export default function Quiz() {
                     ))}
                   </div>
                 </fieldset>
-                <div className="mt-6 flex items-start gap-3 rounded-2xl border border-warning/40 bg-warning/5 p-4">
-                  <Maximize2 size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-warning" />
+
+                {/* Fullscreen notice */}
+                <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+                  <Maximize2 size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-amber-500" />
                   <div>
                     <p className="text-sm font-semibold">
                       Mandatory fullscreen exam
                     </p>
                     <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
                       Starting this quiz enters fullscreen. Exiting fullscreen,
-                      switching tabs, or minimizing shows a warning and blocks
-                      questions until you return. The exam timer keeps running.
+                      switching tabs, or minimizing triggers a warning. After{" "}
+                      <strong className="text-foreground">{MAX_WARNINGS} violations</strong>,
+                      your exam is automatically submitted with whatever answers
+                      you have.
                     </p>
                   </div>
                 </div>
               </section>
+
+              {/* ── Start Aside ── */}
               <aside className="flex flex-col rounded-3xl border border-primary/20 bg-gradient-to-b from-primary/10 to-card p-6 lg:sticky lg:top-24 sm:p-8">
                 <span className="text-xs font-bold uppercase tracking-widest text-primary">
                   Your next session
@@ -568,6 +723,7 @@ export default function Quiz() {
                         : "At your own pace",
                     ],
                     ["Scoring", "1 point each · no negative marking"],
+                    ["Warnings", `${MAX_WARNINGS} max before auto-submit`],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -602,6 +758,8 @@ export default function Quiz() {
             </div>
           </>
         )}
+
+        {/* ═══════════ RUNNING PHASE ═══════════ */}
         {phase === "running" && session && question && !examWarning && (
           <>
             <div className="mb-7 flex flex-wrap items-center justify-between gap-5">
@@ -613,31 +771,58 @@ export default function Quiz() {
                   One question. One step forward.
                 </h1>
               </div>
-              <div
-                role="timer"
-                aria-label={
-                  session.deadline ? "Time remaining" : "Time elapsed"
-                }
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl border px-5 py-3",
-                  session.deadline && remaining <= 60
-                    ? "border-destructive/40 bg-destructive/10 text-destructive"
-                    : "border-border bg-card",
+              <div className="flex items-center gap-3">
+                {/* Warning indicator during exam */}
+                {warningCount > 0 && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 rounded-2xl border px-4 py-3",
+                      warningCount >= 3
+                        ? "border-red-500/30 bg-red-500/10"
+                        : warningCount >= 2
+                          ? "border-orange-500/30 bg-orange-500/10"
+                          : "border-amber-500/30 bg-amber-500/10",
+                    )}
+                  >
+                    {(() => {
+                      const Icon = getWarningIcon();
+                      return <Icon size={20} className={getWarningColor()} />;
+                    })()}
+                    <div>
+                      <p className={cn("text-[11px] font-bold uppercase tracking-wider", getWarningColor())}>
+                        Warnings
+                      </p>
+                      <p className={cn("font-mono text-lg font-bold tabular-nums", getWarningColor())}>
+                        {warningCount}/{MAX_WARNINGS}
+                      </p>
+                    </div>
+                  </div>
                 )}
-              >
-                <Clock3 size={22} />
-                <div>
-                  <p className="text-[11px] uppercase tracking-wider">
-                    {session.deadline ? "Time remaining" : "Time elapsed"}
-                  </p>
-                  <p className="font-mono text-2xl font-bold tabular-nums">
-                    {formatQuizTime(session.deadline ? remaining : elapsed)}
-                  </p>
+                {/* Timer */}
+                <div
+                  role="timer"
+                  aria-label={
+                    session.deadline ? "Time remaining" : "Time elapsed"
+                  }
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl border px-5 py-3",
+                    session.deadline && remaining <= 60
+                      ? "border-destructive/40 bg-destructive/10 text-destructive"
+                      : "border-border bg-card",
+                  )}
+                >
+                  <Clock3 size={22} />
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider">
+                      {session.deadline ? "Time remaining" : "Time elapsed"}
+                    </p>
+                    <p className="font-mono text-2xl font-bold tabular-nums">
+                      {formatQuizTime(session.deadline ? remaining : elapsed)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-            {/* The rail grows with the viewport; the question keeps a reading
-                measure so the options never stretch to full width. */}
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_clamp(18rem,22vw,24rem)]">
               <section className="rounded-3xl border border-border bg-card p-5 sm:p-8">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -677,8 +862,6 @@ export default function Quiz() {
                           onChange={() => selectAnswer(optionIndex)}
                           className="sr-only"
                         />
-                        {/* The letter badge doubles as the selection indicator,
-                            so state is never carried by colour alone. */}
                         <span
                           aria-hidden="true"
                           className={cn(
@@ -691,6 +874,7 @@ export default function Quiz() {
                           {String.fromCharCode(65 + optionIndex)}
                         </span>
                         <span className="min-w-0 flex-1 whitespace-pre-wrap break-words pt-0.5 text-sm leading-6 sm:text-base">
+                          <span className="sr-only">{String.fromCharCode(65 + optionIndex)}. </span>
                           {option}
                         </span>
                         {selected && (
@@ -810,6 +994,28 @@ export default function Quiz() {
                   <br />
                   You can revisit and change any answer.
                 </p>
+
+                {/* Warning status in sidebar */}
+                {warningCount > 0 && (
+                  <div
+                    className={cn(
+                      "mt-5 rounded-xl border p-3",
+                      warningCount >= 3
+                        ? "border-red-500/25 bg-red-500/5"
+                        : "border-amber-500/25 bg-amber-500/5",
+                    )}
+                  >
+                    <p className={cn("text-xs font-bold", warningCount >= 3 ? "text-red-500" : "text-amber-500")}>
+                      ⚠ {warningCount} of {MAX_WARNINGS} warnings used
+                    </p>
+                    <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                      {warningsRemaining <= 1
+                        ? "Next violation will auto-submit your exam!"
+                        : `${warningsRemaining} violations remaining before auto-submit.`}
+                    </p>
+                  </div>
+                )}
+
                 <Button
                   className="mt-6 w-full"
                   onClick={() => setConfirmation("submit")}
@@ -820,12 +1026,11 @@ export default function Quiz() {
             </div>
           </>
         )}
+
+        {/* ═══════════ RESULTS PHASE ═══════════ */}
         {phase === "results" && session && (
           <>
             <section className="overflow-hidden rounded-3xl border border-primary/20 bg-card">
-              {/* The score is the headline, so it gets the left column at
-                  display size; the supporting counts sit beside it as a
-                  2x2 grid rather than a thin strip below the title. */}
               <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_minmax(0,22rem)] lg:items-center lg:gap-12 lg:p-10">
                 <div>
                   <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
@@ -835,15 +1040,37 @@ export default function Quiz() {
                     Challenge complete
                   </p>
                   <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
-                    {correct === questions.length
-                      ? "A perfect finish!"
-                      : "Every attempt makes you better."}
+                    {warningTerminated
+                      ? "Exam terminated."
+                      : correct === questions.length
+                        ? "A perfect finish!"
+                        : "Every attempt makes you better."}
                   </h1>
                   <p role="status" className="mt-3 text-muted-foreground">
-                    {timedOut
-                      ? "Time’s up! Your answers were submitted automatically."
-                      : "Your quiz is submitted. Let’s see how you did."}
+                    {warningTerminated
+                      ? `Your exam was auto-submitted after ${MAX_WARNINGS} focus violations. Answers given before termination have been recorded.`
+                      : timedOut
+                        ? "Time’s up! Your answers were submitted automatically."
+                        : "Your quiz is submitted. Let’s see how you did."}
                   </p>
+
+                  {/* Warning summary in results */}
+                  {warningCount > 0 && (
+                    <div
+                      className={cn(
+                        "mt-4 inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium",
+                        warningTerminated
+                          ? "border-red-500/30 bg-red-500/10 text-red-500"
+                          : "border-amber-500/30 bg-amber-500/10 text-amber-500",
+                      )}
+                    >
+                      <AlertTriangle size={16} />
+                      {warningTerminated
+                        ? `Terminated after ${warningCount} focus violations`
+                        : `${warningCount} focus warning${warningCount > 1 ? "s" : ""} during exam`}
+                    </div>
+                  )}
+
                   <div className="mt-7 flex flex-wrap gap-3">
                     <Button onClick={() => void start()} disabled={starting}>
                       <RotateCcw size={16} className="mr-2" />
@@ -881,6 +1108,21 @@ export default function Quiz() {
                 Exam focus warnings: {warningCount}
               </p>
             )}
+            {warningCount > 0 && (
+              <div className="mt-5 flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-4">
+                <AlertTriangle size={18} className="shrink-0 text-amber-500" />
+                <div>
+                  <p className="text-sm font-semibold">
+                    Exam integrity: {warningCount} warning{warningCount > 1 ? "s" : ""}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {warningTerminated
+                      ? "This exam was terminated due to exceeding the maximum allowed focus violations. In a real exam, this would disqualify the attempt."
+                      : "Focus violations were recorded during this attempt. In a real exam, these would be flagged for review."}
+                  </p>
+                </div>
+              </div>
+            )}
             <section className="mt-10" aria-labelledby="review-title">
               <h2 id="review-title" className="font-display text-2xl font-bold">
                 Answer review
@@ -888,8 +1130,6 @@ export default function Quiz() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Understand the why, not just the score.
               </p>
-              {/* Two columns once there is room: the review is a scannable
-                  list, not a narrative to read in one column. */}
               <div className="mt-6 grid items-start gap-4 xl:grid-cols-2">
                 {questions.map((item, position) => {
                   const selected = answers[item.id];
@@ -950,13 +1190,24 @@ export default function Quiz() {
             </section>
           </>
         )}
+
+        {/* ═══════════ EXAM WARNING DIALOG (escalating) ═══════════ */}
         <AlertDialog open={phase === "running" && examWarning !== null}>
           <AlertDialogContent
             onEscapeKeyDown={(event) => event.preventDefault()}
+            className="border-red-500/30"
           >
             <AlertDialogHeader>
-              <AlertDialogTitle>Exam fullscreen warning</AlertDialogTitle>
-              <AlertDialogDescription>
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/15">
+                {(() => {
+                  const Icon = getWarningIcon();
+                  return <Icon size={32} className="text-red-500" />;
+                })()}
+              </div>
+              <AlertDialogTitle className="text-center text-xl">
+                Exam fullscreen warning
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
                 {examWarning} Fullscreen and exam focus are mandatory. Your
                 questions are locked until you return.{" "}
                 {session?.deadline
@@ -964,29 +1215,71 @@ export default function Quiz() {
                   : "Your elapsed time is still being recorded."}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <p className="text-sm font-medium">
+
+            {/* Warning severity meter */}
+            <div className="my-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm font-bold text-red-500">
+                  Warning {warningCount} of {MAX_WARNINGS}
+                </span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {warningCount >= MAX_WARNINGS
+                    ? "EXAM TERMINATED"
+                    : `${warningsRemaining} remaining`}
+                </span>
+              </div>
+              {/* Progress bar for warnings */}
+              <div className="flex gap-1.5">
+                {Array.from({ length: MAX_WARNINGS }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-2 flex-1 rounded-full transition-colors",
+                      i < warningCount ? "bg-red-500" : "bg-red-500/20",
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                {warningCount >= MAX_WARNINGS
+                  ? "Maximum violations exceeded. Your answers have been submitted."
+                  : warningCount === MAX_WARNINGS - 1
+                    ? "⚠ FINAL WARNING — One more violation will auto-submit your exam immediately."
+                    : "Fullscreen and focus are mandatory. Your questions are locked until you return."}
+              </p>
+            </div>
+
+            <p className="text-center text-sm font-medium">
               Warning {warningCount} ·{" "}
               {session?.deadline ? "Time remaining" : "Time elapsed"}:{" "}
-              <span className="font-mono">
+              <span className="font-mono text-red-500">
                 {formatQuizTime(session?.deadline ? remaining : elapsed)}
               </span>
             </p>
+
             {fullscreenMessage && (
-              <p role="status" className="text-sm text-destructive">
+              <p role="status" className="text-center text-sm text-destructive">
                 {fullscreenMessage}
               </p>
             )}
-            <AlertDialogFooter>
+            <AlertDialogFooter className="mt-2">
               <Button variant="outline" onClick={finish}>
                 Submit and end exam
               </Button>
-              <Button onClick={() => void resumeExam()}>
-                <Maximize2 size={16} className="mr-2" />
-                Return to fullscreen
-              </Button>
+              {warningCount < MAX_WARNINGS && (
+                <Button
+                  onClick={() => void resumeExam()}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  <Maximize2 size={16} className="mr-2" />
+                  Return to fullscreen
+                </Button>
+              )}
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* ═══════════ SUBMIT / LEAVE CONFIRMATION ═══════════ */}
         <AlertDialog
           open={confirmation !== null && !examWarning}
           onOpenChange={(open) => {
