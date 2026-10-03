@@ -1,6 +1,10 @@
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ContestServiceError } from "@/lib/contest/sessionService";
-import type { ContestSessionService } from "@/lib/contest/sessionService";
+import type {
+  ContestServiceErrorCode,
+  ContestSessionService,
+} from "@/lib/contest/sessionService";
 import type {
   CodingContestResultData,
   CodingFinalizationReason,
@@ -45,8 +49,41 @@ async function invoke<T>(
       { method, body },
     );
     if (error) {
-      // A missing/undeployed function surfaces as a fetch-level failure, which
-      // `invoke` wraps; the caller decides whether to offer a local fallback.
+      // supabase-js v2 wraps every non-2xx function response in a
+      // FunctionsHttpError whose `context` is the raw Response. A response the
+      // function itself produced (404 session lookup, 401 auth, 409 conflict…)
+      // means the backend IS deployed and answering — only a fetch failure or
+      // a genuinely undeployed function means "unavailable". The probe in
+      // CodingContestInstructions relies on exactly this distinction: it needs
+      // not_found/unauthorized back from a deliberate bad lookup to prove the
+      // backend is alive.
+      if (error instanceof FunctionsHttpError) {
+        const status =
+          error.context && typeof error.context.status === "number"
+            ? error.context.status
+            : 0;
+        let message = error.message;
+        // Prefer the envelope's own text ("Session not found.", …) when the
+        // body carried one.
+        try {
+          const body = await error.context?.json();
+          if (body && typeof body.error === "string") message = body.error;
+        } catch {
+          // Empty or non-JSON body — keep the generic message.
+        }
+        const code: ContestServiceErrorCode =
+          status === 401 || status === 403
+            ? "unauthorized"
+            : status === 404
+              ? "not_found"
+              : status === 409
+                ? "conflict"
+                : status === 429
+                  ? "rate_limited"
+                  : "unknown";
+        throw new ContestServiceError(code, message);
+      }
+      // A fetch-level failure (offline, function missing) lands here.
       throw new ContestServiceError(
         "unavailable",
         error.message ||
@@ -91,7 +128,7 @@ export const supabaseContestSessionService: ContestSessionService = {
 
   async getSession(sessionId: string): Promise<CodingSessionBundle> {
     return toBundle(
-      await invoke({ action: "get-session", sessionId }, "GET"),
+      await invoke({ action: "get-session", sessionId }, "POST"),
     );
   },
 
@@ -133,7 +170,7 @@ export const supabaseContestSessionService: ContestSessionService = {
   },
 
   async getResult(sessionId: string): Promise<CodingContestResultData> {
-    const envelope = await invoke({ action: "get-result", sessionId }, "GET");
+    const envelope = await invoke({ action: "get-result", sessionId }, "POST");
     return {
       session: requireSession(envelope),
       problems: envelope.problems ?? [],

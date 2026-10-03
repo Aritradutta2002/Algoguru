@@ -157,8 +157,14 @@ Deno.serve(async (req) => {
 
     const isGet = req.method === "GET";
     const url = new URL(req.url);
+    // GET bodies: supabase-js `functions.invoke` JSON-stringifies a GET body
+    // instead of serialising it into the query string, so merge both sources —
+    // query params (direct curl/debug use) and the JSON body (the frontend).
     const body = isGet
-      ? Object.fromEntries(url.searchParams.entries())
+      ? {
+          ...Object.fromEntries(url.searchParams.entries()),
+          ...((await req.json().catch(() => ({}))) as Record<string, unknown>),
+        }
       : await req.json().catch(() => ({}));
     const action = String((body as Record<string, unknown>).action ?? "");
 
