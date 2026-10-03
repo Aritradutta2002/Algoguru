@@ -116,6 +116,8 @@ export function CodingContestSession() {
   const [returningFullscreen, setReturningFullscreen] = useState(false);
   const [finaliseError, setFinaliseError] = useState<string | null>(null);
   const [startGateOpen, setStartGateOpen] = useState(false);
+  const [problemsDrawerOpen, setProblemsDrawerOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"split" | "editor" | "problem">("split");
 
   const fullscreen = useFullscreenExam();
   // The clock stays idle until fullscreen has genuinely been entered.
@@ -414,6 +416,22 @@ export function CodingContestSession() {
     [],
   );
 
+  const activeIndex = bundle ? bundle.problems.findIndex((problem) => problem.id === activeId) : 0;
+  const hasPrevProblem = activeIndex > 0;
+  const hasNextProblem = bundle ? activeIndex < bundle.problems.length - 1 : false;
+
+  const handlePrevProblem = useCallback(() => {
+    if (!bundle || activeIndex <= 0) return;
+    const prev = bundle.problems[activeIndex - 1];
+    if (prev) selectProblem(prev.id);
+  }, [bundle, activeIndex, selectProblem]);
+
+  const handleNextProblem = useCallback(() => {
+    if (!bundle || activeIndex >= bundle.problems.length - 1) return;
+    const next = bundle.problems[activeIndex + 1];
+    if (next) selectProblem(next.id);
+  }, [bundle, activeIndex, selectProblem]);
+
   if (loadError) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
@@ -441,7 +459,7 @@ export function CodingContestSession() {
   const readonly = locked || finalised;
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background selection:bg-primary/20">
       <CodingContestHeader
         remainingSeconds={timer.remainingSeconds}
         submittedCount={submittedCount}
@@ -450,9 +468,20 @@ export function CodingContestSession() {
         warningCount={integrity.warningCount}
         localMode={!bundle.authoritative}
         onFinish={() => setFinishOpen(true)}
+        onToggleProblems={() => setProblemsDrawerOpen((prev) => !prev)}
+        problemsOpen={problemsDrawerOpen}
+        activeProblemIndex={activeIndex >= 0 ? activeIndex : 0}
+        activeProblemTitle={activeProblem.title}
+        onPrevProblem={handlePrevProblem}
+        onNextProblem={handleNextProblem}
+        hasPrevProblem={hasPrevProblem}
+        hasNextProblem={hasNextProblem}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
-      {finaliseError ? (        <div
+      {finaliseError ? (
+        <div
           role="alert"
           className="flex flex-wrap items-center gap-3 border-b border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm"
         >
@@ -466,63 +495,119 @@ export function CodingContestSession() {
         </div>
       ) : null}
 
-      <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
-        <ResizablePanel defaultSize={22} minSize={16} className="overflow-y-auto border-r border-border p-3">
-          <CodingProblemNav
-            entries={bundle.problems.map((problem, index) => ({
-              problem,
-              index,
-              state: stateFor(problem),
-            }))}
-            activeId={activeId}
-            onSelect={selectProblem}
-            disabled={readonly}
-          />
-        </ResizablePanel>
-        <ResizableHandle className="w-1 bg-border" />
+      {/* Main Workspace: Full Screen Problem & Editor */}
+      <main className="relative flex min-h-0 flex-1 overflow-hidden bg-background">
+        {viewMode === "split" ? (
+          <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
+            <ResizablePanel defaultSize={48} minSize={25} className="min-w-0 overflow-y-auto">
+              {locked ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">
+                  The problem statement is hidden while the exam is locked.
+                </p>
+              ) : (
+                <CodingProblemPanel problem={activeProblem} />
+              )}
+            </ResizablePanel>
+            <ResizableHandle className="w-1.5 bg-border/70 hover:bg-primary/40 transition-colors" />
 
-        <ResizablePanel defaultSize={40} minSize={24} className="min-w-0 overflow-y-auto">
-          {locked ? (
-            <p className="px-4 py-6 text-sm text-muted-foreground">
-              The problem statement is hidden while the exam is locked.
-            </p>
-          ) : (
-            <CodingProblemPanel problem={activeProblem} />
-          )}
-        </ResizablePanel>
-        <ResizableHandle className="w-1 bg-border" />
+            <ResizablePanel defaultSize={52} minSize={30} className="flex min-w-0 flex-col">
+              <ResizablePanelGroup direction="vertical" className="min-h-0 flex-1">
+                <ResizablePanel defaultSize={62} minSize={25} className="min-h-0">
+                  <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
+                    <CodingEditorPanel
+                      problem={activeProblem}
+                      value={drafts[activeProblem.id] ?? ""}
+                      onChange={handleCodeChange}
+                      readOnly={readonly}
+                      diagnostics={result?.compileDiagnostics ?? []}
+                      onReset={() => {
+                        const starter = activeProblem.starterCode;
+                        setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
+                        setTouched((current) => ({ ...current, [activeProblem.id]: true }));
+                        writeLocalDraft(bundle.session.id, activeProblem.id, starter);
+                        persistDraft(activeProblem.id, starter);
+                      }}
+                      localDraftsOnly={!bundle.authoritative}
+                    />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle className="h-1.5 bg-border/70 hover:bg-primary/40 transition-colors" />
+                <ResizablePanel defaultSize={38} minSize={20} className="min-h-0">
+                  <CodingExecutionPanel
+                    busy={busy !== null}
+                    mode={busy}
+                    onRun={() => void runOrSubmit("run")}
+                    onSubmit={() => void runOrSubmit("submit")}
+                    result={result}
+                    disabled={readonly || execution.loading}
+                    supportsCustomInput={execution.service.supportsCustomInput}
+                  />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : viewMode === "problem" ? (
+          <div className="h-full w-full overflow-y-auto">
+            {locked ? (
+              <p className="px-4 py-6 text-sm text-muted-foreground">
+                The problem statement is hidden while the exam is locked.
+              </p>
+            ) : (
+              <CodingProblemPanel problem={activeProblem} />
+            )}
+          </div>
+        ) : (
+          <div className="flex h-full w-full flex-col">
+            <ResizablePanelGroup direction="vertical" className="min-h-0 flex-1">
+              <ResizablePanel defaultSize={65} minSize={25} className="min-h-0">
+                <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
+                  <CodingEditorPanel
+                    problem={activeProblem}
+                    value={drafts[activeProblem.id] ?? ""}
+                    onChange={handleCodeChange}
+                    readOnly={readonly}
+                    diagnostics={result?.compileDiagnostics ?? []}
+                    onReset={() => {
+                      const starter = activeProblem.starterCode;
+                      setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
+                      setTouched((current) => ({ ...current, [activeProblem.id]: true }));
+                      writeLocalDraft(bundle.session.id, activeProblem.id, starter);
+                      persistDraft(activeProblem.id, starter);
+                    }}
+                    localDraftsOnly={!bundle.authoritative}
+                  />
+                </div>
+              </ResizablePanel>
+              <ResizableHandle className="h-1.5 bg-border/70 hover:bg-primary/40 transition-colors" />
+              <ResizablePanel defaultSize={35} minSize={20} className="min-h-0">
+                <CodingExecutionPanel
+                  busy={busy !== null}
+                  mode={busy}
+                  onRun={() => void runOrSubmit("run")}
+                  onSubmit={() => void runOrSubmit("submit")}
+                  result={result}
+                  disabled={readonly || execution.loading}
+                  supportsCustomInput={execution.service.supportsCustomInput}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
+        )}
 
-        <ResizablePanel defaultSize={38} minSize={24} className="flex min-w-0 flex-col">
-          <div className={cn("min-h-0 flex-1", locked && "pointer-events-none opacity-40")}>
-            <CodingEditorPanel
-              problem={activeProblem}
-              value={drafts[activeProblem.id] ?? ""}
-              onChange={handleCodeChange}
-              readOnly={readonly}
-              diagnostics={result?.compileDiagnostics ?? []}
-              onReset={() => {
-                const starter = activeProblem.starterCode;
-                setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
-                setTouched((current) => ({ ...current, [activeProblem.id]: true }));
-                writeLocalDraft(bundle.session.id, activeProblem.id, starter);
-                persistDraft(activeProblem.id, starter);
-              }}
-              localDraftsOnly={!bundle.authoritative}
-            />
-          </div>
-          <div className="h-56 shrink-0 border-t border-border">
-            <CodingExecutionPanel
-              busy={busy !== null}
-              mode={busy}
-              onRun={() => void runOrSubmit("run")}
-              onSubmit={() => void runOrSubmit("submit")}
-              result={result}
-              disabled={readonly || execution.loading}
-              supportsCustomInput={execution.service.supportsCustomInput}
-            />
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        {/* Problems Fold/Unfold Slider */}
+        <CodingProblemNav
+          entries={bundle.problems.map((problem, index) => ({
+            problem,
+            index,
+            state: stateFor(problem),
+          }))}
+          activeId={activeId}
+          onSelect={selectProblem}
+          disabled={readonly}
+          isOpen={problemsDrawerOpen}
+          onClose={() => setProblemsDrawerOpen(false)}
+        />
+      </main>
 
       {/* Finish confirmation */}
       <AlertDialog open={finishOpen} onOpenChange={setFinishOpen}>

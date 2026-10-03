@@ -233,158 +233,222 @@ export function CodingContestInstructions() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-        <Button asChild variant="ghost" size="sm" className="-ml-2">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
+      <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <Button asChild variant="ghost" size="sm" className="-ml-2 text-muted-foreground hover:text-foreground">
           <Link to="/contest">
             <ArrowLeft aria-hidden="true" className="mr-2 h-4 w-4" />
             Return to Contest
           </Link>
         </Button>
 
-      <header className="mt-6">
-        <Badge variant="secondary" className="font-normal">
-          <Code2 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
-          Java
-        </Badge>
-        <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-          Java Coding Contest
-        </h1>
-        <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          Read these rules before you begin. Once you start, the clock is
-          running and the rules apply for the full {CODING_CONTEST_DURATION_LABEL}.
-        </p>
-      </header>
-
-      {unavailableReason ? (
-        <div className="mt-6">
-          <ContestModeNotice
-            reason={unavailableReason}
-            onRetry={() => void probe()}
-            retrying={probing}
+        {/* Hero Banner */}
+        <header className="relative mt-5 overflow-hidden rounded-3xl border border-border/80 bg-card/60 p-6 backdrop-blur-xl sm:p-10">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full opacity-10 blur-3xl"
+            style={{ background: "hsl(var(--primary))" }}
           />
-        </div>
-      ) : null}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -right-20 h-72 w-72 rounded-full opacity-10 blur-3xl"
+            style={{ background: "hsl(var(--primary))" }}
+          />
 
-      {error ? (
-        <div
-          role="alert"
-          className="mt-4 flex flex-col gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"
-        >
-          <p className="flex items-start gap-2">
-            <AlertTriangle
-              aria-hidden="true"
-              className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
-            />
-            <span>{error}</span>
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            className="shrink-0"
-            onClick={() => void startContest()}
-          >
-            Try again
-          </Button>
-        </div>
-      ) : null}
+          <div className="relative">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Badge variant="secondary" className="px-3 py-1 font-medium bg-primary/10 text-primary border border-primary/20">
+                <Code2 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
+                Java
+              </Badge>
+              <Badge variant="outline" className="px-3 py-1 font-normal text-muted-foreground border-border/60">
+                <Clock3 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
+                {CODING_CONTEST_DURATION_LABEL}
+              </Badge>
+              <Badge variant="outline" className="px-3 py-1 font-normal text-muted-foreground border-border/60">
+                <CheckCircle2 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
+                {CODING_CONTEST_CONFIG.minProblems}–{CODING_CONTEST_CONFIG.maxProblems} Problems
+              </Badge>
+            </div>
 
-      <section
-        aria-labelledby="contest-rules"
-        className="mt-8 rounded-3xl border border-border bg-card p-6 sm:p-7"
-      >
-        <h2 id="contest-rules" className="font-display text-lg font-semibold">
-          Contest rules
-        </h2>
-        <ul className="mt-5 space-y-5">
-          {RULES.map((rule) => (
-            <li key={rule.title} className="flex gap-3.5">
-              <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                <rule.icon aria-hidden="true" className="h-4 w-4 text-primary" />
-              </span>
-              <div>
-                <p className="text-sm font-medium">{rule.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {rule.detail}
-                </p>
+            <h1 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl text-foreground">
+              Java Coding Contest
+            </h1>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
+              Read these rules before you begin. Once you start, the clock is
+              running and the rules apply for the full {CODING_CONTEST_DURATION_LABEL}.
+            </p>
+
+            {/* Quick Spec Pills */}
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+                <p className="text-xs text-muted-foreground">Duration</p>
+                <p className="mt-1 font-mono text-base font-semibold">{CODING_CONTEST_DURATION_LABEL}</p>
               </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+                <p className="text-xs text-muted-foreground">Problems</p>
+                <p className="mt-1 font-mono text-base font-semibold">{CODING_CONTEST_CONFIG.minProblems}–{CODING_CONTEST_CONFIG.maxProblems} Assigned</p>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+                <p className="text-xs text-muted-foreground">Environment</p>
+                <p className="mt-1 font-mono text-base font-semibold">Java 17</p>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+                <p className="text-xs text-muted-foreground">Monitoring</p>
+                <p className="mt-1 font-mono text-base font-semibold">Fullscreen & Focus</p>
+              </div>
+            </div>
+          </div>
+        </header>
 
-      <section
-        aria-labelledby="contest-acknowledgement"
-        className="mt-6 rounded-3xl border border-border bg-card p-6 sm:p-7"
-      >
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="contest-rules-acknowledged"
-            checked={acknowledged}
-            onCheckedChange={(checked) => setAcknowledged(checked === true)}
-            className="mt-0.5"
-          />
-          <label
-            htmlFor="contest-rules-acknowledged"
-            className="cursor-pointer select-none text-sm font-medium"
-          >
-            I have read and understood the contest rules
-          </label>
-        </div>
-
-        <AlertDialog
-          open={confirmOpen}
-          onOpenChange={(open) => !creating && setConfirmOpen(open)}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Start the Java coding contest?</AlertDialogTitle>
-              <AlertDialogDescription className="space-y-3 text-left">
-                <span className="block">
-                  You will get {CODING_CONTEST_CONFIG.minProblems} or{" "}
-                  {CODING_CONTEST_CONFIG.maxProblems} random problems and{" "}
-                  {CODING_CONTEST_DURATION_LABEL} to solve them.
-                </span>
-                <span className="block">
-                  The clock starts as soon as you enter fullscreen, it never
-                  pauses, and leaving fullscreen counts as a warning.
-                </span>
-                <span className="block font-medium text-foreground">
-                  This cannot be undone once started.
-                </span>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={creating}>Not yet</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(event) => {
-                  // Keep the dialog mounted while the session is created.
-                  event.preventDefault();
-                  void startContest();
-                }}
-                disabled={creating}
-              >
-                {creating ? "Creating your contest…" : "Confirm and start"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <Button
-          size="lg"
-          className={cn("mt-6 w-full sm:w-auto")}
-          disabled={!acknowledged || creating}
-          onClick={() => setConfirmOpen(true)}
-        >
-          <Keyboard aria-hidden="true" className="mr-2 h-4 w-4" />
-          {creating ? "Creating your contest…" : "Start Contest"}
-        </Button>
-        {!acknowledged ? (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Tick the acknowledgement above to enable the start button.
-          </p>
+        {unavailableReason ? (
+          <div className="mt-6">
+            <ContestModeNotice
+              reason={unavailableReason}
+              onRetry={() => void probe()}
+              retrying={probing}
+            />
+          </div>
         ) : null}
-      </section>
+
+        {error ? (
+          <div
+            role="alert"
+            className="mt-6 flex flex-col gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p className="flex items-start gap-2">
+              <AlertTriangle
+                aria-hidden="true"
+                className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+              />
+              <span>{error}</span>
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="shrink-0"
+              onClick={() => void startContest()}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : null}
+
+        {/* Contest Rules Section */}
+        <section
+          aria-labelledby="contest-rules"
+          className="mt-8 rounded-3xl border border-border bg-card/60 p-6 backdrop-blur-xl sm:p-8"
+        >
+          <div className="flex items-center justify-between border-b border-border/60 pb-4">
+            <div>
+              <h2 id="contest-rules" className="font-display text-lg font-semibold tracking-tight">
+                Contest rules
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Please review the guidelines carefully before starting your challenge.
+              </p>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs">
+              {RULES.length} Rules
+            </Badge>
+          </div>
+
+          <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {RULES.map((rule) => (
+              <li
+                key={rule.title}
+                className="group flex gap-3.5 rounded-2xl border border-border/60 bg-muted/15 p-4 transition-all hover:border-primary/40 hover:bg-muted/30"
+              >
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
+                  <rule.icon aria-hidden="true" className="h-4.5 w-4.5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{rule.title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {rule.detail}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Acknowledgement & Launch Section */}
+        <section
+          aria-labelledby="contest-acknowledgement"
+          className="mt-6 rounded-3xl border border-border/80 bg-gradient-to-b from-card/80 to-card/40 p-6 backdrop-blur-xl sm:p-8"
+        >
+          <div className="flex items-start gap-3 rounded-2xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30">
+            <Checkbox
+              id="contest-rules-acknowledged"
+              checked={acknowledged}
+              onCheckedChange={(checked) => setAcknowledged(checked === true)}
+              className="mt-0.5"
+            />
+            <label
+              htmlFor="contest-rules-acknowledged"
+              className="cursor-pointer select-none text-sm font-medium leading-relaxed"
+            >
+              I have read and understood the contest rules
+            </label>
+          </div>
+
+          <AlertDialog
+            open={confirmOpen}
+            onOpenChange={(open) => !creating && setConfirmOpen(open)}
+          >
+            <AlertDialogContent className="rounded-3xl border border-border bg-card/95 backdrop-blur-xl sm:max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="font-display text-xl">Start the Java coding contest?</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-3 text-left pt-2 text-sm">
+                  <span className="block text-foreground/90">
+                    You will get {CODING_CONTEST_CONFIG.minProblems} or{" "}
+                    {CODING_CONTEST_CONFIG.maxProblems} random problems and{" "}
+                    {CODING_CONTEST_DURATION_LABEL} to solve them.
+                  </span>
+                  <span className="block text-muted-foreground">
+                    The clock starts as soon as you enter fullscreen, it never
+                    pauses, and leaving fullscreen counts as a warning.
+                  </span>
+                  <span className="block font-semibold text-primary">
+                    This cannot be undone once started.
+                  </span>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="pt-2">
+                <AlertDialogCancel disabled={creating} className="rounded-xl">Not yet</AlertDialogCancel>
+                <AlertDialogAction
+                  className="rounded-xl shadow-md"
+                  onClick={(event) => {
+                    // Keep the dialog mounted while the session is created.
+                    event.preventDefault();
+                    void startContest();
+                  }}
+                  disabled={creating}
+                >
+                  {creating ? "Creating your contest…" : "Confirm and start"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button
+              size="lg"
+              className="w-full sm:w-auto px-8 rounded-xl font-medium shadow-md transition-all hover:shadow-primary/20 hover:scale-[1.01]"
+              disabled={!acknowledged || creating}
+              onClick={() => setConfirmOpen(true)}
+            >
+              <Keyboard aria-hidden="true" className="mr-2 h-4 w-4" />
+              {creating ? "Creating your contest…" : "Start Contest"}
+            </Button>
+            {!acknowledged ? (
+              <p className="text-xs text-muted-foreground">
+                Tick the acknowledgement above to enable the start button.
+              </p>
+            ) : null}
+          </div>
+        </section>
       </div>
     </div>
   );
