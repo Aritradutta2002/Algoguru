@@ -8,6 +8,7 @@ interface CoreJavaBookmarkButtonProps {
   isBookmarked: boolean;
   onToggle: (id: string) => void;
   compact?: boolean;
+  className?: string;
 }
 
 export const CoreJavaBookmarkButton = memo(function CoreJavaBookmarkButton({
@@ -15,6 +16,7 @@ export const CoreJavaBookmarkButton = memo(function CoreJavaBookmarkButton({
   isBookmarked,
   onToggle,
   compact = false,
+  className,
 }: CoreJavaBookmarkButtonProps) {
   const handleClick = useCallback(() => onToggle(questionId), [onToggle, questionId]);
 
@@ -30,7 +32,8 @@ export const CoreJavaBookmarkButton = memo(function CoreJavaBookmarkButton({
           compact ? "px-2.5 py-1.5 min-h-[36px]" : "px-3.5 py-2 min-h-[40px]",
           isBookmarked
             ? "bg-primary/15 border-primary/40 text-primary"
-            : "bg-card border-border/50 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            : "bg-card border-border/50 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+          className
         )}
       >
         {isBookmarked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}

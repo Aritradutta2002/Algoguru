@@ -31,16 +31,15 @@ import { AppTooltip } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
 import { CoreJavaQuestionAnswer } from "@/components/interview/CoreJavaQuestionAnswer";
 import { CoreJavaBookmarkButton } from "@/components/interview/CoreJavaActions";
-import { DifficultyBadge, PriorityBadge, JavaVersionBadge } from "@/components/interview/CoreJavaBadges";
 import { useCoreJavaUserState } from "@/hooks/useCoreJavaUserState";
 import { useCoreJavaBookmarks } from "@/hooks/useCoreJavaBookmarks";
 import { getAllCoreJavaQuestions, type IndexedCoreJavaQuestion } from "@/lib/coreJavaQuestionIndex";
 import { getCoreJavaQuestionDetailPath } from "@/data/coreJavaInterviewMetadata";
-import { hasCoreJavaVisualization } from "@/components/interview/CoreJavaVisualizationBlock";
+import { CoreJavaVisualizationBlock, hasCoreJavaVisualization } from "@/components/interview/CoreJavaVisualizationBlock";
 import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
 import "@/styles/core-java-interview.css";
 
-type SolutionView = "theory" | "code" | null;
+type SolutionView = "theory" | "code" | "diagram" | null;
 type FilterKind = "all" | "most-asked" | "easy" | "medium" | "hard" | "bookmarked" | "completed";
 
 const FILTER_OPTIONS: { id: FilterKind; label: string; icon?: string }[] = [
@@ -58,6 +57,8 @@ const FILTER_OPTIONS: { id: FilterKind; label: string; icon?: string }[] = [
 // ─────────────────────────────────────────────────────────────────────────
 interface QuestionCardProps {
   entry: IndexedCoreJavaQuestion;
+  /** Position of this question inside its topic, used as the visible number. */
+  ordinal: number;
   isDone: boolean;
   hasNote: boolean;
   isBookmarked: boolean;
@@ -70,6 +71,7 @@ interface QuestionCardProps {
 
 const _QuestionCard = ({
   entry,
+  ordinal,
   isDone,
   hasNote,
   isBookmarked,
@@ -83,156 +85,128 @@ const _QuestionCard = ({
   const detailPath = getCoreJavaQuestionDetailPath(question);
 
   return (
-    <div
-      className={`cjq-qcard rounded-2xl border transition-all duration-200 overflow-hidden relative ${
-        isDone
-          ? "cjq-qcard--done bg-success/5 border-success/20"
-          : activeView
-            ? "cjq-qcard--active bg-card border-primary/30 shadow-sm"
-            : "cjq-qcard--idle"
-      }`}
-    >
-      {activeView && !isDone && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-2xl" aria-hidden="true" />
-      )}
+    <article className={`cjq-w3-item ${isDone ? "cjq-w3-item--done" : ""}`}>
+      {/* Learned toggle — the leading mark of each entry */}
+      <button
+        onClick={() => onToggleDone(question.id)}
+        title={isDone ? "Mark undone" : "Mark as learned"}
+        aria-pressed={isDone}
+        aria-label={isDone ? "Mark as not learned" : "Mark as learned"}
+        className="cjq-w3-mark"
+      >
+        {isDone && <Check size={11} strokeWidth={3.5} />}
+      </button>
 
-      <div className="p-5 md:p-6">
-        <div className="flex items-start gap-4">
-          {/* Done toggle */}
-          <button
-            onClick={() => onToggleDone(question.id)}
-            title={isDone ? "Mark undone" : "Mark as learned"}
-            aria-pressed={isDone}
-            aria-label={isDone ? "Mark as not learned" : "Mark as learned"}
-            className={`mt-1.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-              isDone
-                ? "bg-success border-success text-white"
-                : "border-border/50 hover:border-success/60 bg-card hover:bg-success/10"
-            }`}
-          >
-            {isDone && <Check size={14} strokeWidth={3} />}
-          </button>
-
-          <div className="flex-1 min-w-0">
-            {/* Meta row */}
-            <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-              <span className="cjq-chip cjq-chip--accent">Q{String(entry.index + 1).padStart(2, "0")}</span>
-              <span className="cjq-chip">
-                {topic.icon} {topic.title}
-              </span>
-              {meta.difficulty && <DifficultyBadge difficulty={meta.difficulty} />}
-              {meta.priority === "very-high" && <PriorityBadge priority="very-high" />}
-              {meta.javaVersions?.map((v) => <JavaVersionBadge key={v} version={v} />)}
-              {isDone && (
-                <span className="cjq-chip" style={{ color: "hsl(var(--success))", borderColor: "hsl(var(--success) / 0.35)" }}>
-                  Learned
-                </span>
-              )}
-              {hasNote && (
-                <span className="cjq-chip" style={{ color: "hsl(var(--warning))", borderColor: "hsl(var(--warning) / 0.35)" }}>
-                  Note added
-                </span>
-              )}
-              {hasCoreJavaVisualization(question.id) && (
-                <span className="cjq-chip hidden sm:inline-flex">
-                  <Network size={10} /> Diagram
-                </span>
-              )}
-            </div>
-
-            {/* Question title — links to detail page */}
-            <Link to={detailPath} className="group/title block">
-              <h3
-                className={`cjq-list-title mb-2.5 transition-colors group-hover/title:text-[hsl(var(--reader-accent))] ${
-                  isDone ? "opacity-50" : ""
-                }`}
-              >
-                {question.question}
-              </h3>
-            </Link>
-
-            {/* One-line mental model */}
-            {question.explanation && (
-              <p className={`cjq-list-body mb-4 ${isDone ? "opacity-50" : ""}`}>{question.explanation}</p>
-            )}
-
-            {/* Action buttons */}
-            <div className="cjq-card-divider flex flex-wrap items-center gap-2 pt-4 border-t">
-              <button
-                onClick={() => onToggleView(question.id, "theory")}
-                aria-expanded={activeView === "theory"}
-                className={`cjq-btn-ghost inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
-                  activeView === "theory"
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                    : ""
-                }`}
-              >
-                <FileText size={14} />
-                Quick Answer
-                <ChevronUp
-                  size={13}
-                  className="transition-transform duration-200"
-                  style={{ transform: activeView === "theory" ? "rotate(0deg)" : "rotate(180deg)" }}
-                  aria-hidden="true"
-                />
-              </button>
-
-              {question.code && (
-                <button
-                  onClick={() => onToggleView(question.id, "code")}
-                  aria-expanded={activeView === "code"}
-                  className={`cjq-btn-ghost inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
-                    activeView === "code"
-                      ? "bg-accent text-accent-foreground shadow-md shadow-accent/20"
-                      : ""
-                  }`}
-                >
-                  <Code2 size={14} />
-                  Example
-                  <ChevronUp
-                    size={13}
-                    className="transition-transform duration-200"
-                    style={{ transform: activeView === "code" ? "rotate(0deg)" : "rotate(180deg)" }}
-                    aria-hidden="true"
-                  />
-                </button>
-              )}
-
-              <button
-                onClick={() => onOpenNote(question.id)}
-                aria-label={hasNote ? "Edit note for this question" : "Add note for this question"}
-                className={`cjq-btn-ghost inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
-                  hasNote
-                    ? "bg-warning/15 text-warning hover:bg-warning/25"
-                    : ""
-                }`}
-              >
-                <StickyNote size={14} />
-                {hasNote ? "Edit Note" : "Note"}
-              </button>
-
-              <div className="flex-1" />
-
-              <CoreJavaBookmarkButton
-                questionId={question.id}
-                isBookmarked={isBookmarked}
-                onToggle={onToggleBookmark}
-                compact
-              />
-
-              <Link
-                to={detailPath}
-                aria-label={`Read full answer: ${question.question}`}
-                className="cjq-btn-ghost inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[36px] rounded-lg text-[12px] font-semibold transition-all"
-              >
-                Read <ArrowRight size={13} />
-              </Link>
-            </div>
-          </div>
-        </div>
+      {/* Numbered question heading */}
+      <div className="cjq-w3-qrow">
+        <span className="cjq-w3-num">{ordinal}.</span>
+        <Link to={detailPath} className="cjq-w3-qlink">
+          <h3 className="cjq-w3-q">{question.question}</h3>
+        </Link>
       </div>
 
-      {/* Expand panel (fold/unfold) */}
+      {/* One muted line of metadata, the way a reference page labels an entry */}
+      <div className="cjq-w3-meta">
+        <span className="cjq-w3-meta-id">Q{String(entry.index + 1).padStart(2, "0")}</span>
+        <span>
+          {topic.icon} {topic.title}
+        </span>
+        {meta.difficulty && (
+          <span className={`cjq-w3-meta--${meta.difficulty}`}>
+            <span className="cjq-w3-dot" aria-hidden="true" />
+            {meta.difficulty}
+          </span>
+        )}
+        {meta.priority === "very-high" && <span>🔥 Very High Priority</span>}
+        {meta.javaVersions?.map((v) => <span key={v}>{v}</span>)}
+        {isDone && <span className="cjq-w3-meta--learned">Learned</span>}
+        {hasNote && <span className="cjq-w3-meta--note">Note added</span>}
+        {hasCoreJavaVisualization(question.id) && (
+          <span className="hidden sm:inline-flex items-center gap-1">
+            <Network size={10} aria-hidden="true" /> Diagram
+          </span>
+        )}
+      </div>
+
+      {/* One-line mental model */}
+      {question.explanation && <p className="cjq-w3-blurb">{question.explanation}</p>}
+
+      {/* Actions read as text links, the way a tutorial page would */}
+      <div className="cjq-w3-actions">
+        <button
+          onClick={() => onToggleView(question.id, "theory")}
+          aria-expanded={activeView === "theory"}
+          className="cjq-w3-action"
+        >
+          <FileText size={13} aria-hidden="true" />
+          Quick Answer
+          <ChevronUp
+            size={12}
+            className="cjq-w3-chev"
+            style={{ transform: activeView === "theory" ? "rotate(0deg)" : "rotate(180deg)" }}
+            aria-hidden="true"
+          />
+        </button>
+
+        {question.code && (
+          <button
+            onClick={() => onToggleView(question.id, "code")}
+            aria-expanded={activeView === "code"}
+            className="cjq-w3-action"
+          >
+            <Code2 size={13} aria-hidden="true" />
+            Example
+            <ChevronUp
+              size={12}
+              className="cjq-w3-chev"
+              style={{ transform: activeView === "code" ? "rotate(0deg)" : "rotate(180deg)" }}
+              aria-hidden="true"
+            />
+          </button>
+        )}
+
+        {hasCoreJavaVisualization(question.id) && (
+          <button
+            onClick={() => onToggleView(question.id, "diagram")}
+            aria-expanded={activeView === "diagram"}
+            className="cjq-w3-action"
+          >
+            <Network size={13} aria-hidden="true" />
+            Diagram
+            <ChevronUp
+              size={12}
+              className="cjq-w3-chev"
+              style={{ transform: activeView === "diagram" ? "rotate(0deg)" : "rotate(180deg)" }}
+              aria-hidden="true"
+            />
+          </button>
+        )}
+
+        <button
+          onClick={() => onOpenNote(question.id)}
+          aria-label={hasNote ? "Edit note for this question" : "Add note for this question"}
+          className={`cjq-w3-action cjq-w3-action--note ${hasNote ? "cjq-w3-action--on" : ""}`}
+        >
+          <StickyNote size={13} aria-hidden="true" />
+          {hasNote ? "Edit Note" : "Note"}
+        </button>
+
+        <span className="cjq-w3-spacer" />
+
+        <CoreJavaBookmarkButton
+          questionId={question.id}
+          isBookmarked={isBookmarked}
+          onToggle={onToggleBookmark}
+          compact
+          className="cjq-w3-bookmark"
+        />
+
+        <Link to={detailPath} aria-label={`Read full answer: ${question.question}`} className="cjq-w3-action">
+          Read <ArrowRight size={13} aria-hidden="true" />
+        </Link>
+      </div>
+
+      {/* Expanded answer — inline in the page, no nested card */}
       <AnimatePresence initial={false}>
         {activeView && (
           <motion.div
@@ -242,47 +216,44 @@ const _QuestionCard = ({
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className="cjq-panel cjq-card-divider border-t">
-              <div className="px-5 md:px-6">
-                <button
-                  onClick={() => onToggleView(question.id, activeView)}
-                  aria-expanded={true}
-                  aria-label={`Collapse ${activeView === "theory" ? "quick answer" : "example"}`}
-                  className="cjq-panel-toggle"
-                >
-                  <span className="cjq-panel-icon" aria-hidden="true">
-                    {activeView === "theory" ? <FileText size={13} /> : <Code2 size={13} />}
-                  </span>
-                  <span>{activeView === "theory" ? "Quick Answer" : "Example"}</span>
-                  <ChevronUp size={16} className="cjq-panel-chevron" aria-hidden="true" />
-                </button>
-              </div>
-              <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-4">
+            <div className="cjq-w3-answer">
+              <span className="cjq-w3-answer-label">
+                {activeView === "theory" ? "Answer:" : activeView === "code" ? "Example:" : "Diagram:"}
+              </span>
+              <div className="cjq-w3-body">
                 {activeView === "theory" && (
                   <div className="cjq-doc-box">
                     <CoreJavaQuestionAnswer answer={question.answer} />
                   </div>
                 )}
                 {activeView === "code" && question.code && (
-                  <CodeBlock
-                    surface="reader"
-                    language={question.codeLanguage || "java"}
-                    code={question.code}
-                    title="Implementation"
-                  />
+                  <div className="cjq-w3-code">
+                    <CodeBlock
+                      surface="reader"
+                      language={question.codeLanguage || "java"}
+                      code={question.code}
+                      title="Implementation"
+                    />
+                  </div>
+                )}
+                {activeView === "diagram" && hasCoreJavaVisualization(question.id) && (
+                  <div className="mt-2">
+                    <CoreJavaVisualizationBlock questionId={question.id} />
+                  </div>
                 )}
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </article>
   );
 };
 
 function areQuestionCardsEqual(prev: QuestionCardProps, next: QuestionCardProps): boolean {
   return (
     prev.entry.question.id === next.entry.question.id &&
+    prev.ordinal === next.ordinal &&
     prev.isDone === next.isDone &&
     prev.hasNote === next.hasNote &&
     prev.isBookmarked === next.isBookmarked &&
@@ -587,7 +558,7 @@ export default function InterviewCoreJavaQuestionsPage() {
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
-    <div className="cjq-list-root cjq-page min-h-screen flex flex-col">
+    <div className="cjq-list-root cjq-w3 cjq-page min-h-screen flex flex-col">
       {/* ── Page Header ──────────────────────────────────────────── */}
       <header className="cjq-reader-bar shrink-0">
         <div className="mx-auto w-full max-w-[1400px] px-4 md:px-6">
@@ -640,9 +611,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                 <StickyNote size={14} />
                 <span className="hidden sm:inline">Notes</span>
                 {Object.keys(notesMap).length > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-warning/20 text-warning text-[11px] font-bold">
-                    {Object.keys(notesMap).length}
-                  </span>
+                  <span className="cjq-filter-count">{Object.keys(notesMap).length}</span>
                 )}
               </button>
 
@@ -660,7 +629,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               {/* Mobile Topic Sidebar Toggle */}
               <button
                 onClick={() => setTopicSidebarOpen(true)}
-                className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-primary/10 text-primary hover:bg-primary/20 shrink-0 lg:hidden transition-all"
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 text-muted-foreground hover:text-primary shrink-0 lg:hidden transition-all"
                 aria-label="Open Topics"
               >
                 <BookOpen size={16} />
@@ -689,9 +658,9 @@ export default function InterviewCoreJavaQuestionsPage() {
       </header>
 
       {/* ── Search + Filter toolbar (mobile search included) ─────── */}
-      <div className="cjq-toolbar-divider shrink-0 px-4 md:px-6 py-3 border-b">
+      <div className="cjq-toolbar-divider shrink-0 px-4 md:px-6 border-b">
         {/* Mobile search */}
-        <div className="relative md:hidden mb-3">
+        <div className="relative md:hidden py-3">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" aria-hidden="true" />
           <input
             ref={searchInputRef}
@@ -705,32 +674,27 @@ export default function InterviewCoreJavaQuestionsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 cjq-scrollbar-hide">
+        <div className="flex items-center gap-1 overflow-x-auto py-2 cjq-scrollbar-hide">
           {FILTER_OPTIONS.map((filter) => (
             <button
               key={filter.id}
               onClick={() => handleFilterClick(filter.id)}
               aria-pressed={activeFilter === filter.id}
-              className={`cjq-filter-pill px-3.5 py-1.5 min-h-[34px] rounded-full text-[12.5px] font-semibold border whitespace-nowrap shrink-0 transition-all ${
-                activeFilter === filter.id
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
-                  : ""
-              }`}
+              className="cjq-filter-tab"
             >
               {filter.icon && <span aria-hidden="true">{filter.icon} </span>}
               {filter.label}
-              {filter.id === "bookmarked" && bookmarkedIds.length > 0 && ` (${bookmarkedIds.length})`}
+              {filter.id === "bookmarked" && bookmarkedIds.length > 0 && (
+                <span className="cjq-filter-count">({bookmarkedIds.length})</span>
+              )}
             </button>
           ))}
-          <span className="text-[11px] font-mono text-muted-foreground/60 whitespace-nowrap shrink-0 ml-1">
+          <span className="cjq-filter-count whitespace-nowrap shrink-0 ml-2">
             {filteredEntries.length} of {totalQuestions} questions
           </span>
           {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="inline-flex items-center gap-1 px-3 py-1.5 min-h-[34px] rounded-full text-[12px] font-semibold text-destructive border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 whitespace-nowrap shrink-0 transition-all"
-            >
-              <X size={12} /> Clear Filters
+            <button onClick={clearFilters} className="cjq-filter-reset shrink-0 ml-1">
+              <X size={12} aria-hidden="true" /> Clear Filters
             </button>
           )}
         </div>
@@ -739,31 +703,27 @@ export default function InterviewCoreJavaQuestionsPage() {
       {/* ── Main Layout (Sidebar + Content) ──────────────────────── */}
       <div className="flex-1 flex relative" style={{ minHeight: 0 }}>
         {/* Permanent Desktop Sidebar */}
-        <aside className="cjq-toolbar-divider hidden lg:block w-[240px] xl:w-[270px] shrink-0 border-r bg-card/30">
-          <div className="sticky top-0 max-h-[calc(100vh-64px)] overflow-y-auto p-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-3 flex items-center justify-between">
+        <aside className="cjq-side cjq-toolbar-divider hidden lg:block w-[240px] xl:w-[268px] shrink-0">
+          <div className="sticky top-0 max-h-[calc(100vh-64px)] overflow-y-auto p-4 xl:px-5">
+            <div className="cjq-side-head">
               <span>Topics</span>
-              <span className="text-[10px] bg-muted/50 px-2 py-0.5 rounded-full text-foreground/80 lowercase tracking-normal font-mono">
+              <span className="cjq-side-count">
                 {doneCount}/{totalQuestions}
               </span>
-            </h2>
+            </div>
 
             <button
               onClick={() => handleTopicClick(null)}
               aria-pressed={!selectedTopic}
-              className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all mb-1.5 border ${
-                !selectedTopic
-                  ? "bg-primary/10 border-primary/20 text-foreground"
-                  : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
-              }`}
+              className="cjq-side-link"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="text-base" aria-hidden="true">📚</span>
-                <span className="text-[13px] font-semibold">All Topics</span>
+              <div className="cjq-side-link-row">
+                <span aria-hidden="true">📚</span>
+                <span className="cjq-side-link-title">All Topics</span>
               </div>
             </button>
 
-            <div className="space-y-1">
+            <div>
               {coreJavaInterviewTopics.map((topic) => {
                 const topicDone = topic.questions.filter((q) => doneMap[q.id]).length;
                 const topicTotal = topic.questions.length;
@@ -775,26 +735,19 @@ export default function InterviewCoreJavaQuestionsPage() {
                     key={topic.id}
                     onClick={() => handleTopicClick(isActive ? null : topic.id)}
                     aria-pressed={isActive}
-                    className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all border ${
-                      isActive
-                        ? "bg-primary/5 border-primary/20 text-foreground shadow-sm"
-                        : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
-                    }`}
+                    className="cjq-side-link"
                   >
-                    <div className="flex items-center gap-2.5 mb-1.5">
-                      <span className="text-base shrink-0" aria-hidden="true">{topic.icon}</span>
-                      <span className="text-[12.5px] font-semibold truncate flex-1 leading-tight">{topic.title}</span>
-                      <span className="text-[10px] font-mono text-muted-foreground/60 shrink-0">
+                    <div className="cjq-side-link-row">
+                      <span className="shrink-0" aria-hidden="true">{topic.icon}</span>
+                      <span className="cjq-side-link-title">{topic.title}</span>
+                      <span className="cjq-side-link-num">
                         {topicDone}/{topicTotal}
                       </span>
                     </div>
-                    <div className="ml-[30px] h-[3px] rounded-full bg-muted/60 overflow-hidden">
+                    <div className="cjq-side-progress">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${pct}%`,
-                          background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))",
-                        }}
+                        className={`cjq-side-progress-fill ${pct === 100 ? "cjq-side-progress-fill--complete" : ""}`}
+                        style={{ width: `${pct}%` }}
                       />
                     </div>
                   </button>
@@ -806,84 +759,73 @@ export default function InterviewCoreJavaQuestionsPage() {
 
         {/* Scrollable Content Area */}
         <main className="flex-1 min-w-0">
-          <div className="w-full px-4 md:px-8 lg:px-10 xl:px-14 py-6 pb-24">
-            <div className="space-y-10">
-              {/* Sign-in nudge */}
-              {!user && !authLoading && (
-                <div className="p-5 rounded-2xl border border-warning/30 bg-warning/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-warning mb-1">Your progress isn't being saved</h3>
-                    <p className="text-[13px] text-muted-foreground leading-relaxed">
-                      Sign in to save your completed questions, bookmarks and personal notes across devices.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigate("/auth")}
-                    className="px-6 py-2.5 rounded-lg bg-warning text-warning-foreground font-bold text-sm shrink-0 hover:bg-warning/90 transition-colors min-h-[40px]"
-                  >
-                    Sign In
+          <div className="w-full max-w-[1120px] mx-auto px-4 md:px-8 xl:px-10 py-8 pb-24">
+            {/* Sign-in nudge */}
+            {!user && !authLoading && (
+              <div className="cjq-w3-signin mb-10">
+                <p className="cjq-w3-signin-text">
+                  <strong>Your progress isn&apos;t being saved.</strong> Sign in to keep completed
+                  questions, bookmarks and notes in sync across devices.
+                </p>
+                <button onClick={() => navigate("/auth")} className="cjq-w3-signin-btn">
+                  Sign In
+                </button>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {groupedTopics.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="cjq-w3-empty-icon">
+                  <Search size={26} aria-hidden="true" />
+                </div>
+                <h3 className="cjq-w3-empty-title">No questions found</h3>
+                <p className="cjq-w3-empty-body">
+                  Try a different search or clear your filters.
+                </p>
+                {hasActiveFilters && (
+                  <button onClick={clearFilters} className="cjq-w3-signin-btn mt-6">
+                    Clear Filters
                   </button>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
-              {/* Empty state */}
-              {groupedTopics.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-24 text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
-                    <Search size={28} className="text-muted-foreground/50" />
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground mb-2">No questions found</h3>
-                  <p className="text-[15px] text-muted-foreground max-w-sm">
-                    Try a different search or clear your filters.
-                  </p>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={clearFilters}
-                      className="mt-6 px-6 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors min-h-[40px]"
-                    >
-                      Clear Filters
-                    </button>
-                  )}
+            {/* Topic groups */}
+            {groupedTopics.map((group) => (
+              <section key={group.topic.id} className="cjq-w3-section">
+                {/* Topic header */}
+                <div className="cjq-w3-section-head">
+                  <span className="cjq-w3-section-icon" aria-hidden="true">
+                    {group.topic.icon}
+                  </span>
+                  <h2 className="cjq-list-topic">{group.topic.title}</h2>
                 </div>
-              )}
+                <p className="cjq-w3-section-meta">
+                  {group.entries.length} question{group.entries.length !== 1 ? "s" : ""}
+                  {selectedTopic && ` · filtered from ${group.topic.questions.length}`}
+                </p>
 
-              {/* Topic groups */}
-              {groupedTopics.map((group) => (
-                <div key={group.topic.id}>
-                  {/* Topic header */}
-                  <div className="flex items-end gap-3 mb-4">
-                    <span className="text-2xl leading-none shrink-0" aria-hidden="true">
-                      {group.topic.icon}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h2 className="cjq-list-topic">{group.topic.title}</h2>
-                      <p className="text-[12.5px] text-[hsl(var(--reader-note))] mt-1.5">
-                        {group.entries.length} question{group.entries.length !== 1 ? "s" : ""}
-                        {selectedTopic && ` · filtered from ${group.topic.questions.length}`}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Questions single-column list */}
-                  <div className="space-y-4">
-                    {group.entries.map((entry) => (
-                      <QuestionCard
-                        key={entry.question.id}
-                        entry={entry}
-                        isDone={!!doneMap[entry.question.id]}
-                        hasNote={!!notesMap[entry.question.id]}
-                        isBookmarked={isBookmarked(entry.question.id)}
-                        activeView={solutionViewMap[entry.question.id] ?? null}
-                        onToggleDone={handleToggleDone}
-                        onToggleView={toggleSolutionView}
-                        onOpenNote={openNote}
-                        onToggleBookmark={handleToggleBookmark}
-                      />
-                    ))}
-                  </div>
+                {/* Questions single-column list */}
+                <div className="cjq-w3-list">
+                  {group.entries.map((entry, i) => (
+                    <QuestionCard
+                      key={entry.question.id}
+                      entry={entry}
+                      ordinal={i + 1}
+                      isDone={!!doneMap[entry.question.id]}
+                      hasNote={!!notesMap[entry.question.id]}
+                      isBookmarked={isBookmarked(entry.question.id)}
+                      activeView={solutionViewMap[entry.question.id] ?? null}
+                      onToggleDone={handleToggleDone}
+                      onToggleView={toggleSolutionView}
+                      onOpenNote={openNote}
+                      onToggleBookmark={handleToggleBookmark}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </section>
+            ))}
           </div>
         </main>
       </div>
@@ -921,21 +863,18 @@ export default function InterviewCoreJavaQuestionsPage() {
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-1.5">
+              <div className="flex-1 overflow-y-auto p-4">
                 <button
                   onClick={() => {
                     handleTopicClick(null);
                     setTopicSidebarOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-xl transition-all mb-2 border ${
-                    !selectedTopic
-                      ? "bg-primary/10 border-primary/20 text-foreground"
-                      : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
-                  }`}
+                  aria-pressed={!selectedTopic}
+                  className="cjq-side-link"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl" aria-hidden="true">📚</span>
-                    <span className="text-[14px] font-semibold">All Topics</span>
+                  <div className="cjq-side-link-row">
+                    <span aria-hidden="true">📚</span>
+                    <span className="cjq-side-link-title">All Topics</span>
                   </div>
                 </button>
 
@@ -951,26 +890,20 @@ export default function InterviewCoreJavaQuestionsPage() {
                         handleTopicClick(topic.id);
                         setTopicSidebarOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-3 rounded-xl transition-all border ${
-                        isActive
-                          ? "bg-primary/10 border-primary/20 text-foreground"
-                          : "cjq-nav-btn bg-transparent border-transparent text-muted-foreground"
-                      }`}
+                      aria-pressed={isActive}
+                      className="cjq-side-link"
                     >
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xl leading-none" aria-hidden="true">{topic.icon}</span>
-                        <span className="text-[14px] font-semibold truncate flex-1">{topic.title}</span>
-                        <span className="text-[11px] font-mono text-muted-foreground/60 shrink-0">
+                      <div className="cjq-side-link-row">
+                        <span className="shrink-0" aria-hidden="true">{topic.icon}</span>
+                        <span className="cjq-side-link-title">{topic.title}</span>
+                        <span className="cjq-side-link-num">
                           {topicDone}/{topicTotal}
                         </span>
                       </div>
-                      <div className="ml-[34px] h-[3px] rounded-full bg-muted/60 overflow-hidden">
+                      <div className="cjq-side-progress">
                         <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${pct}%`,
-                            background: pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))",
-                          }}
+                          className={`cjq-side-progress-fill ${pct === 100 ? "cjq-side-progress-fill--complete" : ""}`}
+                          style={{ width: `${pct}%` }}
                         />
                       </div>
                     </button>

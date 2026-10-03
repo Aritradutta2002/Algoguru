@@ -332,9 +332,9 @@ export default function BackendInterviewHubPage() {
               to={BACKEND_QUESTIONS_PATH}
               icon={<BookOpen className="h-5 w-5" />}
               eyebrow="Question bank"
-              title="138 questions, full answers"
-              description="Every answer is 300–500 words of real explanation — internals, trade-offs, failure modes — plus a self-contained code sample and the follow-ups the interviewer will ask next."
-              meta={`8 topics · ~${readHours} hours of reading`}
+              title={`${BACKEND_TOTAL_QUESTIONS} questions, full answers`}
+              description="Every answer is real explanation — internals, trade-offs, failure modes — plus a self-contained code sample and the follow-ups the interviewer will ask next."
+              meta={`${backendTopicStats.length} topics · ~${readHours} hours of reading`}
               accent="hsl(var(--primary))"
             />
             <PillarCard

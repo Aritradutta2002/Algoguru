@@ -1038,4 +1038,299 @@ export const coreJavaVisualizations: Record<string, Diagram> = {
       },
     ],
   },
+  q001: {
+    type: "layers",
+    title: "Java Platform Architecture",
+    data: [
+      {
+        label: "Java Language (.java Source)",
+        color: "primary",
+        children: [
+          {
+            label: "javac Compiler (Source -> Bytecode)",
+            color: "info",
+            children: [
+              {
+                label: "Class File (.class Bytecode)",
+                color: "accent",
+                children: [
+                  {
+                    label: "JVM (Classloader -> Verifier -> JIT Engine)",
+                    color: "warning",
+                    children: [
+                      { label: "Host OS & CPU Architecture (Windows, Linux, macOS)", color: "success" },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  q005: {
+    type: "table-visual",
+    title: "Java vs C++ Core Architecture",
+    data: [
+      {
+        label: "Memory Management",
+        color: "primary",
+        children: [
+          { label: "Java: Automatic GC (No dangling pointers, no manual delete)" },
+          { label: "C++: Manual / RAII (delete, unique_ptr, shared_ptr)" },
+        ],
+      },
+      {
+        label: "Execution Model",
+        color: "info",
+        children: [
+          { label: "Java: Bytecode on JVM (WORA, platform-neutral)" },
+          { label: "C++: Direct native compilation per OS/CPU" },
+        ],
+      },
+      {
+        label: "Pointers & Safety",
+        color: "accent",
+        children: [
+          { label: "Java: Strongly-typed references, bounds-checked arrays" },
+          { label: "C++: Raw pointers, pointer arithmetic, buffer overruns possible" },
+        ],
+      },
+      {
+        label: "Multiple Inheritance",
+        color: "success",
+        children: [
+          { label: "Java: Single class inheritance + multiple interfaces (No diamond problem)" },
+          { label: "C++: Multiple class inheritance (Virtual inheritance required)" },
+        ],
+      },
+    ],
+  },
+  q011: {
+    type: "table-visual",
+    title: "Autoboxing & The Wrapper Cache Trap",
+    data: [
+      {
+        label: "Integer Cache Range [-128..127]",
+        color: "primary",
+        children: [
+          { label: "Integer.valueOf(100) returns cached object -> == is TRUE" },
+          { label: "Integer.valueOf(1000) creates new instance -> == is FALSE" },
+          { label: "Rule: ALWAYS use .equals() for wrapper object comparison" },
+        ],
+      },
+      {
+        label: "Unboxing Null Trap",
+        color: "warning",
+        children: [
+          { label: "Integer count = null;" },
+          { label: "int total = count; // Throws runtime NullPointerException!" },
+        ],
+      },
+      {
+        label: "Loop Performance Overhead",
+        color: "accent",
+        children: [
+          { label: "Long sum = 0L; sum += i; inside 1M loop" },
+          { label: "Allocates 1M temporary heap objects -> GC thrashing" },
+        ],
+      },
+    ],
+  },
+  q029: {
+    type: "flow",
+    title: "equals() and hashCode() Contract Flow",
+    direction: "vertical",
+    data: [
+      {
+        label: "Are objects equal via a.equals(b)?",
+        color: "primary",
+        children: [{ label: "Reflexive, symmetric, transitive, consistent, non-null" }],
+      },
+      {
+        label: "YES -> a.hashCode() MUST equal b.hashCode()",
+        color: "success",
+        children: [{ label: "Enables HashMap to find the identical bucket index" }],
+      },
+      {
+        label: "NO -> Hash codes MAY be equal or different",
+        color: "info",
+        children: [{ label: "Equal hash codes for unequal objects = Hash Collision (chained)" }],
+      },
+      {
+        label: "CRITICAL: Fields used in equals() MUST be immutable",
+        color: "warning",
+        children: [{ label: "Mutating key after put() results in lost entries & memory leaks" }],
+      },
+    ],
+  },
+  q065: {
+    type: "table-visual",
+    title: "Java Access Modifiers Scope Matrix",
+    data: [
+      {
+        label: "private",
+        color: "warning",
+        children: [{ label: "Same Class: YES" }, { label: "Same Package: NO" }, { label: "Subclass (diff pkg): NO" }, { label: "World (everywhere): NO" }],
+      },
+      {
+        label: "default (package-private)",
+        color: "info",
+        children: [{ label: "Same Class: YES" }, { label: "Same Package: YES" }, { label: "Subclass (diff pkg): NO" }, { label: "World (everywhere): NO" }],
+      },
+      {
+        label: "protected",
+        color: "accent",
+        children: [{ label: "Same Class: YES" }, { label: "Same Package: YES" }, { label: "Subclass (diff pkg): YES" }, { label: "World (everywhere): NO" }],
+      },
+      {
+        label: "public",
+        color: "success",
+        children: [{ label: "Same Class: YES" }, { label: "Same Package: YES" }, { label: "Subclass (diff pkg): YES" }, { label: "World (everywhere): YES" }],
+      },
+    ],
+  },
+  q091: {
+    type: "flow",
+    title: "Exception Handling Execution Pipeline",
+    direction: "vertical",
+    data: [
+      { label: "try block executes risky I/O or business operation", color: "primary" },
+      { label: "Exception thrown? Stack begins unwinding", color: "warning" },
+      { label: "catch blocks evaluated top-to-bottom (subclasses first)", color: "info", children: [{ label: "Catches matching type, executes recovery logic" }] },
+      { label: "finally block executes unconditionally", color: "accent", children: [{ label: "Always runs (unless System.exit() or JVM crash)" }] },
+      { label: "Modern replacement: try-with-resources on AutoCloseable", color: "success" },
+    ],
+  },
+  q190: {
+    type: "flow",
+    title: "Thread Life Cycle (6 JVM States)",
+    direction: "horizontal",
+    data: [
+      { label: "NEW", color: "primary", children: [{ label: "Thread instantiated, before start()" }] },
+      { label: "RUNNABLE", color: "success", children: [{ label: "Ready to run or executing on CPU" }] },
+      { label: "BLOCKED / WAITING", color: "warning", children: [{ label: "BLOCKED: waiting for monitor lock" }, { label: "WAITING: wait(), join(), park()" }, { label: "TIMED_WAITING: sleep(), wait(timeout)" }] },
+      { label: "TERMINATED", color: "info", children: [{ label: "run() finished or uncaught exception" }] },
+    ],
+  },
+  q200: {
+    type: "table-visual",
+    title: "volatile vs synchronized vs Atomics",
+    data: [
+      {
+        label: "volatile",
+        color: "info",
+        children: [{ label: "Visibility: YES (Direct main memory flush)" }, { label: "Atomicity: NO (count++ still causes race)" }, { label: "Lock Overhead: None (Memory barriers only)" }],
+      },
+      {
+        label: "synchronized",
+        color: "warning",
+        children: [{ label: "Visibility: YES (Monitor exit releases to memory)" }, { label: "Atomicity: YES (Exclusive mutual exclusion)" }, { label: "Lock Overhead: Monitor acquire/release" }],
+      },
+      {
+        label: "AtomicInteger (CAS)",
+        color: "success",
+        children: [{ label: "Visibility: YES (volatile value field)" }, { label: "Atomicity: YES (Hardware CAS instruction)" }, { label: "Lock Overhead: Lock-free optimistic retry" }],
+      },
+    ],
+  },
+  q225: {
+    type: "layers",
+    title: "Modern Java Evolution Pipeline",
+    data: [
+      {
+        label: "Java 21 LTS (2023)",
+        color: "primary",
+        children: [
+          { label: "Virtual Threads (Project Loom)", color: "info" },
+          { label: "Pattern Matching for switch & Record Patterns", color: "info" },
+          { label: "Sequenced Collections (addFirst, reversed)", color: "info" },
+          {
+            label: "Java 17 LTS (2021)",
+            color: "accent",
+            children: [
+              { label: "Sealed Classes & Interfaces (permits)", color: "warning" },
+              { label: "Java Records (Immutable data carriers)", color: "warning" },
+              {
+                label: "Java 8 LTS (2014)",
+                color: "success",
+                children: [
+                  { label: "Lambdas, Stream API & CompletableFuture" },
+                  { label: "Default & Static interface methods" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 };
+
+/**
+ * Mapping table from legacy question IDs to current Core Java Question IDs (q001..q226).
+ * This enables all diagrams to render on the Question Detail Page and Table of Contents.
+ */
+const LEGACY_TO_QUESTION_ID_MAP: Record<string, string[]> = {
+  b2: ["q004"],
+  b3: ["q003"],
+  b7: ["q013", "q014"],
+  o1: ["q023"],
+  o2: ["q033", "q034"],
+  o3: ["q059"],
+  o4: ["q032"],
+  o5: ["q046"],
+  o6: ["q055"],
+  o9: ["q065"],
+  o12: ["q050"],
+  s1: ["q017"],
+  s2: ["q016"],
+  s3: ["q020", "q021"],
+  ip1: ["q037"],
+  ip5: ["q057"],
+  e1: ["q098"],
+  e2: ["q101"],
+  e3: ["q093"],
+  e7: ["q099"],
+  e8: ["q102"],
+  c1: ["q135"],
+  c2: ["q145"],
+  c3: ["q164"],
+  c4: ["q152"],
+  c6: ["q162"],
+  c7: ["q167"],
+  c9: ["q146"],
+  mt1: ["q186"],
+  mt4: ["q204"],
+  mt6: ["q202"],
+  mt7: ["q077"],
+  mt8: ["q192"],
+  g1: ["q178"],
+  g2: ["q181"],
+  g4: ["q182", "q183"],
+  io3: ["q127"],
+  mem1: ["q110"],
+  mem2: ["q118", "q120"],
+  mem3: ["q111", "q119"],
+  st1: ["q210"],
+  st2: ["q211"],
+  st5: ["q212", "q213"],
+  m4: ["q219"],
+  m6: ["q006"],
+  m8: ["q223"],
+  m11: ["q156"],
+  m12: ["q162"],
+  m15: ["q057"],
+};
+
+for (const [legacyKey, qIds] of Object.entries(LEGACY_TO_QUESTION_ID_MAP)) {
+  const diag = coreJavaVisualizations[legacyKey];
+  if (diag) {
+    for (const qId of qIds) {
+      if (!coreJavaVisualizations[qId]) {
+        coreJavaVisualizations[qId] = diag;
+      }
+    }
+  }
+}

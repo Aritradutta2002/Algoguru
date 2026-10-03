@@ -72,7 +72,7 @@ class ReadyListener {
         "Auto-configuration is `@Import(AutoConfigurationImportSelector.class)` plus a discovery file plus conditions.\n\n" +
         "Discovery:\n\n" +
         "- **Boot 3**: every jar contributes `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` — a plain newline-delimited list of class names.\n" +
-        "- **Boot 2.x**: the same list lived under the `EnableAutoConfiguration` key in `META-INF/spring.factories`. Boot 3 still reads it but logs a deprecation.\n\n" +
+        "- **Boot 2.x**: the same list lived under the `EnableAutoConfiguration` key in `META-INF/spring.factories`. Boot 3 uses the `.imports` file for auto-configuration discovery; `spring.factories` remains relevant for some other Spring factories, but it is not the Boot 3 auto-configuration registry.\n\n" +
         "Filtering, in order:\n\n" +
         "1. Remove anything listed in `spring.autoconfigure.exclude` or `@SpringBootApplication(exclude = ...)`.\n" +
         "2. Apply **`AutoConfigurationImportFilter`s** — notably `OnClassCondition`, which uses **ASM to read class bytes** and eliminate candidates whose `@ConditionalOnClass` types are absent, without loading anything. This is the big startup optimisation.\n" +

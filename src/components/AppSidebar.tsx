@@ -197,6 +197,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
 
   const navItems = [
     { label: "Home",       Icon: Home,  path: "/" },
+    { label: "Contest",    Icon: Trophy, path: "/contest" },
     { label: "Playground", Icon: Code2, path: "/playground" },
   ];
 

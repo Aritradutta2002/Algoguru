@@ -34,6 +34,159 @@ export type Database = {
   }
   public: {
     Tables: {
+      coding_problems: {
+        Row: {
+          constraints: string[]
+          created_at: string
+          description: string
+          difficulty: string
+          examples: Json
+          function_signature: string
+          hidden_test_cases: Json
+          id: string
+          input_format: string
+          is_published: boolean
+          memory_limit_mb: number
+          output_format: string
+          reference_solution: string | null
+          slug: string
+          starter_code: string
+          time_limit_ms: number
+          title: string
+          topics: string[]
+          visible_test_cases: Json
+        }
+        Insert: {
+          constraints?: string[]
+          created_at?: string
+          description: string
+          difficulty: string
+          examples?: Json
+          function_signature: string
+          hidden_test_cases?: Json
+          id?: string
+          input_format: string
+          is_published?: boolean
+          memory_limit_mb?: number
+          output_format: string
+          reference_solution?: string | null
+          slug: string
+          starter_code: string
+          time_limit_ms?: number
+          title: string
+          topics?: string[]
+          visible_test_cases?: Json
+        }
+        Update: {
+          constraints?: string[]
+          created_at?: string
+          description?: string
+          difficulty?: string
+          examples?: Json
+          function_signature?: string
+          hidden_test_cases?: Json
+          id?: string
+          input_format?: string
+          is_published?: boolean
+          memory_limit_mb?: number
+          output_format?: string
+          reference_solution?: string | null
+          slug?: string
+          starter_code?: string
+          time_limit_ms?: number
+          title?: string
+          topics?: string[]
+          visible_test_cases?: Json
+        }
+        Relationships: []
+      }
+      contest_coding_sessions: {
+        Row: {
+          created_at: string
+          duration_seconds: number
+          evaluation: Json | null
+          expires_at: string
+          finalization_reason: string | null
+          id: string
+          language: string
+          problem_ids: string[]
+          problems_solved: number | null
+          started_at: string
+          status: string
+          submitted_at: string | null
+          tests_passed: number | null
+          tests_total: number | null
+          total_score: number | null
+          updated_at: string
+          user_id: string
+          warning_count: number
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number
+          evaluation?: Json | null
+          expires_at: string
+          finalization_reason?: string | null
+          id?: string
+          language?: string
+          problem_ids: string[]
+          problems_solved?: number | null
+          started_at: string
+          status?: string
+          submitted_at?: string | null
+          tests_passed?: number | null
+          tests_total?: number | null
+          total_score?: number | null
+          updated_at?: string
+          user_id: string
+          warning_count?: number
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number
+          evaluation?: Json | null
+          expires_at?: string
+          finalization_reason?: string | null
+          id?: string
+          language?: string
+          problem_ids?: string[]
+          problems_solved?: number | null
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+          tests_passed?: number | null
+          tests_total?: number | null
+          total_score?: number | null
+          updated_at?: string
+          user_id?: string
+          warning_count?: number
+        }
+        Relationships: []
+      }
+      contest_problem_drafts: {
+        Row: {
+          code: string
+          problem_id: string
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code?: string
+          problem_id: string
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          problem_id?: string
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       core_java_user_state: {
         Row: {
           created_at: string

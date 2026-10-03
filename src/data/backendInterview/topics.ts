@@ -102,6 +102,28 @@ export const BACKEND_TOPICS: BackendTopicDefinition[] = [
     accent: "hsl(var(--primary))",
   },
   {
+    id: "sql-jpa",
+    title: "SQL, Transactions, JPA & Hibernate",
+    shortTitle: "SQL & JPA",
+    icon: "🗄️",
+    blurb:
+      "Relational fundamentals, indexes and EXPLAIN, ACID and isolation levels, locking, the JPA persistence model, N+1, fetch strategies, pagination and SQL injection.",
+    interviewerIntent:
+      "Can you keep data correct under concurrency and make Hibernate fast — not just write derived query methods?",
+    accent: "hsl(var(--warning))",
+  },
+  {
+    id: "http-rest",
+    title: "HTTP, REST APIs & Microservices",
+    shortTitle: "HTTP & REST",
+    icon: "🌐",
+    blurb:
+      "HTTP method/status semantics, resource design, idempotency, versioning, pagination, error contracts, caching, CORS, resilience (timeouts, retries, circuit breakers) and monolith-vs-microservices trade-offs.",
+    interviewerIntent:
+      "Can you design a web API and reason about failure in a distributed system, not just annotate a controller?",
+    accent: "hsl(var(--info))",
+  },
+  {
     id: "jwt",
     title: "JWT, Stateless Auth & OAuth2",
     shortTitle: "JWT & OAuth2",
@@ -110,6 +132,94 @@ export const BACKEND_TOPICS: BackendTopicDefinition[] = [
       "JWS structure, signing algorithms, claims, refresh-token rotation, revocation strategies, storage, and the JWT filter you will be asked to write on a whiteboard.",
     interviewerIntent:
       "Do you understand the security trade-offs, or did you copy a tutorial filter into production?",
+    accent: "hsl(var(--info))",
+  },
+  {
+    id: "testing",
+    title: "Testing, Debugging & Coding Exercises",
+    shortTitle: "Testing",
+    icon: "🧪",
+    blurb:
+      "The testing pyramid, JUnit 5 & Mockito, Spring test slices and Testcontainers, transactional-test traps, a structured production-debugging approach, and the small live-coding exercises.",
+    interviewerIntent:
+      "Do you write fast, trustworthy tests and debug production methodically — and can you code the classic exercises cleanly?",
+    accent: "hsl(var(--success))",
+  },
+  {
+    id: "messaging-caching",
+    title: "Messaging & Caching",
+    shortTitle: "Messaging & Cache",
+    icon: "📨",
+    blurb:
+      "Queue vs topic, Kafka partitions/consumer-groups/offsets, delivery semantics and idempotency, DLQs, plus Redis data structures, cache-aside, stampede protection and distributed locks.",
+    interviewerIntent:
+      "Can you reason about async delivery guarantees and cache correctness — not just call send() and get()?",
+    accent: "hsl(var(--accent))",
+  },
+  {
+    id: "production-ops",
+    title: "Deployment, Observability & Production Ops",
+    shortTitle: "Deploy & Ops",
+    icon: "📈",
+    blurb:
+      "Docker & layered jars, Kubernetes health probes and graceful shutdown, the three pillars of observability, JVM incident triage (OOM/GC/threads) and running an incident.",
+    interviewerIntent:
+      "Can you ship a service, keep it healthy, and lead the response when it breaks at 3am?",
+    accent: "hsl(var(--destructive))",
+  },
+  {
+    id: "core-java-lang",
+    title: "Core Java Language & Modern Features",
+    shortTitle: "Core Java Lang",
+    icon: "☕",
+    blurb:
+      "The senior language topics: composition vs inheritance, records, Optional, pass-by-value, var, sealed classes, pattern matching, java.time, final/finally/finalize, NPE strategy, Unicode and copying.",
+    interviewerIntent:
+      "Do you know modern Java (17/21) idioms and the value/reference semantics behind everyday bugs?",
+    accent: "hsl(var(--primary))",
+  },
+  {
+    id: "streams-generics",
+    title: "Streams & Generics — Advanced",
+    shortTitle: "Streams & Generics",
+    icon: "🌊",
+    blurb:
+      "Raw types & heap pollution, map/flatMap/filter/reduce, Collectors in practice, stream pitfalls and the streams-vs-loops trade-off.",
+    interviewerIntent:
+      "Can you use the functional toolkit correctly — pure pipelines, right collector, no heap pollution?",
+    accent: "hsl(var(--warning))",
+  },
+  {
+    id: "jvm",
+    title: "JVM Internals & Advanced Concurrency",
+    shortTitle: "JVM Internals",
+    icon: "⚙️",
+    blurb:
+      "Livelock/starvation, structured concurrency, JVM memory areas, GC, memory leaks, container-aware sizing, performance triage, thread/heap dumps and class-loading errors.",
+    interviewerIntent:
+      "Can you reason about the runtime and diagnose OOM/GC/contention with the right tools?",
+    accent: "hsl(var(--accent))",
+  },
+  {
+    id: "spring-web-ops",
+    title: "Spring — Web Pipeline, AOP & Operations",
+    shortTitle: "Spring Web & Ops",
+    icon: "🍃",
+    blurb:
+      "Filters vs interceptors vs AOP, logging & MDC, diagnosing startup failures and circular dependencies, Boot performance tuning, file upload/streaming and service structure.",
+    interviewerIntent:
+      "Do you understand the Spring request pipeline and how to operate and tune a real service?",
+    accent: "hsl(var(--success))",
+  },
+  {
+    id: "security-hardening",
+    title: "Application Security Hardening",
+    shortTitle: "Security Hardening",
+    icon: "🛡️",
+    blurb:
+      "Transport security (TLS/HTTPS/mTLS), security logging & auditing, and input validation / injection / path-traversal defenses.",
+    interviewerIntent:
+      "Beyond auth: can you secure transport, keep a safe audit trail and defend the input boundary?",
     accent: "hsl(var(--info))",
   },
 ];

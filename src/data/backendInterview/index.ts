@@ -22,6 +22,16 @@ import { chunk06MultithreadingA } from "./chunk-06-multithreading-a";
 import { chunk07MultithreadingB } from "./chunk-07-multithreading-b";
 import { chunk08SpringSecurity } from "./chunk-08-spring-security";
 import { chunk09Jwt } from "./chunk-09-jwt";
+import { chunk10SqlJpa } from "./chunk-10-sql-jpa";
+import { chunk11HttpRest } from "./chunk-11-http-rest";
+import { chunk12Testing } from "./chunk-12-testing";
+import { chunk13MessagingCaching } from "./chunk-13-messaging-caching";
+import { chunk14Ops } from "./chunk-14-ops";
+import { chunk15CoreJavaLang } from "./chunk-15-core-java-lang";
+import { chunk16StreamsGenerics } from "./chunk-16-streams-generics";
+import { chunk17Jvm } from "./chunk-17-jvm";
+import { chunk18SpringWebOps } from "./chunk-18-spring-web-ops";
+import { chunk19SecurityHardening } from "./chunk-19-security-hardening";
 
 export type {
   BackendQuestion,
@@ -44,6 +54,16 @@ const CHUNKS: BackendChunk[] = [
   chunk07MultithreadingB,
   chunk08SpringSecurity,
   chunk09Jwt,
+  chunk10SqlJpa,
+  chunk11HttpRest,
+  chunk12Testing,
+  chunk13MessagingCaching,
+  chunk14Ops,
+  chunk15CoreJavaLang,
+  chunk16StreamsGenerics,
+  chunk17Jvm,
+  chunk18SpringWebOps,
+  chunk19SecurityHardening,
 ];
 
 /** Expected question count per topic — a tripwire against accidental deletion. */
@@ -56,9 +76,19 @@ const EXPECTED_TOPIC_COUNTS: Record<string, number> = {
   multithreading: 26,
   "spring-security": 18,
   jwt: 14,
+  "sql-jpa": 30,
+  "http-rest": 25,
+  testing: 13,
+  "messaging-caching": 10,
+  "production-ops": 5,
+  "core-java-lang": 12,
+  "streams-generics": 5,
+  jvm: 9,
+  "spring-web-ops": 7,
+  "security-hardening": 3,
 };
 
-export const BACKEND_QUESTION_TOTAL = 138;
+export const BACKEND_QUESTION_TOTAL = 257;
 
 const questionsByTopic: Record<string, BackendQuestion[]> = {};
 const metaMap: Record<string, BackendQuestionMeta> = {};
@@ -75,7 +105,7 @@ for (const chunk of CHUNKS) {
   }
 }
 
-/** Flat list in topic-registry order — this is what drives "Question N of 138". */
+/** Flat list in topic-registry order — this is what drives "Question N of 257". */
 export const allBackendQuestions: BackendQuestion[] = BACKEND_TOPICS.flatMap(
   (topic) => questionsByTopic[topic.id] ?? [],
 );
