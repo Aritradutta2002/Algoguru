@@ -35,12 +35,24 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   );
 };
 
+interface CommandInputProps extends React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> {
+  /** Leading adornment. Pass `null` to drop the default magnifier icon. */
+  icon?: React.ReactNode;
+  /** Extra classes for the wrapper row. */
+  wrapperClassName?: string;
+}
+
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+  CommandInputProps
+>(({ className, icon, wrapperClassName, ...props }, ref) => (
+  <div
+    className={cn("flex items-center border-b px-3", wrapperClassName)}
+    cmdk-input-wrapper=""
+  >
+    {icon === null ? null : (
+      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    )}
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -105,7 +117,11 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50",
+      // Selection uses `muted`, never `accent`: this theme sets --accent to a
+      // saturated amber brand colour, so the stock `bg-accent` selection paints
+      // a glaring yellow slab over every highlighted row. `muted` is the quiet
+      // neutral surface shadcn originally intended here.
+      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected='true']:bg-muted data-[selected='true']:text-foreground",
       className,
     )}
     {...props}
