@@ -7,10 +7,33 @@
  * with.
  */
 
+import type { CodingDifficulty } from "@/lib/contest/types";
+
 export const CODING_CONTEST_DURATION_SECONDS = 30 * 60; // exactly 30 minutes
 
 export const CODING_CONTEST_MIN_PROBLEMS = 2;
 export const CODING_CONTEST_MAX_PROBLEMS = 3;
+
+/**
+ * Learner-facing name for each difficulty. The workspace shows the tier, because
+ * that is the vocabulary the instruction screen and the landing page teach; the
+ * raw `easy`/`medium`/`hard` value stays on the badge as its tooltip.
+ */
+export const CODING_DIFFICULTY_TIERS = {
+  easy: "Basic",
+  medium: "Core",
+  hard: "Advanced",
+} as const satisfies Record<CodingDifficulty, string>;
+
+/**
+ * Points each question is worth. The workspace only ever *displays* this — the
+ * authoritative score is produced by the backend, never in the browser.
+ */
+export const CODING_PROBLEM_POINTS = {
+  easy: 5,
+  medium: 10,
+  hard: 15,
+} as const satisfies Record<CodingDifficulty, number>;
 
 export type TimerUrgencyTone = "normal" | "warn" | "danger";
 

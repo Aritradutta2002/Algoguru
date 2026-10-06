@@ -5,6 +5,7 @@ import {
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,12 +37,17 @@ import type {
 } from "@/lib/contest/types";
 import type { ExecutionResult } from "@/lib/contest/executionService";
 import { CodingContestHeader } from "@/components/contest/coding/CodingContestHeader";
+import { CodingEditorFooter } from "@/components/contest/coding/CodingEditorFooter";
 import { CodingEditorPanel } from "@/components/contest/coding/CodingEditorPanel";
 import { CodingExecutionPanel } from "@/components/contest/coding/CodingExecutionPanel";
 import { CodingIntegrityLock } from "@/components/contest/coding/CodingIntegrityLock";
-import { CodingProblemNav } from "@/components/contest/coding/CodingProblemNav";
-import { CodingProblemPanel } from "@/components/contest/coding/CodingProblemPanel";
-import type { ProblemState } from "@/components/contest/coding/CodingProblemNav";
+import { CodingQuestionList } from "@/components/contest/coding/CodingQuestionList";
+import { CodingQuestionMenu } from "@/components/contest/coding/CodingQuestionMenu";
+import {
+  CodingProblemPanel,
+  type CodingSubmissionSummary,
+} from "@/components/contest/coding/CodingProblemPanel";
+import type { ProblemState } from "@/components/contest/coding/problemState";
 import { cn } from "@/lib/utils";
 
 /**
@@ -58,6 +64,25 @@ import { cn } from "@/lib/utils";
 
 type SaveStatus = "Saved" | "Saving" | "Unsaved" | "Local draft";
 const DRAFT_PREFIX = "algoguru:coding-contest:draft:";
+
+/**
+ * Splitter layouts are remembered per learner between visits. `autoSaveId`
+ * hands the persistence to `react-resizable-panels`, which writes the layout to
+ * localStorage and restores it on the next mount; the defaults below are only
+ * used on a first visit.
+ */
+const SPLIT_LAYOUT_KEY = "algoguru:coding-contest:layout:split";
+const CONSOLE_LAYOUT_KEY = "algoguru:coding-contest:layout:console";
+
+/** Thin dividers with a wide invisible hit area, so a drag starts easily. */
+const SPLIT_HANDLE_CLASS =
+  "!w-px border-l-0 bg-border transition-colors hover:bg-primary/60 focus-visible:!w-[3px] focus-visible:bg-primary [&>div]:hidden";
+const CONSOLE_HANDLE_CLASS =
+  "!h-px border-t-0 bg-border transition-colors hover:bg-primary/60 focus-visible:!h-[3px] focus-visible:bg-primary [&>div]:hidden";
+
+/** Collapsed console = just its header strip. */
+const CONSOLE_COLLAPSED_SIZE = 40;
+
 const DRAFT_DEBOUNCE_MS = 800;
 
 function draftKey(sessionId: string, problemId: string): string {
@@ -116,8 +141,15 @@ export function CodingContestSession() {
   const [returningFullscreen, setReturningFullscreen] = useState(false);
   const [finaliseError, setFinaliseError] = useState<string | null>(null);
   const [startGateOpen, setStartGateOpen] = useState(false);
-  const [problemsDrawerOpen, setProblemsDrawerOpen] = useState(false);
+  const [questionMenuOpen, setQuestionMenuOpen] = useState(false);
+  const [questionListOpen, setQuestionListOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"split" | "editor" | "problem">("split");
+  /** Results start collapsed to their header strip; a run opens them again. */
+  const [consoleCollapsed, setConsoleCollapsed] = useState(true);
+  /** Last visible-test tally per question, so switching questions never loses it. */
+  const [lastResults, setLastResults] = useState<
+    Record<string, { passed: number; total: number }>
+  >({});
 
   const fullscreen = useFullscreenExam();
   // The clock stays idle until fullscreen has genuinely been entered.
@@ -126,6 +158,8 @@ export function CodingContestSession() {
   const finalisingRef = useRef(false);
   const finalisedRef = useRef(false);
   const saveTimerRef = useRef<number | null>(null);
+  const menuAnchorRef = useRef<HTMLDivElement>(null);
+  const consolePanelRef = useRef<ImperativePanelHandle>(null);
 
   // ── Session hydration ────────────────────────────────────────────────
   useEffect(() => {
@@ -311,6 +345,8 @@ export function CodingContestSession() {
       setBusy(action);
       setResult(null);
       setRunAttempted((current) => ({ ...current, [activeProblem.id]: true }));
+      // Output the learner asked for should never land in a hidden drawer.
+      setConsoleCollapsed(false);
       try {
         const outcome =
           action === "run"
@@ -329,6 +365,10 @@ export function CodingContestSession() {
                 mode: "submit",
               });
         setResult(outcome);
+        setLastResults((current) => ({
+          ...current,
+          [activeProblem.id]: { passed: outcome.passed, total: outcome.total },
+        }));
         if (action === "submit") {
           setSubmitted((current) => ({ ...current, [activeProblem.id]: true }));
           if (!bundle.authoritative) {
@@ -394,7 +434,7 @@ export function CodingContestSession() {
   const stateFor = useCallback(
     (problem: PublicCodingProblem): ProblemState => {
       if (submitted[problem.id]) return "Submitted";
-      if (runAttempted[problem.id] && (result?.passed ?? 0) > 0) {
+      if (runAttempted[problem.id] && (lastResults[problem.id]?.passed ?? 0) > 0) {
         return "Visible tests passed";
       }
       if (runAttempted[problem.id]) return "Run attempted";
@@ -402,7 +442,7 @@ export function CodingContestSession() {
       if (visited[problem.id]) return "Viewed";
       return "Not visited";
     },
-    [result?.passed, runAttempted, submitted, touched, visited],
+    [lastResults, runAttempted, submitted, touched, visited],
   );
 
   const submittedCount = Object.values(submitted).filter(Boolean).length;
@@ -416,21 +456,42 @@ export function CodingContestSession() {
     [],
   );
 
-  const activeIndex = bundle ? bundle.problems.findIndex((problem) => problem.id === activeId) : 0;
-  const hasPrevProblem = activeIndex > 0;
-  const hasNextProblem = bundle ? activeIndex < bundle.problems.length - 1 : false;
+  const resetActiveCode = useCallback(() => {
+    if (!activeProblem) return;
+    const starter = activeProblem.starterCode;
+    setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
+    setTouched((current) => ({ ...current, [activeProblem.id]: true }));
+    writeLocalDraft(bundle!.session.id, activeProblem.id, starter);
+    persistDraft(activeProblem.id, starter);
+  }, [activeProblem, bundle, persistDraft]);
 
-  const handlePrevProblem = useCallback(() => {
-    if (!bundle || activeIndex <= 0) return;
-    const prev = bundle.problems[activeIndex - 1];
-    if (prev) selectProblem(prev.id);
-  }, [bundle, activeIndex, selectProblem]);
+  // The console drawer is a real resizable panel, so the chevron, the drag and
+  // the keyboard all drive the same layout. This effect is the single place the
+  // React state is mirrored onto the panel, so they cannot drift apart. Declared
+  // above the early returns to keep the hook order stable across renders.
+  useEffect(() => {
+    const panel = consolePanelRef.current;
+    if (!panel) return;
+    if (consoleCollapsed) panel.collapse();
+    else panel.expand();
+  }, [consoleCollapsed]);
 
-  const handleNextProblem = useCallback(() => {
-    if (!bundle || activeIndex >= bundle.problems.length - 1) return;
-    const next = bundle.problems[activeIndex + 1];
-    if (next) selectProblem(next.id);
-  }, [bundle, activeIndex, selectProblem]);
+  // The contest-set menu dismisses on an outside press, but not on its own
+  // trigger — that press is the toggle.
+  useEffect(() => {
+    if (!questionMenuOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (target && menuAnchorRef.current?.contains(target)) return;
+      setQuestionMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [questionMenuOpen]);
+
+  const activeIndex = bundle
+    ? bundle.problems.findIndex((problem) => problem.id === activeId)
+    : 0;
 
   if (loadError) {
     return (
@@ -458,26 +519,119 @@ export function CodingContestSession() {
   const finalised = finalisedRef.current;
   const readonly = locked || finalised;
 
+  const entries = bundle.problems.map((problem, index) => ({
+    problem,
+    index,
+    state: stateFor(problem),
+  }));
+
+  const submissions: CodingSubmissionSummary[] = entries.map((entry) => ({
+    problem: entry.problem,
+    index: entry.index,
+    state: entry.state,
+    passed: lastResults[entry.problem.id]?.passed ?? 0,
+    total: lastResults[entry.problem.id]?.total ?? 0,
+  }));
+
+  const problemPane = locked ? (
+    <p className="px-5 py-6 text-sm text-muted-foreground">
+      The problem statement is hidden while the exam is locked.
+    </p>
+  ) : (
+    <CodingProblemPanel problem={activeProblem} submissions={submissions} />
+  );
+
+  const editorColumn = (
+    <div className="flex h-full min-h-0 flex-col">
+      <ResizablePanelGroup
+        direction="vertical"
+        className="min-h-0 flex-1"
+        autoSaveId={CONSOLE_LAYOUT_KEY}
+        keyboardResizeBy={5}
+      >
+        <ResizablePanel defaultSize={76} minSize={25} className="min-h-0">
+          <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
+            <CodingEditorPanel
+              problem={activeProblem}
+              value={drafts[activeProblem.id] ?? ""}
+              onChange={handleCodeChange}
+              readOnly={readonly}
+              diagnostics={result?.compileDiagnostics ?? []}
+              onReset={resetActiveCode}
+              onRun={() => void runOrSubmit("run")}
+              onSubmit={() => void runOrSubmit("submit")}
+              busy={busy !== null}
+              busyMode={busy}
+              actionsDisabled={readonly || execution.loading}
+              localDraftsOnly={!bundle.authoritative}
+            />
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle
+          className={CONSOLE_HANDLE_CLASS}
+          orientation="horizontal"
+          aria-label="Resize the code editor and results panels"
+        />
+
+        <ResizablePanel
+          ref={consolePanelRef}
+          defaultSize={24}
+          minSize={12}
+          collapsible
+          collapsedSize={CONSOLE_COLLAPSED_SIZE}
+          onCollapse={() => setConsoleCollapsed(true)}
+          onExpand={() => setConsoleCollapsed(false)}
+          className="min-h-0"
+        >
+          <CodingExecutionPanel
+            busy={busy !== null}
+            mode={busy}
+            result={result}
+            supportsCustomInput={execution.service.supportsCustomInput}
+            collapsed={consoleCollapsed}
+            onCollapsedChange={setConsoleCollapsed}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
+      <CodingEditorFooter
+        saveStatus={bundle.authoritative ? saveStatus : "Local draft"}
+        warningCount={integrity.warningCount}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
+    </div>
+  );
+
   return (
     <div className="flex h-screen flex-col bg-background selection:bg-primary/20">
       <CodingContestHeader
         remainingSeconds={timer.remainingSeconds}
-        submittedCount={submittedCount}
         totalProblems={bundle.problems.length}
-        saveStatus={bundle.authoritative ? saveStatus : "Local draft"}
         warningCount={integrity.warningCount}
         localMode={!bundle.authoritative}
         onFinish={() => setFinishOpen(true)}
-        onToggleProblems={() => setProblemsDrawerOpen((prev) => !prev)}
-        problemsOpen={problemsDrawerOpen}
+        onToggleList={() => setQuestionListOpen((prev) => !prev)}
+        listOpen={questionListOpen}
         activeProblemIndex={activeIndex >= 0 ? activeIndex : 0}
-        activeProblemTitle={activeProblem.title}
-        onPrevProblem={handlePrevProblem}
-        onNextProblem={handleNextProblem}
-        hasPrevProblem={hasPrevProblem}
-        hasNextProblem={hasNextProblem}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        menuOpen={questionMenuOpen}
+        onMenuToggle={() => setQuestionMenuOpen((prev) => !prev)}
+        menuAnchorRef={menuAnchorRef}
+        questionMenu={
+          <CodingQuestionMenu
+            entries={entries}
+            activeId={activeId}
+            onSelect={selectProblem}
+            onOpenList={() => {
+              setQuestionMenuOpen(false);
+              setQuestionListOpen(true);
+            }}
+            disabled={readonly}
+            isOpen={questionMenuOpen}
+            onClose={() => setQuestionMenuOpen(false)}
+          />
+        }
       />
 
       {finaliseError ? (
@@ -495,117 +649,50 @@ export function CodingContestSession() {
         </div>
       ) : null}
 
-      {/* Main Workspace: Full Screen Problem & Editor */}
+      {/* Main Workspace: problem statement, editor and console */}
       <main className="relative flex min-h-0 flex-1 overflow-hidden bg-background">
         {viewMode === "split" ? (
-          <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
-            <ResizablePanel defaultSize={48} minSize={25} className="min-w-0 overflow-y-auto">
-              {locked ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">
-                  The problem statement is hidden while the exam is locked.
-                </p>
-              ) : (
-                <CodingProblemPanel problem={activeProblem} />
-              )}
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="min-h-0 flex-1"
+            autoSaveId={SPLIT_LAYOUT_KEY}
+            keyboardResizeBy={5}
+          >
+            <ResizablePanel defaultSize={40} minSize={20} className="min-w-0">
+              {problemPane}
             </ResizablePanel>
-            <ResizableHandle className="w-1.5 bg-border/70 hover:bg-primary/40 transition-colors" />
+            <ResizableHandle
+              className={SPLIT_HANDLE_CLASS}
+              orientation="vertical"
+              aria-label="Resize the problem description and coding workspace panels"
+            />
 
-            <ResizablePanel defaultSize={52} minSize={30} className="flex min-w-0 flex-col">
-              <ResizablePanelGroup direction="vertical" className="min-h-0 flex-1">
-                <ResizablePanel defaultSize={62} minSize={25} className="min-h-0">
-                  <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
-                    <CodingEditorPanel
-                      problem={activeProblem}
-                      value={drafts[activeProblem.id] ?? ""}
-                      onChange={handleCodeChange}
-                      readOnly={readonly}
-                      diagnostics={result?.compileDiagnostics ?? []}
-                      onReset={() => {
-                        const starter = activeProblem.starterCode;
-                        setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
-                        setTouched((current) => ({ ...current, [activeProblem.id]: true }));
-                        writeLocalDraft(bundle.session.id, activeProblem.id, starter);
-                        persistDraft(activeProblem.id, starter);
-                      }}
-                      localDraftsOnly={!bundle.authoritative}
-                    />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle className="h-1.5 bg-border/70 hover:bg-primary/40 transition-colors" />
-                <ResizablePanel defaultSize={38} minSize={20} className="min-h-0">
-                  <CodingExecutionPanel
-                    busy={busy !== null}
-                    mode={busy}
-                    onRun={() => void runOrSubmit("run")}
-                    onSubmit={() => void runOrSubmit("submit")}
-                    result={result}
-                    disabled={readonly || execution.loading}
-                    supportsCustomInput={execution.service.supportsCustomInput}
-                  />
-                </ResizablePanel>
-              </ResizablePanelGroup>
+            <ResizablePanel defaultSize={60} minSize={30} className="min-w-0">
+              {editorColumn}
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : viewMode === "problem" ? (
-          <div className="h-full w-full overflow-y-auto">
-            {locked ? (
-              <p className="px-4 py-6 text-sm text-muted-foreground">
-                The problem statement is hidden while the exam is locked.
-              </p>
-            ) : (
-              <CodingProblemPanel problem={activeProblem} />
-            )}
+          <div className="flex h-full w-full flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto">{problemPane}</div>
+            <CodingEditorFooter
+              saveStatus={bundle.authoritative ? saveStatus : "Local draft"}
+              warningCount={integrity.warningCount}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
           </div>
         ) : (
-          <div className="flex h-full w-full flex-col">
-            <ResizablePanelGroup direction="vertical" className="min-h-0 flex-1">
-              <ResizablePanel defaultSize={65} minSize={25} className="min-h-0">
-                <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
-                  <CodingEditorPanel
-                    problem={activeProblem}
-                    value={drafts[activeProblem.id] ?? ""}
-                    onChange={handleCodeChange}
-                    readOnly={readonly}
-                    diagnostics={result?.compileDiagnostics ?? []}
-                    onReset={() => {
-                      const starter = activeProblem.starterCode;
-                      setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
-                      setTouched((current) => ({ ...current, [activeProblem.id]: true }));
-                      writeLocalDraft(bundle.session.id, activeProblem.id, starter);
-                      persistDraft(activeProblem.id, starter);
-                    }}
-                    localDraftsOnly={!bundle.authoritative}
-                  />
-                </div>
-              </ResizablePanel>
-              <ResizableHandle className="h-1.5 bg-border/70 hover:bg-primary/40 transition-colors" />
-              <ResizablePanel defaultSize={35} minSize={20} className="min-h-0">
-                <CodingExecutionPanel
-                  busy={busy !== null}
-                  mode={busy}
-                  onRun={() => void runOrSubmit("run")}
-                  onSubmit={() => void runOrSubmit("submit")}
-                  result={result}
-                  disabled={readonly || execution.loading}
-                  supportsCustomInput={execution.service.supportsCustomInput}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </div>
+          editorColumn
         )}
 
-        {/* Problems Fold/Unfold Slider */}
-        <CodingProblemNav
-          entries={bundle.problems.map((problem, index) => ({
-            problem,
-            index,
-            state: stateFor(problem),
-          }))}
+        {/* Full-screen question list */}
+        <CodingQuestionList
+          entries={entries}
           activeId={activeId}
           onSelect={selectProblem}
           disabled={readonly}
-          isOpen={problemsDrawerOpen}
-          onClose={() => setProblemsDrawerOpen(false)}
+          isOpen={questionListOpen}
+          onClose={() => setQuestionListOpen(false)}
         />
       </main>
 

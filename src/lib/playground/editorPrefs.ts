@@ -66,16 +66,19 @@ export function buildMonacoEditorOptions({
   relativeLineNumbers,
   extras,
   readOnly,
+  lineHeight,
 }: {
   fontSize: number;
   tabSize: number;
   relativeLineNumbers: boolean;
   extras: ExtraEditorOptions;
   readOnly: boolean;
+  /** Optional override; defaults to the historical fixed 19px. */
+  lineHeight?: number;
 }) {
   return {
     fontSize,
-    lineHeight: 19,
+    lineHeight: lineHeight ?? 19,
     fontFamily: '"Consolas","Cascadia Code","JetBrains Mono","Fira Code",Menlo,Monaco,"Courier New",monospace',
     fontLigatures: false,
     fontWeight: "400" as const,

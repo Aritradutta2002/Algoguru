@@ -81,6 +81,7 @@ interface LeetCodeEditorProps {
   themeId: string; // "leetcode-dark" | "light" | etc - will be mapped to leetcode-dark/light
   fontSize: number;
   tabSize: number;
+  lineHeight?: number;
   readOnly?: boolean;
   relativeLineNumbers?: boolean;
   extraOptions?: ExtraEditorOptions;
@@ -94,8 +95,9 @@ function LeetCodeEditorInner({
   themeId,
   fontSize,
   tabSize,
-  readOnly = false,
+  lineHeight,
   relativeLineNumbers = false,
+  readOnly = false,
   extraOptions,
   onMount,
 }: LeetCodeEditorProps) {
@@ -123,6 +125,7 @@ function LeetCodeEditorInner({
     relativeLineNumbers: !!relativeLineNumbers,
     extras: extraOptions ?? { minimap: false, wordWrap: true, cursorSmooth: false, bracketPairColorization: true, formatOnType: false },
     readOnly: !!readOnly,
+    lineHeight,
   });
 
   // Map language c++ -> cpp for Monaco

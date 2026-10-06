@@ -174,6 +174,21 @@ async function passStartGate() {
   );
 }
 
+/**
+ * Opens the contest-set dropdown. The question list is only exposed to the
+ * accessibility tree while it is open, so every test that drives it has to go
+ * through the trigger a learner would use.
+ */
+function openQuestionMenu() {
+  fireEvent.click(screen.getByRole("button", { name: /Contest set/i }));
+}
+
+function questionMenuButtons() {
+  return screen
+    .getByRole("navigation", { name: "Assigned problems" })
+    .querySelectorAll("button");
+}
+
 beforeEach(async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   vi.setSystemTime(new Date("2026-09-30T12:00:00Z"));
@@ -222,6 +237,7 @@ describe("CodingContestSession", () => {
   it("assigns two or three distinct problems and lists them accessibly", async () => {
     await startContest();
     await passStartGate();
+    openQuestionMenu();
     const nav = screen.getByRole("navigation", { name: "Assigned problems" });
     const items = nav.querySelectorAll("button");
     expect(items.length).toBeGreaterThanOrEqual(2);
@@ -231,6 +247,66 @@ describe("CodingContestSession", () => {
         /^Problem \d+: .+\. (Not visited|Viewed|Code edited|Run attempted|Visible tests passed|Submitted)$/,
       );
     }
+  });
+
+  it("exposes a focusable splitter between the statement and the workspace", async () => {
+    await startContest();
+    await passStartGate();
+
+    const splitter = screen.getByRole("separator", {
+      name: /Resize the problem description and coding workspace panels/i,
+    });
+    // Focusable, so it is not mouse-only.
+    expect(splitter).toHaveAttribute("tabindex", "0");
+    expect(splitter).toHaveAttribute("aria-orientation", "vertical");
+  });
+
+  it("exposes a focusable splitter between the editor and the results", async () => {
+    await startContest();
+    await passStartGate();
+
+    const splitter = screen.getByRole("separator", {
+      name: /Resize the code editor and results panels/i,
+    });
+    expect(splitter).toHaveAttribute("tabindex", "0");
+    expect(splitter).toHaveAttribute("aria-orientation", "horizontal");
+  });
+
+  it("collapses the results to their header strip and reopens on a run", async () => {
+    await startContest();
+    await passStartGate();
+
+    // Collapsed by default, so a fresh question gets the full editor height.
+    expect(screen.getByRole("button", { name: /Expand results/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Run code/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Run code/i }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /Collapse results/i }),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("keeps the question list out of the page until it is asked for", async () => {
+    await startContest();
+    await passStartGate();
+
+    // Collapsed: the dropdown and the full-screen list are both unreachable.
+    expect(
+      screen.queryByRole("navigation", { name: "Assigned problems" }),
+    ).not.toBeInTheDocument();
+
+    openQuestionMenu();
+    expect(
+      screen.getByRole("navigation", { name: "Assigned problems" }),
+    ).toBeInTheDocument();
+
+    // Choosing a question dismisses it again.
+    fireEvent.click(questionMenuButtons()[0]);
+    expect(
+      screen.queryByRole("navigation", { name: "Assigned problems" }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps an independent draft per problem", async () => {
@@ -243,12 +319,14 @@ describe("CodingContestSession", () => {
     expect(editor()).toHaveValue("// first problem");
 
     // Switch to another problem: the first draft must not bleed across.
-    const items = screen.getByRole("navigation", { name: "Assigned problems" }).querySelectorAll("button");
+    openQuestionMenu();
+    const items = questionMenuButtons();
     fireEvent.click(items[1]);
     expect(editor().value).not.toBe("// first problem");
     fireEvent.change(editor(), { target: { value: "// second problem" } });
 
     // Switching back restores the first draft.
+    openQuestionMenu();
     fireEvent.click(items[0]);
     expect(editor()).toHaveValue("// first problem");
   });
@@ -256,7 +334,8 @@ describe("CodingContestSession", () => {
   it("marks an edited problem as Code edited in the nav", async () => {
     await startContest();
     await passStartGate();
-    const items = screen.getByRole("navigation", { name: "Assigned problems" }).querySelectorAll("button");
+    openQuestionMenu();
+    const items = questionMenuButtons();
     fireEvent.change(screen.getByLabelText("Java code editor"), {
       target: { value: "// edited" },
     });

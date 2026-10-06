@@ -15,8 +15,10 @@ const ResizablePanelGroup = React.forwardRef<
 ));
 ResizablePanelGroup.displayName = ResizablePrimitive.PanelGroup.displayName;
 
+// Typed as the library's imperative handle so callers can call `collapse()`,
+// `expand()` and `resize()` — that is what drives the console drawer.
 const ResizablePanel = React.forwardRef<
-  React.ElementRef<typeof ResizablePrimitive.Panel>,
+  ResizablePrimitive.ImperativePanelHandle,
   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.Panel>
 >(({ className, ...props }, ref) => (
   <ResizablePrimitive.Panel ref={ref} className={cn("min-h-0 min-w-0 overflow-hidden", className)} {...props} />
@@ -27,9 +29,16 @@ const ResizableHandle = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
     withHandle?: boolean;
+    /**
+     * Orientation of the divider itself, for assistive technology: a vertical
+     * line between left and right panels, a horizontal one between top and
+     * bottom. The library does not set this.
+     */
+    orientation?: "horizontal" | "vertical";
   }
->(({ withHandle, className, ...props }, _ref) => (
+>(({ withHandle, className, orientation, ...props }, _ref) => (
   <ResizablePrimitive.PanelResizeHandle
+    aria-orientation={orientation}
     className={cn(
       "group/handle relative flex shrink-0 items-center justify-center select-none",
       // Horizontal handle (default): thin dark bar like in image
