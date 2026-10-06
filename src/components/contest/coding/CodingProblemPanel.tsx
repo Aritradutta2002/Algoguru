@@ -17,12 +17,16 @@ import {
  * per-problem UI logic anywhere in this feature. The `Submissions` tab reports
  * only what this browser session actually knows; the authoritative grading
  * result is produced on the server.
+ *
+ * Layout follows the contest reference: a flat tab row across the top of the
+ * pane, a scrolling statement body, and a soft chrome fade at the foot so long
+ * statements do not end against a hard edge.
  */
 
 const DIFFICULTY_TIER_STYLES: Record<PublicCodingProblem["difficulty"], string> = {
-  easy: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  medium: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  hard: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400",
+  easy: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  medium: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  hard: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
 };
 
 export function CodingDifficultyBadge({
@@ -34,7 +38,7 @@ export function CodingDifficultyBadge({
     <span
       title={difficulty}
       className={cn(
-        "rounded-md border px-2 py-0.5 text-xs font-medium capitalize",
+        "rounded-lg px-3 py-1 text-xs font-medium capitalize",
         DIFFICULTY_TIER_STYLES[difficulty],
       )}
     >
@@ -62,7 +66,7 @@ function Section({
   return (
     <section className="mt-7">
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      <div className="mt-2 border-l-2 border-border pl-4 text-sm leading-6 text-foreground/90">
+      <div className="mt-2 border-l-2 border-surface-line pl-4 text-sm leading-6 text-foreground/90">
         {children}
       </div>
     </section>
@@ -79,12 +83,12 @@ function ProblemStatement({ problem }: { problem: PublicCodingProblem }) {
         {problem.title}
       </h1>
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <CodingDifficultyBadge difficulty={problem.difficulty} />
         {problem.topics.map((topic) => (
           <span
             key={topic}
-            className="rounded-md bg-muted/60 px-2 py-0.5 text-xs text-muted-foreground"
+            className="rounded-lg bg-surface-raised px-3 py-1 text-xs text-muted-foreground"
           >
             {topic}
           </span>
@@ -100,7 +104,7 @@ function ProblemStatement({ problem }: { problem: PublicCodingProblem }) {
           <h3 className="text-[15px] font-semibold text-foreground">
             Example {index + 1}:
           </h3>
-          <div className="mt-3 space-y-2.5 border-l-2 border-border pl-5 text-[15px] leading-6 text-foreground/90">
+          <div className="mt-3 space-y-2.5 border-l-2 border-surface-line pl-5 text-[15px] leading-6 text-foreground/90">
             <p>Input: {example.input}</p>
             <p>Output: {example.output}</p>
             {example.explanation ? (
@@ -187,7 +191,7 @@ function SubmissionList({
           {submissions.map((submission) => (
             <li
               key={submission.problem.id}
-              className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 py-3 last:border-b-0"
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-line py-3 last:border-b-0"
             >
               <span className="min-w-0 truncate text-sm text-foreground">
                 {submission.problem.title}
@@ -201,7 +205,7 @@ function SubmissionList({
                     ? `${submission.passed} of ${submission.total} visible tests passed`
                     : "Not run"}
                 </span>
-                <span className="rounded-md border border-border/70 bg-muted/40 px-1.5 py-0.5 font-medium">
+                <span className="rounded-md border border-surface-line bg-surface-raised px-1.5 py-0.5 font-medium">
                   {PROBLEM_STATE_SHORT_LABELS[submission.state]}
                 </span>
               </span>
@@ -237,11 +241,11 @@ export function CodingProblemPanel({
   ];
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className="flex h-full min-h-0 flex-col bg-surface-panel">
       <div
         role="tablist"
         aria-label="Problem views"
-        className="flex shrink-0 items-center gap-1 border-b border-border/60 px-2 pt-1.5"
+        className="flex h-[34px] shrink-0 items-center gap-2 border-b border-surface-line px-6"
       >
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
@@ -253,29 +257,41 @@ export function CodingProblemPanel({
             aria-controls={`coding-pane-${id}`}
             onClick={() => setTab(id)}
             className={cn(
-              "flex items-center gap-1.5 border-b-2 px-3 pb-2 pt-1.5 text-xs font-medium transition-colors",
+              "flex h-full items-center gap-2 px-1 text-sm font-medium transition-colors",
               tab === id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground",
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+            <Icon aria-hidden="true" className="h-4 w-4" />
             {label}
           </button>
         ))}
       </div>
 
-      <div
-        role="tabpanel"
-        id={`coding-pane-${tab}`}
-        aria-labelledby={`coding-pane-tab-${tab}`}
-        className="min-h-0 flex-1 overflow-y-auto px-4 py-5"
-      >
-        {tab === "problem" ? (
-          <ProblemStatement problem={problem} />
-        ) : (
-          <SubmissionList submissions={submissions} />
-        )}
+      <div className="relative min-h-0 flex-1">
+        <div
+          role="tabpanel"
+          id={`coding-pane-${tab}`}
+          aria-labelledby={`coding-pane-tab-${tab}`}
+          className="h-full overflow-y-auto px-6 pb-16 pt-5"
+        >
+          {tab === "problem" ? (
+            <ProblemStatement problem={problem} />
+          ) : (
+            <SubmissionList submissions={submissions} />
+          )}
+        </div>
+
+        {/* Soft foot: statements fade into the pane instead of ending abruptly. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-9 bg-surface-chrome"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-9 h-12 bg-gradient-to-t from-surface-chrome to-transparent"
+        />
       </div>
     </div>
   );

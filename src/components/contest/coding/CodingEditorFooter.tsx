@@ -11,9 +11,13 @@ import { MAX_EXAM_WARNINGS } from "@/lib/examConstants";
 import { cn } from "@/lib/utils";
 
 /**
- * Icon strip at the foot of the editor column: draft persistence, focus
- * warnings and the split / problem / editor layout switcher. Deliberately
- * icon-only — every control carries its state in `title` and `sr-only` text.
+ * Icon strip at the foot of the editor pane: draft persistence, focus warnings
+ * and the split / problem / editor layout switcher. Deliberately icon-only —
+ * every control carries its state in `title` and `sr-only` text — and it sits
+ * on the pane surface with a hairline above it, matching the reference chrome.
+ *
+ * Format and full screen live with the code they act on (the editor's floating
+ * pill) rather than here, so the same action never appears twice on screen.
  */
 
 export type CodingViewMode = "split" | "problem" | "editor";
@@ -81,10 +85,10 @@ function IconButton({
       aria-pressed={pressed}
       title={title}
       className={cn(
-        "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+        "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
         pressed
           ? "bg-primary/15 text-primary"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          : "text-muted-foreground hover:bg-surface-raised hover:text-foreground",
         className,
       )}
     >
@@ -107,17 +111,17 @@ export function CodingEditorFooter({
   const SaveIcon = SAVE_ICONS[saveStatus] ?? Check;
 
   return (
-    <div className="flex h-9 shrink-0 items-center justify-end gap-1 border-t border-border/60 bg-background px-3">
+    <div className="flex h-10 shrink-0 items-center justify-end gap-1 border-t border-surface-line bg-surface-panel px-4">
       <span
         title={`Draft status: ${saveStatus}`}
         className={cn(
-          "mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md",
+          "inline-flex h-8 w-8 items-center justify-center rounded-md",
           SAVE_TONES[saveStatus] ?? "text-muted-foreground",
         )}
       >
         <SaveIcon
           aria-hidden="true"
-          className={cn("h-3.5 w-3.5", saveStatus === "Saving" && "animate-spin")}
+          className={cn("h-4 w-4", saveStatus === "Saving" && "animate-spin")}
         />
         <span className="sr-only">Draft status: {saveStatus}</span>
       </span>
@@ -125,18 +129,18 @@ export function CodingEditorFooter({
       {warningCount > 0 ? (
         <span
           title={`Focus warnings: ${warningCount} of ${MAX_EXAM_WARNINGS}`}
-          className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-destructive"
         >
-          <ShieldAlert aria-hidden="true" className="h-3.5 w-3.5" />
+          <ShieldAlert aria-hidden="true" className="h-4 w-4" />
           <span className="sr-only">
             Focus warnings: {warningCount} of {MAX_EXAM_WARNINGS}
           </span>
         </span>
       ) : null}
 
-      <span aria-hidden="true" className="mx-1 h-4 w-px bg-border" />
+      <span aria-hidden="true" className="mx-1.5 h-5 w-px bg-surface-line" />
 
-      <div role="group" aria-label="Workspace layout" className="flex items-center gap-0.5">
+      <div role="group" aria-label="Workspace layout" className="flex items-center gap-1">
         {VIEW_OPTIONS.map(({ id, label, title, icon: Icon }) => (
           <IconButton
             key={id}
@@ -145,7 +149,7 @@ export function CodingEditorFooter({
             pressed={viewMode === id}
             onClick={() => onViewModeChange(id)}
           >
-            <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+            <Icon aria-hidden="true" className="h-4 w-4" />
           </IconButton>
         ))}
       </div>

@@ -52,7 +52,7 @@ export function CodingQuestionMenu({
     <div
       aria-hidden={!isOpen}
       className={cn(
-        "absolute left-0 top-[calc(100%+8px)] z-50 w-[min(23rem,78vw)] rounded-xl border border-border/70 bg-card p-1.5 shadow-2xl transition-all duration-150",
+        "absolute left-0 top-[calc(100%+10px)] z-50 w-[min(23rem,78vw)] rounded-xl border border-surface-line bg-surface-chrome p-1.5 shadow-2xl transition-all duration-150",
         isOpen
           ? "visible translate-y-0 opacity-100"
           : "invisible pointer-events-none -translate-y-1 opacity-0",
@@ -81,7 +81,7 @@ export function CodingQuestionMenu({
                     "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     "disabled:cursor-not-allowed disabled:opacity-60",
-                    isActive ? "bg-muted/60" : "hover:bg-muted/40",
+                    isActive ? "bg-surface-raised/70" : "hover:bg-surface-raised/40",
                   )}
                 >
                   <StateIcon
@@ -121,7 +121,7 @@ export function CodingQuestionMenu({
         </ul>
       </nav>
 
-      <div className="mt-1 flex items-center justify-between gap-2 border-t border-border/60 px-2.5 py-2">
+      <div className="mt-1 flex items-center justify-between gap-2 border-t border-surface-line px-2.5 py-2">
         <span className="text-[11px] text-muted-foreground">
           {submittedCount} of {entries.length} submitted
         </span>

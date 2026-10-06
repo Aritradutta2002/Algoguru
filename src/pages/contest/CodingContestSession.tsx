@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
-import { Loader2, AlertTriangle, Maximize } from "lucide-react";
+import { Loader2, AlertTriangle, Maximize, Minimize2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBeforeUnloadWarning } from "@/hooks/useBeforeUnloadWarning";
 import { useContestTimer } from "@/hooks/useContestTimer";
@@ -37,8 +37,15 @@ import type {
 } from "@/lib/contest/types";
 import type { ExecutionResult } from "@/lib/contest/executionService";
 import { CodingContestHeader } from "@/components/contest/coding/CodingContestHeader";
-import { CodingEditorFooter } from "@/components/contest/coding/CodingEditorFooter";
-import { CodingEditorPanel } from "@/components/contest/coding/CodingEditorPanel";
+import { ContestClock } from "@/components/contest/coding/ContestClock";
+import {
+  CodingEditorFooter,
+  type CodingViewMode,
+} from "@/components/contest/coding/CodingEditorFooter";
+import {
+  CodingEditorPanel,
+  type EditorTabDescriptor,
+} from "@/components/contest/coding/CodingEditorPanel";
 import { CodingExecutionPanel } from "@/components/contest/coding/CodingExecutionPanel";
 import { CodingIntegrityLock } from "@/components/contest/coding/CodingIntegrityLock";
 import { CodingQuestionList } from "@/components/contest/coding/CodingQuestionList";
@@ -48,6 +55,7 @@ import {
   type CodingSubmissionSummary,
 } from "@/components/contest/coding/CodingProblemPanel";
 import type { ProblemState } from "@/components/contest/coding/problemState";
+import { formatJava } from "@/lib/contest/javaFormat";
 import { cn } from "@/lib/utils";
 
 /**
@@ -74,14 +82,44 @@ const DRAFT_PREFIX = "algoguru:coding-contest:draft:";
 const SPLIT_LAYOUT_KEY = "algoguru:coding-contest:layout:split";
 const CONSOLE_LAYOUT_KEY = "algoguru:coding-contest:layout:console";
 
-/** Thin dividers with a wide invisible hit area, so a drag starts easily. */
+/**
+ * The divider between two panes is a real drag slider, not a hairline: a 10px
+ * gutter of page colour — which is what makes the panes read as *separate*
+ * rounded surfaces — with a hairline down its centre that grows into a
+ * primary-coloured pill on hover, on drag and on keyboard focus. The
+ * pseudo-element carries that affordance so the library's own wide, invisible
+ * hit area (its `after:` layer) stays untouched.
+ */
 const SPLIT_HANDLE_CLASS =
-  "!w-px border-l-0 bg-border transition-colors hover:bg-primary/60 focus-visible:!w-[3px] focus-visible:bg-primary [&>div]:hidden";
-const CONSOLE_HANDLE_CLASS =
-  "!h-px border-t-0 bg-border transition-colors hover:bg-primary/60 focus-visible:!h-[3px] focus-visible:bg-primary [&>div]:hidden";
+  "!w-2.5 border-0 bg-transparent " +
+  "[&>div]:hidden " +
+  "before:pointer-events-none before:absolute before:left-1/2 before:top-1/2 before:h-10 before:w-px before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:bg-surface-line before:transition-all " +
+  "hover:before:w-1 hover:before:bg-primary " +
+  "data-[resize-handle-state=drag]:before:w-1 data-[resize-handle-state=drag]:before:bg-primary " +
+  "focus-visible:before:w-1 focus-visible:before:bg-primary";
 
-/** Collapsed console = just its header strip. */
-const CONSOLE_COLLAPSED_SIZE = 40;
+/** The same affordance, rotated for the editor / console split. */
+const CONSOLE_HANDLE_CLASS =
+  "!h-1.5 border-0 bg-transparent " +
+  "[&>div]:hidden " +
+  "before:pointer-events-none before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-10 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:bg-surface-line before:transition-all " +
+  "hover:before:h-1 hover:before:bg-primary " +
+  "data-[resize-handle-state=drag]:before:h-1 data-[resize-handle-state=drag]:before:bg-primary " +
+  "focus-visible:before:h-1 focus-visible:before:bg-primary";
+
+/** Rounded, self-contained surface for one pane of the workspace. */
+const PANE_SHELL_CLASS =
+  "flex h-full min-h-0 flex-col overflow-hidden rounded-xl bg-surface-panel";
+
+/**
+ * Collapsed console = just its header strip, **in pixels**.
+ *
+ * `react-resizable-panels` measures panels in percentages, so a bare
+ * `collapsedSize={40}` would collapse the drawer to 40% of the column and leave
+ * a dead band under the strip. The group is measured at runtime instead and the
+ * equivalent percentage derived from it — see `consoleCollapsedPercent`.
+ */
+const CONSOLE_COLLAPSED_PX = 40;
 
 const DRAFT_DEBOUNCE_MS = 800;
 
@@ -115,6 +153,80 @@ function resolveDraft(
   return bundle.drafts[problem.id] ?? problem.starterCode;
 }
 
+/**
+ * Extra editor buffers, one set per question.
+ *
+ * The first tab of a question is the solution that is graded and submitted: its
+ * code travels through the normal draft pipeline (server autosave, local
+ * recovery, reset to starter code). Everything after it is a *scratch* buffer —
+ * notes, an alternative approach, a pasted snippet — which is deliberately
+ * local-only and is never sent anywhere.
+ */
+interface ScratchTab {
+  id: string;
+  code: string;
+}
+
+interface ScratchState {
+  tabs: ScratchTab[];
+  activeId: string;
+}
+
+const SCRATCH_PREFIX = "algoguru:coding-contest:scratch:";
+const SOLUTION_TAB_ID = "solution";
+/** Enough room to experiment without letting the tab strip run away. */
+const MAX_SCRATCH_TABS = 6;
+
+function scratchKey(sessionId: string, problemId: string): string {
+  return `${SCRATCH_PREFIX}${sessionId}:${problemId}`;
+}
+
+/** Never throws, never trusts stored JSON: a bad blob just means "no tabs". */
+function readScratch(sessionId: string, problemId: string): ScratchState {
+  const empty: ScratchState = { tabs: [], activeId: SOLUTION_TAB_ID };
+  try {
+    const raw = window.localStorage.getItem(scratchKey(sessionId, problemId));
+    if (!raw) return empty;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return empty;
+    const candidate = parsed as { tabs?: unknown; activeId?: unknown };
+    if (!Array.isArray(candidate.tabs)) return empty;
+    const tabs = candidate.tabs
+      .filter(
+        (tab): tab is ScratchTab =>
+          !!tab &&
+          typeof tab === "object" &&
+          typeof (tab as ScratchTab).id === "string" &&
+          typeof (tab as ScratchTab).code === "string",
+      )
+      .slice(0, MAX_SCRATCH_TABS);
+    const activeId =
+      typeof candidate.activeId === "string" &&
+      (candidate.activeId === SOLUTION_TAB_ID ||
+        tabs.some((tab) => tab.id === candidate.activeId))
+        ? candidate.activeId
+        : SOLUTION_TAB_ID;
+    return { tabs, activeId };
+  } catch {
+    return empty;
+  }
+}
+
+function writeScratch(
+  sessionId: string,
+  problemId: string,
+  state: ScratchState,
+): void {
+  try {
+    window.localStorage.setItem(
+      scratchKey(sessionId, problemId),
+      JSON.stringify(state),
+    );
+  } catch {
+    /* quota or private mode — the in-memory tabs still survive navigation */
+  }
+}
+
 export function CodingContestSession() {
   const { sessionId = "" } = useParams();
   const navigate = useNavigate();
@@ -146,6 +258,17 @@ export function CodingContestSession() {
   const [viewMode, setViewMode] = useState<"split" | "editor" | "problem">("split");
   /** Results start collapsed to their header strip; a run opens them again. */
   const [consoleCollapsed, setConsoleCollapsed] = useState(true);
+  /**
+   * Editor full screen is a *layout* mode, never the browser Fullscreen API:
+   * the exam's integrity rules own that API, and a learner pressing Escape out
+   * of an element-fullscreen editor would be recorded as leaving the exam.
+   */
+  const [editorFullscreen, setEditorFullscreen] = useState(false);
+  /** Scratch buffers per question; the solution tab is implicit, not stored. */
+  const [scratchTabs, setScratchTabs] = useState<Record<string, ScratchTab[]>>({});
+  const [activeTabByProblem, setActiveTabByProblem] = useState<Record<string, string>>(
+    {},
+  );
   /** Last visible-test tally per question, so switching questions never loses it. */
   const [lastResults, setLastResults] = useState<
     Record<string, { passed: number; total: number }>
@@ -160,6 +283,9 @@ export function CodingContestSession() {
   const saveTimerRef = useRef<number | null>(null);
   const menuAnchorRef = useRef<HTMLDivElement>(null);
   const consolePanelRef = useRef<ImperativePanelHandle>(null);
+  const consoleGroupRef = useRef<HTMLDivElement>(null);
+  /** Percentage of the editor column that equals the collapsed strip height. */
+  const [consoleCollapsedPercent, setConsoleCollapsedPercent] = useState(6);
 
   // ── Session hydration ────────────────────────────────────────────────
   useEffect(() => {
@@ -174,10 +300,19 @@ export function CodingContestSession() {
         if (cancelled) return;
         setBundle(loaded);
         const initial: Record<string, string> = {};
+        const initialScratch: Record<string, ScratchTab[]> = {};
+        const initialActiveTab: Record<string, string> = {};
         for (const problem of loaded.problems) {
           initial[problem.id] = resolveDraft(loaded, problem);
+          // Scratch tabs are local-only, so they are recovered here rather than
+          // from the session payload.
+          const stored = readScratch(loaded.session.id, problem.id);
+          if (stored.tabs.length) initialScratch[problem.id] = stored.tabs;
+          initialActiveTab[problem.id] = stored.activeId;
         }
         setDrafts(initial);
+        setScratchTabs(initialScratch);
+        setActiveTabByProblem(initialActiveTab);
         setActiveId((current) => current || loaded.problems[0]?.id || "");
         setVisited(
           Object.fromEntries(loaded.problems.map((problem) => [problem.id, true])),
@@ -208,6 +343,59 @@ export function CodingContestSession() {
   const activeProblem = useMemo(
     () => bundle?.problems.find((problem) => problem.id === activeId) ?? null,
     [bundle, activeId],
+  );
+
+  // ── Editor tabs ──────────────────────────────────────────────────────
+  // Tab 1 is the graded solution (backed by `drafts`); the rest are scratch
+  // buffers held in this browser only.
+  const problemScratchTabs = (activeProblem && scratchTabs[activeProblem.id]) || [];
+  const activeTabId =
+    (activeProblem && activeTabByProblem[activeProblem.id]) || SOLUTION_TAB_ID;
+  const activeScratchTab =
+    problemScratchTabs.find((tab) => tab.id === activeTabId) ?? null;
+  const activeCode = activeScratchTab
+    ? activeScratchTab.code
+    : (activeProblem && drafts[activeProblem.id]) || "";
+  const editorTabs: EditorTabDescriptor[] = [
+    { id: SOLUTION_TAB_ID, label: "Tab-1", scratch: false },
+    ...problemScratchTabs.map((tab, index) => ({
+      id: tab.id,
+      label: `Tab-${index + 2}`,
+      scratch: true,
+    })),
+  ];
+
+  const selectTab = useCallback(
+    (tabId: string) => {
+      if (!activeProblem) return;
+      setActiveTabByProblem((current) => ({ ...current, [activeProblem.id]: tabId }));
+    },
+    [activeProblem],
+  );
+
+  const addScratchTab = useCallback(() => {
+    if (!activeProblem) return;
+    const id = `scratch-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    setScratchTabs((current) => ({
+      ...current,
+      [activeProblem.id]: [...(current[activeProblem.id] ?? []), { id, code: "" }],
+    }));
+    setActiveTabByProblem((current) => ({ ...current, [activeProblem.id]: id }));
+  }, [activeProblem]);
+
+  const closeScratchTab = useCallback(
+    (problemId: string, tabId: string) => {
+      setScratchTabs((current) => ({
+        ...current,
+        [problemId]: (current[problemId] ?? []).filter((tab) => tab.id !== tabId),
+      }));
+      setActiveTabByProblem((current) =>
+        current[problemId] === tabId
+          ? { ...current, [problemId]: SOLUTION_TAB_ID }
+          : current,
+      );
+    },
+    [],
   );
 
   const finalizeContest = useCallback(
@@ -318,8 +506,21 @@ export function CodingContestSession() {
   const handleCodeChange = useCallback(
     (next: string) => {
       if (!activeProblem || integrity.locked) return;
-      setDrafts((current) => ({ ...current, [activeProblem.id]: next }));
       setTouched((current) => ({ ...current, [activeProblem.id]: true }));
+
+      if (activeTabId !== SOLUTION_TAB_ID) {
+        // Scratch buffers never reach the server — only the solution tab is
+        // graded — so they are persisted locally by the effect below.
+        setScratchTabs((current) => ({
+          ...current,
+          [activeProblem.id]: (current[activeProblem.id] ?? []).map((tab) =>
+            tab.id === activeTabId ? { ...tab, code: next } : tab,
+          ),
+        }));
+        return;
+      }
+
+      setDrafts((current) => ({ ...current, [activeProblem.id]: next }));
       writeLocalDraft(bundle!.session.id, activeProblem.id, next);
 
       if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
@@ -327,7 +528,7 @@ export function CodingContestSession() {
         persistDraft(activeProblem.id, next);
       }, DRAFT_DEBOUNCE_MS);
     },
-    [activeProblem, bundle, integrity.locked, persistDraft],
+    [activeProblem, activeTabId, bundle, integrity.locked, persistDraft],
   );
 
   useEffect(
@@ -336,6 +537,29 @@ export function CodingContestSession() {
     },
     [],
   );
+
+  // Scratch tabs are local-only, so nothing else would save them: write the
+  // whole set (a few small buffers) once typing pauses.
+  useEffect(() => {
+    if (!bundle) return;
+    const timer = window.setTimeout(() => {
+      for (const problem of bundle.problems) {
+        writeScratch(bundle.session.id, problem.id, {
+          tabs: scratchTabs[problem.id] ?? [],
+          activeId: activeTabByProblem[problem.id] ?? SOLUTION_TAB_ID,
+        });
+      }
+    }, DRAFT_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [bundle, scratchTabs, activeTabByProblem]);
+
+  /** Format the buffer that is on screen, through the normal edit path. */
+  const formatActiveCode = useCallback(() => {
+    if (!activeProblem || integrity.locked || finalisedRef.current) return;
+    const formatted = formatJava(activeCode, { indentSize: 4 });
+    if (formatted === activeCode) return;
+    handleCodeChange(formatted);
+  }, [activeCode, activeProblem, handleCodeChange, integrity.locked]);
 
   // ── Execution ────────────────────────────────────────────────────────
   const runOrSubmit = useCallback(
@@ -354,14 +578,14 @@ export function CodingContestSession() {
                 sessionId: bundle.session.id,
                 problemId: activeProblem.id,
                 language: "java",
-                code: drafts[activeProblem.id] ?? "",
+                code: activeCode,
                 mode: "run",
               })
             : await execution.service.submit({
                 sessionId: bundle.session.id,
                 problemId: activeProblem.id,
                 language: "java",
-                code: drafts[activeProblem.id] ?? "",
+                code: activeCode,
                 mode: "submit",
               });
         setResult(outcome);
@@ -382,7 +606,7 @@ export function CodingContestSession() {
               solved: false,
               passed: outcome.passed,
               total: outcome.total,
-              submittedCode: drafts[activeProblem.id] ?? "",
+              submittedCode: activeCode,
             });
           }
         }
@@ -408,7 +632,7 @@ export function CodingContestSession() {
         setBusy(null);
       }
     },
-    [activeProblem, bundle, drafts, execution.service],
+    [activeCode, activeProblem, bundle, execution.service],
   );
 
   // ── Start gate ───────────────────────────────────────────────────────
@@ -458,23 +682,108 @@ export function CodingContestSession() {
 
   const resetActiveCode = useCallback(() => {
     if (!activeProblem) return;
+    if (activeTabId !== SOLUTION_TAB_ID) {
+      setScratchTabs((current) => ({
+        ...current,
+        [activeProblem.id]: (current[activeProblem.id] ?? []).map((tab) =>
+          tab.id === activeTabId ? { ...tab, code: "" } : tab,
+        ),
+      }));
+      return;
+    }
     const starter = activeProblem.starterCode;
     setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
     setTouched((current) => ({ ...current, [activeProblem.id]: true }));
     writeLocalDraft(bundle!.session.id, activeProblem.id, starter);
     persistDraft(activeProblem.id, starter);
-  }, [activeProblem, bundle, persistDraft]);
+  }, [activeProblem, activeTabId, bundle, persistDraft]);
+
+  /**
+   * Picking a layout is also a way out of editor full screen: hiding the
+   * problem statement behind an immersive editor and then asking for "problem
+   * only" can only mean "show me the statement".
+   *
+   * Entering full screen closes the question list, which would otherwise keep
+   * covering the editor it was opened over.
+   */
+  const toggleEditorFullscreen = useCallback(() => {
+    setEditorFullscreen((current) => {
+      if (!current) setQuestionListOpen(false);
+      return !current;
+    });
+  }, []);
+
+  const handleViewModeChange = useCallback(
+    (mode: CodingViewMode) => {
+      setViewMode(mode);
+      setEditorFullscreen(false);
+    },
+    [],
+  );
+
+  // Escape leaves full screen. This is a layout mode, so it never touches the
+  // browser's fullscreen state that the exam's integrity rules depend on.
+  useEffect(() => {
+    if (!editorFullscreen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setEditorFullscreen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [editorFullscreen]);
 
   // The console drawer is a real resizable panel, so the chevron, the drag and
   // the keyboard all drive the same layout. This effect is the single place the
   // React state is mirrored onto the panel, so they cannot drift apart. Declared
   // above the early returns to keep the hook order stable across renders.
+  //
+  // `consoleCollapsedPercent` is a dependency because the collapsed height is
+  // expressed in pixels: when the column is re-measured (window resize, zoom)
+  // the panel has to be re-collapsed against the new percentage.
   useEffect(() => {
     const panel = consolePanelRef.current;
     if (!panel) return;
     if (consoleCollapsed) panel.collapse();
     else panel.expand();
-  }, [consoleCollapsed]);
+  }, [consoleCollapsed, consoleCollapsedPercent]);
+
+  // Convert the collapsed strip's pixel height into the percentage the panel
+  // group actually speaks, and keep it current as the column is resized.
+  useEffect(() => {
+    const element = consoleGroupRef.current;
+    if (!element) return;
+    const measure = () => {
+      const height = element.getBoundingClientRect().height;
+      if (height <= 0) return;
+      const percent = Math.min(50, Math.max(1, (CONSOLE_COLLAPSED_PX / height) * 100));
+      setConsoleCollapsedPercent((current) =>
+        Math.abs(current - percent) < 0.05 ? current : percent,
+      );
+    };
+
+    // Measure once, then again after the next two paints: the first pass can
+    // land mid-layout (lazy editor chunk, web-font swap), and the drawer must
+    // end up a true 40px strip instead of a percentage of a half-built column.
+    measure();
+    let frame = requestAnimationFrame(() => {
+      measure();
+      frame = requestAnimationFrame(measure);
+    });
+
+    let observer: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(measure);
+      observer.observe(element);
+    }
+    // Belt and braces: the observer is enough for a steady viewport, but a
+    // window resize or a browser zoom also changes what 40px is worth.
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
 
   // The contest-set menu dismisses on an outside press, but not on its own
   // trigger — that press is the toggle.
@@ -534,7 +843,7 @@ export function CodingContestSession() {
   }));
 
   const problemPane = locked ? (
-    <p className="px-5 py-6 text-sm text-muted-foreground">
+    <p className="px-6 py-6 text-sm text-muted-foreground">
       The problem statement is hidden while the exam is locked.
     </p>
   ) : (
@@ -543,101 +852,164 @@ export function CodingContestSession() {
 
   const editorColumn = (
     <div className="flex h-full min-h-0 flex-col">
-      <ResizablePanelGroup
-        direction="vertical"
-        className="min-h-0 flex-1"
-        autoSaveId={CONSOLE_LAYOUT_KEY}
-        keyboardResizeBy={5}
-      >
-        <ResizablePanel defaultSize={76} minSize={25} className="min-h-0">
-          <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
-            <CodingEditorPanel
-              problem={activeProblem}
-              value={drafts[activeProblem.id] ?? ""}
-              onChange={handleCodeChange}
-              readOnly={readonly}
-              diagnostics={result?.compileDiagnostics ?? []}
-              onReset={resetActiveCode}
-              onRun={() => void runOrSubmit("run")}
-              onSubmit={() => void runOrSubmit("submit")}
-              busy={busy !== null}
-              busyMode={busy}
-              actionsDisabled={readonly || execution.loading}
-              localDraftsOnly={!bundle.authoritative}
-            />
-          </div>
-        </ResizablePanel>
-
-        <ResizableHandle
-          className={CONSOLE_HANDLE_CLASS}
-          orientation="horizontal"
-          aria-label="Resize the code editor and results panels"
-        />
-
-        <ResizablePanel
-          ref={consolePanelRef}
-          defaultSize={24}
-          minSize={12}
-          collapsible
-          collapsedSize={CONSOLE_COLLAPSED_SIZE}
-          onCollapse={() => setConsoleCollapsed(true)}
-          onExpand={() => setConsoleCollapsed(false)}
+      {/* Measured wrapper: the collapsed console height is derived from it. */}
+      <div ref={consoleGroupRef} className="relative min-h-0 flex-1">
+        <ResizablePanelGroup
+          direction="vertical"
           className="min-h-0"
+          autoSaveId={CONSOLE_LAYOUT_KEY}
+          keyboardResizeBy={5}
         >
-          <CodingExecutionPanel
-            busy={busy !== null}
-            mode={busy}
-            result={result}
-            supportsCustomInput={execution.service.supportsCustomInput}
-            collapsed={consoleCollapsed}
-            onCollapsedChange={setConsoleCollapsed}
+          <ResizablePanel defaultSize={76} minSize={25} className="min-h-0">
+            <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
+              <CodingEditorPanel
+                problem={activeProblem}
+                value={activeCode}
+                onChange={handleCodeChange}
+                readOnly={readonly}
+                diagnostics={result?.compileDiagnostics ?? []}
+                onReset={resetActiveCode}
+                onRun={() => void runOrSubmit("run")}
+                onSubmit={() => void runOrSubmit("submit")}
+                busy={busy !== null}
+                busyMode={busy}
+                actionsDisabled={readonly || execution.loading}
+                localDraftsOnly={!bundle.authoritative}
+                tabs={editorTabs}
+                activeTabId={activeTabId}
+                onSelectTab={selectTab}
+                onAddTab={addScratchTab}
+                onCloseTab={(tabId) => closeScratchTab(activeProblem.id, tabId)}
+                canAddTab={problemScratchTabs.length < MAX_SCRATCH_TABS}
+                canFormat={!readonly && activeCode.trim().length > 0}
+                fullscreen={editorFullscreen}
+                onToggleFullscreen={toggleEditorFullscreen}
+              />
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle
+            className={CONSOLE_HANDLE_CLASS}
+            orientation="horizontal"
+            aria-label="Resize the code editor and results panels"
           />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+
+          <ResizablePanel
+            ref={consolePanelRef}
+            defaultSize={24}
+            minSize={12}
+            collapsible
+            collapsedSize={consoleCollapsedPercent}
+            onCollapse={() => setConsoleCollapsed(true)}
+            onExpand={() => setConsoleCollapsed(false)}
+            className="min-h-0"
+          >
+            <CodingExecutionPanel
+              busy={busy !== null}
+              mode={busy}
+              result={result}
+              supportsCustomInput={execution.service.supportsCustomInput}
+              collapsed={consoleCollapsed}
+              onCollapsedChange={setConsoleCollapsed}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
 
       <CodingEditorFooter
         saveStatus={bundle.authoritative ? saveStatus : "Local draft"}
         warningCount={integrity.warningCount}
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleViewModeChange}
       />
     </div>
   );
 
   return (
-    <div className="flex h-screen flex-col bg-background selection:bg-primary/20">
-      <CodingContestHeader
-        remainingSeconds={timer.remainingSeconds}
-        totalProblems={bundle.problems.length}
-        warningCount={integrity.warningCount}
-        localMode={!bundle.authoritative}
-        onFinish={() => setFinishOpen(true)}
-        onToggleList={() => setQuestionListOpen((prev) => !prev)}
-        listOpen={questionListOpen}
-        activeProblemIndex={activeIndex >= 0 ? activeIndex : 0}
-        menuOpen={questionMenuOpen}
-        onMenuToggle={() => setQuestionMenuOpen((prev) => !prev)}
-        menuAnchorRef={menuAnchorRef}
-        questionMenu={
-          <CodingQuestionMenu
-            entries={entries}
-            activeId={activeId}
-            onSelect={selectProblem}
-            onOpenList={() => {
-              setQuestionMenuOpen(false);
-              setQuestionListOpen(true);
-            }}
-            disabled={readonly}
-            isOpen={questionMenuOpen}
-            onClose={() => setQuestionMenuOpen(false)}
-          />
-        }
-      />
+    <div
+      className={cn(
+        "flex h-screen flex-col overflow-hidden bg-surface-page selection:bg-primary/20",
+        editorFullscreen ? "gap-0 p-0" : "gap-[15px] p-[15px]",
+      )}
+    >
+      {editorFullscreen ? (
+        /*
+         * Editor full screen keeps one slim chrome bar rather than floating
+         * controls over the code: the exam clock and Finish must never be
+         * hidden, and an overlay would sit on top of the editor's own tab bar.
+         */
+        <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 bg-surface-chrome px-4">
+          <span className="truncate text-xs font-medium text-muted-foreground">
+            Question {activeIndex >= 0 ? activeIndex + 1 : 1} /{" "}
+            {bundle.problems.length} · editor full screen
+          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            <ContestClock remainingSeconds={timer.remainingSeconds} />
+            {integrity.warningCount > 0 ? (
+              <span
+                title={`Focus warnings: ${integrity.warningCount} of ${MAX_EXAM_WARNINGS}`}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 text-xs font-medium text-destructive"
+              >
+                {integrity.warningCount}/{MAX_EXAM_WARNINGS}
+              </span>
+            ) : null}
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setFinishOpen(true)}
+              aria-label="Finish Contest"
+              className="h-9 rounded-lg px-4 text-sm font-semibold"
+            >
+              Finish
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setEditorFullscreen(false)}
+              aria-label="Exit editor full screen"
+              title="Exit editor full screen (Esc)"
+              className="h-9 gap-1.5 rounded-lg border-surface-line bg-surface-panel px-4 text-sm font-medium"
+            >
+              <Minimize2 aria-hidden="true" className="h-4 w-4" />
+              Exit full screen
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <CodingContestHeader
+          remainingSeconds={timer.remainingSeconds}
+          totalProblems={bundle.problems.length}
+          warningCount={integrity.warningCount}
+          localMode={!bundle.authoritative}
+          onFinish={() => setFinishOpen(true)}
+          onToggleList={() => setQuestionListOpen((prev) => !prev)}
+          listOpen={questionListOpen}
+          activeProblemIndex={activeIndex >= 0 ? activeIndex : 0}
+          menuOpen={questionMenuOpen}
+          onMenuToggle={() => setQuestionMenuOpen((prev) => !prev)}
+          menuAnchorRef={menuAnchorRef}
+          questionMenu={
+            <CodingQuestionMenu
+              entries={entries}
+              activeId={activeId}
+              onSelect={selectProblem}
+              onOpenList={() => {
+                setQuestionMenuOpen(false);
+                setQuestionListOpen(true);
+              }}
+              disabled={readonly}
+              isOpen={questionMenuOpen}
+              onClose={() => setQuestionMenuOpen(false)}
+            />
+          }
+        />
+      )}
 
       {finaliseError ? (
         <div
           role="alert"
-          className="flex flex-wrap items-center gap-3 border-b border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm"
+          className="flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm"
         >
           <AlertTriangle aria-hidden="true" className="h-4 w-4 shrink-0 text-destructive" />
           <span className="flex-1">
@@ -649,16 +1021,22 @@ export function CodingContestSession() {
         </div>
       ) : null}
 
-      {/* Main Workspace: problem statement, editor and console */}
-      <main className="relative flex min-h-0 flex-1 overflow-hidden bg-background">
-        {viewMode === "split" ? (
+      {/* Main Workspace: two rounded panes divided by a draggable slider. */}
+      <main className="relative flex min-h-0 flex-1">
+        {editorFullscreen ? (
+          <div className={cn(PANE_SHELL_CLASS, "w-full rounded-none")}>{editorColumn}</div>
+        ) : viewMode === "split" ? (
           <ResizablePanelGroup
             direction="horizontal"
             className="min-h-0 flex-1"
             autoSaveId={SPLIT_LAYOUT_KEY}
             keyboardResizeBy={5}
           >
-            <ResizablePanel defaultSize={40} minSize={20} className="min-w-0">
+            <ResizablePanel
+              defaultSize={40}
+              minSize={20}
+              className="min-w-0 rounded-xl bg-surface-panel"
+            >
               {problemPane}
             </ResizablePanel>
             <ResizableHandle
@@ -667,22 +1045,26 @@ export function CodingContestSession() {
               aria-label="Resize the problem description and coding workspace panels"
             />
 
-            <ResizablePanel defaultSize={60} minSize={30} className="min-w-0">
+            <ResizablePanel
+              defaultSize={60}
+              minSize={30}
+              className="min-w-0 rounded-xl bg-surface-panel"
+            >
               {editorColumn}
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : viewMode === "problem" ? (
-          <div className="flex h-full w-full flex-col">
+          <div className={cn(PANE_SHELL_CLASS, "w-full")}>
             <div className="min-h-0 flex-1 overflow-y-auto">{problemPane}</div>
             <CodingEditorFooter
               saveStatus={bundle.authoritative ? saveStatus : "Local draft"}
               warningCount={integrity.warningCount}
               viewMode={viewMode}
-              onViewModeChange={setViewMode}
+              onViewModeChange={handleViewModeChange}
             />
           </div>
         ) : (
-          editorColumn
+          <div className={cn(PANE_SHELL_CLASS, "w-full")}>{editorColumn}</div>
         )}
 
         {/* Full-screen question list */}

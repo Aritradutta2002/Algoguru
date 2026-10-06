@@ -104,6 +104,17 @@
     --difficulty-medium: 35 90% 52%;
     --difficulty-hard: 4 82% 55%;
     --difficulty-expert: 320 65% 52%;
+
+    /* ── Coding-contest workspace surfaces ──────────────────────────────
+       Three stacked levels — page, chrome bars, pane surfaces — so the
+       exam reads as separate rounded panels divided by real gutters
+       instead of one full-bleed sheet. Day mode keeps the usual
+       white-on-grey card ladder. */
+    --surface-page: 220 20% 94%;
+    --surface-chrome: 0 0% 100%;
+    --surface-panel: 0 0% 100%;
+    --surface-line: 220 13% 88%;
+    --surface-raised: 220 14% 96%;
   }
 
   /* ===== Premium dark mode ===== */
@@ -190,6 +201,14 @@
     --difficulty-medium: 38 92% 62%;
     --difficulty-hard: 4 85% 66%;
     --difficulty-expert: 320 70% 68%;
+
+    /* Sampled from the contest workspace reference: page #070709,
+       chrome #0F0F10, panes #131316, hairlines #24272E. */
+    --surface-page: 240 12% 3%;
+    --surface-chrome: 240 3% 6%;
+    --surface-panel: 240 7% 8%;
+    --surface-line: 222 12% 16%;
+    --surface-raised: 240 6% 15%;
 
     /* Restrained, layered elevation for dark surfaces */
     --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
@@ -2306,6 +2325,18 @@
 }
 .coggle-tip > svg {
   fill: #171d1a !important;
+}
+
+/* ── Coding-contest editor surface ─────────────────────────────────────
+   In dark mode the contest workspace keeps the whole right pane on one
+   surface colour, so the editor sits flush with its pane instead of
+   carrying the warmer standalone-playground background. Only the dark
+   theme is overridden: in day mode the editor keeps the theme's own dark
+   canvas, which is what makes its syntax palette legible. */
+.dark .contest-editor-surface .monaco-editor,
+.dark .contest-editor-surface .monaco-editor .monaco-editor-background,
+.dark .contest-editor-surface .monaco-editor .margin {
+  background-color: hsl(var(--surface-panel)) !important;
 }
 
 

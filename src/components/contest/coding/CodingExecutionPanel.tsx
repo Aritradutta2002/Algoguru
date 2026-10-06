@@ -59,33 +59,36 @@ export function CodingExecutionPanel({
   return (
     <section
       aria-label="Test cases and results"
-      className="flex h-full min-h-0 flex-col bg-background"
+      className="flex h-full min-h-0 flex-col bg-surface-panel"
     >
       {/* Console header: Test Case ›  Sample | Hidden */}
-      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-border/50 px-3">
-        <span className="flex items-center gap-1 text-xs font-medium text-foreground">
+      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-surface-line bg-surface-chrome px-4">
+        <span className="flex items-center gap-1.5 text-sm text-foreground/70">
           Test Case
-          <ChevronRight aria-hidden="true" className="h-3 w-3 text-muted-foreground" />
+          <ChevronRight aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
         </span>
-        <span aria-hidden="true" className="h-4 w-px bg-border" />
 
-        <div role="tablist" aria-label="Result scope" className="flex items-center gap-1">
-          {(["sample", "hidden"] as const).map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={scope === id}
-              onClick={() => setScope(id)}
-              className={cn(
-                "rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors",
-                scope === id
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {id}
-            </button>
+        <div role="tablist" aria-label="Result scope" className="flex items-center gap-3">
+          {(["sample", "hidden"] as const).map((id, index) => (
+            <span key={id} className="flex items-center gap-3">
+              {index > 0 ? (
+                <span aria-hidden="true" className="h-4 w-px bg-surface-line" />
+              ) : null}
+              <button
+                type="button"
+                role="tab"
+                aria-selected={scope === id}
+                onClick={() => setScope(id)}
+                className={cn(
+                  "py-1 text-sm font-medium capitalize transition-colors",
+                  scope === id
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {id}
+              </button>
+            </span>
           ))}
         </div>
 
@@ -95,7 +98,7 @@ export function CodingExecutionPanel({
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand results" : "Collapse results"}
           title={collapsed ? "Expand results" : "Collapse results"}
-          className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-raised hover:text-foreground"
         >
           {collapsed ? (
             <ChevronUp aria-hidden="true" className="h-4 w-4" />
@@ -109,7 +112,7 @@ export function CodingExecutionPanel({
         <div
           role="tabpanel"
           aria-label={`${scope} results`}
-          className="min-h-0 flex-1 overflow-y-auto p-4"
+          className="min-h-0 flex-1 overflow-y-auto bg-surface-panel p-4"
         >
           {scope === "hidden" ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">

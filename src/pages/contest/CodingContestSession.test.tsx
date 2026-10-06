@@ -605,5 +605,114 @@ describe("CodingContestSession", () => {
       expect(screen.getByText("1 minute remaining")).toBeInTheDocument(),
     );
   });
+
+  it("adds, switches and closes scratch tabs around the solution", async () => {
+    await startContest();
+    await passStartGate();
+    const editor = () =>
+      screen.getByLabelText("Java code editor") as HTMLTextAreaElement;
+
+    // The graded solution is always present and cannot be closed.
+    expect(screen.getByRole("tab", { name: "Tab-1" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: /holds the graded solution and cannot be closed/i,
+      }),
+    ).toBeDisabled();
+
+    fireEvent.change(editor(), { target: { value: "// solution" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Add a scratch tab" }));
+    const scratchTab = await screen.findByRole("tab", { name: "Tab-2" });
+    // A new tab is its own empty buffer, not a copy of the solution.
+    expect(editor()).toHaveValue("");
+    fireEvent.change(editor(), { target: { value: "// scratch" } });
+
+    // Each tab keeps its own code, both ways round.
+    fireEvent.click(screen.getByRole("tab", { name: "Tab-1" }));
+    expect(editor()).toHaveValue("// solution");
+    fireEvent.click(scratchTab);
+    expect(editor()).toHaveValue("// scratch");
+
+    // Closing the scratch tab falls back to the solution.
+    fireEvent.click(screen.getByRole("button", { name: "Close Tab-2" }));
+    expect(screen.queryByRole("tab", { name: "Tab-2" })).not.toBeInTheDocument();
+    expect(editor()).toHaveValue("// solution");
+  });
+
+  it("restores scratch tabs from this browser after a remount", async () => {
+    const { session } = await startContest();
+    await passStartGate();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add a scratch tab" }));
+    fireEvent.change(screen.getByLabelText("Java code editor"), {
+      target: { value: "// scratch notes" },
+    });
+
+    // Scratch buffers are local-only, so the debounced local write is the
+    // only thing that carries them across a reload.
+    await waitFor(() =>
+      expect(
+        Object.keys(window.localStorage).some((key) =>
+          key.startsWith(`algoguru:coding-contest:scratch:${session.id}`),
+        ),
+      ).toBe(true),
+    );
+
+    cleanup();
+    renderWorkspace(session.id);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("alertdialog", { name: /Enter fullscreen to begin/i }),
+      ).toBeInTheDocument(),
+    );
+
+    expect(await screen.findByRole("tab", { name: "Tab-2" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Java code editor")).toHaveValue("// scratch notes");
+  });
+
+  it("formats the buffer that is on screen", async () => {
+    await startContest();
+    await passStartGate();
+
+    const editor = screen.getByLabelText("Java code editor");
+    fireEvent.change(editor, {
+      target: { value: "class Solution {\npublic int f() {\nreturn 1;\n}\n}" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Format code" }));
+
+    expect(editor).toHaveValue(
+      "class Solution {\n    public int f() {\n        return 1;\n    }\n}",
+    );
+  });
+
+  it("gives the editor the whole screen and returns with Escape", async () => {
+    await startContest();
+    await passStartGate();
+
+    // Header chrome and the statement are on screen to begin with.
+    expect(screen.getByRole("button", { name: /Contest set/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Problem" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Editor full screen" }));
+
+    expect(
+      screen.queryByRole("button", { name: /Contest set/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Problem" })).not.toBeInTheDocument();
+    // The clock and a way out of the mode must survive the chrome going away.
+    expect(screen.getByRole("timer", { name: "Time remaining" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Exit editor full screen" }),
+    ).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Contest set/i })).toBeInTheDocument(),
+    );
+    expect(screen.getByRole("tab", { name: "Problem" })).toBeInTheDocument();
+  });
 });
 

@@ -86,6 +86,15 @@ export default {
         },
         info: "hsl(var(--info))",
         heap: "hsl(var(--heap))",
+        /* Coding-contest workspace ladder: page < chrome < panel.
+           See the `--surface-*` tokens in index.css. */
+        surface: {
+          page: "hsl(var(--surface-page))",
+          chrome: "hsl(var(--surface-chrome))",
+          panel: "hsl(var(--surface-panel))",
+          line: "hsl(var(--surface-line))",
+          raised: "hsl(var(--surface-raised))",
+        },
         code: {
           bg: "hsl(var(--code-bg))",
           border: "hsl(var(--code-border))",
