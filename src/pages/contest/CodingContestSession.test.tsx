@@ -682,37 +682,20 @@ describe("CodingContestSession", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Format code" }));
 
-    expect(editor).toHaveValue(
-      "class Solution {\n    public int f() {\n        return 1;\n    }\n}",
-    );
+    await waitFor(() => {
+      expect(editor).toHaveValue(
+        "class Solution {\n\n    public int f() {\n        return 1;\n    }\n}",
+      );
+    });
   });
 
-  it("gives the editor the whole screen and returns with Escape", async () => {
+  it("does not render the full screen option in the editor controls", async () => {
     await startContest();
     await passStartGate();
 
-    // Header chrome and the statement are on screen to begin with.
-    expect(screen.getByRole("button", { name: /Contest set/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Problem" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Editor full screen" }));
-
     expect(
-      screen.queryByRole("button", { name: /Contest set/i }),
+      screen.queryByRole("button", { name: "Editor full screen" }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole("tab", { name: "Problem" })).not.toBeInTheDocument();
-    // The clock and a way out of the mode must survive the chrome going away.
-    expect(screen.getByRole("timer", { name: "Time remaining" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Exit editor full screen" }),
-    ).toBeInTheDocument();
-
-    fireEvent.keyDown(document, { key: "Escape" });
-
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /Contest set/i })).toBeInTheDocument(),
-    );
-    expect(screen.getByRole("tab", { name: "Problem" })).toBeInTheDocument();
   });
 });
 

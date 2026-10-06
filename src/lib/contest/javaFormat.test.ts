@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatJava } from "@/lib/contest/javaFormat";
+import { formatJava, formatJavaCode } from "@/lib/contest/javaFormat";
 
 describe("formatJava", () => {
   it("re-indents a class, its members and their bodies", () => {
@@ -211,5 +211,21 @@ describe("formatJava", () => {
 
   it("does not de-indent below column zero on unbalanced input", () => {
     expect(formatJava("}\n}\nint x;")).toBe("}\n}\nint x;");
+  });
+});
+
+describe("formatJavaCode", () => {
+  it("formats Java code cleanly with Prettier", async () => {
+    const raw = "class Solution{public int f(){int x=1;return x;}}";
+    const formatted = await formatJavaCode(raw);
+    expect(formatted).toBe(
+      "class Solution {\n\n    public int f() {\n        int x = 1;\n        return x;\n    }\n}",
+    );
+  });
+
+  it("falls back to re-indenter on invalid Java syntax without throwing", async () => {
+    const raw = "class Incomplete {\npublic void broken(";
+    const formatted = await formatJavaCode(raw);
+    expect(formatted).toBe("class Incomplete {\n    public void broken(");
   });
 });

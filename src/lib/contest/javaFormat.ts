@@ -181,3 +181,30 @@ export function formatJava(source: string, options: JavaFormatOptions = {}): str
 
   return output.join("\n");
 }
+
+/**
+ * Format Java source using Prettier Java plugin, with fallback to the local
+ * structure-based re-indenter if parsing fails or Prettier is unavailable.
+ */
+export async function formatJavaCode(
+  source: string,
+  options: JavaFormatOptions = {},
+): Promise<string> {
+  const normalized = source.replace(/\r\n?/g, "\n");
+  if (!normalized.trim()) return normalized;
+
+  try {
+    const prettier = await import("prettier/standalone");
+    const prettierPluginJava = await import("prettier-plugin-java");
+    const plugin = (prettierPluginJava as any).default || prettierPluginJava;
+    const formatted = await prettier.format(normalized, {
+      parser: "java",
+      plugins: [plugin],
+      tabWidth: options.indentSize ?? 4,
+    });
+    return formatted.trimEnd();
+  } catch {
+    // If Prettier fails (e.g. invalid syntax while editing), fall back to safe re-indenter
+    return formatJava(normalized, options);
+  }
+}

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
-import { Loader2, AlertTriangle, Maximize, Minimize2 } from "lucide-react";
+import { Loader2, AlertTriangle, Maximize } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBeforeUnloadWarning } from "@/hooks/useBeforeUnloadWarning";
 import { useContestTimer } from "@/hooks/useContestTimer";
@@ -55,7 +55,7 @@ import {
   type CodingSubmissionSummary,
 } from "@/components/contest/coding/CodingProblemPanel";
 import type { ProblemState } from "@/components/contest/coding/problemState";
-import { formatJava } from "@/lib/contest/javaFormat";
+import { formatJava, formatJavaCode } from "@/lib/contest/javaFormat";
 import { cn } from "@/lib/utils";
 
 /**
@@ -258,12 +258,6 @@ export function CodingContestSession() {
   const [viewMode, setViewMode] = useState<"split" | "editor" | "problem">("split");
   /** Results start collapsed to their header strip; a run opens them again. */
   const [consoleCollapsed, setConsoleCollapsed] = useState(true);
-  /**
-   * Editor full screen is a *layout* mode, never the browser Fullscreen API:
-   * the exam's integrity rules own that API, and a learner pressing Escape out
-   * of an element-fullscreen editor would be recorded as leaving the exam.
-   */
-  const [editorFullscreen, setEditorFullscreen] = useState(false);
   /** Scratch buffers per question; the solution tab is implicit, not stored. */
   const [scratchTabs, setScratchTabs] = useState<Record<string, ScratchTab[]>>({});
   const [activeTabByProblem, setActiveTabByProblem] = useState<Record<string, string>>(
@@ -554,9 +548,9 @@ export function CodingContestSession() {
   }, [bundle, scratchTabs, activeTabByProblem]);
 
   /** Format the buffer that is on screen, through the normal edit path. */
-  const formatActiveCode = useCallback(() => {
+  const formatActiveCode = useCallback(async () => {
     if (!activeProblem || integrity.locked || finalisedRef.current) return;
-    const formatted = formatJava(activeCode, { indentSize: 4 });
+    const formatted = await formatJavaCode(activeCode, { indentSize: 4 });
     if (formatted === activeCode) return;
     handleCodeChange(formatted);
   }, [activeCode, activeProblem, handleCodeChange, integrity.locked]);
@@ -698,39 +692,9 @@ export function CodingContestSession() {
     persistDraft(activeProblem.id, starter);
   }, [activeProblem, activeTabId, bundle, persistDraft]);
 
-  /**
-   * Picking a layout is also a way out of editor full screen: hiding the
-   * problem statement behind an immersive editor and then asking for "problem
-   * only" can only mean "show me the statement".
-   *
-   * Entering full screen closes the question list, which would otherwise keep
-   * covering the editor it was opened over.
-   */
-  const toggleEditorFullscreen = useCallback(() => {
-    setEditorFullscreen((current) => {
-      if (!current) setQuestionListOpen(false);
-      return !current;
-    });
+  const handleViewModeChange = useCallback((mode: CodingViewMode) => {
+    setViewMode(mode);
   }, []);
-
-  const handleViewModeChange = useCallback(
-    (mode: CodingViewMode) => {
-      setViewMode(mode);
-      setEditorFullscreen(false);
-    },
-    [],
-  );
-
-  // Escape leaves full screen. This is a layout mode, so it never touches the
-  // browser's fullscreen state that the exam's integrity rules depend on.
-  useEffect(() => {
-    if (!editorFullscreen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setEditorFullscreen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [editorFullscreen]);
 
   // The console drawer is a real resizable panel, so the chevron, the drag and
   // the keyboard all drive the same layout. This effect is the single place the
@@ -882,8 +846,6 @@ export function CodingContestSession() {
                 onCloseTab={(tabId) => closeScratchTab(activeProblem.id, tabId)}
                 canAddTab={problemScratchTabs.length < MAX_SCRATCH_TABS}
                 canFormat={!readonly && activeCode.trim().length > 0}
-                fullscreen={editorFullscreen}
-                onToggleFullscreen={toggleEditorFullscreen}
               />
             </div>
           </ResizablePanel>
@@ -926,85 +888,34 @@ export function CodingContestSession() {
   );
 
   return (
-    <div
-      className={cn(
-        "flex h-screen flex-col overflow-hidden bg-surface-page selection:bg-primary/20",
-        editorFullscreen ? "gap-0 p-0" : "gap-[15px] p-[15px]",
-      )}
-    >
-      {editorFullscreen ? (
-        /*
-         * Editor full screen keeps one slim chrome bar rather than floating
-         * controls over the code: the exam clock and Finish must never be
-         * hidden, and an overlay would sit on top of the editor's own tab bar.
-         */
-        <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 bg-surface-chrome px-4">
-          <span className="truncate text-xs font-medium text-muted-foreground">
-            Question {activeIndex >= 0 ? activeIndex + 1 : 1} /{" "}
-            {bundle.problems.length} · editor full screen
-          </span>
-          <div className="flex shrink-0 items-center gap-2">
-            <ContestClock remainingSeconds={timer.remainingSeconds} />
-            {integrity.warningCount > 0 ? (
-              <span
-                title={`Focus warnings: ${integrity.warningCount} of ${MAX_EXAM_WARNINGS}`}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 px-3 text-xs font-medium text-destructive"
-              >
-                {integrity.warningCount}/{MAX_EXAM_WARNINGS}
-              </span>
-            ) : null}
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => setFinishOpen(true)}
-              aria-label="Finish Contest"
-              className="h-9 rounded-lg px-4 text-sm font-semibold"
-            >
-              Finish
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setEditorFullscreen(false)}
-              aria-label="Exit editor full screen"
-              title="Exit editor full screen (Esc)"
-              className="h-9 gap-1.5 rounded-lg border-surface-line bg-surface-panel px-4 text-sm font-medium"
-            >
-              <Minimize2 aria-hidden="true" className="h-4 w-4" />
-              Exit full screen
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <CodingContestHeader
-          remainingSeconds={timer.remainingSeconds}
-          totalProblems={bundle.problems.length}
-          warningCount={integrity.warningCount}
-          localMode={!bundle.authoritative}
-          onFinish={() => setFinishOpen(true)}
-          onToggleList={() => setQuestionListOpen((prev) => !prev)}
-          listOpen={questionListOpen}
-          activeProblemIndex={activeIndex >= 0 ? activeIndex : 0}
-          menuOpen={questionMenuOpen}
-          onMenuToggle={() => setQuestionMenuOpen((prev) => !prev)}
-          menuAnchorRef={menuAnchorRef}
-          questionMenu={
-            <CodingQuestionMenu
-              entries={entries}
-              activeId={activeId}
-              onSelect={selectProblem}
-              onOpenList={() => {
-                setQuestionMenuOpen(false);
-                setQuestionListOpen(true);
-              }}
-              disabled={readonly}
-              isOpen={questionMenuOpen}
-              onClose={() => setQuestionMenuOpen(false)}
-            />
-          }
-        />
-      )}
+    <div className="flex h-screen flex-col gap-[15px] overflow-hidden bg-surface-page p-[15px] selection:bg-primary/20">
+      <CodingContestHeader
+        remainingSeconds={timer.remainingSeconds}
+        totalProblems={bundle.problems.length}
+        warningCount={integrity.warningCount}
+        localMode={!bundle.authoritative}
+        onFinish={() => setFinishOpen(true)}
+        onToggleList={() => setQuestionListOpen((prev) => !prev)}
+        listOpen={questionListOpen}
+        activeProblemIndex={activeIndex >= 0 ? activeIndex : 0}
+        menuOpen={questionMenuOpen}
+        onMenuToggle={() => setQuestionMenuOpen((prev) => !prev)}
+        menuAnchorRef={menuAnchorRef}
+        questionMenu={
+          <CodingQuestionMenu
+            entries={entries}
+            activeId={activeId}
+            onSelect={selectProblem}
+            onOpenList={() => {
+              setQuestionMenuOpen(false);
+              setQuestionListOpen(true);
+            }}
+            disabled={readonly}
+            isOpen={questionMenuOpen}
+            onClose={() => setQuestionMenuOpen(false)}
+          />
+        }
+      />
 
       {finaliseError ? (
         <div
@@ -1023,9 +934,7 @@ export function CodingContestSession() {
 
       {/* Main Workspace: two rounded panes divided by a draggable slider. */}
       <main className="relative flex min-h-0 flex-1">
-        {editorFullscreen ? (
-          <div className={cn(PANE_SHELL_CLASS, "w-full rounded-none")}>{editorColumn}</div>
-        ) : viewMode === "split" ? (
+        {viewMode === "split" ? (
           <ResizablePanelGroup
             direction="horizontal"
             className="min-h-0 flex-1"

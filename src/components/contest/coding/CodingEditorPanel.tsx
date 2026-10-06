@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
 import type { OnMount } from "@monaco-editor/react";
 import {
+  Check,
   ChevronDown,
   Loader2,
-  Maximize2,
-  Minimize2,
   MoreVertical,
   Play,
   Plus,
@@ -27,12 +26,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { CompilerDiagnostic } from "@/lib/playground/compilerDiagnostics";
 import type { PublicCodingProblem } from "@/lib/contest/types";
-import { formatJava } from "@/lib/contest/javaFormat";
+import { formatJava, formatJavaCode } from "@/lib/contest/javaFormat";
 import { cn } from "@/lib/utils";
 
 /**
- * Java code editor pane: file tab bar, the language / format / fullscreen /
- * run / submit toolbar, the editor itself and the floating editor controls.
+ * Java code editor pane: file tab bar, the language / format / run / submit
+ * toolbar, the editor itself and the floating format control.
  *
  * Monaco is loaded lazily so it stays out of the contest landing and MCQ quiz
  * bundles — the existing `editor` chunk is already split in `vite.config.ts`,
@@ -58,7 +57,7 @@ const LazyLeetCodeEditor = lazy(() =>
 let javaFormatterRegistered = false;
 
 /**
- * Hand the workspace's Java re-indenter to Monaco once, so the standard Format
+ * Hand the workspace's Java formatter to Monaco once, so the standard Format
  * Document command — Shift+Alt+F, the context menu, the command palette — runs
  * exactly the same rules as the Format button.
  */
@@ -67,9 +66,10 @@ function ensureJavaFormatter(monaco: MonacoApi): void {
   javaFormatterRegistered = true;
   monaco.languages.registerDocumentFormattingEditProvider("java", {
     displayName: "AlgoGuru Java formatter",
-    provideDocumentFormattingEdits(model) {
+    async provideDocumentFormattingEdits(model) {
+      const formatted = await formatJavaCode(model.getValue(), { indentSize: 4 });
       return [
-        { range: model.getFullModelRange(), text: formatJava(model.getValue()) },
+        { range: model.getFullModelRange(), text: formatted },
       ];
     },
   });
@@ -110,8 +110,6 @@ export function CodingEditorPanel({
   onCloseTab,
   canAddTab,
   canFormat,
-  fullscreen,
-  onToggleFullscreen,
 }: {
   problem: PublicCodingProblem;
   value: string;
@@ -132,14 +130,16 @@ export function CodingEditorPanel({
   onCloseTab: (tabId: string) => void;
   canAddTab: boolean;
   canFormat: boolean;
-  fullscreen: boolean;
-  onToggleFullscreen: () => void;
 }) {
   const [wrapLines, setWrapLines] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
+  const [isFormatting, setIsFormatting] = useState(false);
+  const [isFormatted, setIsFormatted] = useState(false);
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
 
@@ -154,10 +154,31 @@ export function CodingEditorPanel({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [optionsOpen]);
 
-  const handleFormat = () => {
-    if (!canFormat) return;
-    onChange(formatJava(value));
-  };
+  const handleFormat = useCallback(async () => {
+    if (!canFormat || isFormatting) return;
+    setIsFormatting(true);
+    try {
+      const currentCode = editorRef.current ? editorRef.current.getValue() : value;
+      if (!currentCode.trim()) return;
+      const formatted = await formatJavaCode(currentCode, { indentSize: 4 });
+      if (editorRef.current) {
+        const model = editorRef.current.getModel();
+        if (model && model.getValue() !== formatted) {
+          editorRef.current.executeEdits("format", [
+            { range: model.getFullModelRange(), text: formatted },
+          ]);
+          editorRef.current.pushUndoStop();
+        }
+      }
+      onChange(formatted);
+      setIsFormatted(true);
+      setTimeout(() => setIsFormatted(false), 1500);
+    } catch (err) {
+      console.error("Format error:", err);
+    } finally {
+      setIsFormatting(false);
+    }
+  }, [canFormat, isFormatting, onChange, value]);
 
   return (
     <section
@@ -265,14 +286,20 @@ export function CodingEditorPanel({
               <button
                 type="button"
                 role="menuitem"
-                disabled={!canFormat}
+                disabled={!canFormat || isFormatting}
                 onClick={() => {
                   setOptionsOpen(false);
-                  handleFormat();
+                  void handleFormat();
                 }}
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-surface-raised disabled:opacity-40"
               >
-                <WandSparkles aria-hidden="true" className="h-3.5 w-3.5 text-muted-foreground" />
+                {isFormatting ? (
+                  <Loader2 aria-hidden="true" className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                ) : isFormatted ? (
+                  <Check aria-hidden="true" className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <WandSparkles aria-hidden="true" className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
                 Format code
                 <span className="ml-auto font-mono text-[10px] text-muted-foreground">
                   ⇧⌥F
@@ -402,8 +429,16 @@ export function CodingEditorPanel({
               bracketPairColorization: true,
               formatOnType: false,
             }}
-            onMount={(_editor, monaco) => {
+            onMount={(editor, monaco) => {
+              editorRef.current = editor;
+              monacoRef.current = monaco;
               ensureJavaFormatter(monaco);
+              editor.addCommand(
+                monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
+                () => {
+                  void handleFormat();
+                },
+              );
               monaco.editor.setModelMarkers(
                 monaco.editor.getModels()[0] ?? null,
                 "java",
@@ -420,33 +455,27 @@ export function CodingEditorPanel({
           />
         </Suspense>
 
-        {/* Floating editor controls: format and full screen. */}
+        {/* Floating editor control: format code. */}
         <div className="absolute bottom-5 left-5 flex items-center overflow-hidden rounded-full bg-surface-chrome shadow-lg">
           <button
             type="button"
-            onClick={handleFormat}
-            disabled={!canFormat}
+            onClick={() => void handleFormat()}
+            disabled={!canFormat || isFormatting}
             aria-label="Format code"
             title="Format code (Shift+Alt+F)"
-            className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:bg-surface-raised hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            className={cn(
+              "flex h-9 w-9 items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent",
+              isFormatted
+                ? "text-emerald-500 hover:bg-surface-raised"
+                : "text-muted-foreground hover:bg-surface-raised hover:text-foreground",
+            )}
           >
-            <WandSparkles aria-hidden="true" className="h-4 w-4" />
-          </button>
-          <span aria-hidden="true" className="h-4 w-px bg-surface-line" />
-          <button
-            type="button"
-            onClick={onToggleFullscreen}
-            aria-pressed={fullscreen}
-            aria-label="Editor full screen"
-            title={
-              fullscreen ? "Editor full screen — on (Esc to exit)" : "Editor full screen"
-            }
-            className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:bg-surface-raised hover:text-foreground"
-          >
-            {fullscreen ? (
-              <Minimize2 aria-hidden="true" className="h-4 w-4" />
+            {isFormatting ? (
+              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : isFormatted ? (
+              <Check aria-hidden="true" className="h-4 w-4 text-emerald-500" />
             ) : (
-              <Maximize2 aria-hidden="true" className="h-4 w-4" />
+              <WandSparkles aria-hidden="true" className="h-4 w-4" />
             )}
           </button>
         </div>

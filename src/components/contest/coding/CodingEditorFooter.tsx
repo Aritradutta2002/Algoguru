@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils";
  * every control carries its state in `title` and `sr-only` text — and it sits
  * on the pane surface with a hairline above it, matching the reference chrome.
  *
- * Format and full screen live with the code they act on (the editor's floating
- * pill) rather than here, so the same action never appears twice on screen.
+ * Format code lives with the code it acts on (the editor's floating button)
+ * rather than here, so the same action never appears twice on screen.
  */
 
 export type CodingViewMode = "split" | "problem" | "editor";
