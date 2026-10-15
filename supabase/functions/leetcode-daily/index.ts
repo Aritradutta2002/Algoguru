@@ -26,6 +26,181 @@ const UPSTREAM_TIMEOUT_MS = 10_000;
 // The official-solution fetch gets its own budget so a slow problem fetch
 // never starves/aborts it (this previously caused editorials to vanish).
 const SOLUTION_TIMEOUT_MS = 12_000;
+// Overall budget for resolving the playgrounds referenced by one editorial.
+const PLAYGROUND_BUDGET_MS = 15_000;
+
+/* ------------------------------------------------------------------ */
+/* Editorial playground inlining                                       */
+/* ------------------------------------------------------------------ */
+//
+// LeetCode's official editorial ships each approach's implementation as a
+// playground *iframe*, not as a fenced code block:
+//
+//   #### Implementation
+//   <iframe src="https://leetcode.com/playground/ZaDAqWnF/shared" ...></iframe>
+//
+// That URL is unusable from a browser — it returns 403 + a Cloudflare challenge
+// to non-browser clients and sets `X-Frame-Options: SAMEORIGIN`, so it can
+// neither be fetched client-side nor embedded. The reader was therefore shown a
+// dead "View Implementation on LeetCode" link instead of any code.
+//
+// We resolve each playground server-side via LeetCode's GraphQL `playground`
+// query and rewrite the iframe into a fenced code block, so the client renders
+// real syntax-highlighted solution code.
+//
+// The pure counterparts of these helpers live in `src/lib/editorialPlayground.ts`
+// (unit tested there). Keep the regex + fence logic in sync with that file.
+
+const PLAYGROUND_IFRAME_RE =
+  /<iframe[^>]*\bsrc\s*=\s*["']https?:\/\/(?:www\.)?leetcode\.com\/playground\/([A-Za-z0-9_-]+)(?:\/[^"']*)?["'][^>]*>\s*<\/iframe>/gi;
+
+/** Map a LeetCode language slug onto one the UI's highlighter understands. */
+function normalizeLanguageSlug(slug: string | null | undefined): string {
+  const s = (slug || "").toLowerCase().trim();
+  const map: Record<string, string> = {
+    "c++": "cpp",
+    cpp: "cpp",
+    "c#": "csharp",
+    csharp: "csharp",
+    cs: "csharp",
+    py: "python",
+    python3: "python",
+    python: "python",
+    js: "javascript",
+    javascript: "javascript",
+    ts: "typescript",
+    typescript: "typescript",
+    go: "go",
+    golang: "go",
+    rb: "ruby",
+    ruby: "ruby",
+    rs: "rust",
+    rust: "rust",
+    kt: "kotlin",
+    kotlin: "kotlin",
+  };
+  return map[s] || s || "text";
+}
+
+/** Fence a code sample, picking a fence long enough to survive backticks. */
+function toFencedCodeBlock(code: string, langSlug?: string | null): string {
+  const trimmed = code.replace(/\s+$/, "");
+  let longestRun = 0;
+  for (const run of trimmed.match(/`+/g) || []) {
+    if (run.length > longestRun) longestRun = run.length;
+  }
+  const fence = "`".repeat(Math.max(3, longestRun + 1));
+  return `\n\n${fence}${normalizeLanguageSlug(langSlug)}\n${trimmed}\n${fence}\n\n`;
+}
+
+/** True when markdown still contains at least one playground iframe. */
+function hasPlaygroundIframe(markdown: string | null | undefined): boolean {
+  if (!markdown) return false;
+  PLAYGROUND_IFRAME_RE.lastIndex = 0;
+  return PLAYGROUND_IFRAME_RE.test(markdown);
+}
+
+interface PlaygroundSnippet {
+  code: string;
+  langSlug?: string | null;
+}
+
+/**
+ * Fetch the code stored in a LeetCode playground. Returns null on any failure
+ * (never throws) so a blocked/empty playground degrades to the old link instead
+ * of breaking the whole editorial.
+ */
+async function fetchPlaygroundCode(uuid: string): Promise<PlaygroundSnippet | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8_000);
+    const res = await fetch("https://leetcode.com/graphql", {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json", Referer: "https://leetcode.com" },
+      body: JSON.stringify({
+        query: `
+          query playground($uuid: String!) {
+            playground(uuid: $uuid) {
+              selectedLangSlug
+              playgroundcodeSet {
+                code
+                langSlug
+              }
+            }
+          }
+        `,
+        variables: { uuid },
+      }),
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+
+    const json = (await res.json()) as {
+      data?: {
+        playground?: {
+          selectedLangSlug?: string;
+          playgroundcodeSet?: { code?: string; langSlug?: string }[];
+        };
+      };
+    };
+    const pg = json?.data?.playground;
+    const codes = (pg?.playgroundcodeSet || []).filter((c) => c?.code?.trim());
+    if (codes.length === 0) return null;
+
+    // Prefer the language the editorial author had selected, else the first.
+    const chosen =
+      codes.find((c) => c.langSlug === pg?.selectedLangSlug) || codes[0];
+    return { code: String(chosen.code), langSlug: chosen.langSlug ?? pg?.selectedLangSlug };
+  } catch (_e) {
+    return null;
+  }
+}
+
+/**
+ * Rewrite every resolvable playground iframe in the editorial markdown into a
+ * fenced code block. Unresolvable iframes are left alone.
+ */
+async function inlinePlaygroundSnippets(markdown: string | null): Promise<string | null> {
+  if (!markdown || !hasPlaygroundIframe(markdown)) return markdown;
+
+  // Unique UUIDs, first-seen order.
+  const seen = new Set<string>();
+  const uuids: string[] = [];
+  const scan = new RegExp(PLAYGROUND_IFRAME_RE.source, "gi");
+  let m: RegExpExecArray | null;
+  while ((m = scan.exec(markdown)) !== null) {
+    if (!seen.has(m[1])) {
+      seen.add(m[1]);
+      uuids.push(m[1]);
+    }
+  }
+  if (uuids.length === 0) return markdown;
+
+  // Resolve in parallel under one overall budget so a slow playground cannot
+  // stall the whole request.
+  const resolved = await Promise.race([
+    Promise.allSettled(uuids.map((u) => fetchPlaygroundCode(u))),
+    new Promise<(PromiseSettledResult<PlaygroundSnippet | null>)[]>((resolve) =>
+      setTimeout(() => resolve(uuids.map(() => ({ status: "fulfilled", value: null }) as PromiseFulfilledResult<PlaygroundSnippet | null>)), PLAYGROUND_BUDGET_MS)
+    ),
+  ]);
+
+  const byUuid = new Map<string, PlaygroundSnippet>();
+  resolved.forEach((r, i) => {
+    // Whitespace-only code is as good as missing — treat it as unresolved so
+    // the client keeps its external-link fallback instead of an empty block.
+    if (r.status === "fulfilled" && r.value?.code?.trim()) byUuid.set(uuids[i], r.value);
+  });
+  if (byUuid.size === 0) return markdown;
+
+  const re = new RegExp(PLAYGROUND_IFRAME_RE.source, "gi");
+  return markdown.replace(re, (whole: string, uuid: string) => {
+    const snippet = byUuid.get(uuid);
+    if (!snippet?.code?.trim()) return whole;
+    return toFencedCodeBlock(snippet.code, snippet.langSlug);
+  });
+}
 
 // Fetch the official editorial for a problem. Tries LeetCode GraphQL first
 // (returns content only for FREE public editorials), then the alfa wrapper
@@ -246,6 +421,9 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
         if (!solutionContent) {
           solutionContent = await fetchOfficialSolution(String(q.titleSlug));
         }
+        // Editorials embed implementation code as playground iframes; resolve
+        // them into real fenced code blocks so the client can render the code.
+        solutionContent = await inlinePlaygroundSnippets(solutionContent);
 
         // Guard against missing/placeholder snippets even on the happy path.
         let snippets = Array.isArray(q.codeSnippets) ? q.codeSnippets : undefined;
@@ -304,6 +482,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
 
   let solutionHtml: string | null = null;
   solutionHtml = await fetchOfficialSolution(String(question.titleSlug));
+  solutionHtml = await inlinePlaygroundSnippets(solutionHtml);
 
   // Ensure codeSnippets is populated even when upstream is alfa wrapper (which omits it)
   let codeSnippets = Array.isArray(question.codeSnippets) ? (question.codeSnippets as any) : undefined;
@@ -408,18 +587,28 @@ function hasRealCodeSnippets(
 
 // Cache rows written before the solution fetch was reliable may be missing the
 // editorial or codeSnippets (or contain the old generic solve() placeholder).
-// When serving such a row, try to backfill it once and persist the fix so
-// later visitors don't repeat the work.
+// Rows cached while editorial code was still trapped in playground iframes also
+// need healing. When serving such a row, try to backfill it once and persist the
+// fix so later visitors don't repeat the work.
 async function backfillMissingData(
   admin: ReturnType<typeof createClient>,
   payload: CachedPayload,
 ): Promise<void> {
   let updated = false;
 
-  if (!payload.problem.solution) {
+  // Missing entirely, or present but still holding unresolved playground
+  // iframes (i.e. cached before playground inlining existed).
+  const needsSolution =
+    !payload.problem.solution || hasPlaygroundIframe(payload.problem.solution);
+
+  if (needsSolution) {
     try {
-      const solution = await fetchOfficialSolution(payload.problem.titleSlug);
-      if (solution) {
+      let solution = payload.problem.solution
+        ? payload.problem.solution
+        : await fetchOfficialSolution(payload.problem.titleSlug);
+      // Re-resolve the iframes; fetch the editorial first when we have none.
+      solution = await inlinePlaygroundSnippets(solution);
+      if (solution && solution !== payload.problem.solution) {
         payload.problem.solution = solution;
         updated = true;
       }

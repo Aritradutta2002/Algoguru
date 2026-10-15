@@ -1358,6 +1358,58 @@
   border: 1px solid hsl(var(--border) / 0.3);
 }
 
+/* ── Unresolved playground fallback ──
+   Shown only when the edge function could not turn a LeetCode playground
+   iframe into a real code block, so the reader is told plainly why the code
+   is missing instead of being handed a bare outbound link. Token-driven so it
+   renders correctly in both themes. */
+.editorial-unavailable-card {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 1rem;
+  background: hsl(var(--muted) / 0.35);
+}
+
+.editorial-unavailable-title {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+}
+
+.editorial-unavailable-note {
+  margin: 0;
+  font-size: 0.81rem;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+}
+
+.editorial-content a.editorial-unavailable-link {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.6rem;
+  background: hsl(var(--card));
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+.editorial-content a.editorial-unavailable-link:hover {
+  background: hsl(var(--muted));
+  text-decoration: none;
+}
+
 /* ── Definition lists ── */
 .editorial-content dl {
   margin: 1.25rem 0;

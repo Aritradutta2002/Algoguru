@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   Code,
   Copy,
+  CornerDownLeft,
   ExternalLink,
   BookOpen,
   FileText,
@@ -405,9 +406,12 @@ function extractText(node: React.ReactNode): string {
 function EditorialCodeBlock({
   children,
   className,
+  onInsert,
 }: {
   children: React.ReactNode;
   className?: string;
+  /** When provided, offer a one-click "Insert into editor" action. */
+  onInsert?: (code: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const lang = (className?.replace("language-", "") || "text").toLowerCase();
@@ -419,19 +423,31 @@ function EditorialCodeBlock({
         <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border border-[#3a3a3a]">
           {lang}
         </span>
-        <button
-          onClick={async () => {
-            await navigator.clipboard.writeText(codeText);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }}
-          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
-            copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
-          }`}
-        >
-          {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-          {copied ? "Copied" : "Copy"}
-        </button>
+        <div className="flex items-center gap-1">
+          {onInsert && (
+            <button
+              onClick={() => onInsert(codeText)}
+              title="Insert this solution into the code editor"
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+            >
+              <CornerDownLeft size={13} />
+              Insert into editor
+            </button>
+          )}
+          <button
+            onClick={async () => {
+              await navigator.clipboard.writeText(codeText);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
+              copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+            }`}
+          >
+            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
       </div>
       <div className="bg-[#1a1a1a] overflow-x-auto">
         <SyntaxHighlighter
@@ -2002,7 +2018,10 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                           const isBlock = className?.startsWith("language-") || text.includes("\n");
                           if (isBlock) {
                             return (
-                              <EditorialCodeBlock className={className}>
+                              <EditorialCodeBlock
+                                className={className}
+                                onInsert={onInsertCode}
+                              >
                                 {children}
                               </EditorialCodeBlock>
                             );
@@ -2028,16 +2047,30 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                         },
                         iframe({ src }) {
                           const url = src || "";
+                          // Editorial implementations normally arrive already
+                          // resolved into fenced code blocks. An iframe only
+                          // survives here when the server could not fetch the
+                          // playground, so present an honest fallback card.
                           return (
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="my-5 flex items-center gap-2 rounded-xl border border-border bg-muted px-5 py-3.5 text-sm font-semibold text-foreground no-underline transition-colors hover:bg-muted/70 hover:no-underline"
-                            >
-                              <ExternalLink size={16} />
-                              View Implementation on LeetCode
-                            </a>
+                            <div className="editorial-unavailable-card">
+                              <span className="editorial-unavailable-title">
+                                Solution code couldn't be loaded
+                              </span>
+                              <p className="editorial-unavailable-note">
+                                This implementation lives in a LeetCode playground
+                                that can't be embedded here. Open it on LeetCode
+                                to read the code.
+                              </p>
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="editorial-unavailable-link"
+                              >
+                                <ExternalLink size={16} />
+                                View Implementation on LeetCode
+                              </a>
+                            </div>
                           );
                         },
                       }}
@@ -2048,7 +2081,10 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
               ) : (
                 <div className="space-y-4 rounded-xl border border-dashed border-border bg-muted/30 p-6">
                   <p className="text-center text-sm font-medium leading-6 text-muted-foreground">
-                    The official editorial couldn't be loaded for this problem — it may be LeetCode-premium only.
+                    We couldn't retrieve the solution code for this problem. The
+                    official editorial may be LeetCode-premium only, or the source
+                    may be temporarily unreachable — try the links below or ask
+                    Guru AI for a walkthrough.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {[
