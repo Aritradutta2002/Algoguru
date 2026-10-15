@@ -10,27 +10,43 @@
  *
  * That URL is unusable from the browser: it answers a non-browser client with
  * HTTP 403 + a Cloudflare challenge and carries `X-Frame-Options: SAMEORIGIN`,
- * so it can neither be fetched client-side nor embedded. The `leetcode-daily`
- * edge function therefore resolves each playground on the server and rewrites
- * the iframe into a fenced code block before the payload reaches the client.
+ * so it can neither be fetched client-side nor embedded.
  *
- * This module holds the pure pieces of that contract so both the edge function
- * and the UI agree on what a "playground iframe" is, and so the logic is unit
- * testable without a Deno runtime.
+ * Each playground holds the same solution in ~9 languages and the reader should
+ * be able to switch between them, so the edge function does not bake one
+ * language into a fence. It replaces each iframe with a numbered token and
+ * attaches the language sets to `problem.solutionBlocks`:
  *
- * The edge function keeps a small mirrored copy of `PLAYGROUND_IFRAME_RE`,
- * `extractPlaygroundUuids` and `toFencedCodeBlock` — keep them in sync.
+ *   <!--solution-block:0-->
+ *
+ * `splitEditorialMarkdown` splits the editorial on those tokens so each one can
+ * be rendered as a language-switching code block while the surrounding prose
+ * stays intact.
+ *
+ * This module holds the pure pieces of that contract so the logic is unit
+ * testable without a Deno runtime. The edge function keeps a small mirrored copy
+ * — keep them in sync.
  */
 
 /** Matches a LeetCode playground iframe in editorial markdown. */
 export const PLAYGROUND_IFRAME_RE =
   /<iframe[^>]*\bsrc\s*=\s*["']https?:\/\/(?:www\.)?leetcode\.com\/playground\/([A-Za-z0-9_-]+)(?:\/[^"']*)?["'][^>]*>\s*<\/iframe>/gi;
 
+/** Matches the placeholder the edge function leaves for a resolved block. */
+export const SOLUTION_BLOCK_TOKEN_RE = /<!--\s*solution-block:(\d+)\s*-->/g;
+
 /** True when the string still contains at least one playground iframe. */
 export function hasPlaygroundIframe(markdown: string | null | undefined): boolean {
   if (!markdown) return false;
   PLAYGROUND_IFRAME_RE.lastIndex = 0;
   return PLAYGROUND_IFRAME_RE.test(markdown);
+}
+
+/** True when the markdown contains at least one solution-block token. */
+export function hasSolutionBlockToken(markdown: string | null | undefined): boolean {
+  if (!markdown) return false;
+  SOLUTION_BLOCK_TOKEN_RE.lastIndex = 0;
+  return SOLUTION_BLOCK_TOKEN_RE.test(markdown);
 }
 
 /** Pull the playground UUID out of a single iframe `src` URL, if it is one. */
@@ -98,47 +114,112 @@ export function normalizeLanguageSlug(slug: string | null | undefined): string {
   return map[s] || s || "text";
 }
 
-/** Fence a code sample, picking a fence long enough to survive backticks. */
-export function toFencedCodeBlock(code: string, langSlug?: string | null): string {
-  const trimmed = code.replace(/\s+$/, "");
-  let longestRun = 0;
-  for (const run of trimmed.match(/`+/g) || []) {
-    if (run.length > longestRun) longestRun = run.length;
-  }
-  const fence = "`".repeat(Math.max(3, longestRun + 1));
-  return `\n\n${fence}${normalizeLanguageSlug(langSlug)}\n${trimmed}\n${fence}\n\n`;
-}
-
-export interface PlaygroundSnippet {
-  code: string;
-  langSlug?: string | null;
+/** Human-readable label for a normalised language slug. */
+export function languageLabel(slug: string | null | undefined): string {
+  const s = normalizeLanguageSlug(slug);
+  const labels: Record<string, string> = {
+    cpp: "C++",
+    java: "Java",
+    c: "C",
+    csharp: "C#",
+    javascript: "JavaScript",
+    typescript: "TypeScript",
+    python: "Python",
+    go: "Go",
+    rust: "Rust",
+    ruby: "Ruby",
+    kotlin: "Kotlin",
+    swift: "Swift",
+    php: "PHP",
+    dart: "Dart",
+    scala: "Scala",
+    elixir: "Elixir",
+    erlang: "Erlang",
+    racket: "Racket",
+    sql: "SQL",
+  };
+  return labels[s] || s.toUpperCase();
 }
 
 /**
- * Rewrite every resolvable playground iframe in `markdown` into a fenced code
- * block. `resolve` is called once per unique UUID; returning `null` leaves that
- * iframe untouched so the UI can fall back to an external link.
+ * Languages the reader most likely wants, in preference order. Used to pick a
+ * default when the source language is unavailable.
  */
-export async function inlinePlaygroundSnippets(
+export const LANGUAGE_PREFERENCE = [
+  "java",
+  "cpp",
+  "python",
+  "javascript",
+  "typescript",
+  "go",
+  "csharp",
+  "c",
+  "rust",
+];
+
+/**
+ * Choose which language a block should open on.
+ *
+ * `preferred` is the reader's current context (the editor language); the
+ * author's own selection is only a fallback, because this app is Java-first and
+ * a C++-only editorial would otherwise force a manual switch every time.
+ */
+export function pickDefaultLanguage(
+  available: string[],
+  preferred?: string | null,
+): string | null {
+  if (available.length === 0) return null;
+
+  const wanted = preferred ? normalizeLanguageSlug(preferred) : null;
+  if (wanted && available.includes(wanted)) return wanted;
+
+  for (const candidate of LANGUAGE_PREFERENCE) {
+    if (available.includes(candidate)) return candidate;
+  }
+  return available[0];
+}
+
+/** A resolved editorial implementation block: one solution, many languages. */
+export interface SolutionBlock {
+  defaultLangSlug: string;
+  languages: { langSlug: string; label: string; code: string }[];
+}
+
+export type EditorialSegment =
+  | { kind: "markdown"; content: string }
+  | { kind: "block"; index: number; block: SolutionBlock | null };
+
+/**
+ * Split editorial markdown on solution-block tokens.
+ *
+ * A token whose index has no matching block yields a null block so the caller
+ * can render a fallback rather than leaking an unstyled HTML comment into the
+ * prose.
+ */
+export function splitEditorialMarkdown(
   markdown: string,
-  resolve: (uuid: string) => Promise<PlaygroundSnippet | null>,
-): Promise<string> {
-  const uuids = extractPlaygroundUuids(markdown);
-  if (uuids.length === 0) return markdown;
+  blocks?: SolutionBlock[] | null,
+): EditorialSegment[] {
+  const segments: EditorialSegment[] = [];
+  const re = new RegExp(SOLUTION_BLOCK_TOKEN_RE.source, "g");
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
 
-  const results = await Promise.allSettled(uuids.map((u) => resolve(u)));
-  const byUuid = new Map<string, PlaygroundSnippet>();
-  results.forEach((r, i) => {
-    // Whitespace-only code is as good as missing — treat it as unresolved so
-    // the caller keeps its external-link fallback instead of an empty block.
-    if (r.status === "fulfilled" && r.value?.code?.trim()) byUuid.set(uuids[i], r.value);
-  });
-  if (byUuid.size === 0) return markdown;
+  while ((m = re.exec(markdown)) !== null) {
+    const before = markdown.slice(lastIndex, m.index);
+    if (before.trim()) segments.push({ kind: "markdown", content: before });
 
-  const re = new RegExp(PLAYGROUND_IFRAME_RE.source, "gi");
-  return markdown.replace(re, (whole: string, uuid: string) => {
-    const snippet = byUuid.get(uuid);
-    if (!snippet?.code?.trim()) return whole;
-    return toFencedCodeBlock(snippet.code, snippet.langSlug);
-  });
+    const index = Number(m[1]);
+    segments.push({ kind: "block", index, block: blocks?.[index] ?? null });
+    lastIndex = m.index + m[0].length;
+  }
+
+  const rest = markdown.slice(lastIndex);
+  if (rest.trim()) segments.push({ kind: "markdown", content: rest });
+
+  // No tokens at all: the whole thing is plain markdown.
+  if (segments.length === 0 && markdown.trim()) {
+    segments.push({ kind: "markdown", content: markdown });
+  }
+  return segments;
 }

@@ -1,20 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   extractPlaygroundUuid,
   extractPlaygroundUuids,
   hasPlaygroundIframe,
-  inlinePlaygroundSnippets,
+  hasSolutionBlockToken,
+  languageLabel,
   normalizeLanguageSlug,
-  toFencedCodeBlock,
+  pickDefaultLanguage,
+  splitEditorialMarkdown,
 } from "./editorialPlayground";
+import type { SolutionBlock } from "./editorialPlayground";
 
 const IFRAME_A =
   '<iframe src="https://leetcode.com/playground/b3Z45Rq9/shared" frameBorder="0" width="100%" height="327" name="b3Z45Rq9"></iframe>';
 const IFRAME_B =
   '<iframe src="https://leetcode.com/playground/ZaDAqWnF/shared" frameBorder="0" width="100%" height="500" name="ZaDAqWnF"></iframe>';
 
-/** A trimmed-down version of the real leakage shape in LeetCode editorials. */
-const EDITORIAL = `### Approach 1: Simulation
+/** The shape the edge function emits once it has resolved the playgrounds. */
+const RESOLVED_EDITORIAL = `### Approach 1: Simulation
 
 #### Intuition
 
@@ -22,7 +25,7 @@ Enumerate all contiguous subarrays with two nested loops.
 
 #### Implementation
 
-${IFRAME_A}
+<!--solution-block:0-->
 
 #### Complexity Analysis
 
@@ -30,26 +33,39 @@ Time complexity: $O(n^2)$.
 
 ### Approach 2: Binary Indexed Tree
 
-#### Intuition
-
-Maintain the distinct count for every left endpoint.
-
 #### Implementation
 
-${IFRAME_B}
+<!--solution-block:1-->
 
 #### Complexity Analysis
 
 Time complexity: $O(n \\log n)$.
 `;
 
+function block(defaultLangSlug: string, langs: string[]): SolutionBlock {
+  return {
+    defaultLangSlug,
+    languages: langs.map((langSlug) => ({
+      langSlug,
+      label: languageLabel(langSlug),
+      code: `// ${langSlug} solution`,
+    })),
+  };
+}
+
+const BLOCKS: SolutionBlock[] = [
+  block("cpp", ["cpp", "java", "python"]),
+  block("cpp", ["cpp", "java"]),
+];
+
 describe("hasPlaygroundIframe", () => {
   it("detects a playground iframe", () => {
-    expect(hasPlaygroundIframe(EDITORIAL)).toBe(true);
+    expect(hasPlaygroundIframe(IFRAME_A)).toBe(true);
   });
 
-  it("is false for prose and fenced code", () => {
-    expect(hasPlaygroundIframe("#### Implementation\n\n```java\nint x;\n```")).toBe(false);
+  it("is false for prose, fenced code and resolved tokens", () => {
+    expect(hasPlaygroundIframe("```java\nint x;\n```")).toBe(false);
+    expect(hasPlaygroundIframe(RESOLVED_EDITORIAL)).toBe(false);
   });
 
   it("is false for nullish input", () => {
@@ -59,9 +75,23 @@ describe("hasPlaygroundIframe", () => {
   });
 
   it("does not leak regex lastIndex between calls", () => {
-    // Global regexes carry state; a naive implementation returns false here.
-    expect(hasPlaygroundIframe(EDITORIAL)).toBe(true);
-    expect(hasPlaygroundIframe(EDITORIAL)).toBe(true);
+    expect(hasPlaygroundIframe(IFRAME_A)).toBe(true);
+    expect(hasPlaygroundIframe(IFRAME_A)).toBe(true);
+  });
+});
+
+describe("hasSolutionBlockToken", () => {
+  it("detects a resolved token", () => {
+    expect(hasSolutionBlockToken(RESOLVED_EDITORIAL)).toBe(true);
+  });
+
+  it("tolerates whitespace inside the comment", () => {
+    expect(hasSolutionBlockToken("<!-- solution-block:3 -->")).toBe(true);
+  });
+
+  it("is false for plain markdown", () => {
+    expect(hasSolutionBlockToken("### Approach\n\nJust prose.")).toBe(false);
+    expect(hasSolutionBlockToken(null)).toBe(false);
   });
 });
 
@@ -80,14 +110,17 @@ describe("extractPlaygroundUuid", () => {
 
 describe("extractPlaygroundUuids", () => {
   it("extracts uuids in first-seen order", () => {
-    expect(extractPlaygroundUuids(EDITORIAL)).toEqual(["b3Z45Rq9", "ZaDAqWnF"]);
+    expect(extractPlaygroundUuids(`${IFRAME_A}\n\n${IFRAME_B}`)).toEqual([
+      "b3Z45Rq9",
+      "ZaDAqWnF",
+    ]);
   });
 
   it("dedupes a repeated uuid", () => {
     expect(extractPlaygroundUuids(`${IFRAME_A}\n\ntext\n\n${IFRAME_A}`)).toEqual(["b3Z45Rq9"]);
   });
 
-  it("tolerates attribute order, short src form and no self-closing slash", () => {
+  it("tolerates attribute order, www host and the short src form", () => {
     expect(
       extractPlaygroundUuids(
         '<iframe name="x" width="100%" src="https://www.leetcode.com/playground/AbC-12_3/shared"></iframe>',
@@ -96,9 +129,9 @@ describe("extractPlaygroundUuids", () => {
   });
 
   it("extracts nothing from a non-playground iframe", () => {
-    expect(extractPlaygroundUuids('<iframe src="https://www.youtube.com/embed/xyz"></iframe>')).toEqual(
-      [],
-    );
+    expect(
+      extractPlaygroundUuids('<iframe src="https://www.youtube.com/embed/xyz"></iframe>'),
+    ).toEqual([]);
   });
 });
 
@@ -119,93 +152,106 @@ describe("normalizeLanguageSlug", () => {
   });
 });
 
-describe("toFencedCodeBlock", () => {
-  it("wraps code in a fence tagged with the language", () => {
-    expect(toFencedCodeBlock("int x = 1;", "cpp")).toBe("\n\n```cpp\nint x = 1;\n```\n\n");
+describe("languageLabel", () => {
+  it("gives proper display names", () => {
+    expect(languageLabel("cpp")).toBe("C++");
+    expect(languageLabel("python")).toBe("Python");
+    expect(languageLabel("csharp")).toBe("C#");
+    expect(languageLabel("javascript")).toBe("JavaScript");
   });
 
-  it("uses a longer fence when the code contains backticks", () => {
-    const out = toFencedCodeBlock("a = ```triple```", "java");
-    expect(out).toContain("````java");
-    expect(out).toContain("````\n\n");
-  });
-
-  it("strips trailing whitespace so the closing fence stays on its own line", () => {
-    expect(toFencedCodeBlock("int x;\n\n\n", "java")).toBe("\n\n```java\nint x;\n```\n\n");
+  it("normalises before labelling", () => {
+    expect(languageLabel("python3")).toBe("Python");
+    expect(languageLabel("golang")).toBe("Go");
   });
 });
 
-describe("inlinePlaygroundSnippets", () => {
-  it("rewrites a single iframe into a fenced code block", async () => {
-    const out = await inlinePlaygroundSnippets(IFRAME_A, async () => ({
-      code: "class Solution {}",
-      langSlug: "cpp",
-    }));
-    expect(out).toContain("```cpp\nclass Solution {}\n```");
-    expect(out).not.toContain("<iframe");
+describe("pickDefaultLanguage", () => {
+  const available = ["cpp", "java", "python", "javascript"];
+
+  it("prefers the reader's language over the author's", () => {
+    // The app is Java-first; a C++-first editorial must not win over Java.
+    expect(pickDefaultLanguage(available, "java")).toBe("java");
   });
 
-  it("rewrites both approaches and preserves surrounding prose verbatim", async () => {
-    const codes: Record<string, string> = {
-      b3Z45Rq9: "// simulation",
-      ZaDAqWnF: "// bit",
-    };
-    const out = await inlinePlaygroundSnippets(EDITORIAL, async (uuid) => ({
-      code: codes[uuid],
-      langSlug: uuid === "ZaDAqWnF" ? "java" : "cpp",
-    }));
-
-    expect(out).not.toContain("<iframe");
-    expect(out).toContain("```cpp\n// simulation\n```");
-    expect(out).toContain("```java\n// bit\n```");
-    // Prose and headings survive intact.
-    expect(out).toContain("### Approach 1: Simulation");
-    expect(out).toContain("### Approach 2: Binary Indexed Tree");
-    expect(out).toContain("Time complexity: $O(n^2)$.");
-    expect(out).toContain("Time complexity: $O(n \\log n)$.");
+  it("normalises the preference before matching", () => {
+    expect(pickDefaultLanguage(available, "Java")).toBe("java");
   });
 
-  it("fetches a duplicated uuid only once", async () => {
-    const resolve = vi.fn(async () => ({ code: "once", langSlug: "java" }));
-    const out = await inlinePlaygroundSnippets(`${IFRAME_A}\n\n${IFRAME_A}`, resolve);
-    expect(resolve).toHaveBeenCalledTimes(1);
-    expect(out.match(/once/g)).toHaveLength(2);
+  it("falls back to the preference order when the reader's language is absent", () => {
+    expect(pickDefaultLanguage(["cpp", "python"], "go")).toBe("cpp");
   });
 
-  it("leaves the iframe intact when resolution fails", async () => {
-    const out = await inlinePlaygroundSnippets(IFRAME_A, async () => null);
-    expect(out).toContain("<iframe");
-    expect(out).toBe(IFRAME_A);
+  it("returns the first available when nothing matches the preference list", () => {
+    expect(pickDefaultLanguage(["racket", "erlang"], "java")).toBe("racket");
   });
 
-  it("leaves only the failed iframe when one of two resolves", async () => {
-    const out = await inlinePlaygroundSnippets(EDITORIAL, async (uuid) =>
-      uuid === "b3Z45Rq9" ? { code: "// ok", langSlug: "cpp" } : null,
-    );
-    expect(out).toContain("```cpp\n// ok\n```");
-    expect(out).toContain("ZaDAqWnF");
-    expect(out.match(/<iframe/g)).toHaveLength(1);
+  it("returns null for an empty set", () => {
+    expect(pickDefaultLanguage([], "java")).toBeNull();
+  });
+});
+
+describe("splitEditorialMarkdown", () => {
+  it("interleaves prose and blocks in document order", () => {
+    const segments = splitEditorialMarkdown(RESOLVED_EDITORIAL, BLOCKS);
+    expect(segments.map((s) => s.kind)).toEqual([
+      "markdown",
+      "block",
+      "markdown",
+      "block",
+      "markdown",
+    ]);
   });
 
-  it("survives a rejected resolver promise", async () => {
-    const out = await inlinePlaygroundSnippets(IFRAME_A, async () => {
-      throw new Error("network down");
-    });
-    expect(out).toBe(IFRAME_A);
+  it("binds each token to the block at its index", () => {
+    const segments = splitEditorialMarkdown(RESOLVED_EDITORIAL, BLOCKS);
+    const blocks = segments.filter((s) => s.kind === "block");
+    expect(blocks[0]).toMatchObject({ index: 0 });
+    expect(blocks[1]).toMatchObject({ index: 1 });
+    if (blocks[0].kind === "block") expect(blocks[0].block?.languages).toHaveLength(3);
+    if (blocks[1].kind === "block") expect(blocks[1].block?.languages).toHaveLength(2);
   });
 
-  it("is a no-op for markdown without playgrounds", async () => {
-    const prose = "### Approach\n\nJust prose.";
-    const resolve = vi.fn(async () => ({ code: "x", langSlug: "java" }));
-    expect(await inlinePlaygroundSnippets(prose, resolve)).toBe(prose);
-    expect(resolve).not.toHaveBeenCalled();
+  it("preserves the surrounding prose verbatim", () => {
+    const segments = splitEditorialMarkdown(RESOLVED_EDITORIAL, BLOCKS);
+    const prose = segments
+      .filter((s) => s.kind === "markdown")
+      .map((s) => (s.kind === "markdown" ? s.content : ""))
+      .join("");
+    expect(prose).toContain("### Approach 1: Simulation");
+    expect(prose).toContain("### Approach 2: Binary Indexed Tree");
+    expect(prose).toContain("Time complexity: $O(n^2)$.");
+    expect(prose).toContain("Time complexity: $O(n \\log n)$.");
+    // The placeholder itself must never survive into rendered prose.
+    expect(prose).not.toContain("solution-block");
   });
 
-  it("does not treat an empty code payload as resolved", async () => {
-    const out = await inlinePlaygroundSnippets(IFRAME_A, async () => ({
-      code: "   ",
-      langSlug: "java",
-    }));
-    expect(out).toBe(IFRAME_A);
+  it("yields a null block for a token with no match so callers can degrade", () => {
+    const segments = splitEditorialMarkdown("Before\n\n<!--solution-block:9-->\n\nAfter", BLOCKS);
+    const b = segments.find((s) => s.kind === "block");
+    expect(b).toMatchObject({ kind: "block", index: 9, block: null });
+  });
+
+  it("handles blocks being omitted entirely", () => {
+    const segments = splitEditorialMarkdown(RESOLVED_EDITORIAL);
+    expect(segments.filter((s) => s.kind === "block")).toHaveLength(2);
+    expect(segments.find((s) => s.kind === "block")).toMatchObject({ block: null });
+  });
+
+  it("returns a single markdown segment when there are no tokens", () => {
+    const plain = "### Approach\n\nJust prose.";
+    expect(splitEditorialMarkdown(plain, BLOCKS)).toEqual([
+      { kind: "markdown", content: plain },
+    ]);
+  });
+
+  it("drops leading/trailing whitespace-only segments", () => {
+    const segments = splitEditorialMarkdown("\n\n<!--solution-block:0-->\n\n", BLOCKS);
+    expect(segments).toHaveLength(1);
+    expect(segments[0].kind).toBe("block");
+  });
+
+  it("returns nothing for empty markdown", () => {
+    expect(splitEditorialMarkdown("", BLOCKS)).toEqual([]);
   });
 });

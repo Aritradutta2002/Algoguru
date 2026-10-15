@@ -51,6 +51,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyChallengeResponse } from "@/types/leetcode";
+import type { SolutionBlock as SolutionBlockType } from "@/types/leetcode";
+import {
+  normalizeLanguageSlug,
+  pickDefaultLanguage,
+  splitEditorialMarkdown,
+} from "@/lib/editorialPlayground";
 import { generateHarnessMain, parseSolutionSignature, chunkTestCases } from "@/lib/javaHarness";
 import { extractExpectedOutputs } from "@/lib/extractExpectedOutputs";
 import { buildProblemSolverGuruContext, deriveGuruSuggestions } from "@/lib/guruContext";
@@ -403,6 +409,77 @@ function extractText(node: React.ReactNode): string {
   return "";
 }
 
+/** Toolbar buttons shared by both editorial code block flavours. */
+function CodeBlockActions({
+  codeText,
+  onInsert,
+}: {
+  codeText: string;
+  onInsert?: (code: string) => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="flex items-center gap-1">
+      {onInsert && (
+        <button
+          onClick={() => onInsert(codeText)}
+          title="Insert this solution into the code editor"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+        >
+          <CornerDownLeft size={13} />
+          Insert into editor
+        </button>
+      )}
+      <button
+        onClick={async () => {
+          await navigator.clipboard.writeText(codeText);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
+          copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+        }`}
+      >
+        {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
+}
+
+/** Shared dark code-block chrome: toolbar row + highlighted body. */
+function CodeBlockShell({
+  toolbarLeft,
+  actions,
+  lang,
+  codeText,
+}: {
+  toolbarLeft: React.ReactNode;
+  actions: React.ReactNode;
+  lang: string;
+  codeText: string;
+}) {
+  return (
+    <div className="my-5 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
+        {toolbarLeft}
+        {actions}
+      </div>
+      <div className="bg-[#1a1a1a] overflow-x-auto">
+        <SyntaxHighlighter
+          language={lang}
+          style={vscDarkPlus}
+          customStyle={{ margin: 0, padding: "1.25rem 1.5rem", background: "#1a1a1a", fontSize: "0.82rem" }}
+          codeTagProps={{ style: { fontFamily: "'JetBrains Mono', 'Fira Code', monospace" } }}
+        >
+          {codeText}
+        </SyntaxHighlighter>
+      </div>
+    </div>
+  );
+}
+
+/** Static block for a plain fenced code block inside editorial prose. */
 function EditorialCodeBlock({
   children,
   className,
@@ -413,70 +490,95 @@ function EditorialCodeBlock({
   /** When provided, offer a one-click "Insert into editor" action. */
   onInsert?: (code: string) => void;
 }) {
-  const [copied, setCopied] = useState(false);
   const lang = (className?.replace("language-", "") || "text").toLowerCase();
   const codeText = extractText(children).replace(/\n$/, "");
 
   return (
-    <div className="my-5 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
+    <CodeBlockShell
+      lang={lang}
+      codeText={codeText}
+      toolbarLeft={
         <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border border-[#3a3a3a]">
           {lang}
         </span>
-        <div className="flex items-center gap-1">
-          {onInsert && (
-            <button
-              onClick={() => onInsert(codeText)}
-              title="Insert this solution into the code editor"
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
-            >
-              <CornerDownLeft size={13} />
-              Insert into editor
-            </button>
-          )}
-          <button
-            onClick={async () => {
-              await navigator.clipboard.writeText(codeText);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
+      }
+      actions={<CodeBlockActions codeText={codeText} onInsert={onInsert} />}
+    />
+  );
+}
+
+/**
+ * Editorial implementation block with a language switcher.
+ *
+ * LeetCode stores each approach's code in a playground holding the same
+ * solution in ~9 languages; this exposes that whole set instead of the single
+ * language the old fenced-block rendering baked in.
+ */
+function EditorialSolutionBlock({
+  block,
+  editorLanguage,
+  onInsert,
+}: {
+  block: SolutionBlockType;
+  /** The reader's current editor language, preferred as the default. */
+  editorLanguage?: string | null;
+  onInsert?: (code: string) => void;
+}) {
+  const languages = block.languages;
+  const initial = useMemo(() => {
+    const available = languages.map((l) => l.langSlug);
+    const authorPick = normalizeLanguageSlug(block.defaultLangSlug);
+    // Prefer the reader's own language, then the author's, then the usual order.
+    return (
+      pickDefaultLanguage(available, editorLanguage) ??
+      pickDefaultLanguage(available, authorPick) ??
+      available[0]
+    );
+  }, [languages, editorLanguage, block.defaultLangSlug]);
+
+  const [active, setActive] = useState(initial);
+
+  // The response can swap under us (cache refetch, date rollover); keep the
+  // selection valid rather than rendering a language that no longer exists.
+  useEffect(() => setActive(initial), [initial]);
+
+  const current = languages.find((l) => l.langSlug === active) ?? languages[0];
+  if (!current) return null;
+  const codeText = current.code.replace(/\n$/, "");
+
+  return (
+    <CodeBlockShell
+      lang={current.langSlug}
+      codeText={codeText}
+      toolbarLeft={
+        <label className="flex items-center gap-2 min-w-0">
+          <span className="sr-only">Solution language</span>
+          <select
+            value={current.langSlug}
+            onChange={(e) => setActive(e.target.value)}
+            className="appearance-none rounded-md border border-[#3a3a3a] bg-[#2d2d2d] py-1 pl-2.5 pr-7 text-[11px] font-medium tracking-wide text-zinc-200 outline-none transition-colors hover:bg-[#333] focus:border-primary/60 cursor-pointer"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 0.5rem center",
             }}
-            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
-              copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
-            }`}
           >
-            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-            {copied ? "Copied" : "Copy"}
-          </button>
-        </div>
-      </div>
-      <div className="bg-[#1a1a1a] overflow-x-auto">
-        <SyntaxHighlighter
-          language={lang}
-          style={vscDarkPlus}
-          customStyle={{
-            margin: 0,
-            border: "none",
-            background: "#1a1a1a",
-            backgroundColor: "#1a1a1a",
-            padding: "1rem 1.25rem",
-            fontSize: "13.5px",
-            lineHeight: "1.65",
-          }}
-          codeTagProps={{
-            style: {
-              fontFamily: '"JetBrains Mono","Fira Code",monospace',
-              fontSize: "13.5px",
-              lineHeight: "1.65",
-              background: "transparent",
-            },
-          }}
-          wrapLongLines={false}
-          PreTag="div"
-        >
-          {codeText}
-        </SyntaxHighlighter>
-      </div>
-    </div>
+            {languages.map((l) => (
+              <option key={l.langSlug} value={l.langSlug} className="bg-[#232323] text-zinc-100">
+                {l.label}
+              </option>
+            ))}
+          </select>
+          {languages.length > 1 && (
+            <span className="hidden sm:inline text-[10px] font-medium text-zinc-500">
+              {languages.length} languages
+            </span>
+          )}
+        </label>
+      }
+      actions={<CodeBlockActions codeText={codeText} onInsert={onInsert} />}
+    />
   );
 }
 
@@ -1794,6 +1896,141 @@ function EmptyState({ onRetry }: { onRetry: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Editorial body — prose + language-switchable implementation blocks   */
+/* ------------------------------------------------------------------ */
+
+/** Renders one chunk of editorial prose. */
+function EditorialMarkdown({
+  markdown,
+  onInsertCode,
+}: {
+  markdown: string;
+  onInsertCode?: (code: string) => void;
+}) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeRaw, rehypeKatex]}
+      components={{
+        pre({ children }) {
+          return <>{children}</>;
+        },
+        code({ className, children, ...props }) {
+          const text = extractText(children);
+          const isBlock = className?.startsWith("language-") || text.includes("\n");
+          if (isBlock) {
+            return (
+              <EditorialCodeBlock className={className} onInsert={onInsertCode}>
+                {children}
+              </EditorialCodeBlock>
+            );
+          }
+          return (
+            <code className={className} {...props}>
+              {children}
+            </code>
+          );
+        },
+        img({ src, alt, ...props }) {
+          return (
+            <img
+              src={src}
+              alt={alt || ""}
+              {...props}
+              loading="lazy"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          );
+        },
+        iframe({ src }) {
+          const url = src || "";
+          // Implementations are normally resolved into language-switchable
+          // blocks. An iframe only survives when the server could not fetch the
+          // playground, so present an honest fallback rather than a bare link.
+          return (
+            <div className="editorial-unavailable-card">
+              <span className="editorial-unavailable-title">
+                Solution code couldn't be loaded
+              </span>
+              <p className="editorial-unavailable-note">
+                This implementation lives in a LeetCode playground that can't be
+                embedded here. Open it on LeetCode to read the code.
+              </p>
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="editorial-unavailable-link"
+              >
+                <ExternalLink size={16} />
+                View Implementation on LeetCode
+              </a>
+            </div>
+          );
+        },
+      }}
+    >
+      {markdown}
+    </ReactMarkdown>
+  );
+}
+
+/**
+ * Renders the editorial: prose chunks interleaved with the resolved
+ * implementation blocks, which carry every language LeetCode published.
+ */
+function EditorialBody({
+  markdown,
+  blocks,
+  editorLanguage,
+  onInsertCode,
+}: {
+  markdown: string;
+  blocks?: SolutionBlockType[];
+  editorLanguage?: string | null;
+  onInsertCode?: (code: string) => void;
+}) {
+  const segments = useMemo(
+    () => splitEditorialMarkdown(markdown, blocks),
+    [markdown, blocks],
+  );
+
+  return (
+    <>
+      {segments.map((seg, i) =>
+        seg.kind === "markdown" ? (
+          <EditorialMarkdown
+            key={`md-${i}`}
+            markdown={seg.content}
+            onInsertCode={onInsertCode}
+          />
+        ) : seg.block ? (
+          <EditorialSolutionBlock
+            key={`block-${seg.index}-${i}`}
+            block={seg.block}
+            editorLanguage={editorLanguage}
+            onInsert={onInsertCode}
+          />
+        ) : (
+          // Token with no matching block — don't leak a raw HTML comment.
+          <div key={`missing-${seg.index}-${i}`} className="editorial-unavailable-card">
+            <span className="editorial-unavailable-title">
+              Solution code couldn't be loaded
+            </span>
+            <p className="editorial-unavailable-note">
+              This implementation is unavailable right now. Try again shortly, or
+              ask Guru AI for a walkthrough.
+            </p>
+          </div>
+        ),
+      )}
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Left Panel: Problem Description                                     */
 /* ------------------------------------------------------------------ */
 
@@ -2006,77 +2243,15 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
               </h2>
               {problem.solution ? (
                   <div className="editorial-content">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkMath]}
-                      rehypePlugins={[rehypeRaw, rehypeKatex]}
-                      components={{
-                        pre({ children }) {
-                          return <>{children}</>;
-                        },
-                        code({ className, children, ...props }) {
-                          const text = extractText(children);
-                          const isBlock = className?.startsWith("language-") || text.includes("\n");
-                          if (isBlock) {
-                            return (
-                              <EditorialCodeBlock
-                                className={className}
-                                onInsert={onInsertCode}
-                              >
-                                {children}
-                              </EditorialCodeBlock>
-                            );
-                          }
-                          return (
-                            <code className={className} {...props}>
-                              {children}
-                            </code>
-                          );
-                        },
-                        img({ src, alt, ...props }) {
-                          return (
-                            <img
-                              src={src}
-                              alt={alt || ""}
-                              {...props}
-                              loading="lazy"
-                              onError={(e) => {
-                                (e.currentTarget as HTMLImageElement).style.display = "none";
-                              }}
-                            />
-                          );
-                        },
-                        iframe({ src }) {
-                          const url = src || "";
-                          // Editorial implementations normally arrive already
-                          // resolved into fenced code blocks. An iframe only
-                          // survives here when the server could not fetch the
-                          // playground, so present an honest fallback card.
-                          return (
-                            <div className="editorial-unavailable-card">
-                              <span className="editorial-unavailable-title">
-                                Solution code couldn't be loaded
-                              </span>
-                              <p className="editorial-unavailable-note">
-                                This implementation lives in a LeetCode playground
-                                that can't be embedded here. Open it on LeetCode
-                                to read the code.
-                              </p>
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="editorial-unavailable-link"
-                              >
-                                <ExternalLink size={16} />
-                                View Implementation on LeetCode
-                              </a>
-                            </div>
-                          );
-                        },
-                      }}
-                    >
-                      {problem.solution}
-                    </ReactMarkdown>
+                    <EditorialBody
+                      markdown={problem.solution}
+                      blocks={problem.solutionBlocks}
+                      // The workspace editor is Java-only, so default the
+                      // editorial to Java rather than the editorial author's
+                      // own language choice (often C++).
+                      editorLanguage="java"
+                      onInsertCode={onInsertCode}
+                    />
                   </div>
               ) : (
                 <div className="space-y-4 rounded-xl border border-dashed border-border bg-muted/30 p-6">

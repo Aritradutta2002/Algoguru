@@ -45,14 +45,29 @@ const PLAYGROUND_BUDGET_MS = 15_000;
 // dead "View Implementation on LeetCode" link instead of any code.
 //
 // We resolve each playground server-side via LeetCode's GraphQL `playground`
-// query and rewrite the iframe into a fenced code block, so the client renders
-// real syntax-highlighted solution code.
+// query. A playground holds the same solution in ~9 languages, and the reader
+// should be able to switch between them, so rather than baking one language
+// into a fenced code block we replace the iframe with a compact placeholder
+// token and attach the full language set to `problem.solutionBlocks`:
+//
+//   <!--solution-block:0-->
+//
+// The client swaps each token for a language-switching code block. The token
+// survives markdown/HTML round-tripping (react-markdown passes comments through
+// rehype-raw) and keeps the editorial's prose flow intact.
 //
 // The pure counterparts of these helpers live in `src/lib/editorialPlayground.ts`
-// (unit tested there). Keep the regex + fence logic in sync with that file.
+// (unit tested there). Keep the regex + token logic in sync with that file.
 
 const PLAYGROUND_IFRAME_RE =
   /<iframe[^>]*\bsrc\s*=\s*["']https?:\/\/(?:www\.)?leetcode\.com\/playground\/([A-Za-z0-9_-]+)(?:\/[^"']*)?["'][^>]*>\s*<\/iframe>/gi;
+
+/** Placeholder left in the markdown; the client renders the real block. */
+const SOLUTION_BLOCK_TOKEN_RE = /<!--\s*solution-block:(\d+)\s*-->/g;
+
+function solutionBlockToken(index: number): string {
+  return `\n\n<!--solution-block:${index}-->\n\n`;
+}
 
 /** Map a LeetCode language slug onto one the UI's highlighter understands. */
 function normalizeLanguageSlug(slug: string | null | undefined): string {
@@ -82,15 +97,30 @@ function normalizeLanguageSlug(slug: string | null | undefined): string {
   return map[s] || s || "text";
 }
 
-/** Fence a code sample, picking a fence long enough to survive backticks. */
-function toFencedCodeBlock(code: string, langSlug?: string | null): string {
-  const trimmed = code.replace(/\s+$/, "");
-  let longestRun = 0;
-  for (const run of trimmed.match(/`+/g) || []) {
-    if (run.length > longestRun) longestRun = run.length;
-  }
-  const fence = "`".repeat(Math.max(3, longestRun + 1));
-  return `\n\n${fence}${normalizeLanguageSlug(langSlug)}\n${trimmed}\n${fence}\n\n`;
+/** Display label for a language slug (used by the client's switcher). */
+function languageLabel(slug: string): string {
+  const labels: Record<string, string> = {
+    cpp: "C++",
+    java: "Java",
+    c: "C",
+    csharp: "C#",
+    javascript: "JavaScript",
+    typescript: "TypeScript",
+    python: "Python",
+    go: "Go",
+    rust: "Rust",
+    ruby: "Ruby",
+    kotlin: "Kotlin",
+    swift: "Swift",
+    php: "PHP",
+    dart: "Dart",
+    scala: "Scala",
+    elixir: "Elixir",
+    erlang: "Erlang",
+    racket: "Racket",
+    sql: "SQL",
+  };
+  return labels[slug] || slug.toUpperCase();
 }
 
 /** True when markdown still contains at least one playground iframe. */
@@ -100,17 +130,20 @@ function hasPlaygroundIframe(markdown: string | null | undefined): boolean {
   return PLAYGROUND_IFRAME_RE.test(markdown);
 }
 
-interface PlaygroundSnippet {
-  code: string;
-  langSlug?: string | null;
+/** A resolved editorial implementation block: one solution, many languages. */
+interface SolutionBlock {
+  /** Language the editorial author had selected; the client's fallback. */
+  defaultLangSlug: string;
+  languages: { langSlug: string; label: string; code: string }[];
 }
 
 /**
- * Fetch the code stored in a LeetCode playground. Returns null on any failure
- * (never throws) so a blocked/empty playground degrades to the old link instead
- * of breaking the whole editorial.
+ * Fetch a LeetCode playground and return *every* language it holds, so the
+ * reader can switch between them. Returns null on any failure (never throws) so
+ * a blocked/empty playground degrades to the old link instead of breaking the
+ * whole editorial.
  */
-async function fetchPlaygroundCode(uuid: string): Promise<PlaygroundSnippet | null> {
+async function fetchPlaygroundCode(uuid: string): Promise<SolutionBlock | null> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8_000);
@@ -145,24 +178,47 @@ async function fetchPlaygroundCode(uuid: string): Promise<PlaygroundSnippet | nu
       };
     };
     const pg = json?.data?.playground;
-    const codes = (pg?.playgroundcodeSet || []).filter((c) => c?.code?.trim());
-    if (codes.length === 0) return null;
 
-    // Prefer the language the editorial author had selected, else the first.
-    const chosen =
-      codes.find((c) => c.langSlug === pg?.selectedLangSlug) || codes[0];
-    return { code: String(chosen.code), langSlug: chosen.langSlug ?? pg?.selectedLangSlug };
+    // Dedupe by language and drop empty entries; a playground repeats a language
+    // once per file, and only the first non-empty variant is useful here.
+    const byLang = new Map<string, string>();
+    for (const entry of pg?.playgroundcodeSet || []) {
+      const code = entry?.code?.trim();
+      if (!code) continue;
+      const slug = normalizeLanguageSlug(entry.langSlug);
+      if (!byLang.has(slug)) byLang.set(slug, String(entry.code));
+    }
+    if (byLang.size === 0) return null;
+
+    const languages = [...byLang.entries()].map(([langSlug, code]) => ({
+      langSlug,
+      label: languageLabel(langSlug),
+      code,
+    }));
+
+    // The language the editorial author had selected, else the first available.
+    const preferred = normalizeLanguageSlug(pg?.selectedLangSlug);
+    const defaultLangSlug = languages.some((l) => l.langSlug === preferred)
+      ? preferred
+      : languages[0].langSlug;
+
+    return { defaultLangSlug, languages };
   } catch (_e) {
     return null;
   }
 }
 
 /**
- * Rewrite every resolvable playground iframe in the editorial markdown into a
- * fenced code block. Unresolvable iframes are left alone.
+ * Replace every resolvable playground iframe in the editorial markdown with a
+ * numbered placeholder token, returning the tokens' language sets alongside.
+ * Unresolvable iframes are left alone so the client can show its fallback.
  */
-async function inlinePlaygroundSnippets(markdown: string | null): Promise<string | null> {
-  if (!markdown || !hasPlaygroundIframe(markdown)) return markdown;
+async function extractSolutionBlocks(
+  markdown: string | null,
+): Promise<{ solution: string | null; solutionBlocks: SolutionBlock[] }> {
+  if (!markdown || !hasPlaygroundIframe(markdown)) {
+    return { solution: markdown, solutionBlocks: [] };
+  }
 
   // Unique UUIDs, first-seen order.
   const seen = new Set<string>();
@@ -175,31 +231,53 @@ async function inlinePlaygroundSnippets(markdown: string | null): Promise<string
       uuids.push(m[1]);
     }
   }
-  if (uuids.length === 0) return markdown;
+  if (uuids.length === 0) return { solution: markdown, solutionBlocks: [] };
 
   // Resolve in parallel under one overall budget so a slow playground cannot
   // stall the whole request.
   const resolved = await Promise.race([
     Promise.allSettled(uuids.map((u) => fetchPlaygroundCode(u))),
-    new Promise<(PromiseSettledResult<PlaygroundSnippet | null>)[]>((resolve) =>
-      setTimeout(() => resolve(uuids.map(() => ({ status: "fulfilled", value: null }) as PromiseFulfilledResult<PlaygroundSnippet | null>)), PLAYGROUND_BUDGET_MS)
+    new Promise<(PromiseSettledResult<SolutionBlock | null>)[]>((resolve) =>
+      setTimeout(
+        () =>
+          resolve(
+            uuids.map(
+              () =>
+                ({ status: "fulfilled", value: null }) as PromiseFulfilledResult<SolutionBlock | null>,
+            ),
+          ),
+        PLAYGROUND_BUDGET_MS,
+      ),
     ),
   ]);
 
-  const byUuid = new Map<string, PlaygroundSnippet>();
+  const byUuid = new Map<string, SolutionBlock>();
   resolved.forEach((r, i) => {
-    // Whitespace-only code is as good as missing — treat it as unresolved so
-    // the client keeps its external-link fallback instead of an empty block.
-    if (r.status === "fulfilled" && r.value?.code?.trim()) byUuid.set(uuids[i], r.value);
+    // A block with no usable language is as good as missing — leave its iframe
+    // in place so the client keeps the external-link fallback.
+    if (r.status === "fulfilled" && r.value?.languages.length) byUuid.set(uuids[i], r.value);
   });
-  if (byUuid.size === 0) return markdown;
+  if (byUuid.size === 0) return { solution: markdown, solutionBlocks: [] };
+
+  // Assign one stable index per resolved UUID so a repeated playground shares a
+  // single block instead of duplicating code in the payload.
+  const indexByUuid = new Map<string, number>();
+  for (const uuid of uuids) {
+    if (byUuid.has(uuid) && !indexByUuid.has(uuid)) indexByUuid.set(uuid, indexByUuid.size);
+  }
 
   const re = new RegExp(PLAYGROUND_IFRAME_RE.source, "gi");
-  return markdown.replace(re, (whole: string, uuid: string) => {
-    const snippet = byUuid.get(uuid);
-    if (!snippet?.code?.trim()) return whole;
-    return toFencedCodeBlock(snippet.code, snippet.langSlug);
+  const solution = markdown.replace(re, (whole: string, uuid: string) => {
+    const index = indexByUuid.get(uuid);
+    if (index === undefined) return whole;
+    return solutionBlockToken(index);
   });
+
+  const solutionBlocks = [...indexByUuid.entries()]
+    .sort((a, b) => a[1] - b[1])
+    .map(([uuid]) => byUuid.get(uuid)!);
+
+  return { solution, solutionBlocks };
 }
 
 // Fetch the official editorial for a problem. Tries LeetCode GraphQL first
@@ -313,6 +391,8 @@ interface DailyProblem {
   acRate?: number;
   link: string;
   solution?: string | null;
+  /** Multi-language implementation blocks referenced by `solution` tokens. */
+  solutionBlocks?: SolutionBlock[];
   codeSnippets?: { langSlug: string; code: string }[];
 }
 
@@ -422,8 +502,8 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           solutionContent = await fetchOfficialSolution(String(q.titleSlug));
         }
         // Editorials embed implementation code as playground iframes; resolve
-        // them into real fenced code blocks so the client can render the code.
-        solutionContent = await inlinePlaygroundSnippets(solutionContent);
+        // them into language-switchable blocks the client can render.
+        const { solution, solutionBlocks } = await extractSolutionBlocks(solutionContent);
 
         // Guard against missing/placeholder snippets even on the happy path.
         let snippets = Array.isArray(q.codeSnippets) ? q.codeSnippets : undefined;
@@ -443,7 +523,8 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
           hints: Array.isArray(q.hints) ? q.hints : undefined,
           acRate: typeof q.acRate === "number" ? q.acRate : undefined,
           link,
-          solution: solutionContent,
+          solution,
+          solutionBlocks,
           codeSnippets: snippets,
         };
       }
@@ -482,7 +563,7 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
 
   let solutionHtml: string | null = null;
   solutionHtml = await fetchOfficialSolution(String(question.titleSlug));
-  solutionHtml = await inlinePlaygroundSnippets(solutionHtml);
+  const { solution, solutionBlocks } = await extractSolutionBlocks(solutionHtml);
 
   // Ensure codeSnippets is populated even when upstream is alfa wrapper (which omits it)
   let codeSnippets = Array.isArray(question.codeSnippets) ? (question.codeSnippets as any) : undefined;
@@ -504,7 +585,8 @@ async function fetchUpstream(signal: AbortSignal): Promise<DailyProblem> {
     hints: Array.isArray(question.hints) ? (question.hints as string[]) : undefined,
     acRate: typeof question.acRate === "number" ? question.acRate : undefined,
     link: `https://leetcode.com/problems/${String(question.titleSlug)}/`,
-    solution: solutionHtml,
+    solution,
+    solutionBlocks,
     codeSnippets,
   };
 }
@@ -588,28 +670,34 @@ function hasRealCodeSnippets(
 // Cache rows written before the solution fetch was reliable may be missing the
 // editorial or codeSnippets (or contain the old generic solve() placeholder).
 // Rows cached while editorial code was still trapped in playground iframes also
-// need healing. When serving such a row, try to backfill it once and persist the
-// fix so later visitors don't repeat the work.
+// need healing, as do rows cached when only a single language was extracted.
+// When serving such a row, try to backfill it once and persist the fix so later
+// visitors don't repeat the work.
 async function backfillMissingData(
   admin: ReturnType<typeof createClient>,
   payload: CachedPayload,
 ): Promise<void> {
   let updated = false;
 
-  // Missing entirely, or present but still holding unresolved playground
-  // iframes (i.e. cached before playground inlining existed).
+  // Needs work when the editorial is missing, still holds raw playground
+  // iframes, or predates multi-language blocks (tokens present but no blocks).
   const needsSolution =
-    !payload.problem.solution || hasPlaygroundIframe(payload.problem.solution);
+    !payload.problem.solution ||
+    hasPlaygroundIframe(payload.problem.solution) ||
+    (SOLUTION_BLOCK_TOKEN_RE.test(payload.problem.solution) &&
+      !payload.problem.solutionBlocks?.length);
+  SOLUTION_BLOCK_TOKEN_RE.lastIndex = 0;
 
   if (needsSolution) {
     try {
-      let solution = payload.problem.solution
-        ? payload.problem.solution
-        : await fetchOfficialSolution(payload.problem.titleSlug);
-      // Re-resolve the iframes; fetch the editorial first when we have none.
-      solution = await inlinePlaygroundSnippets(solution);
+      // Always re-fetch the editorial from upstream here rather than reusing a
+      // cached `solution`: an old cache may hold single-language fenced blocks,
+      // which cannot be upgraded to multi-language blocks without the iframes.
+      const fresh = await fetchOfficialSolution(payload.problem.titleSlug);
+      const { solution, solutionBlocks } = await extractSolutionBlocks(fresh);
       if (solution && solution !== payload.problem.solution) {
         payload.problem.solution = solution;
+        payload.problem.solutionBlocks = solutionBlocks;
         updated = true;
       }
     } catch (e) {

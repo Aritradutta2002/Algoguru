@@ -6,6 +6,24 @@ export interface LeetCodeTopicTag {
   slug?: string;
 }
 
+/** One language variant of an editorial implementation. */
+export interface SolutionLanguage {
+  langSlug: string;
+  label: string;
+  code: string;
+}
+
+/**
+ * A resolved editorial implementation. LeetCode stores each approach's code in
+ * a playground that holds the same solution in ~9 languages; `languages` is
+ * that full set so the reader can switch between them.
+ */
+export interface SolutionBlock {
+  /** Language the editorial author had selected; the client's fallback. */
+  defaultLangSlug: string;
+  languages: SolutionLanguage[];
+}
+
 export interface DailyProblem {
   questionId: string;
   title: string;
@@ -20,8 +38,14 @@ export interface DailyProblem {
   /** Acceptance rate as a percentage (0-100). */
   acRate?: number;
   link: string;
-  /** Official solution HTML, if available. */
+  /**
+   * Official solution markdown. Implementation code is not inlined here —
+   * each playbook referenced by the editorial is replaced with a
+   * `<!--solution-block:N-->` token resolved against `solutionBlocks`.
+   */
   solution?: string | null;
+  /** Multi-language implementation blocks referenced by `solution` tokens. */
+  solutionBlocks?: SolutionBlock[];
   codeSnippets?: { langSlug: string; code: string }[];
 }
 

@@ -22,11 +22,11 @@ export type {
   LeetCodeTopicTag,
 } from "@/types/leetcode";
 
-// v10: editorial implementations used to arrive as unusable LeetCode
-// playground iframes and were dropped from the UI. The edge function now
-// inlines them as real code blocks, so pre-v10 caches must not be reused —
-// bumping the key also lets `purgeStaleSolveCaches` evict the old entries.
-const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v10";
+// v11: editorial implementations now carry *all* languages the source
+// playground holds (`solutionBlocks`) instead of a single fenced language, so
+// v10 caches must not be reused — bumping the key lets `purgeStaleSolveCaches`
+// evict them.
+const LS_CACHE_KEY = "leetcode_daily_challenge_cache_v11";
 /** Soft cap on cache age before we stop returning it as "fresh". 36h gives
  *  enough slack to cover any timezone oddity while still being bounded. */
 const LS_CACHE_FRESH_MS = 1000 * 60 * 60 * 36;
