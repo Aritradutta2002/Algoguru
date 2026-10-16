@@ -369,7 +369,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             minSize={50}
             className="flex flex-col min-h-0"
           >
-          <header className="app-header sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-5">
+          <header className="app-header sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <nav aria-label="Main navigation" className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
 
             {/* ── Left: sidebar toggle + logo ──────────────────── */}

@@ -2412,20 +2412,7 @@ export default function ProblemSolver() {
       className="solver-workspace flex h-full min-h-0 flex-col"
       data-solver-theme={theme}
     >
-      <header className="solver-workspace-header flex shrink-0 items-center justify-between gap-4 px-4 py-3 md:px-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="hidden text-xs text-muted-foreground sm:inline">Practice</span>
-          <span className="hidden text-xs text-muted-foreground/50 sm:inline" aria-hidden="true">/</span>
-          <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">Daily challenge</h1>
-        </div>
-        {data?.date && !isEmpty && (
-          <time dateTime={data.date} className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-            <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-            {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${data.date}T00:00:00Z`))}
-          </time>
-        )}
-      </header>
-      <div className="solver-workspace-content flex-1 min-h-0 px-2 pb-2 md:px-3 md:pb-3">
+      <div className="solver-workspace-content flex-1 min-h-0 px-2 pb-2 md:px-3 md:pb-3 pt-3">
         {isLoading ? (
           <ProblemSkeleton compact={isCompact} />
         ) : isError ? (
