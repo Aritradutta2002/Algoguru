@@ -29,7 +29,11 @@ import {
   Loader2,
   Plus,
   RefreshCw,
-  Rocket,
+  Play,
+  ListChecks,
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
   RotateCcw,
   X,
   XCircle,
@@ -46,8 +50,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { GuruBot } from "@/components/GuruBot";
-import { SegmentedControl } from "@/components/layout/PagePrimitives";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyChallengeResponse } from "@/types/leetcode";
@@ -70,6 +73,7 @@ import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vs, vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
+import "./ProblemSolver.css";
 
 /* ------------------------------------------------------------------ */
 /* Constants                                                           */
@@ -587,21 +591,34 @@ function EditorialSolutionBlock({
 /* ------------------------------------------------------------------ */
 
 const fadeIn = {
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  transition: { duration: 0.15 },
 };
+
+function handleTabListKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]'));
+  const current = tabs.indexOf(event.target as HTMLElement);
+  if (current < 0) return;
+  event.preventDefault();
+  const next = event.key === "Home" ? 0
+    : event.key === "End" ? tabs.length - 1
+    : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+  tabs[next]?.focus();
+  tabs[next]?.click();
+}
 
 /* ------------------------------------------------------------------ */
 /* Shared pane surface — the app-wide card treatment                   */
 /* ------------------------------------------------------------------ */
 
-/** Rounded card shell used by every pane of the workspace. */
+/** A shared surface keeps problem, editor, and console chrome consistent. */
 function PaneShell({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-card",
+        "solver-pane flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground",
         className,
       )}
       {...props}
@@ -1068,20 +1085,18 @@ function CodeEditorPane({
     <>
     <PanelGroup
       direction="vertical"
-      autoSaveId="editor-testcases-split-v5"
+      autoSaveId="editor-testcases-split-v6"
       className="h-full"
     >
       {/* ═════════ Editor Panel ═════════ */}
-      <Panel defaultSize={55} minSize={30} className="min-h-0">
+      <Panel defaultSize={64} minSize={30} className="min-h-0">
         <PaneShell className={cn("p-0", editorFullscreen && "fixed inset-0 z-[90] rounded-none")}>
         {/* --- Editor Top Bar --- */}
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-1.5">
-          {/* Language label (static — only Java supported) */}
-          <div className="flex items-center gap-2">
-            <span className="flex h-7 items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-3 text-xs font-semibold text-primary">
-              <Code className="h-3.5 w-3.5" />
-              Java 21
-            </span>
+        <div className="solver-panel-header flex shrink-0 items-center justify-between gap-2 border-b border-border px-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Code className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            <h2 className="text-[13px] font-semibold">Code</h2>
+            <span className="ml-1 border-l border-border pl-3 text-xs text-muted-foreground">Java 21</span>
           </div>
 
           {/* Functional actions only */}
@@ -1121,9 +1136,7 @@ function CodeEditorPane({
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={14} height={14} fill="currentColor">
-                    <path d="M64 128C64 92.7 92.7 64 128 64L416 64C451.3 64 480 92.7 480 128L496 128C540.2 128 576 163.8 576 208L576 304C576 348.2 540.2 384 496 384L336 384C327.2 384 320 391.2 320 400L320 418.7C338.6 425.3 352 443.1 352 464L352 560C352 586.5 330.5 608 304 608L272 608C245.5 608 224 586.5 224 560L224 464C224 443.1 237.4 425.3 256 418.7L256 400C256 355.8 291.8 320 336 320L496 320C504.8 320 512 312.8 512 304L512 208C512 199.2 504.8 192 496 192L480 192C480 227.3 451.3 256 416 256L128 256C92.7 256 64 227.3 64 192L64 128z"/>
-                  </svg>
+                  <Code className="h-3.5 w-3.5" />
                   <span className="text-xs font-medium">Format</span>
                 </>
               )}
@@ -1149,26 +1162,6 @@ function CodeEditorPane({
 
             <div className="mx-1 h-4 w-px bg-border" />
 
-            {/* Run */}
-            <button
-              type="button"
-              onClick={() => { void handleRunCode(); }}
-              disabled={isRunning}
-              className={cn(
-                "flex h-7 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-semibold shadow-soft transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-                isRunning
-                  ? "bg-warning text-warning-foreground"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90",
-              )}
-              title="Run Code (Ctrl + Enter)"
-            >
-              {isRunning ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Rocket className="h-3.5 w-3.5" />
-              )}
-              <span className="hidden sm:inline">{isRunning ? "Running" : "Run"}</span>
-            </button>
 
             {/* Fullscreen editor toggle */}
             <button
@@ -1185,21 +1178,33 @@ function CodeEditorPane({
 
         {/* --- File Tabs --- */}
         <div
-          className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border bg-card px-2 py-1 select-none"
-          style={{ scrollbarWidth: "none" }}
+          className="solver-file-tabs flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border px-2 select-none"
+          role="tablist"
+          aria-label="Editor files"
+          onKeyDown={handleTabListKeyDown}
+          style={{ scrollbarWidth: "thin" }}
         >
           {tabs.map((tab) => (
             <div
               key={tab.id}
-              onClick={() => setActiveTabId(tab.id)}
               className={cn(
-                "group flex min-w-max cursor-pointer items-center gap-1.5 rounded-t-md px-3 py-1 text-xs font-medium transition-colors",
+                "group flex h-9 min-w-max items-center gap-1 border-b-2 px-2 text-xs transition-colors",
                 activeTabId === tab.id
                   ? "border-b-2 border-primary text-foreground"
                   : "border-b-2 border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
-              {tab.name}
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTabId === tab.id}
+                tabIndex={activeTabId === tab.id ? 0 : -1}
+                onClick={() => setActiveTabId(tab.id)}
+                className="flex h-full items-center gap-2 rounded-sm px-1"
+              >
+                <FileText className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                {tab.name}
+              </button>
               {tabs.length > 1 && (
                 <button
                   type="button"
@@ -1213,7 +1218,7 @@ function CodeEditorPane({
                     }
                     void persistCode(questionId, JSON.stringify(newTabs), userId);
                   }}
-                  className="rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+                  className="rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -1239,9 +1244,9 @@ function CodeEditorPane({
         </div>
 
         {/* --- Monaco Editor --- */}
-        <div className="relative min-h-0 flex-1 bg-code-bg">
+        <div className="solver-editor-surface relative min-h-0 flex-1">
           {!codeLoaded && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-code-bg">
+            <div className="solver-editor-surface absolute inset-0 z-10 flex items-center justify-center" role="status" aria-label="Loading saved code">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           )}
@@ -1260,18 +1265,18 @@ function CodeEditorPane({
             onMount={handleMount}
             options={{
               fontSize: editorFontSize,
-              // LeetCode editor — Consolas-like, tight tracking (matches screenshot)
+
               fontFamily: '"Consolas","Cascadia Code","JetBrains Mono","Fira Code",Menlo,Monaco,"Courier New",monospace',
               fontLigatures: false,
               fontWeight: "400",
-              lineHeight: 19,
+              lineHeight: Math.round(editorFontSize * 1.65),
               letterSpacing: 0,
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
-              padding: { top: 10, bottom: 10 },
+              padding: { top: 18, bottom: 18 },
               lineNumbers: "on",
               lineNumbersMinChars: 2,
-              glyphMargin: true,
+              glyphMargin: false,
               folding: true,
               foldingHighlight: false,
               renderLineHighlight: "line",
@@ -1307,21 +1312,37 @@ function CodeEditorPane({
         </div>
 
         {/* --- Editor Footer --- */}
-        <div className="flex shrink-0 items-center justify-between border-t border-border bg-muted/40 px-3 py-1 select-none">
+        <div className="solver-editor-footer flex shrink-0 items-center justify-between gap-3 border-t border-border px-3 py-2">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Font Size
-            </span>
+            <label htmlFor="solver-font-size" className="text-[11px] text-muted-foreground">Font size</label>
             <select
+              id="solver-font-size"
               value={editorFontSize}
               onChange={(e) => setEditorFontSize(Number(e.target.value))}
               aria-label="Editor font size"
-              className="h-5 rounded border border-input bg-background px-1 font-mono text-[10px] text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="h-7 rounded border border-border bg-card px-1.5 text-[11px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {[12, 14, 16, 18, 20].map((size) => (
                 <option key={size} value={size} className="bg-background text-foreground">{size}px</option>
               ))}
             </select>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden items-center gap-1 text-[11px] text-muted-foreground sm:inline-flex" aria-hidden="true">
+              Ctrl <span className="text-muted-foreground/50">+</span> Enter
+            </span>
+            <button
+              type="button"
+              onClick={() => { void handleRunCode(); }}
+              disabled={isRunning || !codeLoaded}
+              aria-label={isRunning ? "Running code" : "Run code"}
+              aria-keyshortcuts="Control+Enter Meta+Enter"
+              className="solver-run-button inline-flex h-8 items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              title="Run code (Ctrl or ⌘ + Enter)"
+            >
+              {isRunning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+              {isRunning ? "Running…" : "Run code"}
+            </button>
           </div>
         </div>
         </PaneShell>
@@ -1329,15 +1350,16 @@ function CodeEditorPane({
 
       {/* ═════════ Resize Handle ═════════ */}
       <PanelResizeHandle
-        className="group relative z-50 flex h-3 shrink-0 items-center justify-center cursor-row-resize"
+        className="solver-resize-handle group relative z-10 flex h-2 shrink-0 cursor-row-resize items-center justify-center"
+        aria-label="Resize editor and test console"
       >
-        <div className="h-1.5 w-12 rounded-full bg-border transition-all duration-300 group-hover:w-16 group-hover:bg-primary/60 group-active:bg-primary" />
+        <div className="h-0.5 w-8 rounded-full bg-border transition-colors group-hover:bg-primary group-active:bg-primary" />
       </PanelResizeHandle>
 
       {/* ═════════ Test Cases / Output Panel ═════════ */}
       <Panel
         ref={testPanelRef}
-        defaultSize={45}
+        defaultSize={36}
         minSize={22}
         collapsible
         collapsedSize={7}
@@ -1349,123 +1371,82 @@ function CodeEditorPane({
         {/* Header — LeetCode-style tabs (click strip to re-expand when collapsed) */}
         <div
           className={cn(
-            "flex shrink-0 items-center gap-1 border-b border-border bg-muted/40 px-3 py-1.5",
+            "solver-panel-header flex shrink-0 items-center gap-1 border-b border-border px-2",
             testPanelCollapsed && "cursor-pointer",
           )}
           onClick={() => { if (testPanelCollapsed) testPanelRef.current?.expand(); }}
+          role="tablist"
+          aria-label="Test console"
+          onKeyDown={handleTabListKeyDown}
         >
           <button
             type="button"
+            role="tab"
+            aria-selected={consoleTab === "testcase"}
+            tabIndex={consoleTab === "testcase" ? 0 : -1}
+            aria-controls="solver-console-panel"
+            id="solver-testcases-tab"
             onClick={() => setConsoleTab("testcase")}
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors",
+              "solver-console-tab flex h-11 items-center gap-2 border-b-2 border-transparent px-3 text-xs font-medium transition-colors",
               consoleTab === "testcase"
                 ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <CheckCircle2 className="h-4 w-4" />
-            Testcase
+            <ListChecks className="h-3.5 w-3.5" />
+            Test cases
+            <span className="solver-count" aria-hidden="true">{testcaseTabs.length}</span>
           </button>
           <button
             type="button"
-            onClick={() => runResult && setConsoleTab("result")}
-            aria-disabled={!runResult}
+            role="tab"
+            aria-selected={consoleTab === "result"}
+            tabIndex={consoleTab === "result" ? 0 : -1}
+            aria-controls="solver-console-panel"
+            id="solver-results-tab"
+            onClick={() => setConsoleTab("result")}
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors",
-              consoleTab === "result" && runResult
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-              !runResult && "cursor-not-allowed opacity-50 hover:text-muted-foreground",
+              "solver-console-tab flex h-11 items-center gap-2 border-b-2 border-transparent px-3 text-xs font-medium transition-colors",
+              consoleTab === "result" ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Terminal className="h-4 w-4" />
-            Test Result
+            <Terminal className="h-3.5 w-3.5" />
+            Results
+            {runResult && <span className={cn("h-1.5 w-1.5 rounded-full", runResult.status === "success" ? "bg-primary" : "bg-destructive")} />}
           </button>
 
-          {/* Run status badge — only while running (verdict lives in the body) */}
-          {isRunning && (
-            <motion.div {...fadeIn} className="ml-auto">
-              <Badge
-                variant="outline"
-                className="animate-pulse gap-1 border-warning/30 bg-warning/10 text-[10px] font-semibold text-warning"
-              >
-                <Loader2 className="h-3 w-3 animate-spin" /> Compiling…
-              </Badge>
-            </motion.div>
-          )}
+          <button
+            type="button"
+            className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label={testPanelCollapsed ? "Expand test console" : "Collapse test console"}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (testPanelCollapsed) testPanelRef.current?.expand();
+              else testPanelRef.current?.collapse();
+            }}
+          >
+            {testPanelCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
         </div>
 
         {/* Body — hidden while collapsed so only the tab strip shows */}
         {!testPanelCollapsed && (
-        <div className="min-h-0 flex-1 overflow-y-auto bg-background p-5">
+        <div
+          id="solver-console-panel"
+          role="tabpanel"
+          aria-labelledby={consoleTab === "testcase" ? "solver-testcases-tab" : "solver-results-tab"}
+          className="solver-console-body min-h-0 flex-1 overflow-y-auto p-4"
+        >
           <AnimatePresence mode="wait">
             {isRunning ? (
-              <motion.div key="running" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="relative flex flex-col items-center justify-center gap-4 overflow-hidden py-10">
-                {/* soft ambient glow */}
-                <div className="pointer-events-none absolute inset-0">
-                  <motion.div animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.05, 1] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} className="absolute left-1/2 top-1/2 h-32 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
-                </div>
-
-                {/* orbital icon */}
-                <div className="relative">
-                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute -inset-3 rounded-2xl border border-dashed border-primary/25 border-t-primary/60" />
-                  <motion.div animate={{ scale: [1, 1.35, 1], opacity: [0.25, 0, 0.25] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }} className="absolute -inset-2 rounded-2xl border border-primary/30" />
-                  <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-                    <motion.div animate={{ x: ["-120%", "120%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }} className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.06] to-transparent" />
-                    <Loader2 className="relative h-6 w-6 animate-spin text-primary" />
-                    <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-card bg-warning">
-                      <Rocket className="h-2.5 w-2.5 text-warning-foreground" />
-                    </span>
-                  </div>
-                </div>
-
-                {/* title + typing dots */}
-                <div className="relative z-10 flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold tracking-tight text-foreground">
-                      Compiling &amp; Running
-                    </span>
-                    <span className="hidden items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground sm:inline-flex">
-                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Java 21
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-muted-foreground">javac • java • wandbox</span>
-                    <span className="ml-1 flex gap-1">
-                      {[0, 1, 2].map((i) => (
-                        <motion.span key={i} animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ duration: 0.85, repeat: Infinity, delay: i * 0.16, ease: "easeInOut" }} className="h-1.5 w-1.5 rounded-full bg-primary" />
-                      ))}
-                    </span>
-                  </div>
-                </div>
-
-                {/* faux terminal */}
-                <div className="relative z-10 w-full max-w-[320px] overflow-hidden rounded-xl border border-border bg-card shadow-soft">
-                  <div className="flex items-center gap-1.5 border-b border-border bg-muted/40 px-3 py-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-destructive/70" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-warning/70" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
-                    <span className="ml-auto font-mono text-[10px] tracking-wide text-muted-foreground">prog.java</span>
-                  </div>
-                  <div className="space-y-1 px-3 py-2.5 font-mono text-[11px] leading-4">
-                    <div className="flex gap-2"><span className="text-primary">$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-foreground">javac -cp . Solution.java</motion.span></div>
-                    <div className="flex gap-2"><span className="text-success">✓</span><span className="text-muted-foreground">compiled in 0.42s</span></div>
-                    <div className="flex gap-2"><span className="text-primary">$</span><motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-foreground">java Main • {testcaseTabs.length} case{testcaseTabs.length > 1 ? "s" : ""}</motion.span><motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.7, repeat: Infinity }} className="text-primary">▌</motion.span></div>
-                  </div>
-                  {/* progress bar */}
-                  <div className="h-[2px] w-full overflow-hidden bg-border">
-                    <motion.div className="h-full bg-gradient-to-r from-primary via-accent to-warning" initial={{ x: "-100%" }} animate={{ x: "0%" }} transition={{ duration: 1.8, repeat: Infinity, ease: [0.4, 0, 0.2, 1], repeatDelay: 0.15 }} />
-                  </div>
-                </div>
-
-                {/* stepper */}
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                  <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-success" /> Compile</span>
-                  <span className="text-border">—</span>
-                  <span className="flex items-center gap-1.5 text-warning"><motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }} className="h-1.5 w-1.5 rounded-full bg-warning" /> Run</span>
-                  <span className="text-border">—</span>
-                  <span className="flex items-center gap-1.5 opacity-60"><span className="h-1.5 w-1.5 rounded-full border border-muted-foreground/50" /> Verify</span>
+              <motion.div key="running" {...fadeIn} role="status" className="flex min-h-36 items-center justify-center gap-3 py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Running your code</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Compiling Java 21 and running your test input. This may take a moment.
+                  </p>
                 </div>
               </motion.div>
             ) : consoleTab === "result" && runResult ? (
@@ -1491,7 +1472,7 @@ function CodeEditorPane({
                           <RotateCcw className="h-3.5 w-3.5" /> Reset
                         </button>
                       </div>
-                      <div className="overflow-x-auto whitespace-pre-wrap rounded-xl border border-destructive/30 bg-destructive/5 p-4 font-mono text-xs leading-relaxed text-destructive">
+                      <div className="overflow-x-auto whitespace-pre-wrap rounded-md border border-destructive/25 bg-destructive/5 p-3 font-mono text-xs leading-relaxed text-destructive">
                         {runResult.output}
                       </div>
                     </motion.div>
@@ -1517,21 +1498,21 @@ function CodeEditorPane({
                 const activeStatus = caseStatuses[activeIdx];
                 const activeTab = testcaseTabs[activeIdx];
                 const inputLabel = paramNames.length === 1 ? paramNames[0] : paramNames.length > 1 ? paramNames.join(", ") : "Input";
-                const overallStatus = hasExpected ? (allPassed ? "Accepted" : "Wrong Answer") : "Executed";
+                const overallStatus = hasExpected ? (allPassed ? "Tests passed" : "Wrong answer") : "Executed";
                 return (
                   <motion.div key="result-success" {...fadeIn} className="space-y-5">
                     {/* Big LeetCode-style verdict */}
                     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
                       <span
                         className={cn(
-                          "text-[26px] font-bold leading-tight tracking-tight",
+                          "text-xl font-semibold leading-tight tracking-tight",
                           allPassed ? "text-success" : "text-destructive",
                         )}
                       >
                         {overallStatus}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        Runtime: {runResult.executionTimeMs} ms
+                        Total time: {runResult.executionTimeMs} ms
                       </span>
                       {hasExpected && (
                         <span className="text-sm text-muted-foreground">
@@ -1549,28 +1530,28 @@ function CodeEditorPane({
                         return (
                           <div
                             key={tc.id}
-                            onClick={() => setActiveTestcaseId(tc.id)}
                             className={cn(
-                              "group flex min-w-max cursor-pointer select-none items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
+                              "group flex min-w-max select-none items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors",
                               isActive
                                 ? "bg-muted text-foreground"
                                 : "text-foreground/85 hover:bg-muted/60 hover:text-foreground",
                             )}
                           >
-                            {isFailed ? (
-                              <X className="h-4 w-4 text-destructive" />
-                            ) : (
-                              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] bg-success shadow-sm">
-                                <Check className="h-3 w-3 text-background" strokeWidth={3.5} />
-                              </span>
-                            )}
-                            {tc.name}
+                            <button
+                              type="button"
+                              aria-pressed={isActive}
+                              onClick={() => setActiveTestcaseId(tc.id)}
+                              className="flex items-center gap-2 rounded-sm py-2"
+                            >
+                              {isFailed ? <XCircle className="h-3.5 w-3.5 text-destructive" /> : <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
+                              {tc.name}
+                            </button>
                             {testcaseTabs.length > 1 && (
                               <button
                                 type="button"
                                 aria-label={`Remove ${tc.name}`}
                                 onClick={(e) => { e.stopPropagation(); const newTabs = testcaseTabs.filter((t) => t.id !== tc.id); setTestcaseTabs(newTabs); if (activeTestcaseId === tc.id) setActiveTestcaseId(newTabs[newTabs.length-1]?.id || "1"); }}
-                                className="ml-0.5 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted-foreground/20 group-hover:opacity-100"
+                                className="ml-1 rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted-foreground/15 hover:text-foreground"
                               >
                                 <X className="h-3.5 w-3.5 text-muted-foreground" />
                               </button>
@@ -1601,7 +1582,7 @@ function CodeEditorPane({
                       <div className="space-y-4">
                         <div>
                           <div className="mb-2 text-sm font-semibold text-foreground/90">Input</div>
-                          <div className="w-full rounded-xl border border-border/60 bg-muted/40 px-5 py-4 font-mono text-sm leading-relaxed">
+                          <div className="w-full rounded-md border border-border bg-muted/30 px-3 py-2.5 font-mono text-[13px] leading-relaxed">
                             {(() => {
                               const lines = (activeTab.value || "").split("\n");
                               const perParam = paramNames.length > 1 && lines.length === paramNames.length;
@@ -1628,7 +1609,7 @@ function CodeEditorPane({
                           <div className="mb-2 text-sm font-semibold text-foreground/90">Output</div>
                           <div
                             className={cn(
-                              "w-full break-all whitespace-pre-wrap rounded-xl border px-5 py-4 font-mono text-sm font-semibold leading-relaxed",
+                              "w-full break-all whitespace-pre-wrap rounded-md border px-3 py-2.5 font-mono text-[13px] leading-relaxed",
                               activeStatus.passed || activeStatus.isCustom
                                 ? "border-border/60 bg-muted/40 text-foreground"
                                 : "border-destructive/30 bg-destructive/5 text-destructive",
@@ -1640,7 +1621,7 @@ function CodeEditorPane({
                         {(!activeStatus.passed && !activeStatus.isCustom) && (
                           <div>
                             <div className="mb-2 text-sm font-semibold text-foreground/90">Expected Output</div>
-                            <div className="w-full break-all whitespace-pre-wrap rounded-xl border border-border/60 bg-muted/40 px-5 py-4 font-mono text-sm font-semibold leading-relaxed text-foreground">
+                            <div className="w-full break-all whitespace-pre-wrap rounded-md border border-border bg-muted/30 px-3 py-2.5 font-mono text-[13px] leading-relaxed text-foreground">
                               {activeStatus.expected || "(not found)"}
                             </div>
                           </div>
@@ -1650,6 +1631,12 @@ function CodeEditorPane({
                   </motion.div>
                 );
               })()
+            ) : consoleTab === "result" ? (
+              <motion.div key="no-results" {...fadeIn} className="flex min-h-36 flex-col items-center justify-center px-4 py-6 text-center">
+                <Terminal className="mb-3 h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                <p className="text-sm font-medium text-foreground">No results yet</p>
+                <p className="mt-1.5 max-w-64 text-xs leading-5 text-muted-foreground">Run your code to see output and compare it with the example test cases.</p>
+              </motion.div>
             ) : (
               <motion.div key="testcases" {...fadeIn} className="space-y-4">
                 <div className="flex flex-col space-y-3">
@@ -1657,15 +1644,21 @@ function CodeEditorPane({
                     {testcaseTabs.map((tc) => (
                       <div
                         key={tc.id}
-                        onClick={() => setActiveTestcaseId(tc.id)}
                         className={cn(
-                          "group flex min-w-max cursor-pointer select-none items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors",
+                          "group flex min-w-max select-none items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors",
                           activeTestcaseId === tc.id
                             ? "bg-muted text-foreground"
                             : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                         )}
                       >
-                        {tc.name}
+                        <button
+                          type="button"
+                          aria-pressed={activeTestcaseId === tc.id}
+                          onClick={() => setActiveTestcaseId(tc.id)}
+                          className="rounded-sm py-2"
+                        >
+                          {tc.name}
+                        </button>
                         {testcaseTabs.length > 1 && (
                           <button
                             type="button"
@@ -1678,7 +1671,7 @@ function CodeEditorPane({
                                 setActiveTestcaseId(newTabs[newTabs.length - 1].id);
                               }
                             }}
-                            className="ml-0.5 rounded-sm p-0.5 opacity-0 transition-opacity hover:bg-muted-foreground/20 group-hover:opacity-100"
+                            className="ml-1 rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted-foreground/15 hover:text-foreground"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
@@ -1702,7 +1695,14 @@ function CodeEditorPane({
                     </button>
                   </div>
 
+                  <div className="flex flex-wrap items-center justify-between gap-1.5">
+                    <label htmlFor="solver-test-input" className="text-xs font-medium text-foreground">Input</label>
+                    <span id="solver-input-help" className="text-[11px] text-muted-foreground">One argument per line · JSON format</span>
+                  </div>
                   <textarea
+                    id="solver-test-input"
+                    aria-describedby="solver-input-help"
+                    spellCheck={false}
                     value={testcaseTabs.find((tc) => tc.id === activeTestcaseId)?.value || ""}
                     onChange={(e) => {
                       setTestcaseTabs((prev) =>
@@ -1711,7 +1711,7 @@ function CodeEditorPane({
                     }}
                     placeholder="Enter custom testcase..."
                     aria-label="Test case input"
-                    className="min-h-[240px] w-full resize-y rounded-xl border border-input bg-background p-5 font-mono text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="solver-test-input min-h-28 w-full resize-y rounded-md border border-border bg-muted/30 p-3 font-mono text-[13px] leading-6 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
               </motion.div>
@@ -1742,17 +1742,17 @@ function CodeEditorPane({
             </span>
             <div className="min-w-0 flex-1">
               <h3 id="reset-confirm-title" className="text-[15px] font-semibold leading-tight text-foreground">
-                Are you sure?
+                Reset this file?
               </h3>
               <p className="mt-1.5 text-[13px] leading-[1.45] text-muted-foreground">
-                Your current code will be discarded and reset to the default code!
+                Your changes to this file will be replaced with the starter template. This cannot be undone.
               </p>
               <div className="mt-5 flex items-center justify-end gap-2.5">
                 <Button variant="outline" size="sm" onClick={() => setShowResetConfirm(false)}>
                   Cancel
                 </Button>
                 <Button size="sm" onClick={handleConfirmReset}>
-                  Confirm
+                  Reset code
                 </Button>
               </div>
             </div>
@@ -1832,7 +1832,7 @@ function ProblemSkeleton({ compact = false }: { compact?: boolean }) {
 function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
   return (
     <div className="flex h-full items-center justify-center p-4">
-      <div className="w-full max-w-xl rounded-2xl border border-destructive/30 bg-destructive/5 p-5 shadow-card md:p-6">
+      <div className="w-full max-w-lg rounded-lg border border-border bg-card p-5 md:p-7">
         <div className="flex items-start gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-destructive/25 bg-destructive/10 text-destructive">
             <AlertCircle className="h-4 w-4" />
@@ -1871,7 +1871,7 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
 function EmptyState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="flex h-full items-center justify-center p-4">
-      <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-5 shadow-card md:p-6">
+      <div className="w-full max-w-lg rounded-lg border border-border bg-card p-5 md:p-7">
         <div className="flex items-start gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
@@ -2042,9 +2042,9 @@ const LEFT_TABS = [
 
 /** Token-driven difficulty treatment shared with the rest of the app. */
 const DIFFICULTY_STYLES: Record<string, string> = {
-  Easy: "border-success/30 bg-success/10 text-success",
-  Medium: "border-warning/30 bg-warning/10 text-warning",
-  Hard: "border-destructive/30 bg-destructive/10 text-destructive",
+  Easy: "solver-difficulty-easy",
+  Medium: "solver-difficulty-medium",
+  Hard: "solver-difficulty-hard",
 };
 
 // `theme` is accepted for API symmetry with the editor pane (the panel itself
@@ -2086,21 +2086,14 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
     return deriveGuruSuggestions({ hasCode, hasRun, runStatus: liveSync?.runResult?.status, exampleTestcases: problem.exampleTestcases });
   }, [liveSync, problem.exampleTestcases]);
 
-  const codeStats = useMemo(() => {
-    if (!liveSync?.code) return null;
-    const loc = liveSync.code.split("\n").length;
-    const chars = liveSync.code.length;
-    return { loc, chars, runStatus: liveSync.runResult?.status };
-  }, [liveSync]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-card text-card-foreground">
-      {/* ── Top Tabs — hidden when Guru AI is open (it renders its own title bar) ── */}
-      {activeTab !== 2 && (
+    <div className="solver-problem flex h-full min-h-0 flex-col overflow-hidden bg-card text-card-foreground">
       <div
-        className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border bg-muted/40 px-2 select-none"
+        className="solver-panel-header flex shrink-0 items-center gap-1 overflow-x-auto border-b border-border px-2 select-none"
         role="tablist"
         aria-label="Problem sections"
+        onKeyDown={handleTabListKeyDown}
       >
         {LEFT_TABS.map((tab, i) => {
           const Icon = tab.icon;
@@ -2111,9 +2104,12 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
               type="button"
               role="tab"
               aria-selected={active}
+              tabIndex={active ? 0 : -1}
+              aria-controls="solver-problem-panel"
+              id={`solver-section-${i}`}
               onClick={() => setActiveTab(i)}
               className={cn(
-                "relative flex items-center gap-1.5 whitespace-nowrap px-3 py-2.5 text-[13px] transition-colors md:px-4",
+                "solver-section-tab relative flex h-11 items-center gap-2 whitespace-nowrap border-b-2 border-transparent px-3 text-xs transition-colors md:px-4",
                 active
                   ? "font-semibold text-foreground"
                   : "font-medium text-muted-foreground hover:text-foreground",
@@ -2121,22 +2117,20 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
             >
               <Icon className="h-3.5 w-3.5" />
               {tab.label}
-              {active && (
-                <motion.span
-                  layoutId="tab-indicator"
-                  className="absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-primary"
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                />
-              )}
+
             </button>
           );
         })}
         </div>
-      )}
 
-      {/* ── Scrollable / Guru Content ── */}
-      <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 2 ? "overflow-hidden" : "overflow-y-auto"}`} style={{ scrollbarWidth: "thin" }}>
-        <div className={activeTab === 2 ? "flex-1 min-h-0 flex flex-col p-2 md:p-3" : "p-5 md:p-6 space-y-5"}>
+      <div
+        id="solver-problem-panel"
+        role="tabpanel"
+        aria-labelledby={`solver-section-${activeTab}`}
+        className={`solver-problem-scroll flex-1 min-h-0 flex flex-col ${activeTab === 2 ? "overflow-hidden" : "overflow-y-auto"}`}
+        tabIndex={0}
+      >
+        <div className={activeTab === 2 ? "flex-1 min-h-0 flex flex-col p-2" : "solver-reading p-5 md:p-7 space-y-6"}>
           <AnimatePresence mode="popLayout">
             {activeTab === 0 && (
               <motion.div
@@ -2145,23 +2139,30 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, height: 0, overflow: "hidden" }}
                 transition={{ duration: 0.2 }}
-                className="space-y-4"
+                className="space-y-3 border-b border-border pb-5"
               >
-                <h1 className="text-2xl leading-tight font-bold tracking-tight text-foreground">
+                <p className="solver-eyebrow">LeetCode daily challenge</p>
+                <h2 className="solver-problem-title text-2xl leading-snug font-semibold tracking-tight text-foreground">
                   {problem.title}
-                </h1>
+                </h2>
 
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   {/* Difficulty */}
                   <span
                     className={cn(
-                      "inline-flex h-6 items-center rounded-full border px-3 text-xs font-semibold tracking-wide",
-                      DIFFICULTY_STYLES[problem.difficulty] ?? "border-border bg-muted text-muted-foreground",
+                      "solver-difficulty inline-flex items-center gap-1.5 text-xs font-medium",
+                      DIFFICULTY_STYLES[problem.difficulty] ?? "text-muted-foreground",
                     )}
                   >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
                     {problem.difficulty}
                   </span>
+                  {typeof problem.acRate === "number" && Number.isFinite(problem.acRate) && (
+                    <span className="ml-1 border-l border-border pl-3 text-xs text-muted-foreground">
+                      {problem.acRate.toFixed(1)}% acceptance
+                    </span>
+                  )}
 
                   {/* Hints toggle — only shown when hints exist */}
                   {problem.hints && problem.hints.length > 0 && (
@@ -2170,32 +2171,32 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                       aria-expanded={hintsOpen}
                       onClick={() => setHintsOpen(!hintsOpen)}
                       className={cn(
-                        "inline-flex h-6 items-center gap-1 rounded-full border px-3 text-xs font-semibold transition-colors",
-                        hintsOpen
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+                        "ml-auto inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors",
+                        hintsOpen ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
-                      <Lightbulb className="h-3 w-3" /> Hints ({problem.hints.length})
+                      <Lightbulb className="h-3.5 w-3.5" /> Hints ({problem.hints.length})
+                      <ChevronDown className={cn("h-3 w-3 transition-transform", hintsOpen && "rotate-180")} />
                     </button>
                   )}
 
-                  {/* Topic tags */}
-                  {problem.topicTags.map((t) => (
-                    <span
-                      key={t.name}
-                      className="inline-flex h-6 items-center rounded-md border border-border bg-muted px-2.5 text-[11px] font-medium text-muted-foreground"
-                    >
-                      {t.name}
-                    </span>
-                  ))}
 
                   {stale && (
-                    <span className="ml-auto inline-flex h-6 items-center rounded-full border border-warning/30 bg-warning/10 px-3 text-[10px] font-bold uppercase tracking-wide text-warning">
-                      Cached
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <AlertCircle className="h-3 w-3" /> Cached challenge
                     </span>
                   )}
                 </div>
+
+                {problem.topicTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5" aria-label="Problem topics">
+                    {problem.topicTags.map((topic) => (
+                      <span key={topic.name} className="rounded bg-muted/70 px-2 py-1 text-[11px] text-muted-foreground">
+                        {topic.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Hints Collapsible */}
                 <AnimatePresence>
@@ -2207,8 +2208,8 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                        <div className="mt-4 space-y-2 rounded-xl border border-border bg-muted/40 p-4">
-                          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">
+                        <div className="space-y-3 rounded-md border border-border bg-muted/30 p-4">
+                          <span className="text-xs font-medium text-foreground">
                             Hints
                           </span>
                           <ol className="problem-description space-y-2 pl-5 text-sm">
@@ -2230,7 +2231,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
           {activeTab === 0 && (
             <motion.div
               {...fadeIn}
-              className="problem-description max-w-none [&_.example-block]:p-4 [&_.example-block]:my-3 [&_.example-block]:rounded-xl [&_.example-block]:bg-muted/40 [&_.example-block]:border [&_.example-block]:border-border/50 [&_.example-io]:font-mono [&_.example-io]:text-xs [&_.example-io]:font-semibold [&_.example-io]:text-primary"
+              className="solver-prose problem-description max-w-none"
             >
               <div dangerouslySetInnerHTML={{ __html: problem.content }} />
             </motion.div>
@@ -2238,9 +2239,10 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
 
           {activeTab === 1 && (
             <motion.div {...fadeIn} className="space-y-4">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Official Editorial
-              </h2>
+              <div className="border-b border-border pb-5">
+                <p className="solver-eyebrow mb-2">Approach &amp; explanation</p>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">Official editorial</h2>
+              </div>
               {problem.solution ? (
                   <div className="editorial-content">
                     <EditorialBody
@@ -2254,7 +2256,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                     />
                   </div>
               ) : (
-                <div className="space-y-4 rounded-xl border border-dashed border-border bg-muted/30 p-6">
+                <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-5">
                   <p className="text-center text-sm font-medium leading-6 text-muted-foreground">
                     We couldn't retrieve the solution code for this problem. The
                     official editorial may be LeetCode-premium only, or the source
@@ -2315,7 +2317,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
 
           {activeTab === 2 && (
             <>
-              <motion.div {...fadeIn} className={`flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl border ${isFullscreen ? "hidden" : "border-border bg-card shadow-soft"}`}>
+              <motion.div {...fadeIn} className={`flex flex-1 min-h-0 flex-col overflow-hidden rounded-md ${isFullscreen ? "hidden" : "bg-card"}`}>
                 <GuruBot
                   open={true}
                   onClose={() => setActiveTab(0)}
@@ -2362,13 +2364,13 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
       </div>
 
       {/* ── Bottom Bar — back link + external problem link ── */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-muted/30 px-4 py-2.5 select-none">
+      <div className="solver-problem-footer flex shrink-0 items-center justify-between gap-3 border-t border-border px-4 py-2.5">
         {/* Back to home */}
         <Link
           to="/"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="inline-flex h-7 items-center gap-1.5 rounded px-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronLeft className="h-3.5 w-3.5" /> Back
+          <ChevronLeft className="h-3.5 w-3.5" /> All topics
         </Link>
 
         {/* Open on LeetCode */}
@@ -2376,9 +2378,9 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
           href={problem.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          className="inline-flex h-7 items-center gap-1.5 rounded px-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ExternalLink className="h-3.5 w-3.5" /> Open on LeetCode
+          Open on LeetCode <ExternalLink className="h-3 w-3" />
         </a>
       </div>
     </div>
@@ -2407,12 +2409,23 @@ export default function ProblemSolver() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="flex h-full min-h-0 flex-col bg-background p-3 md:p-4"
+      className="solver-workspace flex h-full min-h-0 flex-col"
+      data-solver-theme={theme}
     >
-      <div className="flex-1 min-h-0">
+      <header className="solver-workspace-header flex shrink-0 items-center justify-between gap-4 px-4 py-3 md:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="hidden text-xs text-muted-foreground sm:inline">Practice</span>
+          <span className="hidden text-xs text-muted-foreground/50 sm:inline" aria-hidden="true">/</span>
+          <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">Daily challenge</h1>
+        </div>
+        {data?.date && !isEmpty && (
+          <time dateTime={data.date} className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+            <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+            {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${data.date}T00:00:00Z`))}
+          </time>
+        )}
+      </header>
+      <div className="solver-workspace-content flex-1 min-h-0 px-2 pb-2 md:px-3 md:pb-3">
         {isLoading ? (
           <ProblemSkeleton compact={isCompact} />
         ) : isError ? (
@@ -2425,22 +2438,54 @@ export default function ProblemSolver() {
         ) : data ? (
           isCompact ? (
             <div className="flex h-full min-h-0 flex-col gap-3">
-              <SegmentedControl<"problem" | "code">
-                value={pane}
-                onChange={setPane}
-                fullWidth
-                className="shrink-0"
-                options={[
-                  { value: "problem", label: "Problem", icon: <FileText className="h-3.5 w-3.5" /> },
-                  { value: "code", label: "Editor", icon: <Code className="h-3.5 w-3.5" /> },
-                ]}
-              />
+              <div
+                className="flex shrink-0 gap-1 rounded-lg border border-border bg-muted/50 p-1"
+                role="tablist"
+                aria-label="Workspace panels"
+                onKeyDown={handleTabListKeyDown}
+              >
+                {([
+                  { value: "problem", label: "Problem", icon: FileText },
+                  { value: "code", label: "Editor", icon: Code },
+                ] as const).map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value}
+                    id={`solver-mobile-${value}-tab`}
+                    type="button"
+                    role="tab"
+                    aria-selected={pane === value}
+                    aria-controls={`solver-mobile-${value}-panel`}
+                    tabIndex={pane === value ? 0 : -1}
+                    onClick={() => setPane(value)}
+                    className={cn(
+                      "flex h-8 flex-1 items-center justify-center gap-2 rounded-md text-xs font-medium transition-colors",
+                      pane === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {label}
+                  </button>
+                ))}
+              </div>
               <div className="min-h-0 flex-1">
-                {pane === "problem" ? (
+                <div
+                  id="solver-mobile-problem-panel"
+                  role="tabpanel"
+                  aria-labelledby="solver-mobile-problem-tab"
+                  className={cn("h-full min-h-0", pane !== "problem" && "hidden")}
+                  hidden={pane !== "problem"}
+                >
                   <PaneShell>
                     <ProblemDetails data={data} theme={theme} liveSync={liveSync} onInsertCode={handleGuruInsert} />
                   </PaneShell>
-                ) : (
+                </div>
+                <div
+                  id="solver-mobile-code-panel"
+                  role="tabpanel"
+                  aria-labelledby="solver-mobile-code-tab"
+                  className={cn("h-full min-h-0", pane !== "code" && "hidden")}
+                  hidden={pane !== "code"}
+                >
                   <CodeEditorPane
                     questionId={data.problem.questionId}
                     theme={theme}
@@ -2450,26 +2495,26 @@ export default function ProblemSolver() {
                     onLiveSync={setLiveSync}
                     insertTrigger={guruInsert}
                   />
-                )}
+                </div>
               </div>
             </div>
           ) : (
             <PanelGroup
               direction="horizontal"
-              autoSaveId="problem-solver-split-v5"
+              autoSaveId="problem-solver-split-v6"
               className="h-full w-full"
             >
-              <Panel defaultSize={45} minSize={25} className="min-w-0">
+              <Panel defaultSize={44} minSize={30} className="min-w-0">
                 <PaneShell>
                   <ProblemDetails data={data} theme={theme} liveSync={liveSync} onInsertCode={handleGuruInsert} />
                 </PaneShell>
               </Panel>
 
-              <PanelResizeHandle className="group relative z-50 flex w-3 shrink-0 items-center justify-center cursor-col-resize">
-                <div className="h-12 w-1.5 rounded-full bg-border transition-all duration-300 group-hover:w-2 group-hover:bg-primary/60 group-active:bg-primary" />
+              <PanelResizeHandle className="solver-resize-handle group relative z-10 flex w-2 shrink-0 cursor-col-resize items-center justify-center" aria-label="Resize problem and editor panes">
+                <div className="h-8 w-0.5 rounded-full bg-border transition-colors group-hover:bg-primary group-active:bg-primary" />
               </PanelResizeHandle>
 
-              <Panel defaultSize={55} minSize={30} className="min-w-0">
+              <Panel defaultSize={56} minSize={35} className="min-w-0">
                 <CodeEditorPane
                   questionId={data.problem.questionId}
                   theme={theme}

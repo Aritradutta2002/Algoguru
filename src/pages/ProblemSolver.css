@@ -1,0 +1,235 @@
+/* Scoped workspace styles: the rest of the application keeps its own typography. */
+.solver-workspace {
+  --solver-editor: #ffffff;
+  --solver-chrome: hsl(var(--muted) / 0.3);
+  background: hsl(var(--muted) / 0.55);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.solver-workspace[data-solver-theme='dark'] {
+  --solver-editor: #0e1016;
+  --solver-chrome: hsl(var(--muted) / 0.18);
+  background: hsl(var(--background));
+}
+
+.solver-workspace :is(h1, h2, h3, h4, h5, h6) {
+  font-family: inherit;
+}
+
+.solver-workspace-header {
+  min-height: 56px;
+}
+
+.solver-pane {
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.025);
+}
+
+.solver-panel-header {
+  min-height: 44px;
+  background: var(--solver-chrome);
+}
+
+.solver-workspace :is(button, a, [role='tab'], select, textarea):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+}
+
+.solver-workspace :is(button, a, [role='tab']) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.solver-section-tab[aria-selected='true'],
+.solver-console-tab[aria-selected='true'] {
+  border-bottom-color: hsl(var(--foreground) / 0.8);
+}
+
+.solver-section-tab[aria-selected='false']:hover,
+.solver-console-tab[aria-selected='false']:hover {
+  background: hsl(var(--muted) / 0.45);
+}
+
+.solver-problem-scroll,
+.solver-console-body {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.solver-reading {
+  width: 100%;
+  max-width: 780px;
+  margin-inline: auto;
+}
+
+.solver-eyebrow {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.solver-problem-title {
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  letter-spacing: -0.035em;
+}
+
+.solver-difficulty-easy {
+  color: hsl(var(--difficulty-easy));
+}
+
+.solver-difficulty-medium {
+  color: hsl(var(--difficulty-medium));
+}
+
+.solver-difficulty-hard {
+  color: hsl(var(--difficulty-hard));
+}
+
+.solver-workspace .problem-description,
+.solver-workspace .editorial-content {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.85;
+  letter-spacing: -0.006em;
+  color: hsl(var(--foreground) / 0.84);
+  overflow-wrap: anywhere;
+}
+
+.solver-prose > div > :first-child {
+  margin-top: 0;
+}
+
+.solver-workspace .problem-description :is(strong, b),
+.solver-workspace .editorial-content :is(strong, b) {
+  font-weight: 600;
+}
+
+.solver-workspace .problem-description :is(h1, h2, h3, h4),
+.solver-workspace .editorial-content :is(h1, h2, h3, h4) {
+  font-family: inherit;
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.solver-workspace .problem-description code,
+.solver-workspace .editorial-content :not(pre) > code {
+  padding: 2px 5px;
+  border: 0;
+  border-radius: 3px;
+  background: hsl(var(--muted) / 0.85);
+  color: hsl(var(--foreground) / 0.9);
+  font-size: 0.85em;
+  font-weight: 400;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.solver-workspace .problem-description pre,
+.solver-workspace .problem-description .example-block {
+  margin-block: 16px 24px;
+  padding: 14px 16px;
+  border: 0;
+  border-left: 2px solid hsl(var(--border));
+  border-radius: 0 4px 4px 0;
+  background: hsl(var(--muted) / 0.4);
+  font-size: 12px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.solver-workspace .problem-description pre code {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-size: inherit;
+  white-space: pre-wrap;
+}
+
+.solver-workspace .problem-description pre * {
+  font-size: inherit;
+  color: inherit;
+}
+
+.solver-workspace .problem-description li {
+  margin-bottom: 8px;
+}
+
+.solver-workspace .problem-description img {
+  max-width: 100%;
+  height: auto;
+  margin-block: 16px;
+}
+
+.solver-workspace .editorial-content pre {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.solver-file-tabs,
+.solver-editor-footer,
+.solver-problem-footer {
+  background: var(--solver-chrome);
+}
+
+.solver-editor-surface {
+  background: var(--solver-editor);
+}
+
+.solver-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.solver-resize-handle:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+}
+
+@media (max-width: 639px) {
+  .solver-workspace-header {
+    min-height: 48px;
+  }
+
+  .solver-reading {
+    padding: 20px;
+  }
+
+  .solver-problem-title {
+    font-size: 22px;
+  }
+
+  .solver-workspace .problem-description,
+  .solver-workspace .editorial-content {
+    font-size: 13px;
+  }
+
+  .solver-panel-header button {
+    min-height: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .solver-workspace *,
+  .solver-workspace *::before,
+  .solver-workspace *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
