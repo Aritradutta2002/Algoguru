@@ -3,6 +3,90 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .app-header {
+    background: hsl(var(--card) / 0.96);
+    border-bottom: 1px solid hsl(var(--border) / 0.65);
+    box-shadow: 0 1px 0 hsl(var(--background)), 0 4px 16px -12px hsl(var(--foreground) / 0.15);
+    backdrop-filter: blur(16px);
+    container-type: inline-size;
+  }
+
+  .app-header button:not([role="combobox"]) {
+    min-height: 2.5rem;
+  }
+
+  .app-header button[aria-label="Search"],
+  .app-header button[aria-label="Expand sidebar"],
+  .app-header button[aria-label^="Switch to"] {
+    width: 2.5rem;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .app-header button:focus-visible,
+  .app-header a:focus-visible,
+  .app-header [tabindex="0"]:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  .app-header button:disabled {
+    cursor: not-allowed;
+  }
+
+  .app-header [data-search-trigger="true"] {
+    width: clamp(10rem, 19vw, 18rem);
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: hsl(var(--muted) / 0.45);
+    box-shadow: none;
+  }
+
+  .app-header button[aria-label="Zoom out"],
+  .app-header button[aria-label="Zoom in"] {
+    min-height: 1.75rem;
+  }
+
+  .app-header button[aria-label="Search"]:hover,
+  .app-header button[aria-label="Expand sidebar"]:hover,
+  .app-header button[aria-label^="Switch to"]:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+
+  .app-header button[aria-label^="Switch to"] svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  @container (max-width: 760px) {
+    .app-header .header-zoom {
+      display: none;
+    }
+  }
+
+  @container (max-width: 580px) {
+    .app-header .header-search-full {
+      display: none;
+    }
+
+    .app-header .header-search-compact {
+      display: flex;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-header *,
+    .app-header *::before,
+    .app-header *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
 @layer base {
   :root {
     /* ── Day Mode: Clean, modern SaaS/learning-platform light ── */

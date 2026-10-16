@@ -92,7 +92,7 @@ function HeaderControls() {
   return (
     <div className="flex items-center gap-1.5">
       {/* Zoom cluster — desktop only */}
-      <div className="hidden md:flex items-center h-8 rounded-lg border border-border/55 bg-muted/50 p-0.5 gap-0">
+      <div className="header-zoom hidden md:flex items-center h-10 rounded-xl border border-border/60 bg-muted/35 p-1 gap-0">
         <AppTooltip content="Zoom out text">
           <button
             onClick={decreaseFontSize}
@@ -369,30 +369,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             minSize={50}
             className="flex flex-col min-h-0"
           >
-          {/* Top bar — Premium redesign */}
-          <header
-            className={cn(
-              "relative h-[52px] flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-5 flex-shrink-0 sticky top-0 z-40",
-              "backdrop-blur-2xl transition-all duration-300",
-              isHomeRoute
-                ? "border-b border-border/30 shadow-[0_1px_0_0_hsl(var(--primary)/0.06),0_4px_24px_-4px_hsl(var(--primary)/0.05)]"
-                : "border-b border-border/45 shadow-[0_1px_0_0_hsl(var(--primary)/0.08),0_4px_32px_-4px_hsl(var(--primary)/0.08)]"
-            )}
-            style={{
-              background: isHomeRoute
-                ? "linear-gradient(180deg,hsl(var(--background)/0.84) 0%,hsl(var(--background)/0.74) 100%)"
-                : "linear-gradient(180deg,hsl(var(--background)/0.93) 0%,hsl(var(--background)/0.86) 100%)",
-            }}
-          >
-            {/* Gradient shimmer accent line at very top */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-80"
-              style={{
-                background:
-                  "linear-gradient(90deg,transparent 0%,hsl(var(--primary)/0.32) 30%,hsl(var(--primary)/0.55) 50%,hsl(var(--primary)/0.32) 70%,transparent 100%)",
-              }}
-            />
+          <header className="app-header sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-5">
+            <nav aria-label="Main navigation" className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
 
             {/* ── Left: sidebar toggle + logo ──────────────────── */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
@@ -441,25 +419,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   aria-label="AlgoGuru Home"
                   className="group flex items-center gap-2 rounded-xl px-1.5 py-1 -ml-1 transition-all duration-200 hover:bg-muted/40 active:scale-[0.97] flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                 >
-                  {/* Icon badge with glow */}
-                  <div className="relative flex items-center justify-center w-[30px] h-[30px] flex-shrink-0">
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-[8px]"
-                      style={{ background: "linear-gradient(135deg,hsl(var(--primary)/0.5) 0%,hsl(var(--primary)/0.2) 100%)" }}
-                    />
-                    <div
-                      className="relative flex items-center justify-center w-[30px] h-[30px] rounded-lg transition-transform duration-200 group-hover:scale-[1.08]"
-                      style={{
-                        background: "linear-gradient(135deg,hsl(var(--primary)) 0%,hsl(var(--primary)/0.72) 100%)",
-                        boxShadow: "0 0 0 1px hsl(var(--primary)/0.18),0 2px 8px hsl(var(--primary)/0.28),inset 0 1px 0 rgba(255,255,255,0.22)",
-                      }}
-                    >
-                      <AlgoGuruLogo size={18} showText={false} className="text-white" />
-                    </div>
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm ring-1 ring-inset ring-white/15">
+                    <AlgoGuruLogo size={21} showText={false} className="text-white" />
                   </div>
                   {/* Brand text */}
-                  <span className="hidden sm:inline text-[14.5px] font-bold tracking-tight text-foreground">
+                  <span className="hidden sm:inline text-base font-bold tracking-tight text-foreground">
                     Algo<span className="text-primary">Guru</span>
                   </span>
                 </Link>
@@ -470,13 +434,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1 min-w-0" />
 
             {/* ── Right: search + controls + user + Guru AI ────── */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2.5">
 
               {/* Mobile search icon */}
               <AppTooltip content="Search (Ctrl+K)">
                 <button
                   onClick={() => document.querySelector<HTMLButtonElement>('[data-search-trigger="true"]')?.click()}
-                  className="sm:hidden touch-manipulation flex items-center justify-center w-8 h-8 rounded-lg border border-border/60 bg-muted/50 hover:bg-primary/[0.08] hover:border-primary/35 text-muted-foreground hover:text-primary transition-all duration-150 active:scale-[0.93]"
+                  className="header-search-compact sm:hidden touch-manipulation flex items-center justify-center w-8 h-8 rounded-lg border border-border/60 bg-muted/50 hover:bg-primary/[0.08] hover:border-primary/35 text-muted-foreground hover:text-primary transition-all duration-150 active:scale-[0.93]"
                   aria-label="Search"
                 >
                   <Search size={15} />
@@ -484,7 +448,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               </AppTooltip>
 
               {/* Desktop search */}
-              <div className="hidden sm:block">
+              <div className="header-search-full hidden sm:block">
                 <GlobalSearch />
               </div>
 
@@ -504,16 +468,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               {isProblemSolverRoute ? (
                 <AppTooltip content="Guru AI is in the description panel — Guru AI tab.">
                   <div
-                    className="hidden sm:flex items-center gap-1.5 h-8 px-3 text-[12px] font-semibold rounded-lg select-none"
-                    style={{
-                      background: "hsl(var(--primary)/0.1)",
-                      border: "1px solid hsl(var(--primary)/0.28)",
-                      color: "hsl(var(--primary))",
-                      boxShadow: "0 0 10px hsl(var(--primary)/0.08)",
-                    }}
+                    tabIndex={0}
+                    aria-label="Guru AI is available in the description panel tab"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
                   >
-                    <Sparkles size={13} />
-                    <span>Guru in tab</span>
+                    <img src={`${import.meta.env.BASE_URL}brand/guru-ai.png`} alt="" aria-hidden="true" width={40} height={42} className="h-[42px] w-10 shrink-0 object-contain" />
                   </div>
                 </AppTooltip>
               ) : (
@@ -521,44 +480,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   <button
                     onClick={toggleGuruPanel}
                     aria-label={guruOpen ? "Close Guru AI" : "Open Guru AI"}
-                    className={cn(
-                      "touch-manipulation relative overflow-hidden flex items-center gap-1.5 h-8 px-3 sm:px-3.5 rounded-lg text-[12.5px] font-semibold transition-all duration-200 select-none active:scale-[0.93]",
-                      guruOpen
-                        ? "text-primary-foreground shadow-[0_0_0_1px_hsl(var(--primary)/0.8),0_4px_14px_hsl(var(--primary)/0.35),0_2px_6px_hsl(var(--primary)/0.2)]"
-                        : "text-foreground border border-border/60 bg-muted/50 hover:bg-primary/[0.08] hover:border-primary/40 hover:text-primary hover:shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
-                    )}
-                    style={
-                      guruOpen
-                        ? { background: "linear-gradient(135deg,hsl(var(--primary)) 0%,hsl(var(--primary)/0.82) 100%)" }
-                        : {}
-                    }
+                    aria-pressed={guruOpen}
+                    className="touch-manipulation flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent p-0 transition-opacity duration-200 hover:opacity-80 select-none"
                   >
-                    {guruOpen && (
-                      <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-[inherit]"
-                        style={{
-                          background:
-                            "linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%)",
-                          backgroundSize: "200% 100%",
-                          animation: "shimmer 2.4s ease-in-out infinite",
-                        }}
-                      />
-                    )}
-                    <Sparkles
-                      size={13}
-                      className={cn(
-                        "relative flex-shrink-0 transition-transform duration-200",
-                        guruOpen ? "text-primary-foreground" : "text-primary"
-                      )}
-                    />
-                    <span className="hidden sm:inline relative">
-                      {guruOpen ? "Guru AI" : "Guru"}
-                    </span>
+                    <img src={`${import.meta.env.BASE_URL}brand/guru-ai.png`} alt="" aria-hidden="true" width={40} height={42} className="h-[42px] w-10 shrink-0 object-contain" />
                   </button>
                 </AppTooltip>
               )}
             </div>
+            </nav>
           </header>
 
           {guruOpen ? (

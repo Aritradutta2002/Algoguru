@@ -72,6 +72,16 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
+## Application header
+
+The responsive header keeps search, theme, text zoom, account access, and Guru AI
+in one keyboard-accessible navigation bar. Guru AI is an icon-only control with
+no visible text, border, or background, using the optimized transparent
+[`public/brand/guru-ai.png`](public/brand/guru-ai.png) asset. Header controls adapt
+to the available panel width, including when the sidebar or assistant is open.
+On problem-solving pages, Guru AI remains in
+the description panel tab rather than opening a separate assistant panel.
+
 ## Interview preparation tracks
 
 - **Core Java Q&A** — `/interview/java/core-java-qa` (226 questions, 15 topics)
