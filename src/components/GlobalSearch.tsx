@@ -448,16 +448,16 @@ export function GlobalSearch() {
           onClick={() => setOpen(true)}
           aria-label="Search AlgoGuru"
           data-search-trigger="true"
-          className="group relative flex h-8 w-44 items-center gap-2 overflow-hidden rounded-lg border border-border/60 bg-muted/40 pl-1.5 pr-3 text-left transition-all duration-200 hover:border-primary/30 hover:bg-muted/70 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] active:scale-[0.98] sm:w-56 md:w-64 lg:w-72"
+          className="group relative flex h-8 items-center justify-center sm:justify-start gap-2 overflow-hidden rounded-lg border border-border/60 bg-muted/40 px-2 sm:pl-2 sm:pr-3 text-left transition-all duration-200 hover:border-border hover:bg-muted/70 active:scale-[0.98] w-8 sm:w-52 md:w-64 lg:w-72"
         >
           <SearchMark
-            size={20}
-            className="transition-transform duration-300 group-hover:scale-110"
+            size={18}
+            className="transition-transform duration-200 group-hover:scale-105"
           />
-          <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/65 transition-colors group-hover:text-muted-foreground sm:inline">
+          <span className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground transition-colors group-hover:text-foreground sm:inline">
             Search topics, problems…
           </span>
-          <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/55 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
+          <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-medium text-muted-foreground/60 md:inline-flex">
             <span>⌘</span>K
           </kbd>
         </button>
@@ -625,9 +625,6 @@ export function GlobalSearch() {
                 <span className="inline-flex items-center gap-1.5">
                   <ShortcutKey>Esc</ShortcutKey>
                   Quit
-                </span>
-                <span className="ml-auto hidden font-mono normal-case tracking-normal text-muted-foreground/45 sm:inline">
-                  {allDocs.length.toLocaleString()} items indexed
                 </span>
               </div>
             </Command>

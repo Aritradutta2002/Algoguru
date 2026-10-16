@@ -95,11 +95,10 @@ export function Footer({ onSupportClick }: FooterProps) {
 
         <div className="pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-3">
           <p className="text-xs text-muted-foreground">
-            Copyright © {currentYear} AlgoGuru. All rights reserved.
+            © {currentYear} AlgoGuru. Designed for focused engineering practice.
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Zap size={12} className="text-primary" />
-            <span>Master code. Ace interviews.</span>
+            <span>Version 2.1.0</span>
           </div>
         </div>
       </div>

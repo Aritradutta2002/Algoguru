@@ -615,23 +615,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     useEffect(() => {
       inputValueRef.current = input;
     }, [input]);
-    // Cycling "thinking" status text — replaces the static "GuruBot is thinking"
-    // string with a rotating set of phrases (Claude / ChatGPT style). The list
-    // is shuffled per request so consecutive runs feel different.
-    const THINK_PHRASES: string[] = useMemo(() => [
-      "GuruBot is thinking",
-      "Reading your message",
-      "Mapping out an answer",
-      "Analyzing the request",
-      "Crunching the details",
-      "Brewing a response",
-      "Putting the pieces together",
-      "Drafting a thoughtful reply",
-      "Reasoning through this",
-      "Composing a response",
-    ], []);
-    const [thinkPhrase, setThinkPhrase] = useState(THINK_PHRASES[0]);
-    const thinkIndexRef = useRef(0);
+    // Quiet Linear-style thinking timer: tracks elapsed seconds while stream is preparing.
+    const [thinkingSeconds, setThinkingSeconds] = useState(0);
     const thinkTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
     const [feedbackByMessage, setFeedbackByMessage] = useState<Record<string, 1 | -1>>({});
@@ -675,32 +660,21 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         setTimeout(() => inputRef.current?.focus(), 200);
     }, [open, showHistory]);
 
-    // Cycle the "thinking" status text while waiting for the assistant reply.
-    // Mirrors the UX of Claude / ChatGPT / Gemini. The cycling stops
-    // automatically as soon as `loading` flips to false (including stopChat,
-    // abort, and error paths) — the streaming message itself replaces the
-    // placeholder the moment the first token arrives.
+    // Linear-style elapsed seconds timer while assistant is preparing reply.
     useEffect(() => {
       if (!loading) {
         if (thinkTimerRef.current) {
           clearInterval(thinkTimerRef.current);
           thinkTimerRef.current = null;
         }
-        // Reset for the next request so we don't resume mid-phrase.
-        thinkIndexRef.current = 0;
-        setThinkPhrase(THINK_PHRASES[0]);
+        setThinkingSeconds(0);
         return;
       }
 
-      // Ensure we start from a clean state on each new request.
-      thinkIndexRef.current = 0;
-      setThinkPhrase(THINK_PHRASES[0]);
-
-      const intervalMs = 2400;
+      setThinkingSeconds(0);
       thinkTimerRef.current = setInterval(() => {
-        thinkIndexRef.current = (thinkIndexRef.current + 1) % THINK_PHRASES.length;
-        setThinkPhrase(THINK_PHRASES[thinkIndexRef.current]);
-      }, intervalMs);
+        setThinkingSeconds((s) => s + 1);
+      }, 1000);
 
       return () => {
         if (thinkTimerRef.current) {
@@ -708,7 +682,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           thinkTimerRef.current = null;
         }
       };
-    }, [loading, THINK_PHRASES]);
+    }, [loading]);
 
     // Cleanup on unmount so the interval never leaks across remounts.
     useEffect(() => {
@@ -979,9 +953,9 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     // Desktop/embedded: flex container fills the parent panel.
     const shouldUseFixedOverlay = isMobile && !embedded;
     const containerClasses = shouldUseFixedOverlay
-      ? "fixed inset-0 z-50 flex h-full flex-col bg-neutral-900 text-neutral-100"
-      : "relative flex h-full flex-col overflow-hidden bg-neutral-900 text-neutral-100";
-    const botName = showGuruTitle ? "GuruBot" : "GuruBot";
+      ? "fixed inset-0 z-50 flex h-full flex-col bg-card text-foreground"
+      : "relative flex h-full flex-col overflow-hidden bg-card text-foreground";
+    const botName = showGuruTitle ? "Guru AI" : "Guru";
     const clearActiveChat = () => {
       if (currentId) deleteSession(currentId, { stopPropagation() {} } as unknown as React.MouseEvent);
       else startNewChat();
@@ -991,53 +965,61 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       <div ref={ref} className={containerClasses}>
         {/* ─── Header ─── */}
         {!hideHeader && (
-        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-neutral-800 bg-neutral-900 px-3 py-2.5">
+        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-card/95 backdrop-blur-md px-3 py-2.5">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-800 text-indigo-400">
-              <Bot size={16} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-control bg-primary/10 text-primary">
+              <Bot size={15} />
             </div>
-            <span className="truncate text-[15px] font-bold tracking-tight text-neutral-100">{botName}</span>
+            <div className="min-w-0">
+              <span className="truncate text-xs font-semibold tracking-tight text-foreground block">{botName}</span>
+              {questionId && (
+                <span className="text-[10px] font-mono text-muted-foreground truncate block">
+                  Context: #{questionId}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-0.5">
             <AppTooltip content="New Chat">
               <button
                 onClick={startNewChat}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+                className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label="New Chat"
               >
-                <MessageSquarePlus size={16} />
+                <MessageSquarePlus size={15} />
               </button>
             </AppTooltip>
             <AppTooltip content={showHistory ? "Back to chat" : "History"}>
               <button
                 onClick={() => setShowHistory((o) => !o)}
-                className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-800 ${
-                  showHistory ? "text-indigo-400" : "text-neutral-400 hover:text-neutral-100"
-                }`}
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-control transition-colors hover:bg-muted",
+                  showHistory ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+                )}
                 aria-label="History"
               >
-                <History size={16} />
+                <History size={15} />
               </button>
             </AppTooltip>
             {onToggleFullscreen && (
               <AppTooltip content={isFullscreen ? "Exit expanded view" : "Expand panel"}>
                 <button
                   onClick={onToggleFullscreen}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+                  className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label={isFullscreen ? "Exit expanded view" : "Expand panel"}
                 >
-                  {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+                  {isFullscreen ? <Minimize size={15} /> : <Maximize size={15} />}
                 </button>
               </AppTooltip>
             )}
             <AppTooltip content="Close">
               <button
                 onClick={handleClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+                className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label="Close"
               >
-                <X size={17} />
+                <X size={15} />
               </button>
             </AppTooltip>
           </div>
@@ -1045,10 +1027,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         )}
 
         {/* ─── Body ─── */}
-        <div className="relative flex-1 overflow-hidden bg-neutral-900">
+        <div className="relative flex-1 overflow-hidden bg-background">
           {/* Chat History Sidebar */}
           {showHistory ? (
-            <div className="absolute inset-0 z-10 animate-in slide-in-from-left-2 overflow-y-auto bg-neutral-900 duration-300">
+            <div className="absolute inset-0 z-10 animate-in slide-in-from-left-2 overflow-y-auto bg-card duration-300">
               <div className="p-4">
                 <div className="mb-4">
                   <div className="mb-3 flex items-center justify-between">
@@ -1060,25 +1042,25 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                     </span>
                   </div>
                   <div className="relative">
-                    <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                    <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                       value={historyQuery}
                       onChange={(e) => setHistoryQuery(e.target.value)}
                       placeholder="Search chats"
-                      className="h-10 w-full rounded-xl border border-neutral-800 bg-neutral-800/50 pl-9 pr-3 text-[13px] text-neutral-100 outline-none transition-colors placeholder:text-neutral-500 focus:border-indigo-500/60"
+                      className="h-9 w-full rounded-control border border-border bg-muted/40 pl-9 pr-3 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                     />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   {visibleSessions.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-neutral-800 px-5 py-14 text-center">
-                      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-800 text-indigo-400">
-                        <MessageSquare size={18} />
+                    <div className="rounded-surface border border-dashed border-border px-5 py-12 text-center">
+                      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-control bg-primary/10 text-primary">
+                        <MessageSquare size={16} />
                       </div>
-                      <p className="text-sm font-medium text-neutral-200">
+                      <p className="text-xs font-medium text-foreground">
                         {sessions.length === 0 ? "No chats yet" : "No matching chats"}
                       </p>
-                      <p className="mt-1 text-xs text-neutral-500">
+                      <p className="mt-1 text-[11px] text-muted-foreground">
                         {sessions.length === 0 ? "Start a new conversation to build your history." : "Try a different keyword."}
                       </p>
                     </div>
@@ -1091,25 +1073,25 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setShowHistory(false);
                           setModel(s.model || "openrouter");
                         }}
-                        className={`group flex cursor-pointer items-start justify-between gap-3 rounded-xl border p-3 transition-colors ${
+                        className={`group flex cursor-pointer items-start justify-between gap-3 rounded-control border p-2.5 transition-colors ${
                           s.id === currentId
-                            ? "border-indigo-500/40 bg-indigo-500/10"
-                            : "border-transparent bg-neutral-800/40 hover:bg-neutral-800"
+                            ? "border-primary/40 bg-primary/10"
+                            : "border-border/60 bg-muted/30 hover:bg-muted"
                         }`}
                       >
-                        <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex min-w-0 items-start gap-2.5">
                           <div
-                            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                              s.id === currentId ? "bg-indigo-500/20 text-indigo-300" : "bg-neutral-800 text-neutral-400"
+                            className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-control ${
+                              s.id === currentId ? "bg-primary/20 text-primary" : "bg-card border border-border text-muted-foreground"
                             }`}
                           >
                             {s.pinned ? <Pin size={12} /> : <MessageSquare size={12} />}
                           </div>
                           <div className="min-w-0">
-                            <div className="truncate text-[13px] font-medium text-neutral-100">{s.title}</div>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500">
+                            <div className="truncate text-xs font-medium text-foreground">{s.title}</div>
+                            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
                               <span className="inline-flex items-center gap-1">
-                                <Clock3 size={11} />
+                                <Clock3 size={10} />
                                 {new Date(s.date).toLocaleDateString()}
                               </span>
                               <span>•</span>
@@ -1120,19 +1102,19 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                           <button
                             onClick={(e) => toggleSessionPin(s.id, e)}
-                            className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
-                              s.pinned ? "bg-indigo-500/15 text-indigo-300" : "text-neutral-500 hover:bg-neutral-700 hover:text-neutral-200"
+                            className={`flex h-6 w-6 items-center justify-center rounded-control transition-colors ${
+                              s.pinned ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-card hover:text-foreground"
                             }`}
                             aria-label={s.pinned ? "Unpin chat" : "Pin chat"}
                           >
-                            <Pin size={12} className={s.pinned ? "fill-current" : ""} />
+                            <Pin size={11} className={s.pinned ? "fill-current" : ""} />
                           </button>
                           <button
                             onClick={(e) => deleteSession(s.id, e)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            className="flex h-6 w-6 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                             aria-label="Delete chat"
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={11} />
                           </button>
                         </div>
                       </div>
@@ -1143,7 +1125,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             </div>
           ) : (
             <div
-              className="h-full space-y-5 overflow-y-auto bg-neutral-900 p-4"
+              className="h-full space-y-4 overflow-y-auto bg-background p-4"
               style={{ overscrollBehavior: "contain" }}
             >
               {messages.length === 0 && (
@@ -1269,24 +1251,24 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                       </div>
                     </div>
                   ) : (
-                    <div className="max-w-[82%]">
-                      <div className="rounded-2xl rounded-br-md bg-neutral-700/70 px-4 py-2.5 text-[13px] leading-relaxed text-neutral-100">
+                    <div className="max-w-[85%]">
+                      <div className="rounded-surface bg-primary text-primary-foreground px-3.5 py-2 text-xs leading-relaxed shadow-elev-0">
                         {m.content}
                       </div>
-                      <div className="mt-1.5 flex items-center justify-end gap-1 pr-1">
+                      <div className="mt-1 flex items-center justify-end gap-1 pr-1">
                         <button
                           onClick={() => copyReply(m.content, i)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                          className="flex h-6 w-6 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label="Copy"
                         >
-                          {copiedMessageIndex === i ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                          {copiedMessageIndex === i ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                         </button>
                         <button
                           onClick={() => { setInput(m.content); setTimeout(() => inputRef.current?.focus(), 50); }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                          className="flex h-6 w-6 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label="Edit"
                         >
-                          <Wand2 size={13} />
+                          <Wand2 size={12} />
                         </button>
                       </div>
                     </div>
@@ -1299,7 +1281,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 <div className="flex justify-center">
                   <button
                     onClick={() => { setInput("Give me the full corrected code and explain the fix vs my version"); setTimeout(() => inputRef.current?.focus(), 50); }}
-                    className="rounded-lg border border-neutral-800 bg-neutral-800/50 px-4 py-2 text-[11px] font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                    className="rounded-control border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     Still stuck? → Get full answer
                   </button>
@@ -1308,23 +1290,17 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
               {loading &&
                 messages[messages.length - 1]?.role !== "assistant" && (
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-neutral-800 text-indigo-400">
+                  <div className="flex items-center gap-2.5 py-1">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-control bg-primary/10 text-primary">
                       <Bot size={13} />
                     </div>
-                    <div className="flex items-center gap-2 rounded-2xl rounded-tl-md bg-neutral-800/60 px-4 py-3">
-                      {/* Cycling status phrase with a quick fade so each swap
-                          feels deliberate instead of jarring. */}
-                      <span
-                        key={thinkPhrase}
-                        className="text-[13px] text-neutral-300 animate-fade-in"
-                      >
-                        {thinkPhrase}
+                    <div className="flex items-center gap-2 rounded-surface bg-muted/60 border border-border px-3.5 py-2">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                       </span>
-                      <span className="flex items-center gap-1" aria-hidden="true">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-500" style={{ animationDelay: "0ms" }} />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-500" style={{ animationDelay: "150ms" }} />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-500" style={{ animationDelay: "300ms" }} />
+                      <span className="text-xs text-muted-foreground font-mono">
+                        Thinking... {thinkingSeconds > 0 ? `${thinkingSeconds}s` : ""}
                       </span>
                     </div>
                   </div>
@@ -1336,13 +1312,13 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
         {/* ─── Input + Models + Footer ─── */}
         <div
-          className="z-20 border-t border-neutral-800 bg-neutral-900 px-3 pb-3 pt-3"
+          className="z-20 border-t border-border bg-card px-3 pb-3 pt-2.5"
           style={{
             paddingBottom: isMobile ? "max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))" : undefined,
           }}
         >
           {/* Input container */}
-          <div className="relative rounded-2xl border border-neutral-700 bg-neutral-800 transition-colors focus-within:border-indigo-500/60">
+          <div className="relative rounded-surface border border-border bg-muted/30 transition-colors focus-within:border-primary focus-within:bg-card">
             <textarea
               ref={inputRef}
               value={input}
@@ -1356,27 +1332,18 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   if (!loading) {
-                    // Use the ref so the most recently typed value is what
-                    // gets sent, not a stale React closure.
                     send(inputValueRef.current);
                   }
                 }
               }}
               placeholder={`Ask ${botName} anything...`}
-              // Only disable the textarea while a stream is in flight AND the
-              // user has no draft. Allowing typing mid-stream lets the next
-              // question queue up; pressing Enter will trigger `send` (or
-              // `stopChat` is the visible button action).
               disabled={loading && !inputValueRef.current}
-              className="w-full resize-none bg-transparent px-4 py-3 pr-14 text-[13px] leading-relaxed text-neutral-100 outline-none placeholder:text-neutral-500 min-h-[52px] max-h-[96px] md:max-h-[120px]"
+              className="w-full resize-none bg-transparent px-3 py-2 pr-12 text-xs leading-relaxed text-foreground outline-none placeholder:text-muted-foreground min-h-[46px] max-h-[96px] md:max-h-[120px]"
               rows={1}
             />
             <button
               type="button"
               onClick={(e) => {
-                // Read the latest value before any state reads, so the click
-                // is never lost to a stale closure of `input` from a prior
-                // render. `preventDefault` stops any focus shift on touch.
                 e.preventDefault();
                 if (loading) {
                   stopChat();
@@ -1385,43 +1352,39 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 }
               }}
               disabled={(!inputValueRef.current.trim() && !loading) || (loading && !inputValueRef.current && messages.length === 0)}
-              className={`pointer-events-auto absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
+              className={`pointer-events-auto absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-control transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
                 loading
-                  ? "bg-red-500/15 text-red-400 hover:bg-red-500/25"
-                  : "bg-indigo-600 text-white hover:bg-indigo-500"
+                  ? "bg-rose-500/15 text-rose-500 hover:bg-rose-500/25"
+                  : "bg-primary text-primary-foreground hover:bg-accent-hover shadow-elev-0"
               }`}
               aria-label={loading ? "Stop" : "Send"}
             >
-              {loading ? <Square size={12} fill="currentColor" /> : <Send size={15} />}
+              {loading ? <Square size={11} fill="currentColor" /> : <Send size={13} />}
             </button>
           </div>
 
-          {/* Model selector row */}
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          {/* Controls and Footer */}
+          <div className="mt-2 flex items-center justify-between text-xs">
+            <button
+              onClick={clearActiveChat}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-rose-500"
+            >
+              <Trash2 size={12} />
+              Clear
+            </button>
+
             <button
               onClick={() => setAttachCode((v) => !v)}
-              className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-pill border px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                 attachCode
-                  ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-300"
-                  : "border-neutral-800 bg-neutral-800/40 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground"
               }`}
               title={attachCode ? "Code attached (click to detach)" : "Attach your editor code"}
             >
-              <Code2 size={12} />
+              <Code2 size={11} />
               {attachCode ? "Code attached" : "Attach code"}
             </button>
-          </div>
-
-          {/* Footer row */}
-          <div className="mt-2.5 flex items-center justify-between">
-            <button
-              onClick={clearActiveChat}
-              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-neutral-500 transition-colors hover:text-red-400"
-            >
-              <Trash2 size={13} />
-              Clear
-            </button>
-            <span className="text-[11px] text-neutral-500">Shift+Enter for new line</span>
           </div>
         </div>
       </div>

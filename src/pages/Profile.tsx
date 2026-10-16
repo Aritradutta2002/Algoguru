@@ -680,12 +680,22 @@ export default function Profile() {
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors text-xs font-medium"
+              className="flex items-center justify-center gap-2 py-2 px-3 rounded-control bg-muted hover:bg-muted/80 border border-border transition-colors text-xs font-medium"
             >
               <Edit2 size={14} />
               {isEditing ? "Cancel" : "Edit profile"}
             </button>
-            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors text-xs font-medium">
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(window.location.href);
+                  toast({ title: "Profile link copied to clipboard" });
+                } catch {
+                  toast({ title: "Failed to copy link", variant: "destructive" });
+                }
+              }}
+              className="flex items-center justify-center gap-2 py-2 px-3 rounded-control bg-muted hover:bg-muted/80 border border-border transition-colors text-xs font-medium"
+            >
               <Share2 size={14} />
               Share
             </button>
@@ -959,124 +969,96 @@ export default function Profile() {
 
                 {(isLeetcodeLoading && dataMode === "leetcode") ||
                 (isCodechefLoading && dataMode === "codechef") ? (
-                  <div className="flex-1 flex items-center justify-center relative z-10">
-                    <Loader2 className="animate-spin text-muted-foreground/40 w-8 h-8" />
+                  <div className="flex-1 flex items-center justify-center relative z-10 py-16">
+                    <Loader2 className="animate-spin text-primary/70 w-8 h-8" />
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-10 mt-2 relative z-10">
-                    {/* Donut Chart */}
-                    <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
-                      <svg
-                        viewBox="0 0 128 128"
-                        className="absolute inset-0 w-full h-full transform -rotate-90 overflow-visible"
-                      >
-                        <defs>
-                          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="3" result="blur" />
-                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                          </filter>
-                        </defs>
-                        {dataMode !== "codechef" &&
-                          statsSegments.map((segment) => {
-                            const isHighlighted = !hoveredDifficulty || hoveredDifficulty === segment.key;
+                  <div className="flex-1 flex flex-col justify-center gap-6 mt-2 relative z-10">
+                    {dataMode !== "codechef" ? (
+                      <div className="space-y-5">
+                        <div className="flex items-baseline justify-between">
+                          <div>
+                            <span className="text-3xl font-bold tracking-tight text-foreground">
+                              {currentTotalSolved}
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-1.5 font-medium">
+                              / {currentTotalQuestions} solved
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono font-medium text-primary">
+                            {currentTotalQuestions > 0
+                              ? Math.round((currentTotalSolved / currentTotalQuestions) * 100)
+                              : 0}% completed
+                          </span>
+                        </div>
+
+                        {/* Modern Segmented Progress Bar */}
+                        <div className="h-2.5 w-full bg-muted rounded-pill overflow-hidden flex gap-0.5">
+                          {statsSegments.map((seg) => {
+                            const pct = currentTotalQuestions > 0 ? (seg.value / currentTotalQuestions) * 100 : 0;
+                            if (pct <= 0) return null;
+                            const bg =
+                              seg.key === "easy"
+                                ? "bg-emerald-500"
+                                : seg.key === "medium"
+                                ? "bg-amber-500"
+                                : "bg-rose-500";
                             return (
-                              <g key={segment.key} className={cn("transition-opacity duration-300", isHighlighted ? "opacity-100" : "opacity-30")}>
-                                <circle
-                                  cx="64"
-                                  cy="64"
-                                  r="48"
-                                  fill="none"
-                                  stroke={segment.trackStroke}
-                                  strokeLinecap="round"
-                                  strokeWidth="6"
-                                  strokeDasharray={segment.trackDasharray}
-                                  strokeDashoffset={segment.trackDashoffset}
-                                />
-                                {segment.value > 0 && (
-                                  <circle
-                                    cx="64"
-                                    cy="64"
-                                    r="48"
-                                    fill="none"
-                                    stroke={segment.stroke}
-                                    strokeLinecap="round"
-                                    strokeWidth="6"
-                                    strokeDasharray={segment.progressDasharray}
-                                    strokeDashoffset={segment.progressDashoffset}
-                                    filter={isHighlighted ? "url(#glow)" : "none"}
-                                    className="transition-all duration-1000 ease-out"
-                                  />
-                                )}
-                              </g>
+                              <div
+                                key={seg.key}
+                                className={`${bg} transition-all duration-500`}
+                                style={{ width: `${pct}%` }}
+                                title={`${seg.label}: ${seg.value}/${seg.total}`}
+                              />
                             );
                           })}
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-[28px] font-semibold text-foreground tracking-tight leading-none mb-1">
-                          {currentTotalSolved}
-                        </span>
-                        {dataMode !== "codechef" && (
-                           <>
-                             <div className="w-8 h-[1px] bg-border my-1" />
-                             <span className="text-[12px] font-medium text-muted-foreground tracking-wider">
-                               {currentTotalQuestions}
-                             </span>
-                           </>
-                        )}
-                        {dataMode === "codechef" && (
-                          <span className="text-[10px] font-medium text-muted-foreground mt-1">
-                            Rating
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Stats Inline Row */}
-                    {dataMode !== "codechef" && (
-                      <div
-                        className="flex flex-row flex-wrap items-center justify-center gap-x-8 gap-y-4 w-full"
-                        onMouseLeave={() => setHoveredDifficulty(null)}
-                      >
-                        {statsSegments.map((segment) => {
-                          const isActive = !hoveredDifficulty || hoveredDifficulty === segment.key;
-                          return (
-                            <div
-                              key={segment.key}
-                              onMouseEnter={() => setHoveredDifficulty(segment.key)}
-                              className={cn(
-                                "flex items-center gap-2 cursor-pointer transition-opacity duration-300",
-                                isActive ? "opacity-100" : "opacity-40"
-                              )}
-                            >
-                              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: segment.stroke }} />
-                              <span className="text-xs text-muted-foreground font-medium">
-                                {segment.label}
-                              </span>
-                              <span className="text-xs text-foreground font-semibold">
-                                {segment.value}<span className="text-muted-foreground/50">/{segment.total}</span>
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {dataMode === "codechef" && (
-                      <div className="flex flex-row flex-wrap justify-center w-full gap-8 mt-2">
-                        <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-[#eab308]" />
-                           <span className="text-xs text-muted-foreground font-medium">Stars</span>
-                           <span className="text-xs text-[#eab308] font-semibold">{codechefData?.stars || "N/A"}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />
-                           <span className="text-xs text-muted-foreground font-medium">Global</span>
-                           <span className="text-xs text-foreground font-semibold">{codechefData?.globalRank || "-"}</span>
+
+                        {/* Breakdown Tiles */}
+                        <div className="grid grid-cols-3 gap-2.5 pt-1">
+                          {statsSegments.map((seg) => {
+                            const isEasy = seg.key === "easy";
+                            const isMed = seg.key === "medium";
+                            const dotColor = isEasy
+                              ? "bg-emerald-500"
+                              : isMed
+                              ? "bg-amber-500"
+                              : "bg-rose-500";
+                            return (
+                              <div
+                                key={seg.key}
+                                className="p-3 rounded-control border border-border bg-muted/30 flex flex-col gap-1"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <div className={`w-2 h-2 rounded-full ${dotColor}`} />
+                                  <span className="text-[11px] font-semibold uppercase text-muted-foreground">
+                                    {seg.label}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold font-mono text-foreground mt-0.5">
+                                  {seg.value}
+                                  <span className="text-muted-foreground/60 text-xs font-normal">
+                                    /{seg.total}
+                                  </span>
+                                </p>
+                              </div>
+                            );
+                          })}
                         </div>
-                        <div className="flex items-center gap-2">
-                           <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />
-                           <span className="text-xs text-muted-foreground font-medium">Country</span>
-                           <span className="text-xs text-foreground font-semibold">{codechefData?.countryRank || "-"}</span>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3 py-4 text-center">
+                        <div className="p-3 rounded-control border border-border bg-muted/30">
+                          <span className="text-[10px] font-semibold uppercase text-amber-500">Stars</span>
+                          <p className="text-base font-bold text-foreground mt-1">{codechefData?.stars || "N/A"}</p>
+                        </div>
+                        <div className="p-3 rounded-control border border-border bg-muted/30">
+                          <span className="text-[10px] font-semibold uppercase text-muted-foreground">Global Rank</span>
+                          <p className="text-base font-bold text-foreground mt-1">{codechefData?.globalRank || "-"}</p>
+                        </div>
+                        <div className="p-3 rounded-control border border-border bg-muted/30">
+                          <span className="text-[10px] font-semibold uppercase text-muted-foreground">Country Rank</span>
+                          <p className="text-base font-bold text-foreground mt-1">{codechefData?.countryRank || "-"}</p>
                         </div>
                       </div>
                     )}
@@ -1085,38 +1067,96 @@ export default function Profile() {
               </div>
 
               {/* Subject Progress */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col relative min-h-[240px]">
-                <h3 className="text-sm font-semibold mb-auto">
-                  Subject progress
-                </h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
-                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
-                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
-                  </div>
+              <div className="bg-card text-card-foreground rounded-surface p-5 border border-border flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Subject Mastery
+                  </h3>
                   <p className="text-xs text-muted-foreground">
-                    Edit profile to show subject progress
+                    Core computer science and backend interview tracks
                   </p>
+                </div>
+                <div className="space-y-3 my-4">
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-medium text-foreground">Data Structures & Algorithms</span>
+                      <span className="text-muted-foreground font-mono">14 Patterns</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-pill overflow-hidden">
+                      <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, (currentTotalSolved / 250) * 100)}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-medium text-foreground">Core Java & JVM Internals</span>
+                      <span className="text-muted-foreground font-mono">9 Topics</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-pill overflow-hidden">
+                      <div className="h-full bg-amber-500" style={{ width: "65%" }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-medium text-foreground">Spring Boot & Microservices</span>
+                      <span className="text-muted-foreground font-mono">60+ Q&A</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-pill overflow-hidden">
+                      <div className="h-full bg-emerald-500" style={{ width: "50%" }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-border flex justify-end">
+                  <a href="/learn" className="text-xs font-medium text-primary hover:underline">
+                    Explore track syllabi →
+                  </a>
                 </div>
               </div>
 
               {/* Skills */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col relative min-h-[240px]">
-                <h3 className="text-sm font-semibold mb-auto">Skills</h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
-                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
-                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
-                  </div>
+              <div className="bg-card text-card-foreground rounded-surface p-5 border border-border flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Skills & Competencies
+                  </h3>
                   <p className="text-xs text-muted-foreground">
-                    Edit profile to add skills
+                    Verified engineering capabilities across your workspace
                   </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5 my-4">
+                  {[
+                    "Two Pointers",
+                    "Sliding Window",
+                    "Binary Search",
+                    "JVM Memory Model",
+                    "Garbage Collection",
+                    "Java Concurrency",
+                    "@Transactional",
+                    "Spring Security",
+                    "Distributed Caching",
+                    "Rate Limiting",
+                    "Database Indexing",
+                  ].map((skill) => (
+                    <span
+                      key={skill}
+                      className="text-xs px-2.5 py-1 rounded-control border border-border/80 bg-muted/40 text-foreground font-medium"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <div className="pt-3 border-t border-border flex justify-end">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Manage skills in profile
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Heatmap Area */}
-            <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border w-full overflow-hidden">
+            <div className="bg-card text-card-foreground rounded-surface p-5 sm:p-6 border border-border w-full overflow-hidden shadow-elev-0">
               <ActivityHeatmap
                 websiteCalendar={websiteData?.submissionCalendar || {}}
                 leetcodeCalendar={leetcodeData?.submissionCalendar || {}}
@@ -1135,26 +1175,78 @@ export default function Profile() {
             {/* Bottom Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coding Profiles */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col min-h-[200px]">
-                <h3 className="text-sm font-semibold mb-auto">
-                  Coding profiles
-                </h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
-                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
-                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
+              <div className="bg-card text-card-foreground rounded-surface p-5 border border-border flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Linked Profiles
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Connect external competitive programming handles for synced statistics
+                  </p>
+                </div>
+                <div className="space-y-3 my-4">
+                  <div className="flex items-center justify-between p-3 rounded-control border border-border bg-muted/30">
+                    <span className="text-xs font-medium text-foreground">LeetCode</span>
+                    {leetcodeUsername ? (
+                      <span className="text-xs font-mono text-primary font-semibold">@{leetcodeUsername}</span>
+                    ) : (
+                      <button
+                        onClick={() => setShowLeetcodePrompt(true)}
+                        className="text-xs text-primary hover:underline font-medium"
+                      >
+                        + Connect handle
+                      </button>
+                    )}
                   </div>
+                  <div className="flex items-center justify-between p-3 rounded-control border border-border bg-muted/30">
+                    <span className="text-xs font-medium text-foreground">CodeChef</span>
+                    {codechefUsername ? (
+                      <span className="text-xs font-mono text-primary font-semibold">@{codechefUsername}</span>
+                    ) : (
+                      <button
+                        onClick={() => setShowCodechefPrompt(true)}
+                        className="text-xs text-primary hover:underline font-medium"
+                      >
+                        + Connect handle
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-border flex justify-end">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Edit handles in settings
+                  </button>
                 </div>
               </div>
 
               {/* Contests */}
-              <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col min-h-[200px]">
-                <h3 className="text-sm font-semibold mb-auto">Contests</h3>
-                <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground/40 mt-4">
-                  <div className="w-16 h-12 border-2 border-border rounded-lg flex items-center justify-center mb-4 relative">
-                    <div className="absolute -top-3 w-4 h-2 border-t-2 border-l-2 border-r-2 border-border rounded-t-sm" />
-                    <div className="w-6 h-1 bg-muted-foreground/30 rounded-full" />
+              <div className="bg-card text-card-foreground rounded-surface p-5 border border-border flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Contest Standing
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Participate in weekly timed quizzes to earn AlgoGuru ratings
+                  </p>
+                </div>
+                <div className="p-4 rounded-control border border-border/80 bg-muted/30 my-4 text-xs space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-foreground">Weekly Contest #4</span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      Active
+                    </span>
                   </div>
+                  <p className="text-muted-foreground text-[11px]">
+                    10 random questions · 15 minutes · Fullscreen proctoring
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-border flex justify-end">
+                  <a href="/contest" className="text-xs font-medium text-primary hover:underline">
+                    Enter contest arena →
+                  </a>
                 </div>
               </div>
             </div>

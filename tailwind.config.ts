@@ -12,13 +12,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ["JetBrains Mono", "Fira Code", "monospace"],
-        sans: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
-        /* Long-form reading: humanist, high x-height, tuned for prose. */
-        reading: ["Source Sans 3", "Inter", "system-ui", "sans-serif"],
-        /* Documentation-grade code face for the Q&A reader. */
-        code: ["Source Code Pro", "JetBrains Mono", "ui-monospace", "monospace"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        display: ["Space Grotesk", "Inter", "sans-serif"],
+        reading: ["Inter", "-apple-system", "sans-serif"],
+        code: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
         category: {
@@ -102,12 +100,19 @@ export default {
         },
       },
       borderRadius: {
+        control: "var(--radius-control)",
+        surface: "var(--radius-surface)",
+        overlay: "var(--radius-overlay)",
+        pill: "var(--radius-pill)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        /* Restrained elevation ladder, driven by theme tokens */
+        "elev-0": "var(--elev-0)",
+        "elev-1": "var(--elev-1)",
+        "elev-2": "var(--elev-2)",
+        "elev-3": "var(--elev-3)",
         card: "var(--shadow-card)",
         soft: "var(--shadow-soft)",
         accent: "var(--shadow-accent)",

@@ -51,7 +51,34 @@
     --warning: 35 90% 52%;
     --warning-foreground: 25 40% 12%;
     --info: 210 80% 52%;
+    --danger: 0 72% 51%;
     --heap: 320 65% 52%;
+
+    /* ── The AlgoGuru Design System Tokens (Part 4) ── */
+    --bg: #FCFCFD;
+    --bg-subtle: #F7F8FA;
+    --surface: #FFFFFF;
+    --surface-raised: #FFFFFF;
+    --line: #E7E9EE;
+    --line-strong: #D3D8E0;
+    --ink: #12161D;
+    --ink-muted: #5B6472;
+    --ink-faint: #838D9B;
+    --accent-token: #2E6BE6;
+    --accent-hover: #2559C4;
+    --accent-soft: #EAF1FE;
+
+    /* Strict Radii (Part 4.4) */
+    --radius-control: 6px;
+    --radius-surface: 10px;
+    --radius-overlay: 12px;
+    --radius-pill: 999px;
+
+    /* Strict Elevation Ladder (Part 4.5) */
+    --elev-0: none;
+    --elev-1: 0 1px 2px rgba(16,24,40,.06);
+    --elev-2: 0 8px 24px -6px rgba(16,24,40,.12), 0 2px 6px -2px rgba(16,24,40,.06);
+    --elev-3: 0 24px 48px -12px rgba(16,24,40,.22);
 
     --code-bg: 210 20% 96%;
     --code-border: 210 20% 88%;
@@ -209,6 +236,32 @@
     --surface-panel: 240 7% 8%;
     --surface-line: 222 12% 16%;
     --surface-raised: 240 6% 15%;
+
+    /* ── The AlgoGuru Design System Tokens (Part 4 - Dark) ── */
+    --bg: #0B0D10;
+    --bg-subtle: #111419;
+    --surface: #151920;
+    --surface-raised: #1B2029;
+    --line: #232932;
+    --line-strong: #333B47;
+    --ink: #E9EDF3;
+    --ink-muted: #9AA4B2;
+    --ink-faint: #6E7887;
+    --accent-token: #5B9CFF;
+    --accent-hover: #7DB2FF;
+    --accent-soft: rgba(91,156,255,0.14);
+    --success: 152 60% 48%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 88% 58%;
+    --warning-foreground: 0 0% 7%;
+    --info: 213 90% 64%;
+    --danger: 0 72% 62%;
+    --danger-foreground: 0 0% 100%;
+
+    --elev-0: none;
+    --elev-1: 0 1px 2px rgba(0,0,0,.4);
+    --elev-2: 0 8px 24px -6px rgba(0,0,0,.6), 0 2px 6px -2px rgba(0,0,0,.3);
+    --elev-3: 0 24px 48px -12px rgba(0,0,0,.8);
 
     /* Restrained, layered elevation for dark surfaces */
     --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4);

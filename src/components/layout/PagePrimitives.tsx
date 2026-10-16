@@ -9,6 +9,17 @@
  */
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Check, Copy, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /* ─── Page container ──────────────────────────────────────────────── */
 
@@ -54,41 +65,36 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "relative",
-        !bare && "border-b border-border/60",
+        "relative bg-background/50",
+        !bare && "border-b border-border",
         className,
       )}
       {...props}
     >
-      {/* Soft, restrained radial wash — matches the home page hero */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,hsl(var(--primary)/0.10),transparent_35%),radial-gradient(circle_at_15%_40%,hsl(var(--accent)/0.06),transparent_30%)]"
-      />
       <PageContainer
         className={cn(
-          "relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between",
-          size === "compact" ? "py-10 md:py-12" : "py-12 md:py-16 lg:py-20",
+          "relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between",
+          size === "compact" ? "py-5 md:py-6" : "py-7 md:py-9",
         )}
       >
         <div className="min-w-0 max-w-3xl">
-          {breadcrumb && <div className="mb-5">{breadcrumb}</div>}
+          {breadcrumb && <div className="mb-3">{breadcrumb}</div>}
           {eyebrow && (
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-soft">
+            <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground shadow-sm">
               {eyebrow}
             </div>
           )}
-          <h1 className="text-3xl font-bold leading-[1.08] tracking-[-0.035em] text-foreground md:text-4xl lg:text-5xl">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             {title}
           </h1>
           {description && (
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {description}
             </p>
           )}
         </div>
         {actions && (
-          <div className="flex shrink-0 flex-wrap items-center gap-3">{actions}</div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2.5">{actions}</div>
         )}
       </PageContainer>
     </div>
@@ -390,5 +396,300 @@ export function Field({
         <p className="text-xs text-muted-foreground">{hint}</p>
       ) : null}
     </div>
+  );
+}
+
+/* ─── Stat tile (Part 4.11) ───────────────────────────────────────── */
+
+export interface StatTileProps extends React.HTMLAttributes<HTMLDivElement> {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  hint?: React.ReactNode;
+  icon?: React.ReactNode;
+  trend?: {
+    positive?: boolean;
+    text: string;
+  };
+}
+
+export function StatTile({
+  label,
+  value,
+  hint,
+  icon,
+  trend,
+  className,
+  ...props
+}: StatTileProps) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border border-border bg-card p-4 transition-colors hover:border-border/80 shadow-sm",
+        className,
+      )}
+      {...props}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        {icon && (
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            {icon}
+          </span>
+        )}
+      </div>
+      <div className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+        {value}
+      </div>
+      {(hint || trend) && (
+        <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+          {trend && (
+            <span
+              className={cn(
+                "font-medium",
+                trend.positive ? "text-emerald-500" : "text-rose-500",
+              )}
+            >
+              {trend.text}
+            </span>
+          )}
+          {hint && <span>{hint}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Difficulty badge (Part 4.1) ─────────────────────────────────── */
+
+export type DifficultyLevel = "easy" | "medium" | "hard" | "Easy" | "Medium" | "Hard";
+
+export function DifficultyBadge({
+  level,
+  showDot = true,
+  className,
+}: {
+  level: DifficultyLevel | string;
+  showDot?: boolean;
+  className?: string;
+}) {
+  const norm = (level || "").toLowerCase();
+  const isEasy = norm === "easy";
+  const isHard = norm === "hard";
+  const isMed = !isEasy && !isHard;
+
+  const dotColor = isEasy
+    ? "bg-emerald-500"
+    : isMed
+      ? "bg-amber-500"
+      : "bg-rose-500";
+
+  const textColor = isEasy
+    ? "text-emerald-600 dark:text-emerald-400"
+    : isMed
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-rose-600 dark:text-rose-400";
+
+  const bgColor = isEasy
+    ? "bg-emerald-500/10 border-emerald-500/20"
+    : isMed
+      ? "bg-amber-500/10 border-amber-500/20"
+      : "bg-rose-500/10 border-rose-500/20";
+
+  const label = isEasy ? "Easy" : isMed ? "Medium" : "Hard";
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums",
+        textColor,
+        bgColor,
+        className,
+      )}
+    >
+      {showDot && <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", dotColor)} />}
+      <span>{label}</span>
+    </span>
+  );
+}
+
+/* ─── Status dot ─────────────────────────────────────────────────── */
+
+export function StatusDot({
+  status,
+  label,
+  className,
+}: {
+  status: "success" | "warning" | "danger" | "neutral" | "info";
+  label?: string;
+  className?: string;
+}) {
+  const colorMap = {
+    success: "bg-emerald-500",
+    warning: "bg-amber-500",
+    danger: "bg-rose-500",
+    neutral: "bg-muted-foreground",
+    info: "bg-sky-500",
+  };
+
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
+      <span className={cn("h-2 w-2 rounded-full shrink-0", colorMap[status])} />
+      {label && <span>{label}</span>}
+    </span>
+  );
+}
+
+/* ─── Kbd (keyboard shortcut) ────────────────────────────────────── */
+
+export function Kbd({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <kbd
+      className={cn(
+        "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded border border-border bg-muted/60 font-mono text-[11px] font-medium text-muted-foreground shadow-xs select-none",
+        className,
+      )}
+    >
+      {children}
+    </kbd>
+  );
+}
+
+/* ─── Copy button ────────────────────────────────────────────────── */
+
+export function CopyButton({
+  text,
+  label = "Copy",
+  className,
+}: {
+  text: string;
+  label?: string;
+  className?: string;
+}) {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Ignore
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        copied && "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
+        className,
+      )}
+      aria-label={copied ? "Copied" : label}
+    >
+      {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+      <span>{copied ? "Copied" : label}</span>
+    </button>
+  );
+}
+
+/* ─── Prose wrapper ──────────────────────────────────────────────── */
+
+export function Prose({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "prose prose-zinc dark:prose-invert max-w-[68ch] leading-relaxed text-foreground [&_code]:rounded [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em]",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ─── Error state ────────────────────────────────────────────────── */
+
+export function ErrorState({
+  title = "Something went wrong",
+  description = "An error occurred while loading this content.",
+  onRetry,
+  action,
+  className,
+}: {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  onRetry?: () => void;
+  action?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+        <AlertTriangle size={20} />
+      </div>
+      <h3 className="mt-3 text-base font-semibold text-foreground">{title}</h3>
+      {description && <p className="mt-1 max-w-sm text-xs text-muted-foreground">{description}</p>}
+      {(onRetry || action) && (
+        <div className="mt-4 flex items-center gap-2">
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Retry
+            </button>
+          )}
+          {action}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Confirm dialog ─────────────────────────────────────────────── */
+
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  variant = "default",
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: "default" | "destructive";
+  onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className={
+              variant === "destructive"
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : ""
+            }
+          >
+            {confirmLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

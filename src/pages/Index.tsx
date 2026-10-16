@@ -1,406 +1,495 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Code2, Trophy, BrainCircuit, Target,
-  ArrowRight, ArrowUpRight, Check, CalendarDays, Map as MapIcon, Play, Sparkles, Coffee,
-  Zap, Layers, MousePointerClick, Shuffle
+import {
+  Code2,
+  BrainCircuit,
+  Target,
+  ArrowRight,
+  Sparkles,
+  Coffee,
+  Play,
+  Zap,
+  CheckCircle2,
+  Circle,
+  Calendar,
+  Flame,
+  X,
+  BookOpen,
+  Award,
+  Layers,
+  ChevronRight,
+  Timer,
+  Terminal,
+  Compass,
 } from "lucide-react";
-import { RoadmapFullscreenOverlay } from "@/components/roadmap/RoadmapFullscreenOverlay";
+import { useAuth } from "@/contexts/AuthContext";
+import { StatTile, DifficultyBadge, StatusDot } from "@/components/layout/PagePrimitives";
+import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { QuizSection } from "@/components/quiz/QuizSection";
-import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
+import { supabase } from "@/integrations/supabase/client";
 
-const SECTIONS = [
+const ONBOARDING_KEY = "algoguru:onboarding-dismissed";
+
+interface TrackDef {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  icon: typeof Code2;
+  href: string;
+  itemCount: string;
+  badgeText: string;
+  colorClass: string;
+}
+
+const TRACKS: TrackDef[] = [
   {
-    id: "advanced-java",
-    title: "Advanced Java",
-    subtitle: "Master the deep end",
-    desc: "Reflection, JVM internals, garbage collection, design patterns, and modern Java 17+ features — the theory interviewers actually ask about.",
-    icon: <Coffee size={24} />,
-    color: "#F472B6",
-    tag: "Java Theory",
-    route: "/java-advanced",
-    stats: "9 Deep Topics",
+    id: "dsa",
+    title: "Data Structures & Algorithms",
+    category: "Coding Patterns",
+    description: "Pattern-oriented problem solving across 14 fundamental interview patterns with Java implementations.",
+    icon: Target,
+    href: "/practice",
+    itemCount: "500+ problems",
+    badgeText: "Most popular",
+    colorClass: "text-blue-500 bg-blue-500/10 border-blue-500/20",
   },
   {
-    id: "interview",
-    title: "DSA Sheets",
-    subtitle: "Land FAANG roles",
-    desc: "Curated top-company DSA questions, system design patterns, and behavioral frameworks to crush technical interviews.",
-    icon: <Target size={24} />,
-    color: "#93C5FD",
-    tag: "DSA Sheets",
-    route: "/practice",
-    stats: "500+ Questions",
+    id: "java",
+    title: "Core Java & JVM Internals",
+    category: "Language Mastery",
+    description: "Memory model, garbage collection, concurrency utilities, reflection, and modern Java 17/21 patterns.",
+    icon: Coffee,
+    href: "/learn/java",
+    itemCount: "9 core modules",
+    badgeText: "Interview essential",
+    colorClass: "text-amber-500 bg-amber-500/10 border-amber-500/20",
   },
   {
-    id: "codechef",
-    title: "Data Structures",
-    subtitle: "Pattern-based mastery",
-    desc: "A curated collection of essential coding interview problems categorized by sub-patterns and topics.",
-    icon: <Code2 size={24} />,
-    color: "#60A5FA",
-    tag: "Playlist",
-    route: "/arrays",
-    stats: "Pattern Wise Problems",
+    id: "spring-boot",
+    title: "Spring Boot & Microservices",
+    category: "Backend Systems",
+    description: "Transaction management, Spring Security, JPA/Hibernate performance, and distributed microservice design.",
+    icon: Layers,
+    href: "/learn/spring-boot",
+    itemCount: "60+ deep Q&A",
+    badgeText: "Backend track",
+    colorClass: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
   },
   {
-    id: "leetcode",
-    title: "System Design",
-    subtitle: "Scale to millions",
-    desc: "Learn system design patterns to build scalable architectures and crush your interviews.",
-    icon: <BrainCircuit size={24} />,
-    color: "#99C2F8",
-    tag: "System Design",
-    route: "/interview/java/system-design",
-    stats: "4 Learning Paths",
+    id: "system-design",
+    title: "System Design & Architecture",
+    category: "Scale & Reliability",
+    description: "Distributed caching, rate limiting, event-driven pipelines, CAP trade-offs, and database sharding.",
+    icon: BrainCircuit,
+    href: "/interview/java/system-design",
+    itemCount: "12 architectures",
+    badgeText: "L5/L6 senior",
+    colorClass: "text-purple-500 bg-purple-500/10 border-purple-500/20",
   },
   {
-    id: "interview-prep",
-    title: "Interview",
-    subtitle: "Guided preparation",
-    desc: "Real insights from candidates who recently interviewed at top tech companies. Learn what to expect.",
-    icon: <Trophy size={24} />,
-    color: "#9BE2C3",
-    tag: "Experiences",
-    route: "/interview",
-    stats: "Real Stories",
-  },
-  {
-    id: "daily-challenge",
-    title: "Daily Challenge",
-    subtitle: "Solve today's problem",
-    desc: "A fresh LeetCode problem every day, with a built-in Java editor to craft and test your solution.",
-    icon: <CalendarDays size={24} />,
-    color: "#93C5FD",
-    tag: "Today",
-    route: "/problem-solver",
-    stats: "Updated Daily",
+    id: "mock-interview",
+    title: "Mock Technical Interview",
+    category: "Simulation",
+    description: "Timed live coding simulation (DSA, System Design, Java) with evaluation rubrics and debrief scorecards.",
+    icon: Timer,
+    href: "/interview/mock",
+    itemCount: "3 formats",
+    badgeText: "Simulation",
+    colorClass: "text-rose-500 bg-rose-500/10 border-rose-500/20",
   },
 ];
 
-const HERO_STATS = [
-  { value: "500+", label: "Curated problems" },
-  { value: "40+", label: "Deep-dive topics" },
-  { value: "6", label: "Learning paths" },
-  { value: "100%", label: "Free forever" },
-];
-
-const HOW_IT_WORKS = [
-  { icon: <MousePointerClick size={20} />, title: "Pick a path", desc: "Choose a structured track — DSA, System Design, Java, or Interview prep." },
-  { icon: <Layers size={20} />, title: "Learn by pattern", desc: "Master concepts grouped by the patterns interviews actually test." },
-  { icon: <Zap size={20} />, title: "Practice & ship", desc: "Solve in the built-in editor and walk in ready to perform." },
-];
 export default function Index() {
   const navigate = useNavigate();
-  const [roadmapOpen, setRoadmapOpen] = useState(false);
-  const openRoadmap = () => setRoadmapOpen(true);
-  const { homeSidebarOpen, toggleHomeSidebar } = useHomeSidebar();
+  const { user } = useAuth();
+
+  const [onboardingDismissed, setOnboardingDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(ONBOARDING_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const [solvedCount, setSolvedCount] = useState<number>(0);
+  const [heatmapMode, setHeatmapMode] = useState<"website" | "leetcode" | "codechef">("website");
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    async function loadStats() {
+      try {
+        const { count, error } = await supabase
+          .from("practice_problem_user_state")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user?.id)
+          .eq("is_completed", true);
+        if (!error && count !== null && !cancelled) {
+          setSolvedCount(count);
+        }
+      } catch {
+        // Fallback gracefully
+      }
+    }
+    loadStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const dismissOnboarding = () => {
+    setOnboardingDismissed(true);
+    try {
+      localStorage.setItem(ONBOARDING_KEY, "true");
+    } catch {}
+  };
+
+  const displayName = useMemo(() => {
+    if (user?.user_metadata?.full_name) return user.user_metadata.full_name.split(" ")[0];
+    if (user?.email) return user.email.split("@")[0];
+    return "Engineer";
+  }, [user]);
+
+  const todayDateStr = useMemo(() => {
+    return new Date().toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+  }, []);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
-
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_-10%,hsl(var(--primary)/0.16),transparent_38%),radial-gradient(circle_at_8%_20%,hsl(var(--accent)/0.10),transparent_30%),radial-gradient(circle_at_50%_110%,hsl(var(--primary)/0.06),transparent_40%)]" />
-          <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(hsl(var(--foreground)/0.06)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,black,transparent)]" />
-        </div>
-
-        <div className="relative mx-auto grid max-w-7xl gap-14 px-6 pb-20 pt-8 sm:pt-10 md:px-10 md:pb-28 md:pt-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-12 lg:px-16">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <h1 className="max-w-2xl font-display text-[2.75rem] font-bold leading-[1.03] tracking-[-0.045em] sm:text-6xl lg:text-[4.4rem]">
-              Become the engineer{" "}
-              <span className="bg-gradient-to-r from-primary via-[#60A5FA] to-accent bg-clip-text text-transparent">
-                teams fight to hire.
-              </span>
-            </h1>
-
-            <p className="mt-7 max-w-xl text-lg leading-8 text-muted-foreground md:text-xl md:leading-8">
-              A focused workspace for mastering data structures, system design, and the interviews that move your career forward.
-            </p>
-
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <button
-                onClick={() => document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" })}
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-primary px-7 py-4 text-base font-bold text-primary-foreground shadow-accent transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-overlay hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:translate-y-0"
-              >
-                Explore learning paths
-                <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
-              <button
-                onClick={() => navigate("/playground")}
-                className="group inline-flex items-center gap-2.5 rounded-xl border border-border bg-card px-7 py-4 text-base font-semibold text-foreground shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:translate-y-0"
-              >
-                <Play size={17} fill="currentColor" className="text-primary" />
-                Open playground
-              </button>
-            </div>
-
-            <div className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-[15px] font-medium text-muted-foreground">
-              {["Structured paths", "Interview-ready practice", "Learn at your pace"].map((item) => (
-                <span key={item} className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15">
-                    <Check size={12} className="text-primary" strokeWidth={3} />
-                  </span>
-                  {item}
-                </span>
-              ))}
-              <button
-                type="button"
-                onClick={() => document.getElementById("quiz")?.scrollIntoView({ behavior: "smooth" })}
-                className="group flex items-center gap-2 rounded-md text-left font-semibold text-foreground underline decoration-primary/40 decoration-2 underline-offset-4 transition-colors hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <Shuffle size={14} className="text-primary" />
-                Or take a 10-question quiz
-              </button>
-            </div>
-
-            <div className="mt-12 grid max-w-lg grid-cols-2 gap-x-8 gap-y-6 border-t border-border/70 pt-8 sm:grid-cols-4">
-              {HERO_STATS.map((s) => (
-                <div key={s.label}>
-                  <p className="font-display text-2xl font-bold tracking-tight text-foreground md:text-[1.7rem]">{s.value}</p>
-                  <p className="mt-1 text-[13px] font-medium leading-snug text-muted-foreground">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 28, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-            className="relative lg:w-full lg:max-w-md lg:justify-self-end"
-          >
-            <div className="pointer-events-none absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-primary/20 via-accent/10 to-transparent blur-2xl" />
-
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-card/80 p-7 shadow-overlay backdrop-blur-xl md:p-8">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-
-              <div className="flex items-center justify-between border-b border-border/80 pb-6">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Start here</p>
-                  <h2 className="mt-1.5 font-display text-2xl font-bold tracking-tight">Your learning plan</h2>
-                </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/[0.12] px-3.5 py-1.5 text-xs font-bold text-primary">
-                  <Sparkles size={13} /> Curated
+    <div className="min-h-screen bg-background text-foreground pb-16">
+      {/* ── Personal Workspace Hero Header ── */}
+      <section className="border-b border-border bg-card/40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-1.5">
+                <Calendar size={13} className="text-muted-foreground" />
+                <span>{todayDateStr}</span>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="inline-flex items-center gap-1 text-primary font-semibold">
+                  <Flame size={13} className="text-amber-500 fill-amber-500" />
+                  Active Streak: 3 days
                 </span>
               </div>
-
-              <div className="space-y-5 py-7">
-                {[
-                  "Build your DSA foundation",
-                  "Learn system design patterns",
-                  "Practice under interview conditions",
-                ].map((item, index) => (
-                  <motion.div
-                    key={item}
-                    initial={{ opacity: 0, x: 14 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.35 + index * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className="group flex items-center gap-4"
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-gradient-to-br from-muted to-muted/40 font-display text-sm font-bold text-foreground shadow-soft transition-colors group-hover:border-primary/40 group-hover:text-primary">
-                      0{index + 1}
-                    </span>
-                    <p className="text-[15.5px] font-medium leading-snug text-foreground/90">{item}</p>
-                  </motion.div>
-                ))}
-              </div>
-
-              <button
-                onClick={openRoadmap}
-                className="group flex w-full items-center justify-between rounded-2xl border border-border/70 bg-muted/50 px-5 py-4 text-left transition-all duration-300 hover:border-primary/40 hover:bg-muted"
-              >
-                <span className="flex items-center gap-3 text-[15px] font-semibold">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/[0.12] text-primary">
-                    <MapIcon size={17} />
-                  </span>
-                  Browse the full roadmap
-                </span>
-                <ArrowRight size={18} className="text-muted-foreground transition-all duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-              </button>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                Welcome back, {displayName}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground max-w-xl">
+                Ready for today's session? Continue your practice or jump into the daily challenge.
+              </p>
             </div>
-          </motion.div>
-        </div>
-      </section>
-      {/* LEARNING PATHS */}
-      <section id="modules" className="relative mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32 lg:px-16">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-14 flex flex-col justify-between gap-6 md:flex-row md:items-end"
-        >
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Learning paths</p>
-            <button
-              type="button"
-              onClick={toggleHomeSidebar}
-              aria-expanded={homeSidebarOpen}
-              title={homeSidebarOpen ? "Hide the left panel" : "Show the left panel"}
-              className="mt-4 rounded-md text-left font-display text-4xl font-bold leading-[1.05] tracking-[-0.035em] transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:text-[3.4rem]"
-            >
-              Choose where to focus next.
-            </button>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <Link
+                to="/problem-solver"
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-control text-xs font-semibold bg-primary text-primary-foreground hover:bg-accent-hover shadow-elev-1 transition-all active:scale-[0.98]"
+              >
+                <Zap size={14} />
+                <span>Daily Challenge</span>
+                <ArrowRight size={13} />
+              </Link>
+              <Link
+                to="/playground"
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-control text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors active:scale-[0.98]"
+              >
+                <Play size={13} className="text-muted-foreground" />
+                <span>Playground</span>
+              </Link>
+            </div>
           </div>
-          <p className="max-w-sm text-[15px] leading-7 text-muted-foreground md:text-base">
-            Concise, practical material built around the skills that matter in real interviews — no fluff, just momentum.
-          </p>
-        </motion.div>
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {SECTIONS.map((sec, i) => (
+          {/* ── First-Run Onboarding Checklist ── */}
+          {!onboardingDismissed && (
             <motion.div
-              key={sec.id}
-              initial={{ opacity: 0, y: 26 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ delay: i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={{ y: -6 }}
-              onClick={() => {
-                if (sec.route === "__open_roadmap__") {
-                  openRoadmap();
-                } else {
-                  navigate(sec.route);
-                }
-              }}
-              className="group relative flex min-h-[290px] cursor-pointer flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:border-transparent hover:shadow-overlay"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 rounded-surface border border-primary/20 bg-primary/[0.03] p-4 sm:p-5 relative"
             >
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                style={{ background: "radial-gradient(130% 100% at 50% 0%, " + sec.color + "16, transparent 55%)" }}
-              />
-              <div
-                className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 transition-transform duration-500 ease-premium group-hover:scale-x-100"
-                style={{ background: "linear-gradient(90deg, " + sec.color + ", transparent)" }}
-              />
-
-              <div className="relative flex h-full flex-col">
-                <div className="mb-7 flex items-start justify-between">
-                  <div
-                    className="rounded-2xl border p-3.5 shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-110"
-                    style={{ background: sec.color + "12", borderColor: sec.color + "26", color: sec.color }}
-                  >
-                    {sec.icon}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Sparkles size={13} />
                   </div>
-                  <span
-                    className="rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider"
-                    style={{ background: sec.color + "0e", borderColor: sec.color + "22", color: sec.color }}
-                  >
-                    {sec.tag}
-                  </span>
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">
+                      Getting Started Checklist
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Recommended steps to configure your engineering workspace.
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={dismissOnboarding}
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded hover:bg-muted"
+                  aria-label="Dismiss checklist"
+                >
+                  <X size={13} />
+                  <span>Dismiss</span>
+                </button>
+              </div>
 
-                <div className="flex-1">
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{sec.subtitle}</p>
-                  <h3 className="font-display text-[1.55rem] font-bold leading-tight tracking-[-0.02em]">{sec.title}</h3>
-                  <p className="mt-3 text-[14.5px] leading-7 text-muted-foreground">{sec.desc}</p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                <Link
+                  to="/practice"
+                  className="flex items-center gap-3 p-3 rounded-control border border-border/70 bg-card hover:border-primary/40 hover:bg-muted/40 transition-colors group"
+                >
+                  <Circle size={16} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">Solve your first DSA problem</p>
+                    <p className="text-[11px] text-muted-foreground">Pick from 500+ pattern questions</p>
+                  </div>
+                </Link>
 
-                <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
-                  <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: sec.color }} />
-                    {sec.stats}
-                  </span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                    <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:rotate-45" />
-                  </span>
-                </div>
+                <Link
+                  to="/learn"
+                  className="flex items-center gap-3 p-3 rounded-control border border-border/70 bg-card hover:border-primary/40 hover:bg-muted/40 transition-colors group"
+                >
+                  <Circle size={16} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">Explore track syllabi</p>
+                    <p className="text-[11px] text-muted-foreground">Java, Spring Boot, System Design</p>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/settings"
+                  className="flex items-center gap-3 p-3 rounded-control border border-border/70 bg-card hover:border-primary/40 hover:bg-muted/40 transition-colors group"
+                >
+                  <Circle size={16} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">Configure editor & daily goal</p>
+                    <p className="text-[11px] text-muted-foreground">Monaco tab size, theme, targets</p>
+                  </div>
+                </Link>
               </div>
             </motion.div>
-          ))}
-        </div>
-      </section>
-      {/* TAKE A QUIZ */}
-      <QuizSection />
-      {/* HOW IT WORKS */}
-      <section className="relative border-y border-border/60 bg-muted/30">
-        <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24 lg:px-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-12 text-center"
-          >
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">How it works</p>
-            <h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.03em] md:text-4xl">
-              From first click to offer letter.
-            </h2>
-          </motion.div>
+          )}
 
-          <div className="grid gap-5 md:grid-cols-3">
-            {HOW_IT_WORKS.map((step, i) => (
-              <motion.div
-                key={step.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ delay: i * 0.1, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                className="relative rounded-2xl border border-border bg-card p-7 shadow-card"
-              >
-                <span className="absolute right-6 top-5 font-display text-4xl font-bold text-foreground/[0.06]">
-                  0{i + 1}
-                </span>
-                <div className="mb-5 inline-flex rounded-xl border border-primary/20 bg-primary/[0.08] p-3 text-primary">
-                  {step.icon}
-                </div>
-                <h3 className="font-display text-lg font-bold tracking-tight">{step.title}</h3>
-                <p className="mt-2 text-[14.5px] leading-7 text-muted-foreground">{step.desc}</p>
-              </motion.div>
-            ))}
+          {/* ── Key Metrics Row ── */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
+            <StatTile
+              label="Problems Solved"
+              value={`${solvedCount}`}
+              hint="Target: 75 minimum"
+              trend={solvedCount > 0 ? "up" : "neutral"}
+              trendLabel={solvedCount > 0 ? "Active progress" : "Start solving"}
+            />
+            <StatTile
+              label="Curated Questions"
+              value="500+"
+              hint="14 pattern categories"
+            />
+            <StatTile
+              label="Learning Modules"
+              value="4"
+              hint="DSA · Java · Spring · SysDesign"
+            />
+            <StatTile
+              label="Mock Interview Prep"
+              value="3"
+              hint="Timed simulations active"
+            />
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.16),transparent_50%)]" />
-        <div className="relative mx-auto max-w-4xl px-6 py-24 text-center md:py-32">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <h2 className="font-display text-4xl font-bold leading-[1.05] tracking-[-0.035em] md:text-5xl">
-              Your next role is one{" "}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                focused session
-              </span>{" "}
-              away.
-            </h2>
-            <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-muted-foreground">
-              Stop scrolling tutorials. Start a structured path and build real, interview-ready skill today.
-            </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-              <button
-                onClick={() => document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" })}
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-primary px-8 py-4 text-base font-bold text-primary-foreground shadow-accent transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-overlay hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              >
-                Start learning free
-                <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
-              <button
-                onClick={openRoadmap}
-                className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card px-8 py-4 text-base font-semibold shadow-card transition-all duration-300 hover:border-primary/40 hover:bg-muted"
-              >
-                <MapIcon size={17} className="text-primary" />
-                View roadmap
-              </button>
+      {/* ── Main Dashboard Body ── */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+        {/* ── Today's Focus Row ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Today's Focus
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Handpicked problem and recommended next lesson for your queue
+              </p>
             </div>
-          </motion.div>
-        </div>
-      </section>
+            <Link
+              to="/practice"
+              className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+            >
+              <span>View all problems</span>
+              <ChevronRight size={13} />
+            </Link>
+          </div>
 
-      <RoadmapFullscreenOverlay
-        open={roadmapOpen}
-        onClose={() => setRoadmapOpen(false)}
-      />
-    </main>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Daily Challenge Card */}
+            <div className="rounded-surface border border-border bg-card p-4 sm:p-5 flex flex-col justify-between hover:border-line-strong transition-colors shadow-elev-0">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">
+                    Daily Challenge
+                  </span>
+                  <DifficultyBadge difficulty="Medium" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground tracking-tight">
+                  Longest Substring Without Repeating Characters
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                  Sliding Window pattern with HashSet or HashMap tracking last seen indices in O(N) time.
+                </p>
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[11px] font-mono text-muted-foreground">LeetCode #3</span>
+                <Link
+                  to="/problem-solver"
+                  className="inline-flex items-center gap-1 h-7 px-3 rounded-control text-xs font-medium bg-primary text-primary-foreground hover:bg-accent-hover transition-colors"
+                >
+                  <span>Solve</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Next Track Lesson Card */}
+            <div className="rounded-surface border border-border bg-card p-4 sm:p-5 flex flex-col justify-between hover:border-line-strong transition-colors shadow-elev-0">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                    Recommended Lesson
+                  </span>
+                  <span className="text-[11px] font-mono text-muted-foreground">Spring Boot</span>
+                </div>
+                <h3 className="text-base font-semibold text-foreground tracking-tight">
+                  @Transactional Propagation & Rollback Pitfalls
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                  Master REQUIRED vs REQUIRES_NEW, checked exception rollback rules, and self-invocation proxy bypass.
+                </p>
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[11px] font-medium text-muted-foreground">Theory + Code</span>
+                <Link
+                  to="/learn/spring-boot"
+                  className="inline-flex items-center gap-1 h-7 px-3 rounded-control text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors"
+                >
+                  <span>Resume</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Mock Interview Card */}
+            <div className="rounded-surface border border-border bg-card p-4 sm:p-5 flex flex-col justify-between hover:border-line-strong transition-colors shadow-elev-0">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">
+                    Simulation
+                  </span>
+                  <span className="text-[11px] font-mono text-muted-foreground">45 Min</span>
+                </div>
+                <h3 className="text-base font-semibold text-foreground tracking-tight">
+                  DSA Technical Interview Simulation
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                  Strict exam timer, Socratic hints without spoilers, and competency evaluation scorecard.
+                </p>
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[11px] font-medium text-muted-foreground">Live Rubric</span>
+                <Link
+                  to="/interview/mock"
+                  className="inline-flex items-center gap-1 h-7 px-3 rounded-control text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors"
+                >
+                  <span>Start Mock</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Core Learning Tracks (Compact Engineering Rows) ── */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Core Tracks
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Structured curriculums designed for senior software engineering interviews
+              </p>
+            </div>
+            <Link
+              to="/learn"
+              className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+            >
+              <span>Browse full syllabus</span>
+              <ChevronRight size={13} />
+            </Link>
+          </div>
+
+          <div className="rounded-surface border border-border bg-card divide-y divide-border overflow-hidden shadow-elev-0">
+            {TRACKS.map((track) => {
+              const IconComp = track.icon;
+              return (
+                <div
+                  key={track.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 hover:bg-muted/40 transition-colors group"
+                >
+                  <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                    <div className="w-9 h-9 rounded-control flex items-center justify-center shrink-0 border border-border bg-muted/60 text-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors">
+                      <IconComp size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {track.title}
+                        </span>
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded border border-border/60 bg-muted/50 text-muted-foreground">
+                          {track.category}
+                        </span>
+                        <span className="text-[10px] font-semibold text-primary">
+                          {track.badgeText}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 max-w-xl">
+                        {track.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {track.itemCount}
+                    </span>
+                    <Link
+                      to={track.href}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-control text-xs font-medium border border-border bg-card hover:bg-muted text-foreground transition-colors group-hover:border-line-strong active:scale-[0.98]"
+                    >
+                      <span>Explore</span>
+                      <ChevronRight size={13} className="text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ── Activity Heatmap ── */}
+        <section className="rounded-surface border border-border bg-card p-5 sm:p-6 shadow-elev-0">
+          <ActivityHeatmap
+            dataMode={heatmapMode}
+            onModeChange={setHeatmapMode}
+          />
+        </section>
+
+        {/* ── Quiz Assessment Section ── */}
+        <QuizSection />
+      </div>
+    </div>
   );
 }

@@ -24,13 +24,16 @@ import Interview from "./pages/Interview";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft } from "lucide-react";
+import Settings from "./pages/Settings";
+import MockInterviewPage from "./pages/interview/MockInterviewPage";
+import LearnHubPage from "./pages/LearnHubPage";
+import LearnTrackPage from "./pages/LearnTrackPage";
+import { Sun, Moon, Search, X, Sparkles, PanelLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GuruBot, GURU_PANEL_CONSTANTS } from "@/components/GuruBot";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
@@ -84,51 +87,22 @@ const clamp = (value: number, min: number, max: number) =>
 const ZOOM_MAP: Record<string, string> = { sm: "85%", md: "100%", lg: "115%", xl: "125%" };
 
 function HeaderControls() {
-  const { theme, toggleTheme, fontSize, increaseFontSize, decreaseFontSize } = useSettings();
+  const { theme, toggleTheme } = useSettings();
   const isDark = theme === "dark";
-  const isMin = fontSize === "sm";
-  const isMax = fontSize === "xl";
 
   return (
     <div className="flex items-center gap-1.5">
-      {/* Zoom cluster — desktop only */}
-      <div className="hidden md:flex items-center h-8 rounded-lg border border-border/55 bg-muted/50 p-0.5 gap-0">
-        <AppTooltip content="Zoom out text">
-          <button
-            onClick={decreaseFontSize}
-            disabled={isMin}
-            aria-label="Zoom out"
-            className="touch-manipulation flex items-center justify-center w-7 h-7 rounded-md transition-all disabled:opacity-25 hover:bg-background/80 text-muted-foreground/70 hover:text-foreground active:scale-[0.92]"
-          >
-            <ZoomOut size={12} />
-          </button>
-        </AppTooltip>
-        <span className="text-[10.5px] font-semibold min-w-[32px] text-center text-muted-foreground/70 font-mono tabular-nums select-none">
-          {ZOOM_MAP[fontSize] || "100%"}
-        </span>
-        <AppTooltip content="Zoom in text">
-          <button
-            onClick={increaseFontSize}
-            disabled={isMax}
-            aria-label="Zoom in"
-            className="touch-manipulation flex items-center justify-center w-7 h-7 rounded-md transition-all disabled:opacity-25 hover:bg-background/80 text-muted-foreground/70 hover:text-foreground active:scale-[0.92]"
-          >
-            <ZoomIn size={12} />
-          </button>
-        </AppTooltip>
-      </div>
-
       {/* Theme toggle */}
       <AppTooltip content={isDark ? "Switch to light mode" : "Switch to dark mode"}>
         <button
           onClick={toggleTheme}
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          className="group touch-manipulation flex items-center justify-center w-8 h-8 rounded-lg border border-border/55 bg-muted/50 hover:bg-muted hover:border-border/80 text-muted-foreground transition-all duration-200 active:scale-[0.93]"
+          className="group touch-manipulation flex items-center justify-center w-8 h-8 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground transition-all duration-200 active:scale-[0.93]"
         >
           {isDark ? (
-            <Sun size={14} className="transition-transform duration-300 group-hover:rotate-45 text-amber-400/90 group-hover:text-amber-400" />
+            <Sun size={14} className="transition-transform duration-300 group-hover:rotate-45 text-amber-400" />
           ) : (
-            <Moon size={14} className="transition-transform duration-300 group-hover:-rotate-12 text-slate-500 dark:text-slate-400" />
+            <Moon size={14} className="transition-transform duration-300 group-hover:-rotate-12 text-foreground" />
           )}
         </button>
       </AppTooltip>
@@ -180,37 +154,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // for programmatic fold/unfold so those animate smoothly.
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
-  // On the home page the left sidebar panel is hidden by default (including
-  // its fold/unfold handle). It only becomes visible when the user clicks the
-  // "Choose where to focus next." heading, which toggles `homeSidebarOpen`.
-  const [homeSidebarOpen, setHomeSidebarOpen] = useState(false);
-  const isHomeRoute = location.pathname === "/";
-  // The contest landing page is a focused entry surface: no sidebar panel and
-  // no resize slider, while the header keeps search / account / Guru access.
-  const isContestLandingRoute = location.pathname === "/contest";
-  // Sidebar panel should only mount on routes that want it: non-home,
-  // non-contest-landing, or when the home visitor explicitly opens it via
-  // the heading.
-  const showSidebarPanel =
-    (!isHomeRoute && !isContestLandingRoute) || homeSidebarOpen;
-  useEffect(() => {
-    // The panel unmounts on the home route; reset its state before it remounts.
-    if (!showSidebarPanel) setIsSidebarCollapsed(false);
-  }, [showSidebarPanel]);
-  const toggleHomeSidebar = useCallback(() => {
-    setHomeSidebarOpen((open) => {
-      const next = !open;
-      if (!next) {
-        // Reset fold state so a re-opened panel starts unfolded.
-        setIsSidebarCollapsed(false);
-      }
-      return next;
-    });
-  }, []);
-  const homeSidebarValue = useMemo(
-    () => ({ homeSidebarOpen, toggleHomeSidebar }),
-    [homeSidebarOpen, toggleHomeSidebar],
-  );
+  const showSidebarPanel = true;
 
   const foldSidebar = useCallback(() => {
     setIsSidebarCollapsed(true);
@@ -219,21 +163,20 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   const unfoldSidebar = useCallback(() => {
     setIsSidebarCollapsed(false);
-    // Restore to the remembered size (avoids snapping to an unexpected width)
     const restoreSize = sidebarSizeRef.current ?? 20;
     sidebarRef.current?.resize(restoreSize);
   }, []);
 
   useEffect(() => {
     const handleSidebarShortcut = (event: KeyboardEvent) => {
-      if (!showSidebarPanel || !event.altKey || event.ctrlKey || event.metaKey || event.key.toLowerCase() !== "b") return;
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.key.toLowerCase() !== "b") return;
       event.preventDefault();
       if (isSidebarCollapsed) unfoldSidebar();
       else foldSidebar();
     };
     window.addEventListener("keydown", handleSidebarShortcut);
     return () => window.removeEventListener("keydown", handleSidebarShortcut);
-  }, [showSidebarPanel, isSidebarCollapsed, foldSidebar, unfoldSidebar]);
+  }, [isSidebarCollapsed, foldSidebar, unfoldSidebar]);
 
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
@@ -298,7 +241,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider defaultWidth={340} widthStorageKey="algoguru-sidebar-width">
-      <HomeSidebarContext.Provider value={homeSidebarValue}>
       <div
         className="flex h-[100dvh] w-full overflow-hidden"
         style={{ background: "hsl(var(--background))" }}
@@ -369,31 +311,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             minSize={50}
             className="flex flex-col min-h-0"
           >
-          {/* Top bar — Premium redesign */}
-          <header
-            className={cn(
-              "relative h-[52px] flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-5 flex-shrink-0 sticky top-0 z-40",
-              "backdrop-blur-2xl transition-all duration-300",
-              isHomeRoute
-                ? "border-b border-border/30 shadow-[0_1px_0_0_hsl(var(--primary)/0.06),0_4px_24px_-4px_hsl(var(--primary)/0.05)]"
-                : "border-b border-border/45 shadow-[0_1px_0_0_hsl(var(--primary)/0.08),0_4px_32px_-4px_hsl(var(--primary)/0.08)]"
-            )}
-            style={{
-              background: isHomeRoute
-                ? "linear-gradient(180deg,hsl(var(--background)/0.84) 0%,hsl(var(--background)/0.74) 100%)"
-                : "linear-gradient(180deg,hsl(var(--background)/0.93) 0%,hsl(var(--background)/0.86) 100%)",
-            }}
-          >
-            {/* Gradient shimmer accent line at very top */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-80"
-              style={{
-                background:
-                  "linear-gradient(90deg,transparent 0%,hsl(var(--primary)/0.32) 30%,hsl(var(--primary)/0.55) 50%,hsl(var(--primary)/0.32) 70%,transparent 100%)",
-              }}
-            />
-
+          {/* Top bar — Handcrafted engineering workspace header */}
+          <header className="h-[52px] flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 flex-shrink-0 sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border">
             {/* ── Left: sidebar toggle + logo ──────────────────── */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
               <AnimatePresence initial={false}>
@@ -403,117 +322,55 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: "auto", opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
+                    transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     className="flex items-center overflow-hidden flex-shrink-0"
                   >
                     <button
                       onClick={unfoldSidebar}
-                      aria-label="Expand sidebar"
+                      aria-label="Expand sidebar (Alt+B)"
                       aria-keyshortcuts="Alt+B"
-                      className={cn(
-                        "group relative touch-manipulation w-8 h-8 rounded-lg flex-shrink-0",
-                        "flex items-center justify-center",
-                        "bg-muted/50 border border-border/60",
-                        "hover:bg-primary/[0.08] hover:border-primary/35 hover:text-primary",
-                        "active:scale-[0.93] transition-all duration-200",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-                      )}
+                      className="group touch-manipulation w-8 h-8 rounded-control flex items-center justify-center bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-[0.96]"
                     >
-                      <PanelLeft
-                        size={14}
-                        className="absolute text-muted-foreground/70 transition-all duration-200 group-hover:opacity-0 group-hover:scale-50"
-                      />
-                      <FoldGlyph
-                        direction="unfold"
-                        size={15}
-                        strokeWidth={2.5}
-                        className="absolute text-primary opacity-0 scale-50 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100"
-                      />
+                      <PanelLeft size={14} />
                     </button>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               {/* Logo lockup */}
-              <AppTooltip content="Go to home">
-                <Link
-                  to="/"
-                  aria-label="AlgoGuru Home"
-                  className="group flex items-center gap-2 rounded-xl px-1.5 py-1 -ml-1 transition-all duration-200 hover:bg-muted/40 active:scale-[0.97] flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-                >
-                  {/* Icon badge with glow */}
-                  <div className="relative flex items-center justify-center w-[30px] h-[30px] flex-shrink-0">
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-[8px]"
-                      style={{ background: "linear-gradient(135deg,hsl(var(--primary)/0.5) 0%,hsl(var(--primary)/0.2) 100%)" }}
-                    />
-                    <div
-                      className="relative flex items-center justify-center w-[30px] h-[30px] rounded-lg transition-transform duration-200 group-hover:scale-[1.08]"
-                      style={{
-                        background: "linear-gradient(135deg,hsl(var(--primary)) 0%,hsl(var(--primary)/0.72) 100%)",
-                        boxShadow: "0 0 0 1px hsl(var(--primary)/0.18),0 2px 8px hsl(var(--primary)/0.28),inset 0 1px 0 rgba(255,255,255,0.22)",
-                      }}
-                    >
-                      <AlgoGuruLogo size={18} showText={false} className="text-white" />
-                    </div>
-                  </div>
-                  {/* Brand text */}
-                  <span className="hidden sm:inline text-[14.5px] font-bold tracking-tight text-foreground">
-                    Algo<span className="text-primary">Guru</span>
-                  </span>
-                </Link>
-              </AppTooltip>
+              <Link
+                to="/"
+                aria-label="AlgoGuru Home"
+                className="group flex items-center gap-2 rounded-control px-1.5 py-1 -ml-1 transition-colors hover:bg-muted/60 active:scale-[0.98] flex-shrink-0"
+              >
+                <div className="flex items-center justify-center w-7 h-7 rounded-control bg-primary text-primary-foreground shadow-sm">
+                  <AlgoGuruLogo size={16} showText={false} className="text-primary-foreground" />
+                </div>
+                <span className="hidden sm:inline text-sm font-semibold tracking-tight text-foreground">
+                  Algo<span className="text-primary">Guru</span>
+                </span>
+              </Link>
             </div>
 
-            {/* ── Spacer ───────────────────────────────────────── */}
-            <div className="flex-1 min-w-0" />
+            {/* ── Center: Search ─────────────────────────────────── */}
+            <div className="flex-1 max-w-md mx-auto px-2 flex justify-center">
+              <GlobalSearch />
+            </div>
 
-            {/* ── Right: search + controls + user + Guru AI ────── */}
+            {/* ── Right: controls + user + Guru AI ────── */}
             <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-
-              {/* Mobile search icon */}
-              <AppTooltip content="Search (Ctrl+K)">
-                <button
-                  onClick={() => document.querySelector<HTMLButtonElement>('[data-search-trigger="true"]')?.click()}
-                  className="sm:hidden touch-manipulation flex items-center justify-center w-8 h-8 rounded-lg border border-border/60 bg-muted/50 hover:bg-primary/[0.08] hover:border-primary/35 text-muted-foreground hover:text-primary transition-all duration-150 active:scale-[0.93]"
-                  aria-label="Search"
-                >
-                  <Search size={15} />
-                </button>
-              </AppTooltip>
-
-              {/* Desktop search */}
-              <div className="hidden sm:block">
-                <GlobalSearch />
-              </div>
-
-              {/* Divider */}
-              <div className="hidden sm:block h-[18px] w-px bg-border/50 rounded-full mx-0.5" />
-
-              {/* Theme / zoom controls */}
               <HeaderControls />
 
-              {/* Divider */}
-              <div className="hidden sm:block h-[18px] w-px bg-border/50 rounded-full mx-0.5" />
+              <div className="h-4 w-px bg-border mx-0.5" />
 
-              {/* User avatar menu */}
               <UserMenu />
 
               {/* Guru AI button */}
               {isProblemSolverRoute ? (
-                <AppTooltip content="Guru AI is in the description panel — Guru AI tab.">
-                  <div
-                    className="hidden sm:flex items-center gap-1.5 h-8 px-3 text-[12px] font-semibold rounded-lg select-none"
-                    style={{
-                      background: "hsl(var(--primary)/0.1)",
-                      border: "1px solid hsl(var(--primary)/0.28)",
-                      color: "hsl(var(--primary))",
-                      boxShadow: "0 0 10px hsl(var(--primary)/0.08)",
-                    }}
-                  >
+                <AppTooltip content="Guru AI is active in the description panel.">
+                  <div className="hidden sm:flex items-center gap-1.5 h-8 px-2.5 text-xs font-medium rounded-control border border-primary/20 bg-primary/10 text-primary select-none">
                     <Sparkles size={13} />
-                    <span>Guru in tab</span>
+                    <span>Guru</span>
                   </div>
                 </AppTooltip>
               ) : (
@@ -522,39 +379,20 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                     onClick={toggleGuruPanel}
                     aria-label={guruOpen ? "Close Guru AI" : "Open Guru AI"}
                     className={cn(
-                      "touch-manipulation relative overflow-hidden flex items-center gap-1.5 h-8 px-3 sm:px-3.5 rounded-lg text-[12.5px] font-semibold transition-all duration-200 select-none active:scale-[0.93]",
+                      "touch-manipulation flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-control text-xs font-medium transition-colors select-none active:scale-[0.96]",
                       guruOpen
-                        ? "text-primary-foreground shadow-[0_0_0_1px_hsl(var(--primary)/0.8),0_4px_14px_hsl(var(--primary)/0.35),0_2px_6px_hsl(var(--primary)/0.2)]"
-                        : "text-foreground border border-border/60 bg-muted/50 hover:bg-primary/[0.08] hover:border-primary/40 hover:text-primary hover:shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
+                        ? "bg-primary text-primary-foreground shadow-elev-1"
+                        : "border border-border bg-card text-foreground hover:bg-muted hover:border-line-strong"
                     )}
-                    style={
-                      guruOpen
-                        ? { background: "linear-gradient(135deg,hsl(var(--primary)) 0%,hsl(var(--primary)/0.82) 100%)" }
-                        : {}
-                    }
                   >
-                    {guruOpen && (
-                      <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-[inherit]"
-                        style={{
-                          background:
-                            "linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.18) 50%,transparent 65%)",
-                          backgroundSize: "200% 100%",
-                          animation: "shimmer 2.4s ease-in-out infinite",
-                        }}
-                      />
-                    )}
                     <Sparkles
                       size={13}
                       className={cn(
-                        "relative flex-shrink-0 transition-transform duration-200",
+                        "transition-transform duration-200",
                         guruOpen ? "text-primary-foreground" : "text-primary"
                       )}
                     />
-                    <span className="hidden sm:inline relative">
-                      {guruOpen ? "Guru AI" : "Guru"}
-                    </span>
+                    <span className="hidden sm:inline">Guru</span>
                   </button>
                 </AppTooltip>
               )}
@@ -741,7 +579,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         </PanelGroup>
       </div>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
-      </HomeSidebarContext.Provider>
     </SidebarProvider>
   );
 }
@@ -775,6 +612,10 @@ const App = () => (
                     <AppLayout>
                       <Routes>
                         <Route path="/" element={<Index />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/learn" element={<LearnHubPage />} />
+                        <Route path="/learn/:track" element={<LearnTrackPage />} />
+                        <Route path="/learn/:track/:topic" element={<LearnTrackPage />} />
                         <Route path="/buy-me-a-coffee" element={<BuyMeACoffee />} />
                         <Route path="/support" element={<BuyMeACoffee />} />
                         <Route path="/playground" element={<Playground />} />
@@ -784,6 +625,7 @@ const App = () => (
                             above the `/:topicId` catch-all below, which would
                             otherwise match `/contest`. */}
                         {contestAppRoutes()}
+                        <Route path="/interview/mock" element={<MockInterviewPage />} />
                         <Route path="/interview" element={<Interview />} />
                         <Route path="/interview/:language" element={<Interview />} />
                         <Route path="/interview/:language/data-structure" element={<InterviewDataStructurePage />} />

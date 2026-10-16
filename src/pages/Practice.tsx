@@ -1,41 +1,37 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { practiceData } from "../data/practiceData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, Loader2, StickyNote, TrendingUp, Target, Code2, Layers, Sparkles, ArrowRight } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  StickyNote,
+  Target,
+  Sparkles,
+  ArrowRight,
+  Search,
+  X,
+  Bookmark,
+  ExternalLink,
+  SlidersHorizontal,
+  List,
+  Layers,
+  ChevronRight,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { DifficultyBadge, Kbd, StatTile } from "@/components/layout/PagePrimitives";
 
 type CelebrationParticle = { x: number; y: number; size: number; color: string; delay: number; duration: number; rotate: number };
 type CelebrationBurst = { id: number; x: number; y: number; particles: CelebrationParticle[] };
 
 const CELEBRATION_COLORS = ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#eab308", "#10b981"];
-const CELEBRATION_PARTICLE_COUNT = 18;
-
-const TOPIC_ACCENTS: Record<string, { bg: string; text: string; border: string; soft: string }> = {
-  array: { bg: "bg-blue-500", text: "text-blue-600", border: "border-blue-200", soft: "bg-blue-50 dark:bg-blue-950/30" },
-  strings: { bg: "bg-emerald-500", text: "text-emerald-600", border: "border-emerald-200", soft: "bg-emerald-50 dark:bg-emerald-950/30" },
-  "binary-search": { bg: "bg-blue-400", text: "text-blue-600", border: "border-blue-200", soft: "bg-blue-50 dark:bg-blue-950/30" },
-  stack: { bg: "bg-purple-500", text: "text-purple-600", border: "border-purple-200", soft: "bg-purple-50 dark:bg-purple-950/30" },
-  "linked-list": { bg: "bg-rose-500", text: "text-rose-600", border: "border-rose-200", soft: "bg-rose-50 dark:bg-rose-950/30" },
-  "double-linked-list": { bg: "bg-pink-500", text: "text-pink-600", border: "border-pink-200", soft: "bg-pink-50 dark:bg-pink-950/30" },
-  hashmap: { bg: "bg-cyan-500", text: "text-cyan-600", border: "border-cyan-200", soft: "bg-cyan-50 dark:bg-cyan-950/30" },
-  heap: { bg: "bg-indigo-500", text: "text-indigo-600", border: "border-indigo-200", soft: "bg-indigo-50 dark:bg-indigo-950/30" },
-  recursion: { bg: "bg-blue-500", text: "text-blue-600", border: "border-blue-200", soft: "bg-blue-50 dark:bg-blue-950/30" },
-  tree: { bg: "bg-teal-500", text: "text-teal-600", border: "border-teal-200", soft: "bg-teal-50 dark:bg-teal-950/30" },
-  "binary-search-tree": { bg: "bg-lime-600", text: "text-lime-700", border: "border-lime-200", soft: "bg-lime-50 dark:bg-lime-950/30" },
-  graph: { bg: "bg-sky-600", text: "text-sky-700", border: "border-sky-200", soft: "bg-sky-50 dark:bg-sky-950/30" },
-  backtracking: { bg: "bg-fuchsia-500", text: "text-fuchsia-600", border: "border-fuchsia-200", soft: "bg-fuchsia-50 dark:bg-fuchsia-950/30" },
-  greedy: { bg: "bg-yellow-500", text: "text-yellow-700", border: "border-yellow-200", soft: "bg-yellow-50 dark:bg-yellow-950/30" },
-  "dynamic-programming": { bg: "bg-violet-600", text: "text-violet-700", border: "border-violet-200", soft: "bg-violet-50 dark:bg-violet-950/30" },
-  trie: { bg: "bg-emerald-600", text: "text-emerald-700", border: "border-emerald-200", soft: "bg-emerald-50 dark:bg-emerald-950/30" },
-  "bit-manipulation": { bg: "bg-slate-600", text: "text-slate-700", border: "border-slate-200", soft: "bg-slate-50 dark:bg-slate-900/30" },
-};
+const CELEBRATION_PARTICLE_COUNT = 16;
 
 function toProblemSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
@@ -43,27 +39,95 @@ function toProblemSlug(title: string): string {
 
 export default function Practice() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL state
+  const query = searchParams.get("q") ?? "";
+  const difficultyFilter = searchParams.get("difficulty") ?? "all";
+  const statusFilter = searchParams.get("status") ?? "all";
+  const viewMode = searchParams.get("view") ?? "grouped"; // "grouped" | "table"
+
+  const setQueryParam = useCallback((key: string, value: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (!value || value === "all" || (key === "view" && value === "grouped")) {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [savedForRevision, setSavedForRevision] = useState<Set<string>>(new Set());
   const [notesByProblem, setNotesByProblem] = useState<Record<string, string>>({});
   const [loadingState, setLoadingState] = useState(false);
   const [upsertingProblemId, setUpsertingProblemId] = useState<string | null>(null);
   const [savingNotesFor, setSavingNotesFor] = useState<Record<string, boolean>>({});
-  const [savedNotesFor, setSavedNotesFor] = useState<Record<string, boolean>>({});
   const [openSubtopicId, setOpenSubtopicId] = useState<string | null>(null);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [celebrationBursts, setCelebrationBursts] = useState<CelebrationBurst[]>([]);
   const celebrationIdRef = useRef(0);
-  const noteSaveFeedbackTimersRef = useRef<Record<string, ReturnType<typeof window.setTimeout>>>({});
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    return () => {
-      Object.values(noteSaveFeedbackTimersRef.current).forEach((timer) => window.clearTimeout(timer));
-      noteSaveFeedbackTimersRef.current = {};
-    };
+  // Flattened problems for fast searching and table view
+  const allProblems = useMemo(() => {
+    return practiceData.flatMap((topic) =>
+      topic.subtopics.flatMap((sub) =>
+        sub.problems.map((prob) => ({
+          ...prob,
+          topicId: topic.id,
+          topicTitle: topic.title,
+          subtopicId: sub.id,
+          subtopicTitle: sub.title,
+        }))
+      )
+    );
   }, []);
 
+  // Stats calculation
+  const stats = useMemo(() => {
+    let easyTotal = 0;
+    let easySolved = 0;
+    let medTotal = 0;
+    let medSolved = 0;
+    let hardTotal = 0;
+    let hardSolved = 0;
+
+    for (const p of allProblems) {
+      const isSolved = completed.has(p.id);
+      if (p.difficulty === "Easy") {
+        easyTotal++;
+        if (isSolved) easySolved++;
+      } else if (p.difficulty === "Medium") {
+        medTotal++;
+        if (isSolved) medSolved++;
+      } else if (p.difficulty === "Hard") {
+        hardTotal++;
+        if (isSolved) hardSolved++;
+      }
+    }
+
+    const total = allProblems.length;
+    const solved = completed.size;
+    const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
+
+    return {
+      total,
+      solved,
+      pct,
+      easyTotal,
+      easySolved,
+      medTotal,
+      medSolved,
+      hardTotal,
+      hardSolved,
+    };
+  }, [allProblems, completed]);
+
+  // Load user state from Supabase
   useEffect(() => {
     if (!user) {
       setCompleted(new Set());
@@ -74,14 +138,19 @@ export default function Practice() {
     let mounted = true;
     const load = async () => {
       setLoadingState(true);
-      const { data, error } = await supabase.from("practice_problem_user_state").select("problem_id, notes, is_completed, is_saved_for_revision").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("practice_problem_user_state")
+        .select("problem_id, notes, is_completed, is_saved_for_revision")
+        .eq("user_id", user.id);
       if (!mounted) return;
       if (error) {
-        toast({ title: "Load failed", description: error.message, variant: "destructive" });
+        toast({ title: "Failed to load progress", description: error.message, variant: "destructive" });
         setLoadingState(false);
         return;
       }
-      const c = new Set<string>(), r = new Set<string>(), n: Record<string, string> = {};
+      const c = new Set<string>();
+      const r = new Set<string>();
+      const n: Record<string, string> = {};
       for (const row of data ?? []) {
         if (row.is_completed) c.add(row.problem_id);
         if (row.is_saved_for_revision) r.add(row.problem_id);
@@ -93,50 +162,109 @@ export default function Practice() {
       setLoadingState(false);
     };
     load();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
-  const upsertUserState = async (problemId: string, patch: Partial<{ notes: string; is_completed: boolean; is_saved_for_revision: boolean }>) => {
-    if (!user) { toast({ title: "Please sign in", description: "Login is required to save progress.", variant: "destructive" }); return false; }
-    const { error } = await supabase.from("practice_problem_user_state").upsert({ user_id: user.id, problem_id: problemId, ...patch }, { onConflict: "user_id,problem_id" });
-    if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return false; }
+  // Keyboard shortcut to focus search with '/'
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const upsertUserState = async (
+    problemId: string,
+    patch: Partial<{ notes: string; is_completed: boolean; is_saved_for_revision: boolean }>
+  ) => {
+    if (!user) {
+      toast({ title: "Please sign in", description: "Sign in to save your solution progress and notes.", variant: "destructive" });
+      return false;
+    }
+    const { error } = await supabase
+      .from("practice_problem_user_state")
+      .upsert({ user_id: user.id, problem_id: problemId, ...patch }, { onConflict: "user_id,problem_id" });
+    if (error) {
+      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      return false;
+    }
     return true;
   };
 
   const toggleProblem = async (id: string) => {
     const cur = completed.has(id);
     const next = !cur;
-    setCompleted((prev) => { const n = new Set(prev); if (next) n.add(id); else n.delete(id); return n; });
+    setCompleted((prev) => {
+      const n = new Set(prev);
+      if (next) n.add(id);
+      else n.delete(id);
+      return n;
+    });
     setUpsertingProblemId(id);
     const ok = await upsertUserState(id, { is_completed: next });
     setUpsertingProblemId(null);
-    if (!ok) { setCompleted((prev) => { const r = new Set(prev); if (cur) r.add(id); else r.delete(id); return r; }); return; }
+    if (!ok) {
+      setCompleted((prev) => {
+        const r = new Set(prev);
+        if (cur) r.add(id);
+        else r.delete(id);
+        return r;
+      });
+      return;
+    }
     if (next) triggerCompletionCelebration(id);
   };
 
   const toggleSaveForRevision = async (id: string) => {
     const cur = savedForRevision.has(id);
     const next = !cur;
-    setSavedForRevision((prev) => { const n = new Set(prev); if (next) n.add(id); else n.delete(id); return n; });
+    setSavedForRevision((prev) => {
+      const n = new Set(prev);
+      if (next) n.add(id);
+      else n.delete(id);
+      return n;
+    });
     setUpsertingProblemId(id);
     const ok = await upsertUserState(id, { is_saved_for_revision: next });
     setUpsertingProblemId(null);
-    if (!ok) { setSavedForRevision((prev) => { const r = new Set(prev); if (cur) r.add(id); else r.delete(id); return r; }); return; }
-    toast({ title: next ? "Saved for revision" : "Removed from revision" });
+    if (!ok) {
+      setSavedForRevision((prev) => {
+        const r = new Set(prev);
+        if (cur) r.add(id);
+        else r.delete(id);
+        return r;
+      });
+      return;
+    }
+    toast({ title: next ? "Bookmarked for revision" : "Removed bookmark" });
   };
 
   const saveNotes = async (id: string, nextNotes: string) => {
     const trimmed = nextNotes.trim();
-    setSavedNotesFor((prev) => ({ ...prev, [id]: false }));
     setSavingNotesFor((prev) => ({ ...prev, [id]: true }));
-    const ok = await upsertUserState(id, trimmed.length > 0 ? { notes: nextNotes, is_saved_for_revision: true } : { notes: nextNotes });
+    const ok = await upsertUserState(
+      id,
+      trimmed.length > 0 ? { notes: nextNotes, is_saved_for_revision: true } : { notes: nextNotes }
+    );
     setSavingNotesFor((prev) => ({ ...prev, [id]: false }));
     if (ok) {
-      setNotesByProblem((prev) => { if (!trimmed.length) { const n = { ...prev }; delete n[id]; return n; } return { ...prev, [id]: nextNotes }; });
-      if (trimmed.length > 0) setSavedForRevision((prev) => { const n = new Set(prev); n.add(id); return n; });
-      setSavedNotesFor((prev) => ({ ...prev, [id]: true }));
-      if (noteSaveFeedbackTimersRef.current[id]) window.clearTimeout(noteSaveFeedbackTimersRef.current[id]);
-      noteSaveFeedbackTimersRef.current[id] = window.setTimeout(() => { setSavedNotesFor((prev) => ({ ...prev, [id]: false })); delete noteSaveFeedbackTimersRef.current[id]; }, 2200);
+      setNotesByProblem((prev) => {
+        if (!trimmed.length) {
+          const n = { ...prev };
+          delete n[id];
+          return n;
+        }
+        return { ...prev, [id]: nextNotes };
+      });
+      if (trimmed.length > 0) {
+        setSavedForRevision((prev) => new Set(prev).add(id));
+      }
       toast({ title: trimmed.length > 0 ? "Notes saved" : "Notes cleared" });
     }
   };
@@ -150,75 +278,117 @@ export default function Practice() {
     const burstId = celebrationIdRef.current;
     const particles: CelebrationParticle[] = Array.from({ length: CELEBRATION_PARTICLE_COUNT }, (_, i) => {
       const a = (Math.PI * 2 * i) / CELEBRATION_PARTICLE_COUNT;
-      const s = 60 + Math.random() * 80;
-      return { x: Math.cos(a) * s, y: Math.sin(a) * s - (30 + Math.random() * 30), size: 5 + Math.round(Math.random() * 4), color: CELEBRATION_COLORS[i % CELEBRATION_COLORS.length], delay: Math.random() * 0.08, duration: 0.65 + Math.random() * 0.45, rotate: Math.random() * 540 - 270 };
+      const s = 50 + Math.random() * 70;
+      return {
+        x: Math.cos(a) * s,
+        y: Math.sin(a) * s - (25 + Math.random() * 25),
+        size: 4 + Math.round(Math.random() * 3),
+        color: CELEBRATION_COLORS[i % CELEBRATION_COLORS.length],
+        delay: Math.random() * 0.06,
+        duration: 0.6 + Math.random() * 0.3,
+        rotate: Math.random() * 360,
+      };
     });
     setCelebrationBursts((prev) => [...prev, { id: burstId, x, y, particles }]);
-    window.setTimeout(() => setCelebrationBursts((prev) => prev.filter((b) => b.id !== burstId)), 1300);
+    window.setTimeout(() => setCelebrationBursts((prev) => prev.filter((b) => b.id !== burstId)), 1100);
   };
 
   const openNotesPopup = (id: string) => {
     setNoteDraft(notesByProblem[id] ?? "");
-    setSavedNotesFor((prev) => ({ ...prev, [id]: false }));
     setActiveNoteId(id);
   };
 
-  const getDifficultyColor = (diff: string) => {
-    switch (diff) {
-      case "Easy": return "bg-success/10 text-success border-success/30";
-      case "Medium": return "bg-warning/10 text-warning border-warning/30";
-      case "Hard": return "bg-destructive/10 text-destructive border-destructive/30";
-      default: return "bg-muted text-muted-foreground border-border";
-    }
-  };
+  // Filter predicate
+  const matchesProblem = useCallback(
+    (prob: { id: string; title: string; difficulty: string; companies: string[] }) => {
+      // Query filter
+      if (query.trim()) {
+        const q = query.toLowerCase().trim();
+        const titleMatch = prob.title.toLowerCase().includes(q);
+        const compMatch = prob.companies.some((c) => c.toLowerCase().includes(q));
+        if (!titleMatch && !compMatch) return false;
+      }
 
-  const totalProblems = useMemo(() => practiceData.reduce((acc, t) => acc + t.subtopics.reduce((a, s) => a + s.problems.length, 0), 0), []);
-  const solvedCount = completed.size;
-  const progressPct = totalProblems ? Math.round((solvedCount / totalProblems) * 100) : 0;
+      // Difficulty filter
+      if (difficultyFilter !== "all" && prob.difficulty.toLowerCase() !== difficultyFilter.toLowerCase()) {
+        return false;
+      }
+
+      // Status filter
+      if (statusFilter === "solved" && !completed.has(prob.id)) return false;
+      if (statusFilter === "todo" && completed.has(prob.id)) return false;
+      if (statusFilter === "saved" && !savedForRevision.has(prob.id)) return false;
+
+      return true;
+    },
+    [query, difficultyFilter, statusFilter, completed, savedForRevision]
+  );
+
+  // Filtered flat problems for Table view
+  const filteredProblems = useMemo(() => {
+    return allProblems.filter(matchesProblem);
+  }, [allProblems, matchesProblem]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <section className="relative border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,hsl(var(--primary)/0.12),transparent_35%),radial-gradient(circle_at_15%_50%,hsl(var(--accent)/0.06),transparent_30%)]" />
-        <div className="relative mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-20 lg:px-16">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="max-w-2xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
-                <TrendingUp size={13} className="text-primary" /> Master data structures & algorithms
+    <div className="min-h-screen bg-background text-foreground pb-20">
+      {/* ── Page Header ── */}
+      <section className="border-b border-border bg-card/40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary mb-1">
+                <Target size={14} />
+                <span>Curated Problem Bank</span>
               </div>
-              <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
-                Master code. <span className="text-primary">Ace interviews.</span>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                Practice Problems
               </h1>
-              <p className="mt-5 text-base leading-7 text-muted-foreground md:text-lg">
-                Curated by pattern — Array, String, Binary Search, Stack, Linked List, Heap, Tree & more. Track progress, save notes, and solve with editorial.
+              <p className="mt-1 text-sm text-muted-foreground max-w-xl">
+                Master 500+ interview problems categorized across 14 algorithmic patterns.
               </p>
-              {loadingState && <div className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={15} className="animate-spin" /> Syncing your progress…</div>}
+              {loadingState && (
+                <div className="mt-2.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Loader2 size={13} className="animate-spin text-primary" />
+                  <span>Syncing saved progress...</span>
+                </div>
+              )}
             </div>
 
-            <div className="w-full lg:w-[340px] shrink-0 rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-semibold text-foreground"><Target size={16} className="text-primary" /> Your progress</div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-muted text-foreground">{solvedCount}/{totalProblems}</span>
+            {/* Progress summary card */}
+            <div className="w-full lg:w-80 shrink-0 rounded-surface border border-border bg-card p-4 shadow-elev-0">
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className="font-medium text-foreground">Completion</span>
+                <span className="font-mono text-muted-foreground">
+                  {stats.solved} / {stats.total} ({stats.pct}%)
+                </span>
               </div>
-              <div className="mt-4 h-2 rounded-full bg-muted overflow-hidden">
-                <div className="h-full bg-primary transition-all" style={{ width: `${progressPct}%` }} />
+              {/* Progress bar */}
+              <div className="h-1.5 w-full bg-muted rounded-pill overflow-hidden flex">
+                <div
+                  className="bg-primary transition-all duration-300"
+                  style={{ width: `${stats.pct}%` }}
+                />
               </div>
-              <div className="mt-2.5 flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">{progressPct}% completed</span>
-                <span>{totalProblems - solvedCount} remaining</span>
-              </div>
-              <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-lg bg-muted/40 border border-border p-2.5">
-                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Solved</div>
-                  <div className="text-sm font-semibold text-foreground mt-1">{solvedCount}</div>
+
+              {/* Easy / Med / Hard breakdown */}
+              <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/60 text-center">
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400">Easy</span>
+                  <p className="text-xs font-mono font-medium text-foreground mt-0.5">
+                    {stats.easySolved}/{stats.easyTotal}
+                  </p>
                 </div>
-                <div className="rounded-lg bg-muted/40 border border-border p-2.5">
-                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Saved</div>
-                  <div className="text-sm font-semibold text-foreground mt-1">{savedForRevision.size}</div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-amber-600 dark:text-amber-400">Medium</span>
+                  <p className="text-xs font-mono font-medium text-foreground mt-0.5">
+                    {stats.medSolved}/{stats.medTotal}
+                  </p>
                 </div>
-                <div className="rounded-lg bg-primary text-primary-foreground p-2.5">
-                  <div className="text-[10px] font-medium uppercase tracking-wider opacity-90">Total</div>
-                  <div className="text-sm font-semibold mt-1">{totalProblems}</div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-rose-600 dark:text-rose-400">Hard</span>
+                  <p className="text-xs font-mono font-medium text-foreground mt-0.5">
+                    {stats.hardSolved}/{stats.hardTotal}
+                  </p>
                 </div>
               </div>
             </div>
@@ -226,152 +396,418 @@ export default function Practice() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16">
-        <div className="space-y-12">
-          {practiceData.map((topic) => {
-            const accent = TOPIC_ACCENTS[topic.id] ?? { bg: "bg-zinc-900", text: "text-zinc-900", border: "border-zinc-200", soft: "bg-zinc-50" };
-            const topicTotal = topic.subtopics.reduce((a, s) => a + s.problems.length, 0);
-            const topicSolved = topic.subtopics.reduce((a, s) => a + s.problems.filter((p) => completed.has(p.id)).length, 0);
-            const topicPct = topicTotal ? Math.round((topicSolved / topicTotal) * 100) : 0;
-            return (
-              <div key={topic.id} className="space-y-5">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border pb-4">
-                  <div className="flex items-start gap-4">
-                    <div className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${accent.border} ${accent.soft} ${accent.text} md:flex`}>
-                      <Layers size={18} />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                        {topic.title}
-                        <span className={`hidden md:inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${accent.border} ${accent.soft} ${accent.text}`}>{topicSolved}/{topicTotal}</span>
-                      </h2>
-                      <p className="mt-1.5 text-sm leading-6 text-muted-foreground max-w-3xl">{topic.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-                      <Code2 size={13} className={accent.text} /> {topicPct}% done
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 grid-cols-1">
-                  {topic.subtopics.map((sub) => {
-                    const total = sub.problems.length;
-                    const done = sub.problems.filter((p) => completed.has(p.id)).length;
-                    const progress = total ? (done / total) * 100 : 0;
-                    const isDone = done === total && total > 0;
-                    return (
-                      <div key={sub.id} className="group bg-card border border-border rounded-2xl overflow-hidden transition-all flex flex-col hover:border-primary/30">
-                        <div className={`h-0.5 w-full ${isDone ? "bg-success" : "bg-muted"}`} />
-                        <Accordion type="single" collapsible value={openSubtopicId === sub.id ? sub.id : undefined} onValueChange={(v) => setOpenSubtopicId(v === sub.id ? sub.id : null)} className="w-full">
-                          <AccordionItem value={sub.id} className="border-none">
-                            <AccordionTrigger className="hover:no-underline px-6 py-5 group/trigger">
-                              <div className="flex flex-col items-start text-left gap-2.5 w-full pr-2">
-                                <div className="flex items-center justify-between w-full gap-3">
-                                  <h3 className="text-base font-semibold tracking-tight text-foreground group-hover/trigger:text-primary transition-colors line-clamp-1">
-                                    {sub.title}
-                                  </h3>
-                                  <div className={`shrink-0 px-2.5 py-0.5 text-xs font-semibold rounded-md border flex items-center gap-1.5 ${isDone ? "bg-success/10 border-success/30 text-success" : "bg-muted/40 border-border text-muted-foreground"}`}>
-                                    {isDone && <CheckCircle2 size={12} />} {done}/{total}
-                                  </div>
-                                </div>
-                                <p className="text-sm leading-6 text-muted-foreground line-clamp-2 max-w-[95%]">{sub.description}</p>
-                                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mt-2">
-                                  <motion.div className={`h-full ${isDone ? "bg-success" : "bg-primary"}`} initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
-                                </div>
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-6 pb-6 pt-0">
-                              <div className="space-y-2.5">
-                                {sub.problems.map((prob) => {
-                                  const checked = completed.has(prob.id);
-                                  const isRevisionSaved = savedForRevision.has(prob.id);
-                                  const isSavingNotes = savingNotesFor[prob.id] ?? false;
-                                  const hasNotes = (notesByProblem[prob.id] ?? "").trim().length > 0;
-                                  const rowBusy = upsertingProblemId === prob.id;
-                                  return (
-                                    <div key={prob.id} className={`group/row p-4 rounded-xl border transition-colors ${checked ? "border-success/40 bg-success/5" : "border-border bg-card hover:bg-muted/30"}`}>
-                                      <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                          <Checkbox id={prob.id} checked={checked} onCheckedChange={() => void toggleProblem(prob.id)} className="h-4 w-4 rounded border-border data-[state=checked]:bg-success data-[state=checked]:border-success shrink-0" />
-                                          <label htmlFor={prob.id} className={`text-sm font-medium cursor-pointer select-none truncate leading-5 ${checked ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                                            {prob.title}
-                                          </label>
-                                          {checked && <CheckCircle2 size={14} className="text-success hidden sm:block" />}
-                                        </div>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                          <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${getDifficultyColor(prob.difficulty)}`}>{prob.difficulty}</span>
-                                          {rowBusy && <Loader2 size={13} className="animate-spin text-muted-foreground" />}
-                                        </div>
-                                      </div>
-
-                                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                                        <div className="flex flex-wrap gap-1.5 mr-auto">
-                                          {prob.companies.slice(0, 4).map((c) => (
-                                            <span key={`${prob.id}-${c}`} className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted border border-border text-muted-foreground">
-                                              {c}
-                                            </span>
-                                          ))}
-                                          {prob.companies.length > 4 && <span className="text-xs text-muted-foreground">+{prob.companies.length - 4}</span>}
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                          <AppTooltip content="LeetCode">
-                                            <a href={prob.leetcodeLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-muted border border-border text-xs font-medium text-muted-foreground hover:bg-foreground hover:text-background transition-colors">
-                                              LC
-                                            </a>
-                                          </AppTooltip>
-                                          <AppTooltip content="GeeksforGeeks">
-                                            <a href={prob.gfgLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-muted border border-border text-xs font-medium text-muted-foreground hover:bg-success hover:text-success-foreground hover:border-success transition-colors">
-                                              GFG
-                                            </a>
-                                          </AppTooltip>
-                                          <Link to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`} className="h-7 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:brightness-95 inline-flex items-center gap-1">
-                                            Solution <ArrowRight size={12} />
-                                          </Link>
-                                        </div>
-                                      </div>
-
-                                      <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-border">
-                                        <button type="button" onClick={() => openNotesPopup(prob.id)} disabled={isSavingNotes} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${hasNotes ? "bg-primary/10 border-primary/30 text-primary" : "bg-card border-border text-muted-foreground hover:bg-muted"}`}>
-                                          {isSavingNotes ? <Loader2 size={12} className="animate-spin" /> : <StickyNote size={12} />} {hasNotes ? "Edit note" : "Add note"}
-                                        </button>
-                                        <button type="button" onClick={() => void toggleSaveForRevision(prob.id)} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${isRevisionSaved ? "bg-primary/10 border-primary/30 text-primary" : "bg-card border-border text-muted-foreground hover:bg-muted"}`}>
-                                          <Sparkles size={12} /> {isRevisionSaved ? "Saved" : "Save"}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
-                      </div>
-                    );
-                  })}
-                </div>
+      {/* ── Filters & Toolbar Bar ── */}
+      <div className="sticky top-[52px] z-30 bg-background/95 backdrop-blur-md border-b border-border shadow-elev-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            {/* Search input */}
+            <div className="relative flex-1 max-w-sm">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search problem or company (e.g. Two Sum, Google)..."
+                value={query}
+                onChange={(e) => setQueryParam("q", e.target.value)}
+                className="w-full h-8 pl-8 pr-12 text-xs rounded-control border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {query ? (
+                  <button
+                    onClick={() => setQueryParam("q", "")}
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label="Clear search"
+                  >
+                    <X size={13} />
+                  </button>
+                ) : (
+                  <Kbd>/</Kbd>
+                )}
               </div>
-            );
-          })}
+            </div>
+
+            {/* Filter segments */}
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              {/* Difficulty filter */}
+              <div className="inline-flex rounded-control border border-border bg-muted/40 p-0.5">
+                {[
+                  { id: "all", label: "All" },
+                  { id: "easy", label: "Easy" },
+                  { id: "medium", label: "Med" },
+                  { id: "hard", label: "Hard" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setQueryParam("difficulty", item.id)}
+                    className={`h-7 px-2.5 rounded-[4px] font-medium transition-colors ${
+                      difficultyFilter === item.id
+                        ? "bg-card text-foreground shadow-elev-0"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status filter */}
+              <div className="inline-flex rounded-control border border-border bg-muted/40 p-0.5">
+                {[
+                  { id: "all", label: "All" },
+                  { id: "todo", label: "Todo" },
+                  { id: "solved", label: "Solved" },
+                  { id: "saved", label: "Bookmarked" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setQueryParam("status", item.id)}
+                    className={`h-7 px-2.5 rounded-[4px] font-medium transition-colors ${
+                      statusFilter === item.id
+                        ? "bg-card text-foreground shadow-elev-0"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* View mode toggle */}
+              <div className="inline-flex rounded-control border border-border bg-muted/40 p-0.5">
+                <button
+                  onClick={() => setQueryParam("view", "grouped")}
+                  aria-label="Pattern view"
+                  className={`h-7 px-2 rounded-[4px] transition-colors ${
+                    viewMode === "grouped"
+                      ? "bg-card text-foreground shadow-elev-0"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Grouped by pattern"
+                >
+                  <Layers size={14} />
+                </button>
+                <button
+                  onClick={() => setQueryParam("view", "table")}
+                  aria-label="Table view"
+                  className={`h-7 px-2 rounded-[4px] transition-colors ${
+                    viewMode === "table"
+                      ? "bg-card text-foreground shadow-elev-0"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Flat table view"
+                >
+                  <List size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* ── Problems List / Table ── */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        {viewMode === "table" ? (
+          /* ── Table View ── */
+          <div className="rounded-surface border border-border bg-card overflow-hidden shadow-elev-0">
+            <div className="px-4 py-2.5 bg-muted/40 border-b border-border flex items-center justify-between text-xs text-muted-foreground font-medium">
+              <span>Showing {filteredProblems.length} problems</span>
+              <span className="hidden sm:inline">Click problem to open solution</span>
+            </div>
+
+            {filteredProblems.length === 0 ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">
+                No problems found matching your filters.
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {filteredProblems.map((prob) => {
+                  const isChecked = completed.has(prob.id);
+                  const isSaved = savedForRevision.has(prob.id);
+                  const hasNotes = (notesByProblem[prob.id] ?? "").trim().length > 0;
+
+                  return (
+                    <div
+                      key={prob.id}
+                      className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors group text-xs"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Checkbox
+                          id={`table-${prob.id}`}
+                          checked={isChecked}
+                          onCheckedChange={() => void toggleProblem(prob.id)}
+                          className="shrink-0"
+                        />
+                        <Link
+                          to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`}
+                          className={`truncate font-medium hover:text-primary transition-colors ${
+                            isChecked ? "text-muted-foreground line-through" : "text-foreground"
+                          }`}
+                        >
+                          {prob.title}
+                        </Link>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="hidden md:inline text-[11px] text-muted-foreground font-mono">
+                          {prob.subtopicTitle}
+                        </span>
+                        <DifficultyBadge difficulty={prob.difficulty} />
+
+                        {/* Hover Quick Actions */}
+                        <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openNotesPopup(prob.id)}
+                            className={`p-1 rounded hover:bg-muted transition-colors ${
+                              hasNotes ? "text-primary" : "text-muted-foreground"
+                            }`}
+                            title={hasNotes ? "Edit note" : "Add note"}
+                          >
+                            <StickyNote size={13} />
+                          </button>
+                          <button
+                            onClick={() => void toggleSaveForRevision(prob.id)}
+                            className={`p-1 rounded hover:bg-muted transition-colors ${
+                              isSaved ? "text-amber-500 fill-amber-500" : "text-muted-foreground"
+                            }`}
+                            title={isSaved ? "Bookmarked" : "Bookmark"}
+                          >
+                            <Bookmark size={13} />
+                          </button>
+                          {prob.leetcodeLink && (
+                            <a
+                              href={prob.leetcodeLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+                              title="Open on LeetCode"
+                            >
+                              <ExternalLink size={13} />
+                            </a>
+                          )}
+                          <Link
+                            to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`}
+                            className="p-1 rounded text-primary hover:bg-muted transition-colors"
+                            title="View editorial"
+                          >
+                            <ArrowRight size={13} />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ── Grouped View by Pattern ── */
+          <div className="space-y-6">
+            {practiceData.map((topic) => {
+              // Filter subtopics and problems within this topic
+              const visibleSubtopics = topic.subtopics
+                .map((sub) => ({
+                  ...sub,
+                  problems: sub.problems.filter(matchesProblem),
+                }))
+                .filter((sub) => sub.problems.length > 0);
+
+              if (visibleSubtopics.length === 0) return null;
+
+              const topicTotal = topic.subtopics.reduce((acc, s) => acc + s.problems.length, 0);
+              const topicSolved = topic.subtopics.reduce(
+                (acc, s) => acc + s.problems.filter((p) => completed.has(p.id)).length,
+                0
+              );
+
+              return (
+                <div key={topic.id} className="rounded-surface border border-border bg-card overflow-hidden shadow-elev-0">
+                  {/* Topic Header */}
+                  <div className="p-4 sm:p-5 border-b border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-base font-semibold text-foreground tracking-tight flex items-center gap-2">
+                        <span>{topic.title}</span>
+                        <span className="text-xs font-mono font-normal text-muted-foreground">
+                          ({topicSolved}/{topicTotal} solved)
+                        </span>
+                      </h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">{topic.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Subtopics Accordions */}
+                  <Accordion
+                    type="single"
+                    collapsible
+                    value={openSubtopicId ?? undefined}
+                    onValueChange={(val) => setOpenSubtopicId(val || null)}
+                    className="divide-y divide-border"
+                  >
+                    {visibleSubtopics.map((sub) => {
+                      const subDone = sub.problems.filter((p) => completed.has(p.id)).length;
+                      const subTotal = sub.problems.length;
+                      const isDone = subDone === subTotal && subTotal > 0;
+
+                      return (
+                        <AccordionItem key={sub.id} value={sub.id} className="border-b-0">
+                          <AccordionTrigger className="px-4 sm:px-5 py-3 hover:no-underline hover:bg-muted/30 transition-colors">
+                            <div className="flex items-center justify-between w-full pr-4 text-xs text-left">
+                              <span className="font-medium text-foreground tracking-tight">
+                                {sub.title}
+                              </span>
+                              <span
+                                className={`font-mono text-[11px] px-2 py-0.5 rounded border ${
+                                  isDone
+                                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                    : "bg-muted border-border text-muted-foreground"
+                                }`}
+                              >
+                                {subDone}/{subTotal}
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+
+                          <AccordionContent className="px-4 sm:px-5 pb-4 pt-1">
+                            <div className="divide-y divide-border/60 rounded-control border border-border/80 bg-background/50 overflow-hidden">
+                              {sub.problems.map((prob) => {
+                                const checked = completed.has(prob.id);
+                                const isRevisionSaved = savedForRevision.has(prob.id);
+                                const hasNotes = (notesByProblem[prob.id] ?? "").trim().length > 0;
+
+                                return (
+                                  <div
+                                    key={prob.id}
+                                    id={prob.id}
+                                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 transition-colors ${
+                                      checked ? "bg-muted/30" : "hover:bg-muted/20"
+                                    }`}
+                                  >
+                                    <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                      <Checkbox
+                                        id={prob.id}
+                                        checked={checked}
+                                        onCheckedChange={() => void toggleProblem(prob.id)}
+                                        className="mt-0.5 sm:mt-0 shrink-0"
+                                      />
+                                      <div className="min-w-0">
+                                        <Link
+                                          to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`}
+                                          className={`text-xs font-medium hover:text-primary transition-colors truncate block ${
+                                            checked ? "text-muted-foreground line-through" : "text-foreground"
+                                          }`}
+                                        >
+                                          {prob.title}
+                                        </Link>
+                                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                          {prob.companies.slice(0, 3).map((comp) => (
+                                            <span
+                                              key={comp}
+                                              className="text-[10px] px-1.5 py-0.5 rounded border border-border/60 bg-muted/40 text-muted-foreground font-mono"
+                                            >
+                                              {comp}
+                                            </span>
+                                          ))}
+                                          {prob.companies.length > 3 && (
+                                            <span className="text-[10px] text-muted-foreground">
+                                              +{prob.companies.length - 3}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                                      <DifficultyBadge difficulty={prob.difficulty} />
+
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => openNotesPopup(prob.id)}
+                                          className={`inline-flex items-center gap-1 h-7 px-2 rounded-control text-xs border transition-colors ${
+                                            hasNotes
+                                              ? "border-primary/30 bg-primary/10 text-primary"
+                                              : "border-border bg-card text-muted-foreground hover:bg-muted"
+                                          }`}
+                                          title={hasNotes ? "Edit notes" : "Add notes"}
+                                        >
+                                          <StickyNote size={12} />
+                                          <span className="hidden sm:inline">Note</span>
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => void toggleSaveForRevision(prob.id)}
+                                          className={`inline-flex items-center gap-1 h-7 px-2 rounded-control text-xs border transition-colors ${
+                                            isRevisionSaved
+                                              ? "border-amber-500/30 bg-amber-500/10 text-amber-500 fill-amber-500"
+                                              : "border-border bg-card text-muted-foreground hover:bg-muted"
+                                          }`}
+                                          title={isRevisionSaved ? "Saved" : "Save"}
+                                        >
+                                          <Bookmark size={12} />
+                                        </button>
+
+                                        {prob.leetcodeLink && (
+                                          <a
+                                            href={prob.leetcodeLink}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="h-7 px-2 rounded-control border border-border bg-card text-muted-foreground hover:text-foreground text-xs font-mono inline-flex items-center"
+                                            title="LeetCode"
+                                          >
+                                            LC
+                                          </a>
+                                        )}
+
+                                        <Link
+                                          to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`}
+                                          className="inline-flex items-center gap-1 h-7 px-2.5 rounded-control text-xs font-medium bg-primary text-primary-foreground hover:bg-accent-hover transition-colors"
+                                        >
+                                          <span>Solve</span>
+                                          <ArrowRight size={11} />
+                                        </Link>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Completion Particle Effects ── */}
       <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
         {celebrationBursts.map((burst) => (
           <div key={burst.id} className="absolute" style={{ left: `${burst.x}px`, top: `${burst.y}px` }}>
             {burst.particles.map((p, i) => (
-              <motion.span key={`${burst.id}-${i}`} className="absolute rounded-sm" style={{ backgroundColor: p.color, width: `${p.size}px`, height: `${p.size}px` }} initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }} animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.3, rotate: p.rotate }} transition={{ duration: p.duration, delay: p.delay, ease: "easeOut" }} />
+              <motion.span
+                key={`${burst.id}-${i}`}
+                className="absolute rounded-sm"
+                style={{ backgroundColor: p.color, width: `${p.size}px`, height: `${p.size}px` }}
+                initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+                animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.2, rotate: p.rotate }}
+                transition={{ duration: p.duration, delay: p.delay, ease: "easeOut" }}
+              />
             ))}
-            <motion.div className="absolute -left-7 -top-7 h-14 w-14 rounded-full border-2 border-amber-500/50" initial={{ scale: 0.25, opacity: 0.85 }} animate={{ scale: 1.7, opacity: 0 }} transition={{ duration: 0.65, ease: "easeOut" }} />
           </div>
         ))}
       </div>
 
+      {/* ── Draggable Note Editor Modal ── */}
       <AnimatePresence>
         {activeNoteId && (
           <DraggableNoteEditor
-            questionTitle={practiceData.flatMap((t) => t.subtopics).flatMap((s) => s.problems).find((p) => p.id === activeNoteId)?.title ?? "Note"}
+            questionTitle={
+              allProblems.find((p) => p.id === activeNoteId)?.title ?? "Note"
+            }
             value={noteDraft}
             onChange={setNoteDraft}
             onClose={() => setActiveNoteId(null)}

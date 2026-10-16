@@ -2322,7 +2322,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                   open={true}
                   onClose={() => setActiveTab(0)}
                   embedded={true}
-                  debugMode={true}
+                  debugMode={false}
                   initialContext={guruContext}
                   questionId={problem.questionId}
                   suggestedPrompts={guruSuggestions}
@@ -2345,7 +2345,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                       open={true}
                       onClose={() => setIsFullscreen(false)}
                       embedded={true}
-                      debugMode={true}
+                      debugMode={false}
                       initialContext={guruContext}
                       questionId={problem.questionId}
                       suggestedPrompts={guruSuggestions}

@@ -4443,7 +4443,7 @@ export default function Playground() {
                     <GuruBot
                       open={guruBotOpen}
                       onClose={() => setGuruBotOpen(false)}
-                      debugMode={true}
+                      debugMode={false}
                       initialContext={guruBotContext}
                       initialPrompt={guruInitialPrompt}
                       embedded={true}
@@ -4873,7 +4873,7 @@ export default function Playground() {
         <GuruBot
           open={guruBotOpen}
           onClose={() => setGuruBotOpen(false)}
-          debugMode={true}
+          debugMode={false}
           initialContext={guruBotContext}
           initialPrompt={guruInitialPrompt}
           onAssistantComplete={(text) => {
