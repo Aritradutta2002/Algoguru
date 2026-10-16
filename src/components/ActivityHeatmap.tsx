@@ -12,17 +12,32 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type HeatmapMode = "website" | "leetcode" | "codechef";
 
+export type HeatmapRange = "Last 12 months" | number;
+
 interface ActivityHeatmapProps {
   websiteCalendar?: Record<string, number>;
   leetcodeCalendar?: Record<string, number>;
   leetcodeActiveYears?: number[];
   codechefCalendar?: Record<string, number>;
   dataMode: HeatmapMode;
-  onModeChange: (mode: HeatmapMode) => void;
+  onModeChange?: (mode: HeatmapMode) => void;
   isLoading?: boolean;
+  /** "embedded" renders only the grid — header, range dropdown, mode pills
+   * and footer stats are owned (and restyled) by the parent card. */
+  variant?: "default" | "embedded";
+  /** Controlled range — when provided, internal year state is ignored. */
+  range?: HeatmapRange;
+  onRangeChange?: (range: HeatmapRange) => void;
+  rangeOptions?: HeatmapRange[];
+  /** Fires whenever the stats for the visible range change. */
+  onStatsChange?: (stats: {
+    total: number;
+    activeDays: number;
+    maxStreak: number;
+  }) => void;
 }
 
-type YearOption = "Last 12 months" | number;
+type YearOption = HeatmapRange;
 
 const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
 const CELL_SIZE = 14;
@@ -60,7 +75,7 @@ const normalizeCalendarDateKey = (dateKey: string) => {
    class so Tailwind's `dark:` variant handles the switch automatically.
    Index 0 = no activity, 1‒5 = increasing intensity.
    ────────────────────────────────────────────────────────────────────────── */
-const MODE_INTENSITY_COLORS: Record<HeatmapMode, string[]> = {
+export const MODE_INTENSITY_COLORS: Record<HeatmapMode, string[]> = {
   website: [
     /* 0 */ "bg-stone-200/70 dark:bg-[#1a1f1a]",
     /* 1 */ "bg-emerald-200/80 dark:bg-emerald-900/60",
@@ -130,9 +145,25 @@ export function ActivityHeatmap({
   dataMode,
   onModeChange,
   isLoading = false,
+  variant = "default",
+  range,
+  onRangeChange,
+  rangeOptions,
+  onStatsChange,
 }: ActivityHeatmapProps) {
-  const [selectedYear, setSelectedYear] =
-    useState<YearOption>("Last 12 months");
+  const isEmbedded = variant === "embedded";
+
+  const [internalYear, setInternalYear] = useState<YearOption>(
+    "Last 12 months",
+  );
+  const selectedYear = range !== undefined ? range : internalYear;
+  const setSelectedYear = (next: YearOption) => {
+    if (onRangeChange) {
+      onRangeChange(next);
+    } else {
+      setInternalYear(next);
+    }
+  };
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -163,7 +194,7 @@ export function ActivityHeatmap({
   }, []);
 
   const currentYear = new Date().getFullYear();
-  const yearOptions: YearOption[] = useMemo(() => {
+  const computedYearOptions: YearOption[] = useMemo(() => {
     const years =
       dataMode === "leetcode" && leetcodeActiveYears.length > 0
         ? leetcodeActiveYears
@@ -180,6 +211,11 @@ export function ActivityHeatmap({
       ).sort((a, b) => b - a),
     ];
   }, [currentYear, dataMode, leetcodeActiveYears]);
+
+  const yearOptions =
+    rangeOptions && rangeOptions.length > 0
+      ? rangeOptions
+      : computedYearOptions;
 
   const modeConfig = useMemo(
     () => ({
@@ -346,6 +382,15 @@ export function ActivityHeatmap({
     selectedYear,
   ]);
 
+  // Report range-scoped stats so a parent card can render its own footer.
+  useEffect(() => {
+    onStatsChange?.({
+      total: totalSubmissions,
+      activeDays,
+      maxStreak,
+    });
+  }, [onStatsChange, totalSubmissions, activeDays, maxStreak]);
+
   // Calculate intensity level (0-5) from count
   const getIntensityLevel = useCallback(
     (count: number): number => {
@@ -383,6 +428,7 @@ export function ActivityHeatmap({
   return (
     <div className="w-full flex flex-col font-sans select-none">
       {/* ── Header ── */}
+      {!isEmbedded && (
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-muted border border-border">
@@ -472,11 +518,17 @@ export function ActivityHeatmap({
           </div>
         </div>
       </div>
+      )}
 
       {/* ── Heatmap Grid ── */}
       <div
         ref={containerRef}
-        className="relative overflow-x-auto overflow-y-hidden rounded-xl border border-border bg-card p-4"
+        className={cn(
+          "relative overflow-x-auto overflow-y-hidden rounded-xl p-4",
+          isEmbedded
+            ? "border border-border/60 bg-muted/20"
+            : "border border-border bg-card",
+        )}
         style={{ minHeight: `${cellSize * 7 + cellGap * 8 + 56}px` }}
       >
         {isLoading && (
@@ -661,6 +713,7 @@ export function ActivityHeatmap({
       </div>
 
       {/* ── Footer / Stats + Legend ── */}
+      {!isEmbedded && (
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-5 pt-4 border-t border-border/40">
         {/* Stats */}
         <div className="flex flex-wrap items-center gap-2">
@@ -715,6 +768,7 @@ export function ActivityHeatmap({
           <span>More</span>
         </div>
       </div>
+      )}
     </div>
   );
 }

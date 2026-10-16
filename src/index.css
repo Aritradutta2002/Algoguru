@@ -11,18 +11,24 @@
     box-shadow: 0 1px 0 hsl(var(--background)), 0 4px 16px -12px hsl(var(--foreground) / 0.15);
     backdrop-filter: blur(16px);
     container-type: inline-size;
+    transition: background-color 200ms ease, box-shadow 200ms ease;
+  }
+
+  .app-header[data-scrolled="true"] {
+    background: hsl(var(--card) / 0.98);
+    box-shadow: 0 1px 0 hsl(var(--background)), 0 12px 32px -16px hsl(var(--foreground) / 0.3);
   }
 
   .app-header button:not([role="combobox"]) {
-    min-height: 2.5rem;
+    min-height: 2.25rem;
   }
 
   .app-header button[aria-label="Search"],
   .app-header button[aria-label="Expand sidebar"],
+  .app-header button[aria-label="Toggle navigation menu"],
   .app-header button[aria-label^="Switch to"] {
-    width: 2.5rem;
-    background: transparent;
-    border-color: transparent;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   .app-header button:focus-visible,
@@ -38,7 +44,7 @@
 
   .app-header [data-search-trigger="true"] {
     width: clamp(10rem, 19vw, 18rem);
-    height: 2.5rem;
+    height: 2.25rem;
     border-radius: 0.75rem;
     background: hsl(var(--muted) / 0.45);
     box-shadow: none;
@@ -49,16 +55,27 @@
     min-height: 1.75rem;
   }
 
-  .app-header button[aria-label="Search"]:hover,
-  .app-header button[aria-label="Expand sidebar"]:hover,
-  .app-header button[aria-label^="Switch to"]:hover {
-    background: hsl(var(--muted));
-    color: hsl(var(--foreground));
+  .app-header .header-primary-nav {
+    display: none;
   }
 
-  .app-header button[aria-label^="Switch to"] svg {
-    width: 17px;
-    height: 17px;
+  .app-header .header-menu-btn {
+    display: flex;
+  }
+
+  .app-header .header-menu-sheet {
+    display: block;
+  }
+
+  @container (min-width: 1200px) {
+    .app-header .header-primary-nav {
+      display: flex;
+    }
+
+    .app-header .header-menu-btn,
+    .app-header .header-menu-sheet {
+      display: none;
+    }
   }
 
   @container (max-width: 760px) {

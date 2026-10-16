@@ -20,7 +20,7 @@ export function UserMenu() {
     return (
       <button
         onClick={() => navigate("/auth")}
-        className="touch-manipulation flex items-center gap-1.5 h-8.5 px-3 rounded-xl border border-border/70 bg-card/60 hover:bg-card hover:border-primary/40 text-xs font-semibold text-foreground hover:text-primary transition-all duration-200 shadow-2xs active:scale-95"
+        className="touch-manipulation flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-primary text-primary-foreground text-[13px] font-semibold shadow-sm transition-all duration-200 hover:brightness-110 hover:shadow-[0_6px_18px_-6px_hsl(var(--primary)/0.55)] active:scale-95"
       >
         <span>Sign in</span>
       </button>

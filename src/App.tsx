@@ -24,7 +24,7 @@ import Interview from "./pages/Interview";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft } from "lucide-react";
+import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft, Menu, Home, Target, Code2, GraduationCap, Trophy, Map } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
@@ -83,6 +83,18 @@ const clamp = (value: number, min: number, max: number) =>
 
 const ZOOM_MAP: Record<string, string> = { sm: "85%", md: "100%", lg: "115%", xl: "125%" };
 
+const NAV_LINKS = [
+  { label: "Home", path: "/", icon: Home },
+  { label: "Practice", path: "/practice", icon: Target },
+  { label: "Playground", path: "/playground", icon: Code2 },
+  { label: "Interview", path: "/interview", icon: GraduationCap },
+  { label: "Contest", path: "/contest", icon: Trophy },
+  { label: "Roadmap", path: "/roadmap", icon: Map },
+];
+
+const isNavActive = (pathname: string, path: string) =>
+  path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
+
 function HeaderControls() {
   const { theme, toggleTheme, fontSize, increaseFontSize, decreaseFontSize } = useSettings();
   const isDark = theme === "dark";
@@ -90,9 +102,9 @@ function HeaderControls() {
   const isMax = fontSize === "xl";
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2">
       {/* Zoom cluster — desktop only */}
-      <div className="header-zoom hidden md:flex items-center h-10 rounded-xl border border-border/60 bg-muted/35 p-1 gap-0">
+      <div className="header-zoom hidden md:flex items-center h-9 rounded-lg border border-border/50 bg-muted/40 p-1 gap-0.5">
         <AppTooltip content="Zoom out text">
           <button
             onClick={decreaseFontSize}
@@ -103,7 +115,7 @@ function HeaderControls() {
             <ZoomOut size={12} />
           </button>
         </AppTooltip>
-        <span className="text-[10.5px] font-semibold min-w-[32px] text-center text-muted-foreground/70 font-mono tabular-nums select-none">
+        <span className="text-[10.5px] font-semibold min-w-[34px] text-center text-muted-foreground/70 font-mono tabular-nums select-none">
           {ZOOM_MAP[fontSize] || "100%"}
         </span>
         <AppTooltip content="Zoom in text">
@@ -123,12 +135,12 @@ function HeaderControls() {
         <button
           onClick={toggleTheme}
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          className="group touch-manipulation flex items-center justify-center w-8 h-8 rounded-lg border border-border/55 bg-muted/50 hover:bg-muted hover:border-border/80 text-muted-foreground transition-all duration-200 active:scale-[0.93]"
+          className="group touch-manipulation flex items-center justify-center w-9 h-9 rounded-lg border border-border/50 bg-muted/40 hover:bg-muted hover:border-border/80 text-muted-foreground transition-all duration-200 active:scale-[0.93]"
         >
           {isDark ? (
-            <Sun size={14} className="transition-transform duration-300 group-hover:rotate-45 text-amber-400/90 group-hover:text-amber-400" />
+            <Sun size={15} className="transition-transform duration-300 group-hover:rotate-45 text-amber-400/90 group-hover:text-amber-400" />
           ) : (
-            <Moon size={14} className="transition-transform duration-300 group-hover:-rotate-12 text-slate-500 dark:text-slate-400" />
+            <Moon size={15} className="transition-transform duration-300 group-hover:-rotate-12 text-slate-500 dark:text-slate-400" />
           )}
         </button>
       </AppTooltip>
@@ -237,6 +249,18 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Detect mobile viewport (< lg breakpoint = 1024px)
   const isMobile = useMediaQuery('(max-width: 1023px)');
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const handleContentScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
+    const scrolled = event.currentTarget.scrollTop > 8;
+    setHeaderScrolled((prev) => (prev === scrolled ? prev : scrolled));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("guru-split-pct", splitPct.toString());
@@ -369,11 +393,20 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             minSize={50}
             className="flex flex-col min-h-0"
           >
-          <header className="app-header sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <nav aria-label="Main navigation" className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
-
-            {/* ── Left: sidebar toggle + logo ──────────────────── */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+          <header
+            data-scrolled={headerScrolled ? "true" : undefined}
+            className="app-header sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-5 lg:px-6 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
+            {/* ── Left: menu + sidebar toggle + logo ───────────── */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 mr-auto">
+              <button
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                aria-label="Toggle navigation menu"
+                aria-expanded={mobileMenuOpen}
+                className="header-menu-btn touch-manipulation items-center justify-center w-9 h-9 rounded-lg border border-border/50 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.93] transition-all duration-150"
+              >
+                {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
+              </button>
               <AnimatePresence initial={false}>
                 {showSidebarPanel && isSidebarCollapsed && (
                   <motion.div
@@ -389,7 +422,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                       aria-label="Expand sidebar"
                       aria-keyshortcuts="Alt+B"
                       className={cn(
-                        "group relative touch-manipulation w-8 h-8 rounded-lg flex-shrink-0",
+                        "group relative touch-manipulation w-9 h-9 rounded-lg flex-shrink-0",
                         "flex items-center justify-center",
                         "bg-muted/50 border border-border/60",
                         "hover:bg-primary/[0.08] hover:border-primary/35 hover:text-primary",
@@ -417,30 +450,56 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link
                   to="/"
                   aria-label="AlgoGuru Home"
-                  className="group flex items-center gap-2 rounded-xl px-1.5 py-1 -ml-1 transition-all duration-200 hover:bg-muted/40 active:scale-[0.97] flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                  className="group flex items-center gap-2.5 rounded-xl px-1.5 py-1 -ml-1 transition-all duration-200 hover:bg-muted/40 active:scale-[0.97] flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm ring-1 ring-inset ring-white/15">
+                  <div
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-md shadow-primary/25 ring-1 ring-inset ring-white/20 transition-transform duration-200 group-hover:scale-105"
+                    style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--info)) 100%)" }}
+                  >
                     <AlgoGuruLogo size={21} showText={false} className="text-white" />
                   </div>
-                  {/* Brand text */}
-                  <span className="hidden sm:inline text-base font-bold tracking-tight text-foreground">
+                  <span className="hidden sm:inline font-display text-[15px] font-bold tracking-tight text-foreground">
                     Algo<span className="text-primary">Guru</span>
                   </span>
                 </Link>
               </AppTooltip>
             </div>
 
-            {/* ── Spacer ───────────────────────────────────────── */}
-            <div className="flex-1 min-w-0" />
+            {/* ── Center: primary navigation ───────────────────── */}
+            <nav aria-label="Primary" className="header-primary-nav items-center gap-1 mx-auto rounded-xl border border-border/50 bg-muted/40 p-1">
+              {NAV_LINKS.map(({ label, path }) => {
+                const active = isNavActive(location.pathname, path);
+                return (
+                  <Link
+                    key={path}
+                    to={path}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "relative rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors duration-200",
+                      active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                    )}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="primary-nav-pill"
+                        className="absolute inset-0 rounded-lg bg-primary shadow-[0_2px_10px_-2px_hsl(var(--primary)/0.55)]"
+                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                      />
+                    )}
+                    <span className="relative">{label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
 
             {/* ── Right: search + controls + user + Guru AI ────── */}
-            <div className="flex shrink-0 items-center gap-1 sm:gap-2.5">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-3 ml-auto">
 
               {/* Mobile search icon */}
               <AppTooltip content="Search (Ctrl+K)">
                 <button
                   onClick={() => document.querySelector<HTMLButtonElement>('[data-search-trigger="true"]')?.click()}
-                  className="header-search-compact sm:hidden touch-manipulation flex items-center justify-center w-8 h-8 rounded-lg border border-border/60 bg-muted/50 hover:bg-primary/[0.08] hover:border-primary/35 text-muted-foreground hover:text-primary transition-all duration-150 active:scale-[0.93]"
+                  className="header-search-compact sm:hidden touch-manipulation flex items-center justify-center w-9 h-9 rounded-lg border border-border/50 bg-muted/40 hover:bg-muted hover:border-border/80 text-muted-foreground hover:text-primary transition-all duration-150 active:scale-[0.93]"
                   aria-label="Search"
                 >
                   <Search size={15} />
@@ -453,13 +512,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
 
               {/* Divider */}
-              <div className="hidden sm:block h-[18px] w-px bg-border/50 rounded-full mx-0.5" />
+              <div className="hidden sm:block h-5 w-px bg-border/60 rounded-full mx-1.5" />
 
               {/* Theme / zoom controls */}
               <HeaderControls />
 
               {/* Divider */}
-              <div className="hidden sm:block h-[18px] w-px bg-border/50 rounded-full mx-0.5" />
+              <div className="hidden sm:block h-5 w-px bg-border/60 rounded-full mx-1.5" />
 
               {/* User avatar menu */}
               <UserMenu />
@@ -470,7 +529,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   <div
                     tabIndex={0}
                     aria-label="Guru AI is available in the description panel tab"
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                    className="ml-2 sm:ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
                   >
                     <img src={`${import.meta.env.BASE_URL}brand/guru-ai.png`} alt="" aria-hidden="true" width={40} height={42} className="h-[42px] w-10 shrink-0 object-contain" />
                   </div>
@@ -481,14 +540,50 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                     onClick={toggleGuruPanel}
                     aria-label={guruOpen ? "Close Guru AI" : "Open Guru AI"}
                     aria-pressed={guruOpen}
-                    className="touch-manipulation flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent p-0 transition-opacity duration-200 hover:opacity-80 select-none"
+                    className="touch-manipulation ml-2 sm:ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent p-0 transition-all duration-200 hover:scale-105 hover:drop-shadow-[0_0_10px_hsl(var(--primary)/0.35)] select-none"
                   >
                     <img src={`${import.meta.env.BASE_URL}brand/guru-ai.png`} alt="" aria-hidden="true" width={40} height={42} className="h-[42px] w-10 shrink-0 object-contain" />
                   </button>
                 </AppTooltip>
               )}
             </div>
-            </nav>
+
+            {/* ── Mobile navigation sheet ──────────────────────── */}
+            <AnimatePresence>
+              {mobileMenuOpen && (
+                <motion.nav
+                  aria-label="Mobile primary"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  className="header-menu-sheet absolute inset-x-0 top-full border-b border-border/60 bg-background/95 backdrop-blur-xl shadow-overlay"
+                >
+                  <div className="grid grid-cols-2 gap-1.5 p-3">
+                    {NAV_LINKS.map(({ label, path, icon: Icon }) => {
+                      const active = isNavActive(location.pathname, path);
+                      return (
+                        <Link
+                          key={path}
+                          to={path}
+                          onClick={() => setMobileMenuOpen(false)}
+                          aria-current={active ? "page" : undefined}
+                          className={cn(
+                            "flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors",
+                            active
+                              ? "border-primary/30 bg-primary/10 text-primary"
+                              : "border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          <Icon size={15} className={active ? "text-primary" : "text-muted-foreground/70"} />
+                          {label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </motion.nav>
+              )}
+            </AnimatePresence>
           </header>
 
           {guruOpen ? (
@@ -546,6 +641,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 >
                   <main
                     ref={contentScrollRef}
+                    onScroll={handleContentScroll}
                     className="h-full overflow-y-auto"
                     style={{ overscrollBehavior: "contain" }}
                   >
@@ -658,7 +754,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               </ResizablePanelGroup>
             )
           ) : (
-            <main ref={contentScrollRef} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
+            <main ref={contentScrollRef} onScroll={handleContentScroll} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
               <div className={contentSurfaceClass}>
                 {children}
                 {location.pathname === "/" && (
