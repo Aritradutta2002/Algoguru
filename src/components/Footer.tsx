@@ -1,4 +1,6 @@
-import { Heart, ExternalLink, Zap, Github, Globe } from "lucide-react";
+import { ArrowUp, Github, Heart, Linkedin, Globe } from "lucide-react";
+import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
+import "@/styles/landing.css";
 
 interface FooterProps {
   onSupportClick: () => void;
@@ -9,98 +11,101 @@ const GITHUB_URL = "https://github.com/Aritradutta2002";
 const LINKEDIN_URL = "https://www.linkedin.com/in/aritra-dutta-rick20/";
 const TWITTER_URL = "https://x.com/Aritra1Sept";
 
+const COLUMNS = [
+  {
+    title: "Product",
+    links: [
+      { label: "Practice sheet", to: "/practice" },
+      { label: "Playground", to: "/playground" },
+      { label: "Daily problem", to: "/problem-solver" },
+      { label: "Contest", to: "/contest" },
+    ],
+  },
+  {
+    title: "Learn",
+    links: [
+      { label: "Interview prep", to: "/interview" },
+      { label: "Advanced Java", to: "/java-advanced" },
+      { label: "System design", to: "/interview/java/system-design" },
+      { label: "Roadmap", to: "/roadmap" },
+    ],
+  },
+  {
+    title: "Elsewhere",
+    links: [
+      { label: "Portfolio", href: PORTFOLIO_URL, icon: Globe },
+      { label: "GitHub", href: GITHUB_URL, icon: Github },
+      { label: "LinkedIn", href: LINKEDIN_URL, icon: Linkedin },
+      { label: "Twitter", href: TWITTER_URL, icon: Globe },
+    ],
+  },
+];
+
 export function Footer({ onSupportClick }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full mt-16 border-t border-border bg-background footer">
-      <div className="max-w-7xl mx-auto px-5 md:px-10 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-10">
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Links</h3>
-            <div className="flex flex-col gap-1">
-              <a
-                href={PORTFOLIO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="touch-manipulation text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 py-1.5"
-              >
-                <Globe size={14} />
-                Portfolio
-              </a>
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="touch-manipulation text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 py-1.5"
-              >
-                <Github size={14} />
-                GitHub
-              </a>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Connect</h3>
-            <div className="flex flex-col gap-1">
-              <a
-                href={LINKEDIN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="touch-manipulation text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 py-1.5"
-              >
-                <ExternalLink size={14} />
-                LinkedIn
-              </a>
-              <a
-                href={TWITTER_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="touch-manipulation text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 py-1.5"
-              >
-                <ExternalLink size={14} />
-                Twitter (X)
-              </a>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Support</h3>
-            <button
-              onClick={onSupportClick}
-              className="touch-manipulation text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 py-1.5 group"
-            >
-              <Heart size={14} />
-              Buy me a coffee
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Project</h3>
-            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2 py-1.5">
-                <Zap size={14} className="text-primary" />
-                Built by Aritra
+    <footer className="lp lp-footer footer">
+      <div className="lp-shell">
+        <div className="lp-footer-top">
+          <div className="lp-footer-brand">
+            <div className="lp-footer-lockup">
+              <AlgoGuruMark size={30} />
+              <span>
+                Algo<span className="lp-footer-guru">Guru</span>
               </span>
-              <span className="py-1.5 text-xs">Version 2.1.0</span>
+            </div>
+            <p>
+              A focused workspace for data structures, system design and interview preparation.
+              Free to use — sign in to keep your progress.
+            </p>
+          </div>
+
+          <div className="lp-footer-cols">
+            {COLUMNS.map((column) => (
+              <div key={column.title} className="lp-footer-col">
+                <h3>{column.title}</h3>
+                {column.links.map((link) =>
+                  "to" in link ? (
+                    <a key={link.label} href={link.to}>
+                      {link.label}
+                    </a>
+                  ) : (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {link.icon ? <link.icon size={13} /> : null}
+                      {link.label}
+                    </a>
+                  ),
+                )}
+              </div>
+            ))}
+
+            <div className="lp-footer-col">
+              <h3>Support</h3>
+              <button type="button" onClick={onSupportClick}>
+                <Heart size={13} />
+                Buy me a coffee
+              </button>
               <button
+                type="button"
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="touch-manipulation text-left hover:text-foreground transition-colors py-1.5"
               >
+                <ArrowUp size={13} />
                 Back to top
               </button>
             </div>
           </div>
         </div>
 
-        <div className="pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-3">
-          <p className="text-xs text-muted-foreground">
-            Copyright © {currentYear} AlgoGuru. All rights reserved.
-          </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Zap size={12} className="text-primary" />
-            <span>Master code. Ace interviews.</span>
-          </div>
+        <div className="lp-footer-bottom">
+          <span>© {currentYear} AlgoGuru — All rights reserved</span>
+          <span>Master code. Ace interviews.</span>
+          <span>v2.1.0</span>
         </div>
       </div>
     </footer>
