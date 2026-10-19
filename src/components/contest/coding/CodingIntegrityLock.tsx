@@ -29,11 +29,11 @@ export function CodingIntegrityLock({
       aria-modal="true"
       aria-labelledby="coding-integrity-title"
       aria-describedby="coding-integrity-description"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4"
     >
-      <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-7 shadow-xl">
+      <div className="w-full max-w-lg rounded-surface border border-border bg-card p-7">
         <div className="flex items-center gap-3">
-          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-destructive/10">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-surface bg-destructive/10">
             <ShieldAlert aria-hidden="true" className="h-5 w-5 text-destructive" />
           </span>
           <div>
@@ -53,7 +53,7 @@ export function CodingIntegrityLock({
           {reason}
         </p>
 
-        <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-4 text-sm">
+        <div className="mt-4 rounded-surface border border-border bg-muted/40 p-4 text-sm">
           <p className="flex items-start gap-2">
             <Lock aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             <span>

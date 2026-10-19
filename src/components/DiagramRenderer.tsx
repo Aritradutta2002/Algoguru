@@ -207,7 +207,7 @@ function JVMArchitectureBlueprint() {
       <div className="min-w-[760px] max-w-[940px] mx-auto flex flex-col items-center">
         {/* ── 1. TOP CONTAINER: Class Loader Subsystem ── */}
         <AppTooltip content={JVM_TOOLTIPS["Class Loader"]}>
-          <div className="w-full max-w-[620px] rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#cbe8f8] dark:bg-[#18334d] p-3 shadow-md">
+          <div className="w-full max-w-[620px] rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#cbe8f8] dark:bg-[#18334d] p-3 shadow-md">
             <div className="text-center font-bold text-sm md:text-base text-slate-900 dark:text-slate-100 mb-2.5 tracking-tight">
               Class Loader
             </div>
@@ -230,7 +230,7 @@ function JVMArchitectureBlueprint() {
 
         {/* ── 2. MIDDLE CONTAINER: Runtime Data Area ── */}
         <AppTooltip content={JVM_TOOLTIPS["Runtime Data Area"]}>
-          <div className="w-full rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#fde7be] dark:bg-[#45321a] p-3 shadow-md">
+          <div className="w-full rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#fde7be] dark:bg-[#45321a] p-3 shadow-md">
             <div className="text-center font-bold text-sm md:text-base text-slate-900 dark:text-slate-100 mb-2.5 tracking-tight">
               Runtime Data Area
             </div>
@@ -267,7 +267,7 @@ function JVMArchitectureBlueprint() {
         <div className="w-full flex items-center justify-between gap-3">
           {/* Execution Engine Box */}
           <AppTooltip content={JVM_TOOLTIPS["Execution Engine"]}>
-            <div className="flex-1 max-w-[430px] rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#ded4eb] dark:bg-[#3a2b52] p-3 shadow-md">
+            <div className="flex-1 max-w-[430px] rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#ded4eb] dark:bg-[#3a2b52] p-3 shadow-md">
               <div className="text-center font-bold text-sm md:text-base text-slate-900 dark:text-slate-100 mb-2.5 tracking-tight">
                 Execution Engine
               </div>
@@ -291,7 +291,7 @@ function JVMArchitectureBlueprint() {
 
           {/* Native Method Interface (JNI) */}
           <AppTooltip content={JVM_TOOLTIPS["Native Method Interface (JNI)"]}>
-            <div className="w-[130px] h-[104px] flex items-center justify-center p-2 rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#52aa90] dark:bg-[#1d5747] text-slate-900 dark:text-slate-100 font-bold text-xs md:text-sm text-center leading-tight shadow-md cursor-default hover:brightness-95 transition-all">
+            <div className="w-[130px] h-[104px] flex items-center justify-center p-2 rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#52aa90] dark:bg-[#1d5747] text-slate-900 dark:text-slate-100 font-bold text-xs md:text-sm text-center leading-tight shadow-md cursor-default hover:brightness-95 transition-all">
               Native<br />Method<br />Interface<br />(JNI)
             </div>
           </AppTooltip>
@@ -301,7 +301,7 @@ function JVMArchitectureBlueprint() {
 
           {/* Native Method Library */}
           <AppTooltip content={JVM_TOOLTIPS["Native Method Library"]}>
-            <div className="w-[130px] h-[104px] flex items-center justify-center p-2 rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#52aa90] dark:bg-[#1d5747] text-slate-900 dark:text-slate-100 font-bold text-xs md:text-sm text-center leading-tight shadow-md cursor-default hover:brightness-95 transition-all">
+            <div className="w-[130px] h-[104px] flex items-center justify-center p-2 rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 bg-[#52aa90] dark:bg-[#1d5747] text-slate-900 dark:text-slate-100 font-bold text-xs md:text-sm text-center leading-tight shadow-md cursor-default hover:brightness-95 transition-all">
               Native<br />Method<br />Library
             </div>
           </AppTooltip>
@@ -387,7 +387,7 @@ function LayersDiagram({ data }: { data: DiagramBox[] }) {
     return (
       <div
         key={box.label}
-        className="w-full rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 p-3.5 shadow-md space-y-3"
+        className="w-full rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 p-3.5 shadow-md space-y-3"
         style={{
           backgroundColor: pal.containerLight,
         }}
@@ -449,7 +449,7 @@ function FlowDiagram({
             <React.Fragment key={box.label}>
               {/* Process Box (Matching the image style) */}
               <div
-                className={`relative flex flex-col justify-between p-3.5 rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 shadow-sm ${
+                className={`relative flex flex-col justify-between p-3.5 rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 shadow-sm ${
                   isVert ? "w-full max-w-md" : "min-w-[175px] max-w-[250px]"
                 }`}
                 style={{
@@ -580,7 +580,7 @@ function TableVisualDiagram({ data }: { data: DiagramBox[] }) {
         return (
           <div
             key={box.label}
-            className="rounded-xl border-[2.5px] border-slate-800 dark:border-slate-300 p-4 flex flex-col justify-between shadow-sm"
+            className="rounded-control border-[2.5px] border-slate-800 dark:border-slate-300 p-4 flex flex-col justify-between shadow-sm"
             style={{ backgroundColor: pal.containerLight }}
           >
             <div>

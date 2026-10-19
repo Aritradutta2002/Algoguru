@@ -81,7 +81,7 @@ export function JavaTreeBanner() {
         </motion.div>
 
         {/* Full-Width Horizontal Tree */}
-        <div className="relative bg-card rounded-2xl border border-border p-5 md:p-8 overflow-x-auto">
+        <div className="relative bg-card rounded-surface border border-border p-5 md:p-8 overflow-x-auto">
           <svg
             viewBox="0 0 1700 280"
             className="w-full"

@@ -177,9 +177,9 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
       >
         <div className="absolute inset-0 pointer-events-none opacity-40"
           style={{ background: "radial-gradient(ellipse at 0% 50%, hsl(var(--primary)/0.12) 0%, transparent 65%)" }} />
-        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-xl p-1 transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-control p-1 transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <div
-            className="flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0"
+            className="flex items-center justify-center w-9 h-9 rounded-control flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.65) 100%)",
               boxShadow: "0 0 16px hsl(var(--primary)/0.35), inset 0 1px 0 rgba(255,255,255,0.25)",

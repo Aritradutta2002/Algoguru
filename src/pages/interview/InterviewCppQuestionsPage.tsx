@@ -88,7 +88,7 @@ const _QuestionCard = ({
         isDone
           ? "bg-success/5 border-success/20"
           : activeView
-            ? "bg-card border-primary/30 shadow-sm"
+            ? "bg-card border-primary/40"
             : "bg-card border-border/40 hover:border-border/60"
       }`}
     >
@@ -106,7 +106,7 @@ const _QuestionCard = ({
             aria-label={isDone ? "Mark as not learned" : "Mark as learned"}
             className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
               isDone
-                ? "bg-success border-success text-white shadow-sm"
+                ? "bg-success border-success text-white"
                 : "border-border/50 hover:border-success/60 bg-card hover:bg-success/10"
             }`}
           >
@@ -165,9 +165,9 @@ const _QuestionCard = ({
               <button
                 onClick={() => onToggleView(question.id, "theory")}
                 aria-expanded={activeView === "theory"}
-                className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
+                className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-control font-ui text-[13px] font-medium transition-colors ${
                   activeView === "theory"
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                    ? "bg-primary text-primary-foreground"
                     : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
@@ -179,9 +179,9 @@ const _QuestionCard = ({
                 <button
                   onClick={() => onToggleView(question.id, "code")}
                   aria-expanded={activeView === "code"}
-                  className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-lg text-[13px] font-semibold transition-all ${
+                  className={`inline-flex items-center gap-2 px-4 py-2 min-h-[36px] rounded-control font-ui text-[13px] font-medium transition-colors ${
                     activeView === "code"
-                      ? "bg-accent text-accent-foreground shadow-md shadow-accent/20"
+                      ? "bg-foreground text-background"
                       : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -237,12 +237,12 @@ const _QuestionCard = ({
             <div className="border-t border-border/20" />
             <div className="p-5 md:p-6 space-y-4">
               {activeView === "theory" && (
-                <div className="bg-muted/30 rounded-xl p-5 md:p-6 border border-border/20 shadow-inner">
+                <div className="bg-muted/30 rounded-surface p-5 md:p-6 border border-border">
                   <CppQuestionAnswer answer={question.answer} />
                 </div>
               )}
               {activeView === "code" && question.code && (
-                <div className="rounded-xl overflow-hidden shadow-card border border-border/30">
+                <div className="rounded-surface overflow-hidden border border-border">
                   <CodeBlock
                     language={question.codeLanguage || "cpp"}
                     code={question.code}
@@ -567,7 +567,7 @@ export default function InterviewCppQuestionsPage() {
   return (
     <div className="cjq-page min-h-[calc(100vh-3.5rem)] flex flex-col bg-background text-foreground selection:bg-primary/15">
       {/* ── Page Header ──────────────────────────────────────────── */}
-      <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
+      <header className="shrink-0 bg-background border-b border-border relative z-30">
         <div className="px-4 md:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <button
@@ -682,9 +682,9 @@ export default function InterviewCppQuestionsPage() {
               key={filter.id}
               onClick={() => handleFilterClick(filter.id)}
               aria-pressed={activeFilter === filter.id}
-              className={`px-3.5 py-1.5 min-h-[34px] rounded-full text-[12.5px] font-semibold border whitespace-nowrap shrink-0 transition-all ${
+              className={`px-3.5 py-1.5 min-h-[34px] rounded-chip font-ui text-[12.5px] font-medium border whitespace-nowrap shrink-0 transition-colors ${
                 activeFilter === filter.id
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
+                  ? "bg-primary text-primary-foreground border-primary"
                   : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
@@ -722,9 +722,9 @@ export default function InterviewCppQuestionsPage() {
             <button
               onClick={() => handleTopicClick(null)}
               aria-pressed={!selectedTopic}
-              className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all mb-1.5 border ${
+              className={`w-full text-left px-3.5 py-2.5 rounded-control transition-colors mb-1.5 border ${
                 !selectedTopic
-                  ? "bg-primary/10 border-primary/20 text-foreground"
+                  ? "bg-muted/60 border-border-strong text-foreground"
                   : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
             >
@@ -746,9 +746,9 @@ export default function InterviewCppQuestionsPage() {
                     key={topic.id}
                     onClick={() => handleTopicClick(isActive ? null : topic.id)}
                     aria-pressed={isActive}
-                    className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all border ${
+                    className={`w-full text-left px-3.5 py-2.5 rounded-control transition-colors border ${
                       isActive
-                        ? "bg-primary/5 border-primary/20 text-foreground shadow-sm"
+                        ? "bg-muted/60 border-border-strong text-foreground"
                         : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
@@ -823,7 +823,7 @@ export default function InterviewCppQuestionsPage() {
                 <div key={group.topic.id} className="space-y-4">
                   {/* Topic header */}
                   <div className="flex items-center gap-4 pb-4 border-b-2 border-border/30">
-                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl shrink-0" aria-hidden="true">
+                    <div className="w-11 h-11 rounded-control bg-muted/50 border border-border flex items-center justify-center text-xl shrink-0" aria-hidden="true">
                       {group.topic.icon}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -866,7 +866,7 @@ export default function InterviewCppQuestionsPage() {
         {topicSidebarOpen && (
           <>
             <div
-              className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-[60] bg-background/80 lg:hidden"
               onClick={() => setTopicSidebarOpen(false)}
               aria-hidden="true"
             />
@@ -875,7 +875,7 @@ export default function InterviewCppQuestionsPage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "-100%", opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-0 top-0 bottom-0 w-[280px] sm:w-[320px] z-[70] bg-card border-r border-border/50 shadow-overlay flex flex-col lg:hidden"
+              className="fixed left-0 top-0 bottom-0 w-[280px] sm:w-[320px] z-[70] bg-card border-r border-border flex flex-col lg:hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Topics"
@@ -900,9 +900,9 @@ export default function InterviewCppQuestionsPage() {
                     handleTopicClick(null);
                     setTopicSidebarOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-xl transition-all mb-2 border ${
+                  className={`w-full text-left px-4 py-3 rounded-control transition-colors mb-2 border ${
                     !selectedTopic
-                      ? "bg-primary/10 border-primary/20 text-foreground"
+                      ? "bg-muted/60 border-border-strong text-foreground"
                       : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   }`}
                 >
@@ -924,9 +924,9 @@ export default function InterviewCppQuestionsPage() {
                         handleTopicClick(topic.id);
                         setTopicSidebarOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-3 rounded-xl transition-all border ${
+                      className={`w-full text-left px-4 py-3 rounded-control transition-colors border ${
                         isActive
-                          ? "bg-primary/10 border-primary/20 text-foreground"
+                          ? "bg-muted/60 border-border-strong text-foreground"
                           : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                       }`}
                     >
@@ -976,7 +976,7 @@ export default function InterviewCppQuestionsPage() {
         {showNotesPanel && (
           <div className="fixed inset-0 flex justify-end z-[100]">
             <div
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+              className="fixed inset-0 bg-background/80"
               onClick={() => setShowNotesPanel(false)}
               aria-hidden="true"
             />
@@ -985,7 +985,7 @@ export default function InterviewCppQuestionsPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-lg h-full bg-card border-l border-border/50 shadow-overlay flex flex-col"
+              className="relative w-full max-w-lg h-full bg-card border-l border-border flex flex-col"
               role="dialog"
               aria-labelledby="notes-panel-title"
               aria-modal="true"
@@ -1041,7 +1041,7 @@ export default function InterviewCppQuestionsPage() {
                   return (
                     <div
                       key={id}
-                      className="p-5 rounded-surface bg-card border border-border/40 shadow-sm relative group transition-all hover:border-border/60"
+                      className="p-5 rounded-surface bg-card border border-border relative group transition-colors hover:border-border-strong"
                     >
                       <div className="pr-8 mb-3">
                         {questionData && (
@@ -1067,7 +1067,7 @@ export default function InterviewCppQuestionsPage() {
                           <Trash2 size={16} />
                         )}
                       </button>
-                      <div className="bg-muted/20 rounded-xl p-4 border border-border/20">
+                      <div className="bg-muted/40 rounded-control p-4 border border-border">
                         <div
                           className="text-[13.5px] text-foreground/90 prose prose-invert prose-p:leading-relaxed prose-pre:bg-muted/50 max-w-none"
                           dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(note) }}

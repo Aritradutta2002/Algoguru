@@ -52,7 +52,7 @@ export function CodingQuestionMenu({
     <div
       aria-hidden={!isOpen}
       className={cn(
-        "absolute left-0 top-[calc(100%+10px)] z-50 w-[min(23rem,78vw)] rounded-xl border border-surface-line bg-surface-chrome p-1.5 shadow-2xl transition-all duration-150",
+        "absolute left-0 top-[calc(100%+10px)] z-50 w-[min(23rem,78vw)] rounded-control border border-surface-line bg-surface-chrome p-1.5 transition-all duration-150",
         isOpen
           ? "visible translate-y-0 opacity-100"
           : "invisible pointer-events-none -translate-y-1 opacity-0",

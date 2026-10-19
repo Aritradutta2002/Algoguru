@@ -69,7 +69,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <AnimatePresence>
-      <motion.div key="support-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <motion.div key="support-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-background/80" onClick={onClose}>
         <motion.div
           initial={{ scale: 0.96, y: 16, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}

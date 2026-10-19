@@ -33,7 +33,7 @@ export function CodingQuestionList({
     <div
       aria-hidden={!isOpen}
       className={cn(
-        "absolute inset-0 z-40 flex flex-col rounded-xl bg-surface-chrome transition-opacity duration-200",
+        "absolute inset-0 z-40 flex flex-col rounded-control bg-surface-chrome transition-opacity duration-200",
         isOpen ? "opacity-100" : "pointer-events-none invisible opacity-0",
       )}
     >
@@ -44,7 +44,7 @@ export function CodingQuestionList({
             type="button"
             onClick={onClose}
             aria-label="Close question list"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-foreground shadow-lg ring-1 ring-surface-line transition-colors hover:bg-surface-raised/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-foreground ring-1 ring-surface-line transition-colors hover:bg-surface-raised/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <svg
               aria-hidden="true"
@@ -71,7 +71,7 @@ export function CodingQuestionList({
                 <li key={entry.problem.id}>
                   <article
                     className={cn(
-                      "flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-surface-panel px-5 py-6",
+                      "flex flex-wrap items-center justify-between gap-4 rounded-control border bg-surface-panel px-5 py-6",
                       isActive ? "border-primary/50" : "border-surface-line",
                     )}
                   >

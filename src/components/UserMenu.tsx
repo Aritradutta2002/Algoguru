@@ -54,7 +54,7 @@ export function UserMenu() {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-xl" sideOffset={8} collisionPadding={16}>
+      <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-surface border border-border bg-card shadow-overlay" sideOffset={8} collisionPadding={16}>
         <DropdownMenuLabel className="p-3 font-normal">
           <div className="flex flex-col gap-0.5">
             <p className="text-sm font-semibold text-foreground truncate">{name}</p>

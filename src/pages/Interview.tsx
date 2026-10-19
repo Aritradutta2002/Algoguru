@@ -222,7 +222,7 @@ export default function Interview() {
                   className="group relative flex min-h-[260px] cursor-pointer flex-col overflow-hidden p-7 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-control border border-border bg-muted/40 text-muted-foreground">
                       {option.icon}
                     </span>
                     <span className="ui-meta">Step 1</span>
@@ -289,7 +289,7 @@ export default function Interview() {
                     className="group relative flex min-h-[240px] cursor-pointer flex-col overflow-hidden p-7 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-control border border-border bg-muted/40 text-muted-foreground">
                         {path.icon}
                       </span>
                       <span className="ui-meta">Step 2</span>

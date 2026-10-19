@@ -72,10 +72,10 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
               </p>
 
               <div className="pt-8 flex flex-wrap justify-center md:justify-start gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted/10 border border-border/10 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-chip font-ui bg-muted/40 border border-border text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
                   Content Verified
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted/10 border border-border/10 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-chip font-ui bg-muted/40 border border-border text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
                   Expert Reviewed
                 </div>
               </div>

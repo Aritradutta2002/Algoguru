@@ -835,7 +835,7 @@ export default function InterviewCoreJavaQuestionsPage() {
         {topicSidebarOpen && (
           <>
             <div
-              className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-[60] bg-background/80 lg:hidden"
               onClick={() => setTopicSidebarOpen(false)}
               aria-hidden="true"
             />
@@ -844,7 +844,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "-100%", opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-0 top-0 bottom-0 w-[280px] sm:w-[320px] z-[70] bg-card border-r border-border/50 shadow-overlay flex flex-col lg:hidden"
+              className="fixed left-0 top-0 bottom-0 w-[280px] sm:w-[320px] z-[70] bg-card border-r border-border flex flex-col lg:hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Topics"
@@ -936,7 +936,7 @@ export default function InterviewCoreJavaQuestionsPage() {
         {showNotesPanel && (
           <div className="fixed inset-0 flex justify-end z-[100]">
             <div
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+              className="fixed inset-0 bg-background/80"
               onClick={() => setShowNotesPanel(false)}
               aria-hidden="true"
             />
@@ -945,7 +945,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-lg h-full bg-card border-l border-border/50 shadow-overlay flex flex-col"
+              className="relative w-full max-w-lg h-full bg-card border-l border-border flex flex-col"
               role="dialog"
               aria-labelledby="notes-panel-title"
               aria-modal="true"
@@ -1027,7 +1027,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                           <Trash2 size={16} />
                         )}
                       </button>
-                      <div className="bg-muted/20 rounded-xl p-4 border border-border/20">
+                      <div className="bg-muted/40 rounded-control p-4 border border-border">
                         <div
                           className="text-[13.5px] text-foreground/90 prose prose-invert prose-p:leading-relaxed prose-pre:bg-muted/50 max-w-none"
                           dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(note) }}

@@ -166,7 +166,7 @@ function SampleResults({
           </span>
         </div>
         <div className="h-2 w-full animate-pulse rounded-full bg-muted" />
-        <div className="h-16 w-full animate-pulse rounded-xl bg-muted/40" />
+        <div className="h-16 w-full animate-pulse rounded-control bg-muted/40" />
         <span className="sr-only">Waiting for the execution service…</span>
       </div>
     );

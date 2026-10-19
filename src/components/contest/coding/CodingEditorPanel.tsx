@@ -281,7 +281,7 @@ export function CodingEditorPanel({
             <div
               role="menu"
               aria-label="Editor options"
-              className="absolute right-3 top-[calc(100%+6px)] z-50 w-52 rounded-xl border border-surface-line bg-surface-chrome p-1 shadow-2xl"
+              className="absolute right-3 top-[calc(100%+6px)] z-50 w-52 rounded-control border border-surface-line bg-surface-chrome p-1"
             >
               <button
                 type="button"
@@ -456,7 +456,7 @@ export function CodingEditorPanel({
         </Suspense>
 
         {/* Floating editor control: format code. */}
-        <div className="absolute bottom-5 left-5 flex items-center overflow-hidden rounded-full bg-surface-chrome shadow-lg">
+        <div className="absolute bottom-5 left-5 flex items-center overflow-hidden rounded-full bg-surface-chrome">
           <button
             type="button"
             onClick={() => void handleFormat()}
@@ -484,7 +484,7 @@ export function CodingEditorPanel({
           type="button"
           onClick={() => setGuideOpen((current) => !current)}
           aria-expanded={guideOpen}
-          className="absolute bottom-5 right-5 rounded-full bg-surface-chrome px-4 py-2 text-xs font-medium text-foreground/80 shadow-lg transition-colors hover:bg-surface-raised hover:text-foreground"
+          className="absolute bottom-5 right-5 rounded-full bg-surface-chrome px-4 py-2 text-xs font-medium text-foreground/80 transition-colors hover:bg-surface-raised hover:text-foreground"
         >
           Guide Me
         </button>
@@ -502,7 +502,7 @@ export function CodingEditorPanel({
       </p>
 
       <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
-        <AlertDialogContent className="rounded-2xl border border-surface-line bg-surface-chrome backdrop-blur-md sm:max-w-md">
+        <AlertDialogContent className="rounded-surface border border-surface-line bg-surface-chrome sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display">
               {activeTab?.scratch ? "Clear this scratch tab?" : "Reset this question's code?"}
@@ -514,8 +514,8 @@ export function CodingEditorPanel({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Keep my code</AlertDialogCancel>
-            <AlertDialogAction onClick={onReset} className="rounded-xl">
+            <AlertDialogCancel className="rounded-control">Keep my code</AlertDialogCancel>
+            <AlertDialogAction onClick={onReset} className="rounded-control">
               {activeTab?.scratch ? "Clear tab" : "Reset code"}
             </AlertDialogAction>
           </AlertDialogFooter>

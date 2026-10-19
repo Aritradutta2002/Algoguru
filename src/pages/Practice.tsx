@@ -406,7 +406,7 @@ export default function Practice() {
               return (
                 <div key={topic.id} className="space-y-5">
                   <div className="flex items-start gap-4">
-                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground md:flex">
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-control border border-border bg-card text-muted-foreground md:flex">
                       <Layers size={18} />
                     </div>
                     <SectionHeading

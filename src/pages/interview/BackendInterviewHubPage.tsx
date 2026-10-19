@@ -85,10 +85,10 @@ function StatTile({
   accent: string;
 }) {
   return (
-    <div className="cjh-stat-card rounded-surface border border-border/50 bg-card/70 p-4 backdrop-blur">
+    <div className="cjh-stat-card rounded-surface border border-border/50 bg-card p-4">
       <div className="flex items-center gap-3">
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control"
           style={{ background: `color-mix(in srgb, ${accent} 14%, transparent)`, color: accent }}
         >
           {icon}
@@ -124,7 +124,7 @@ function PillarCard({
   return (
     <Link
       to={to}
-      className="cjh-path-card group relative flex flex-col overflow-hidden rounded-surface border border-border/50 bg-card/80 p-5 transition-all hover:border-primary/40 hover:shadow-card"
+      className="cjh-path-card group relative flex flex-col overflow-hidden rounded-surface border border-border/50 bg-card/80 p-5 transition-all hover:border-primary/40 "
     >
       <span
         className="absolute inset-x-0 top-0 h-1"
@@ -133,7 +133,7 @@ function PillarCard({
       />
       <div className="flex items-start justify-between gap-3">
         <span
-          className="cjh-path-icon flex h-11 w-11 items-center justify-center rounded-xl"
+          className="cjh-path-icon flex h-11 w-11 items-center justify-center rounded-control"
           style={{ background: `color-mix(in srgb, ${accent} 14%, transparent)`, color: accent }}
         >
           {icon}
@@ -211,7 +211,7 @@ export default function BackendInterviewHubPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="cjh-hero relative overflow-hidden rounded-surface border border-border/50 bg-card/70 p-6 backdrop-blur sm:p-8"
+          className="cjh-hero relative overflow-hidden rounded-surface border border-border/50 bg-card p-6 sm:p-8"
         >
           <div className="relative">
             <span className="cjh-hero-badge inline-flex items-center gap-1.5 rounded-chip border border-primary/25 bg-primary/10 px-3 py-1 font-ui text-[11px] font-medium uppercase tracking-wider text-primary">
@@ -386,7 +386,7 @@ export default function BackendInterviewHubPage() {
                   <Link
                     to={`${BACKEND_QUESTIONS_PATH}?topic=${stat.topic.id}`}
                     className={cn(
-                      "cjh-topic-card group flex h-full flex-col rounded-surface border border-border/50 bg-card/70 p-5 transition-all hover:border-primary/40 hover:shadow-card",
+                      "cjh-topic-card group flex h-full flex-col rounded-surface border border-border/50 bg-card/70 p-5 transition-all hover:border-primary/40 ",
                       complete && "cjh-topic-card--complete border-success/40",
                     )}
                   >

@@ -1029,7 +1029,7 @@ export default function NotesDashboard() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
             onClick={closeNoteModal}
             role="presentation"
           >
@@ -1086,7 +1086,7 @@ export default function NotesDashboard() {
                   />
                 ) : (
                   <div
-                    className="text-[0.9375rem] leading-7 text-muted-foreground prose prose-headings:font-medium prose-p:my-4 prose-pre:rounded-xl prose-pre:bg-muted/50 prose-pre:p-5"
+                    className="text-[0.9375rem] leading-7 text-muted-foreground prose prose-headings:font-medium prose-p:my-4 prose-pre:rounded-control prose-pre:bg-muted/50 prose-pre:p-5"
                     dangerouslySetInnerHTML={{
                       __html: renderNoteMarkdown(activeNoteEntry.notes),
                     }}

@@ -3018,7 +3018,7 @@ export default function Playground() {
           "playground-shell relative flex min-h-0 flex-1 flex-col overflow-hidden bg-card text-card-foreground",
           isFullscreen
             ? "h-screen"
-            : "rounded-surface border border-border shadow-card",
+            : "rounded-surface border border-border",
         )}
       >
       {/* Breakpoint & debug CSS */}
@@ -4842,7 +4842,7 @@ export default function Playground() {
       {/* Outline drawer */}
       {outlineOpen && (
         <div className="fixed inset-0 z-[60] flex justify-end">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={() => setOutlineOpen(false)} aria-label="Close outline" />
+          <div className="absolute inset-0 bg-background/80" onClick={() => setOutlineOpen(false)} aria-label="Close outline" />
           <div
             className="relative w-[320px] max-w-[85vw] h-full overflow-hidden lc-surface flex flex-col"
             style={{ background: "var(--lc-panel)" }}

@@ -338,7 +338,7 @@ function ModelSelector({
   // Single-route mode: show static badge, no dropdown needed
   if (MODELS.length === 1) {
     return (
-      <div className={`flex min-h-[44px] items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-2 ${isMobile ? "w-full justify-center" : ""}`}>
+      <div className={`flex min-h-[44px] items-center gap-2.5 rounded-control border border-border bg-muted/40 px-4 py-2 ${isMobile ? "w-full justify-center" : ""}`}>
         <div className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-primary" />
         <span className="truncate text-[11px] font-semibold tracking-tight text-foreground">
           {activeModel.label}
@@ -355,7 +355,7 @@ function ModelSelector({
       <button
         ref={triggerRef}
         onClick={() => setOpen(!open)}
-        className={`touch-manipulation flex min-h-[44px] items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-2 transition-colors hover:border-primary/30 hover:bg-muted/70 group ${isMobile ? "w-full justify-between" : ""}`}
+        className={`touch-manipulation flex min-h-[44px] items-center gap-2.5 rounded-control border border-border bg-muted/40 px-4 py-2 transition-colors hover:border-primary/30 hover:bg-muted/70 group ${isMobile ? "w-full justify-between" : ""}`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-primary" />
@@ -373,7 +373,7 @@ function ModelSelector({
         createPortal(
           <div
             ref={dropRef}
-            className="fixed animate-in fade-in zoom-in-95 overflow-hidden rounded-xl border border-border bg-card shadow-overlay duration-200"
+            className="fixed animate-in fade-in zoom-in-95 overflow-hidden rounded-surface border border-border bg-card shadow-overlay duration-200"
             style={{
               top: pos.top,
               left: pos.left,

@@ -490,7 +490,7 @@ export default function InterviewCoreJavaQuestionDetailPage() {
       {/* ── Mobile drawer: browse the index ──────────────────────────── */}
       {drawerOpen && (
         <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label="Browse questions">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+          <div className="absolute inset-0 bg-background/80" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
           <div className="cjq-reader absolute left-0 top-0 bottom-0 w-[300px] max-w-[85vw] border-r border-[hsl(var(--reader-border))] flex flex-col animate-in slide-in-from-left duration-200">
             <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--reader-border))]">
               <span className="text-sm font-bold flex items-center gap-2">

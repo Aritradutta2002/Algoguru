@@ -43,7 +43,7 @@ function ProblemCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-surface border p-4 transition-all hover:shadow-card",
+        "group relative flex flex-col rounded-surface border p-4 transition-all ",
         solved ? "border-success/30 bg-success/5" : "border-border/50 bg-card/70 hover:border-primary/40",
       )}
     >
@@ -190,7 +190,7 @@ export default function BackendPracticePage() {
           </div>
         </section>
 
-        <div className="sticky top-0 z-20 -mx-4 mb-5 border-b border-border/40 bg-background/85 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <div className="sticky top-0 z-20 -mx-4 mb-5 border-b border-border bg-background px-4 py-3 sm:-mx-6 sm:px-6">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -198,7 +198,7 @@ export default function BackendPracticePage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search problems…"
-              className="w-full rounded-xl border border-border/60 bg-card/70 py-2 pl-9 pr-9 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/50"
+              className="w-full rounded-control border border-border bg-card py-2 pl-9 pr-9 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/50"
             />
             {query && (
               <button

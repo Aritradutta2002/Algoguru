@@ -211,7 +211,7 @@ const QuestionCard = memo(function QuestionCard({
                 {view === "answer" ? (
                   <>
                     <BackendAnswer answer={question.answer} />
-                    <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
+                    <div className="mt-4 rounded-control border border-border bg-muted/40 p-3">
                       <p className="text-[11px] font-ui font-medium uppercase tracking-wide text-primary">
                         Interviewer is testing
                       </p>
@@ -350,7 +350,7 @@ export default function BackendQuestionsPage() {
         </header>
 
         {/* Search + filters */}
-        <div className="sticky top-0 z-20 -mx-4 mb-5 border-b border-border/40 bg-background/85 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <div className="sticky top-0 z-20 -mx-4 mb-5 border-b border-border bg-background px-4 py-3 sm:-mx-6 sm:px-6">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -359,7 +359,7 @@ export default function BackendQuestionsPage() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search questions, tags, ids…"
-                className="w-full rounded-xl border border-border/60 bg-card/70 py-2 pl-9 pr-9 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/50"
+                className="w-full rounded-control border border-border bg-card py-2 pl-9 pr-9 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/50"
               />
               {query && (
                 <button
@@ -376,7 +376,7 @@ export default function BackendQuestionsPage() {
               type="button"
               onClick={() => setShowFilters((v) => !v)}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors",
+                "inline-flex shrink-0 items-center gap-1.5 rounded-control border px-3 py-2 text-xs font-medium transition-colors",
                 showFilters
                   ? "border-primary/40 bg-primary/10 text-primary"
                   : "border-border/60 text-muted-foreground hover:text-foreground",

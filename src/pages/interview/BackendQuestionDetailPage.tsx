@@ -282,7 +282,7 @@ export default function BackendQuestionDetailPage() {
                   {question.followUps.map((item, idx) => (
                     <li
                       key={idx}
-                      className="flex gap-3 rounded-xl border border-border/50 bg-card/60 p-3 text-sm text-foreground"
+                      className="flex gap-3 rounded-control border border-border/50 bg-card/60 p-3 text-sm text-foreground"
                     >
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-bold text-muted-foreground">
                         {idx + 1}
@@ -310,7 +310,7 @@ export default function BackendQuestionDetailPage() {
                     <Link
                       key={problem.id}
                       to={`${BACKEND_PRACTICE_PATH}/${problem.id}`}
-                      className="group rounded-xl border border-border/50 bg-card/70 p-4 transition-all hover:border-primary/40"
+                      className="group rounded-control border border-border/50 bg-card/70 p-4 transition-all hover:border-primary/40"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
@@ -358,7 +358,7 @@ export default function BackendQuestionDetailPage() {
               {neighbours.previous ? (
                 <Link
                   to={`${BACKEND_QUESTIONS_PATH}/${neighbours.previous.slug}`}
-                  className="group rounded-xl border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
+                  className="group rounded-control border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
                 >
                   <span className="flex items-center gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                     <ArrowLeft className="h-3 w-3" />
@@ -374,7 +374,7 @@ export default function BackendQuestionDetailPage() {
               {neighbours.next && (
                 <Link
                   to={`${BACKEND_QUESTIONS_PATH}/${neighbours.next.slug}`}
-                  className="group rounded-xl border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
+                  className="group rounded-control border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
                 >
                   <span className="flex items-center justify-end gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                     Next

@@ -31,7 +31,7 @@ export function GoToLineDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="lc-surface max-w-sm rounded-xl" style={{ color: "var(--lc-text)" }}>
+      <DialogContent className="lc-surface max-w-sm rounded-control" style={{ color: "var(--lc-text)" }}>
         <DialogHeader>
           <DialogTitle className="text-sm">Go to line</DialogTitle>
           <DialogDescription className="text-[12px]" style={{ color: "var(--lc-muted)" }}>

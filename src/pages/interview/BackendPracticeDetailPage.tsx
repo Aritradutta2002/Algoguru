@@ -201,7 +201,7 @@ export default function BackendPracticeDetailPage() {
                     type="button"
                     onClick={() => toggleTask(idx)}
                     className={cn(
-                      "flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors",
+                      "flex w-full items-start gap-3 rounded-control border p-3 text-left transition-colors",
                       checked
                         ? "border-success/30 bg-success/5"
                         : "border-border/50 bg-card/60 hover:border-primary/40",
@@ -231,7 +231,7 @@ export default function BackendPracticeDetailPage() {
             })}
           </ul>
           {allTasksChecked && !solved && (
-            <p className="mt-3 rounded-xl border border-success/25 bg-success/5 px-3 py-2 text-xs text-success">
+            <p className="mt-3 rounded-control border border-success/25 bg-success/5 px-3 py-2 text-xs text-success">
               Every criterion ticked — mark the problem as solved at the top.
             </p>
           )}
@@ -271,7 +271,7 @@ export default function BackendPracticeDetailPage() {
                 key={idx}
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex gap-3 rounded-xl border border-warning/25 bg-warning/5 p-3"
+                className="flex gap-3 rounded-control border border-warning/25 bg-warning/5 p-3"
               >
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-warning/20 text-[11px] font-bold text-warning">
                   {idx + 1}
@@ -374,7 +374,7 @@ export default function BackendPracticeDetailPage() {
           {previous ? (
             <Link
               to={`${BACKEND_PRACTICE_PATH}/${previous.id}`}
-              className="group rounded-xl border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
+              className="group rounded-control border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
             >
               <span className="flex items-center gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                 <ArrowLeft className="h-3 w-3" />
@@ -390,7 +390,7 @@ export default function BackendPracticeDetailPage() {
           {next && (
             <Link
               to={`${BACKEND_PRACTICE_PATH}/${next.id}`}
-              className="group rounded-xl border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
+              className="group rounded-control border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
             >
               <span className="flex items-center justify-end gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                 Next

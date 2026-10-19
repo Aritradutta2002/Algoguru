@@ -67,7 +67,7 @@ export const CodeBlock = memo(function CodeBlock({
   /* ── Editor surface: fixed dark, independent of the app theme ────── */
   if (!reader) {
     return (
-      <div className={`${hideHeader ? "" : "my-6"} rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]`}>
+      <div className={`${hideHeader ? "" : "my-6"} rounded-surface overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]`}>
         {!hideHeader && (
           <div className="flex items-center justify-between px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
             <div className="flex items-center gap-2 min-w-0">
@@ -152,7 +152,7 @@ export const CodeBlock = memo(function CodeBlock({
   theme.prolog = theme.doctype = theme.cdata = theme.comment;
 
   return (
-    <div className="rounded-xl overflow-hidden border" style={{ background: bg, borderColor: border }}>
+    <div className="rounded-surface overflow-hidden border" style={{ background: bg, borderColor: border }}>
       {!hideHeader && (
         <div
           className="flex items-center justify-between gap-3 px-4 py-2.5"

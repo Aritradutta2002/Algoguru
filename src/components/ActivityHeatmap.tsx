@@ -524,7 +524,7 @@ export function ActivityHeatmap({
       <div
         ref={containerRef}
         className={cn(
-          "relative overflow-x-auto overflow-y-hidden rounded-xl p-4",
+          "relative overflow-x-auto overflow-y-hidden rounded-surface p-4",
           isEmbedded
             ? "border border-border/60 bg-muted/20"
             : "border border-border bg-card",
@@ -532,7 +532,7 @@ export function ActivityHeatmap({
         style={{ minHeight: `${cellSize * 7 + cellGap * 8 + 56}px` }}
       >
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/75 backdrop-blur-sm rounded-xl">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/85 rounded-surface">
             <div className="flex flex-col items-center gap-3">
               <Loader2
                 className="animate-spin text-primary/70"
@@ -717,7 +717,7 @@ export function ActivityHeatmap({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-5 pt-4 border-t border-border/40">
         {/* Stats */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 px-3 py-2">
+          <div className="flex items-center gap-2.5 rounded-control border border-border bg-muted/40 px-3 py-2">
             <div className="flex items-center gap-1.5">
               <div className={cn("w-2 h-2 rounded-full", activeDotColor)} />
               <span className="text-[11px] font-semibold text-foreground">
@@ -728,7 +728,7 @@ export function ActivityHeatmap({
               active days
             </span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 px-3 py-2">
+          <div className="flex items-center gap-2.5 rounded-control border border-border bg-muted/40 px-3 py-2">
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-semibold text-blue-600 dark:text-[#60A5FA]/90">
                 {maxStreak}
@@ -738,7 +738,7 @@ export function ActivityHeatmap({
               longest streak
             </span>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 px-3 py-2">
+          <div className="flex items-center gap-2.5 rounded-control border border-border bg-muted/40 px-3 py-2">
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-semibold text-foreground">
                 {totalSubmissions.toLocaleString()}

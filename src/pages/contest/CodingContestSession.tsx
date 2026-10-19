@@ -1045,9 +1045,9 @@ export function CodingContestSession() {
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="coding-start-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4"
         >
-          <div className="w-full max-w-md rounded-surface border border-border bg-card p-7 text-center shadow-card">
+          <div className="w-full max-w-md rounded-surface border border-border bg-card p-7 text-center">
             <AlgoGuruLogo size={120} showText={false} className="mx-auto text-foreground" />
             <h2
               id="coding-start-title"

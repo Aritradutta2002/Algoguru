@@ -44,7 +44,7 @@ export function CodingContestHeader({
   questionMenu?: ReactNode;
 }) {
   return (
-    <header className="relative z-40 flex h-[60px] shrink-0 items-center justify-between gap-3 rounded-xl bg-surface-chrome pl-6 pr-5">
+    <header className="relative z-40 flex h-[60px] shrink-0 items-center justify-between gap-3 rounded-control bg-surface-chrome pl-6 pr-5">
       {/* Contest set dropdown — a tab-like trigger with a primary underline. */}
       <div ref={menuAnchorRef} className="relative min-w-0">
         <button

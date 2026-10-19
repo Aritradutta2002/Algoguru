@@ -392,7 +392,7 @@ function CodeBlockShell({
   codeText: string;
 }) {
   return (
-    <div className="my-5 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]">
+    <div className="my-5 rounded-surface overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]">
       <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
         {toolbarLeft}
         {actions}
@@ -2099,7 +2099,7 @@ function CodeEditorPane({
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* overlay */}
             <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+              className="absolute inset-0 bg-background/80"
               onClick={() => setShowResetConfirm(false)}
             />
             {/* modal */}
@@ -2107,9 +2107,9 @@ function CodeEditorPane({
               role="dialog"
               aria-modal="true"
               aria-labelledby="reset-confirm-title"
-              className="relative flex w-full max-w-[420px] items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-overlay sm:p-6"
+              className="relative flex w-full max-w-[420px] items-start gap-4 rounded-surface border border-border bg-card p-5 shadow-overlay sm:p-6"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-warning/25 bg-warning/10 text-warning">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-warning/25 bg-warning/10 text-warning">
                 <AlertTriangle className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
@@ -2163,7 +2163,7 @@ function ProblemSkeleton({ compact = false }: { compact?: boolean }) {
           <Skeleton className="h-3.5 w-11/12" />
           <Skeleton className="h-3.5 w-10/12" />
         </div>
-        <Skeleton className="h-28 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-surface" />
         <div className="space-y-2.5">
           <Skeleton className="h-3.5 w-9/12" />
           <Skeleton className="h-3.5 w-8/12" />
@@ -2183,7 +2183,7 @@ function ProblemSkeleton({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
       <div className="flex-1 min-h-0 p-4">
-        <Skeleton className="h-full w-full rounded-xl" />
+        <Skeleton className="h-full w-full rounded-surface" />
       </div>
     </PaneShell>
   );
@@ -2214,7 +2214,7 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
     <div className="flex h-full items-center justify-center p-4">
       <div className="w-full max-w-lg rounded-lg border border-border bg-card p-5 md:p-7">
         <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-destructive/25 bg-destructive/10 text-destructive">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-destructive/25 bg-destructive/10 text-destructive">
             <AlertCircle className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
@@ -2259,7 +2259,7 @@ function EmptyState({ onRetry }: { onRetry: () => void }) {
     <div className="flex h-full items-center justify-center p-4">
       <div className="w-full max-w-lg rounded-lg border border-border bg-card p-5 md:p-7">
         <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-border bg-muted text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
@@ -2780,7 +2780,7 @@ function ProblemDetails({
               {isFullscreen &&
                 createPortal(
                   <div
-                    className="fixed inset-0 z-[100] flex justify-end bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-200"
+                    className="fixed inset-0 z-[100] flex justify-end bg-background/80 animate-in fade-in duration-200"
                     onClick={() => setIsFullscreen(false)}
                   >
                     <div

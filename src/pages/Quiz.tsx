@@ -367,7 +367,7 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen overflow-y-auto bg-background text-foreground selection:bg-primary/20">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-border bg-background">
         <PageShell
           width="wide"
           className="flex flex-wrap items-center justify-between gap-3 py-3"
@@ -1217,7 +1217,7 @@ export default function Quiz() {
             className="border-red-500/30"
           >
             <AlertDialogHeader>
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/15">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-surface bg-red-500/15">
                 {(() => {
                   const Icon = getWarningIcon();
                   return <Icon size={32} className="text-red-500" />;

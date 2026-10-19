@@ -195,7 +195,7 @@ export default function InterviewCppQuestionDetailPage() {
   return (
     <div className="cjd-page min-h-[calc(100vh-3.5rem)] bg-background text-foreground">
       {/* ── Sticky reading header ─────────────────────────────────── */}
-      <header className="cjd-sticky-bar sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md">
+      <header className="cjd-sticky-bar sticky top-0 z-30 border-b border-border bg-background">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 flex items-center gap-3 py-2.5">
           <Link
             to={listPath}
@@ -326,7 +326,7 @@ export default function InterviewCppQuestionDetailPage() {
                 <span className="cjd-section-icon">⚡</span>
                 Quick Answer
               </h2>
-              <div className="cjd-surface rounded-xl p-5 md:p-6">
+              <div className="cjd-surface rounded-surface p-5 md:p-6">
                 <CppQuestionAnswer answer={quickAnswer} />
               </div>
             </section>
@@ -345,7 +345,7 @@ export default function InterviewCppQuestionDetailPage() {
                   <span className="cjd-section-icon">📚</span>
                   Detailed Explanation
                 </h2>
-                <div className="cjd-surface rounded-xl p-5 md:p-6">
+                <div className="cjd-surface rounded-surface p-5 md:p-6">
                   <CppQuestionAnswer answer={answerSections.slice(1).join("\n\n")} />
                 </div>
               </section>
@@ -369,7 +369,7 @@ export default function InterviewCppQuestionDetailPage() {
                   <span className="cjd-section-icon">🧠</span>
                   Key Takeaways
                 </h2>
-                <div className="cjd-surface rounded-xl p-5 md:p-6">
+                <div className="cjd-surface rounded-surface p-5 md:p-6">
                   <p className="text-[15px] leading-[1.8] text-foreground/90">
                     {question.explanation}
                   </p>
@@ -392,7 +392,7 @@ export default function InterviewCppQuestionDetailPage() {
                       <Link
                         key={rid}
                         to={getCppQuestionDetailPath(related.question)}
-                        className="cjd-surface rounded-xl p-4 border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
+                        className="cjd-surface rounded-surface p-4 border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
                       >
                         <span className="block text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground/60 mb-1.5">
                           Q{String(related.index + 1).padStart(2, "0")} · {related.topic.title}
@@ -425,7 +425,7 @@ export default function InterviewCppQuestionDetailPage() {
               {previous ? (
                 <button
                   onClick={() => handleQuestionNavigate(previous.slug)}
-                  className="cjd-surface rounded-xl p-4 text-left border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
+                  className="cjd-surface rounded-surface p-4 text-left border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
                 >
                   <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 font-mono mb-1.5">
                     <ArrowLeft size={12} className="group-hover:-translate-x-0.5 transition-transform" /> Previous
@@ -440,7 +440,7 @@ export default function InterviewCppQuestionDetailPage() {
               {next && (
                 <button
                   onClick={() => handleQuestionNavigate(next.slug)}
-                  className="cjd-surface rounded-xl p-4 text-right border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
+                  className="cjd-surface rounded-surface p-4 text-right border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
                 >
                   <span className="flex items-center justify-end gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 font-mono mb-1.5">
                     Next <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
@@ -484,10 +484,10 @@ export default function InterviewCppQuestionDetailPage() {
       {/* ── Mobile drawer: browse topics ─────────────────────────── */}
       {drawerOpen && (
         <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true" aria-label="Browse topics">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+          <div className="absolute inset-0 bg-background/80" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
           <div
             ref={drawerRef}
-            className="absolute left-0 top-0 bottom-0 w-[300px] max-w-[85vw] bg-card border-r border-border/50 shadow-overlay flex flex-col animate-in slide-in-from-left duration-200"
+            className="absolute left-0 top-0 bottom-0 w-[300px] max-w-[85vw] bg-card border-r border-border flex flex-col animate-in slide-in-from-left duration-200"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
               <span className="text-sm font-bold flex items-center gap-2">

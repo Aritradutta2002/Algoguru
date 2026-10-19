@@ -114,7 +114,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
             const accent = TOPIC_ACCENTS[topic.id] ?? TOPIC_ACCENT_FALLBACK;
             const isTopicOpen = expandedTopic === topic.id;
             return (
-              <div key={topic.id} className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--lc-border)", background: "var(--lc-panel-2)" }}>
+              <div key={topic.id} className="rounded-surface overflow-hidden border" style={{ borderColor: "var(--lc-border)", background: "var(--lc-panel-2)" }}>
                 <button
                   onClick={() => setExpandedTopic(isTopicOpen ? null : topic.id)}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left lc-hover"

@@ -186,7 +186,7 @@ function ModalShell({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--inverse)/0.55)] p-4 backdrop-blur-sm animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 animate-in fade-in"
       onClick={onClose}
     >
       <div
@@ -1410,7 +1410,7 @@ export default function Profile() {
                     <div className="absolute -right-20 -top-28 h-72 w-72 rounded-full border border-primary/15 bg-primary/10" />
                     <div className="absolute -right-6 -top-36 h-72 w-72 rounded-full border border-primary/10" />
                     {joinedLabel && (
-                      <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-border/60 bg-background/70 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
+                      <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-chip border border-border bg-background/70 px-2.5 py-1 font-ui text-[11px] font-medium text-muted-foreground">
                         <CalendarDays size={11} />
                         Joined {joinedLabel}
                       </div>
@@ -1419,7 +1419,7 @@ export default function Profile() {
                       <button
                         type="button"
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur transition-colors hover:bg-muted"
+                        className="flex items-center gap-1.5 rounded-chip border border-border bg-background/70 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
                       >
                         <Edit2 size={12} />
                         Edit profile
@@ -1429,7 +1429,7 @@ export default function Profile() {
                         onClick={handleShare}
                         title="Share profile"
                         aria-label="Share profile"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-background/70 text-foreground backdrop-blur transition-colors hover:bg-muted"
+                        className="flex h-8 w-8 items-center justify-center rounded-chip border border-border bg-background/70 text-foreground transition-colors hover:bg-muted"
                       >
                         {copied ? (
                           <Check size={13} className="text-emerald-500" />

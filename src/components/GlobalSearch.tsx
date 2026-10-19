@@ -295,7 +295,7 @@ const ResultRow = ({ doc, query, onSelect }: { doc: ScoredDoc; query: string; on
   <CommandItem
     value={`${doc.category} ${doc.id} ${doc.title} ${doc.subtitle}`}
     onSelect={onSelect}
-    className="group cursor-pointer gap-3 rounded-xl px-2.5 py-2.5 transition-colors data-[selected='true']:bg-primary/[0.07] data-[selected='true']:shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.28)] data-[selected='true']:hover:bg-primary/[0.11]"
+    className="group cursor-pointer gap-3 rounded-control px-2.5 py-2.5 transition-colors data-[selected='true']:bg-primary/[0.07] data-[selected='true']:shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.28)] data-[selected='true']:hover:bg-primary/[0.11]"
   >
     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-border/80 bg-muted/60 text-base shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)] transition-colors group-data-[selected='true']:border-primary/30 group-data-[selected='true']:bg-primary/10">
       {doc.icon}
@@ -474,7 +474,7 @@ export function GlobalSearch() {
           >
             {/* Vignette: a radial wash instead of a flat scrim, so the
                 spotlight falls on the palette rather than the whole page. */}
-            <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,hsl(var(--primary)/0.10),transparent_60%)] bg-slate-950/55 backdrop-blur-[6px] dark:bg-slate-950/70" />
+            <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,hsl(var(--primary)/0.10),transparent_60%)] bg-background/80" />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.97, y: -10 }}
@@ -486,7 +486,7 @@ export function GlobalSearch() {
               <Command
                 shouldFilter={false}
                 loop
-                className="flex h-[min(620px,80vh)] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-[0_32px_80px_-12px_hsl(var(--foreground)/0.35),0_0_0_1px_hsl(var(--foreground)/0.04)] backdrop-blur-xl"
+                className="flex h-[min(620px,80vh)] flex-col overflow-hidden rounded-surface border border-border bg-card shadow-overlay"
               >
                 {/* Input ------------------------------------------------------ */}
                 <div className="flex shrink-0 items-center gap-3 px-4 pb-3.5 pt-4">

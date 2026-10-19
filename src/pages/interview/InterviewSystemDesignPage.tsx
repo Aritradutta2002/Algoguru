@@ -141,7 +141,7 @@ const _QuestionCard = ({
                   onClick={() => onToggleView(question.id, "code")}
                   aria-expanded={activeView === "code"}
                   className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13.5px] font-semibold transition-all ${
-                    activeView === "code" ? "bg-accent text-accent-foreground shadow-md shadow-accent/20"
+                    activeView === "code" ? "bg-foreground text-background"
                       : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -174,7 +174,7 @@ const _QuestionCard = ({
             <div className="border-t border-border/20" />
             <div className="p-5 md:p-7 space-y-4">
               {activeView === "theory" && (
-                <div className="bg-muted/30 rounded-xl p-6 md:p-8 border border-border/20 shadow-inner">
+                <div className="bg-muted/30 rounded-surface p-6 md:p-8 border border-border">
                   {renderTheoryContent(question.answer)}
                 </div>
               )}
@@ -184,7 +184,7 @@ const _QuestionCard = ({
                 </div>
               )}
               {activeView === "code" && question.code && (
-                <div className="rounded-xl overflow-hidden shadow-card border border-border/30">
+                <div className="rounded-surface overflow-hidden border border-border">
                   <CodeBlock language={question.codeLanguage || "java"} code={question.code} title="Example" />
                 </div>
               )}
@@ -420,7 +420,7 @@ export default function InterviewSystemDesignPage() {
     <div className="min-h-[calc(100vh-3.5rem)] flex flex-col bg-background text-foreground selection:bg-primary/15">
 
       {/* ── Header ── */}
-      <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
+      <header className="shrink-0 bg-background border-b border-border relative z-30">
         <div className="px-4 md:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <button
@@ -551,7 +551,7 @@ export default function InterviewSystemDesignPage() {
 
             <button
               onClick={() => handleTopicClick("")}
-              className={`w-full text-left px-4 py-3 rounded-xl transition-all mb-2 border ${
+              className={`w-full text-left px-4 py-3 rounded-control transition-colors mb-2 border ${
                 !selectedTopic ? "bg-primary/10 border-primary/20 text-foreground" : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
             >
@@ -570,7 +570,7 @@ export default function InterviewSystemDesignPage() {
                   <button
                     key={topic.id}
                     onClick={() => handleTopicClick(topic.id)}
-                    className={`w-full text-left px-4 py-3 rounded-xl transition-all border ${
+                    className={`w-full text-left px-4 py-3 rounded-control transition-colors border ${
                       isActive ? "bg-primary/5 border-primary/20 text-foreground shadow-sm" : "bg-transparent border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     }`}
                   >
@@ -598,7 +598,7 @@ export default function InterviewSystemDesignPage() {
             <>
               <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                className="fixed inset-0 z-40 bg-background/80 lg:hidden"
                 onClick={() => setTopicSidebarOpen(false)}
               />
               <motion.aside
@@ -621,7 +621,7 @@ export default function InterviewSystemDesignPage() {
                         <button
                           key={topic.id}
                           onClick={() => { handleTopicClick(topic.id); setTopicSidebarOpen(false); }}
-                          className="w-full text-left px-4 py-3 rounded-xl transition-all border bg-transparent border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                          className="w-full text-left px-4 py-3 rounded-control transition-colors border bg-transparent border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                         >
                           <div className="flex items-center gap-3 mb-2">
                             <span className="text-lg shrink-0">{topic.icon}</span>
@@ -763,7 +763,7 @@ export default function InterviewSystemDesignPage() {
             <motion.div
               initial={{ x: 400 }} animate={{ x: 0 }} exit={{ x: 400 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-md bg-card border-l border-border/40 shadow-overlay flex flex-col overflow-hidden"
+              className="w-full max-w-md bg-card border-l border-border flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-border/30 shrink-0">

@@ -93,7 +93,7 @@ export function DraggableNoteEditor({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.92, y: 16 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="fixed z-[300] rounded-2xl overflow-hidden shadow-overlay border border-border/60"
+      className="fixed z-[300] rounded-surface overflow-hidden border border-border shadow-overlay"
       style={{
         left: pos.x,
         top: pos.y,
