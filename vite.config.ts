@@ -48,7 +48,6 @@ export default defineConfig(({ mode }) => ({
             "react-syntax-highlighter",
           ],
           "pdf": ["jspdf", "html2canvas"],
-          charts: ["recharts"],
         },
       },
     },
