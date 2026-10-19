@@ -12,28 +12,23 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ["JetBrains Mono", "Fira Code", "monospace"],
-        sans: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "Outfit", "Inter", "system-ui", "sans-serif"],
+        /* Every face resolves through a shared role token (see `--font-*`
+           in index.css), so the product and the landing page cannot drift. */
+        display: ["var(--font-display)"],
+        sans: ["var(--font-body)"],
+        /* UI chrome: labels, buttons, chips, table headers, form fields. */
+        ui: ["var(--font-ui)"],
+        mono: ["var(--font-mono)"],
         /* Long-form reading: humanist, high x-height, tuned for prose. */
         reading: ["Source Sans 3", "Inter", "system-ui", "sans-serif"],
         /* Documentation-grade code face for the Q&A reader. */
         code: ["Source Code Pro", "JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
-        category: {
-          dsa: "#93C5FD",
-          interview: "#9BE2C3",
-          core: "#A8A4F5",
-          system: "#99C2F8",
-          playlist: "#60A5FA",
+        border: {
+          DEFAULT: "hsl(var(--border))",
+          strong: "hsl(var(--border-strong))",
         },
-        accentLine: {
-          system: "#10B981",
-          playlist: "#F87171",
-          core: "#A855F7",
-        },
-        border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -100,11 +95,38 @@ export default {
           border: "hsl(var(--code-border))",
           header: "hsl(var(--code-header))",
         },
+        /* Missing middle of the scale shared with the landing page. */
+        quiet: "hsl(var(--quiet))",
+        editor: {
+          DEFAULT: "hsl(var(--editor-surface))",
+          border: "hsl(var(--editor-border))",
+        },
+        inverse: {
+          DEFAULT: "hsl(var(--inverse))",
+          foreground: "hsl(var(--inverse-foreground))",
+          quiet: "hsl(var(--inverse-quiet))",
+          border: "hsl(var(--inverse-border))",
+        },
+        syntax: {
+          key: "hsl(var(--syntax-key))",
+          type: "hsl(var(--syntax-type))",
+          string: "hsl(var(--syntax-string))",
+          comment: "hsl(var(--syntax-comment))",
+        },
+      },
+      maxWidth: {
+        shell: "var(--shell)",
+        wide: "var(--shell-wide)",
+        reading: "var(--reading)",
+        reader: "var(--reader-grid)",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        control: "var(--radius-control)",
+        chip: "var(--radius-chip)",
+        surface: "var(--radius-surface)",
       },
       boxShadow: {
         /* Restrained elevation ladder, driven by theme tokens */

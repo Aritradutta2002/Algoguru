@@ -66,7 +66,7 @@
   justify-content: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-control);
   background: hsl(var(--primary) / 0.1);
   border: 1px solid hsl(var(--primary) / 0.2);
   color: hsl(var(--primary));
@@ -76,7 +76,7 @@
 .cjd-surface {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: 0.875rem;
+  border-radius: var(--radius-surface);
 }
 
 .cjd-mental-model {
@@ -88,7 +88,7 @@
 
 /* ── Reading pane (theory surfaces, day/night) ────────────────────── */
 .cjq-list-title {
-  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-family: var(--font-display);
   color: hsl(var(--reading-heading));
   letter-spacing: -0.015em;
 }
@@ -99,7 +99,7 @@
 }
 
 .cjq-detail-title {
-  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-family: var(--font-display);
   color: hsl(var(--reading-heading));
 }
 
@@ -108,7 +108,7 @@
   background: hsl(var(--reading-surface));
   color: hsl(var(--reading-foreground));
   border: 1px solid hsl(var(--reading-border));
-  border-radius: 1rem;
+  border-radius: var(--radius-surface);
   box-shadow: var(--shadow-card);
 }
 
@@ -140,13 +140,13 @@
 
 .cjq-reading-content {
   max-width: 72ch;
-  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
 .cjq-reading-content h4 {
-  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -167,11 +167,11 @@
 }
 
 .cjq-reading-content code {
-  font-family: "JetBrains Mono", "Roboto Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.86em;
   font-weight: 500;
   padding: 0.1rem 0.4rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-chip);
   background: hsl(var(--reading-muted) / 0.12);
   color: hsl(var(--reading-foreground));
   border: 1px solid hsl(var(--reading-border));
@@ -293,7 +293,7 @@
   gap: 0.625rem;
   width: 100%;
   padding: 0.75rem 0;
-  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -311,7 +311,7 @@
   justify-content: center;
   width: 1.625rem;
   height: 1.625rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-control);
   background: hsl(var(--primary) / 0.1);
   border: 1px solid hsl(var(--primary) / 0.2);
   color: hsl(var(--primary));
@@ -341,7 +341,7 @@
    everything textual, JetBrains Mono for numeric/technical labels. */
 .cjh-page :is(h1, h2, h3, h4, h5, h6),
 .cjh-dialog :is(h1, h2, h3) {
-  font-family: "Space Grotesk", "Outfit", "Inter", system-ui, sans-serif;
+  font-family: var(--font-display);
   letter-spacing: -0.01em;
 }
 
@@ -356,7 +356,7 @@
 }
 
 .cjh-num {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -384,25 +384,33 @@
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0.5rem 1.25rem;
-  border-radius: 0.625rem;
-  font-weight: 600;
+  border-radius: var(--radius-control);
+  font-family: var(--font-ui);
+  font-weight: 500;
   font-size: 0.875rem;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.cjh-btn-primary {
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-radius: 0.75rem;
+/* Shared button typography for the wide-scale overrides further below. */
+.cjh-btn-primary,
+.cjh-btn-secondary {
+  border-radius: var(--radius-control);
+  font-family: var(--font-ui);
 }
 
+/* Inverted solid: the premium language's single primary action. */
 .cjh-btn-primary {
-  box-shadow: 0 1px 2px 0 hsl(var(--primary) / 0.25), 0 6px 16px -8px hsl(var(--primary) / 0.5);
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border: 1px solid hsl(var(--foreground));
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-soft);
 }
 
 .cjh-btn-primary:hover {
-  background: hsl(var(--primary) / 0.92);
-  box-shadow: 0 2px 4px 0 hsl(var(--primary) / 0.3), 0 10px 22px -8px hsl(var(--primary) / 0.55);
+  background: hsl(var(--foreground) / 0.88);
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground) / 0.88);
   transform: none;
   filter: none;
   opacity: 1;
@@ -410,7 +418,7 @@
 
 .cjh-btn-primary:active {
   transform: none;
-  box-shadow: 0 1px 2px 0 hsl(var(--primary) / 0.2);
+  box-shadow: none;
 }
 
 .cjh-btn-secondary {
@@ -478,7 +486,7 @@
 .cjh-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 0.875rem;
+  border-radius: var(--radius-surface);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
 }
@@ -496,12 +504,10 @@
   letter-spacing: -0.02em;
 }
 
-/* Solid accent — gradient text clip, matching the home hero */
+/* No gradient text: the premium language accents with weight and
+   scale, never with a colour wash. */
 .cjh-hero-title span {
-  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: inherit;
 }
 
 /* ── Shared surfaces: flattened, no elevation tricks ───────────────── */
@@ -512,7 +518,7 @@
 .cjh-question-card,
 .cjh-revision-banner,
 .cjh-footer-stat {
-  border-radius: 1rem;
+  border-radius: var(--radius-surface);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
   box-shadow: var(--shadow-card);
@@ -524,9 +530,8 @@
 .cjh-topic-card:hover,
 .cjh-question-card:hover,
 .cjh-footer-stat:hover {
-  border-color: hsl(var(--primary) / 0.35);
-  box-shadow: 0 2px 6px -2px hsl(var(--foreground) / 0.08), 0 18px 40px -18px hsl(var(--foreground) / 0.25);
-  transform: translateY(-3px);
+  border-color: hsl(var(--foreground) / 0.22);
+  box-shadow: var(--shadow-soft);
 }
 
 .cjh-path-card:hover .cjh-path-arrow {
@@ -545,7 +550,7 @@
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-control);
   margin-bottom: 1rem;
   border: 1px solid;
 }
@@ -568,7 +573,7 @@
   justify-content: center;
   width: 2.4rem;
   height: 2.4rem;
-  border-radius: 0.7rem;
+  border-radius: var(--radius-control);
   flex-shrink: 0;
   font-size: 1.05rem;
   line-height: 1;
@@ -624,7 +629,7 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-control);
   background: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
   color: hsl(var(--foreground));
@@ -641,7 +646,7 @@
   justify-content: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-control);
   margin-bottom: 0.5rem;
 }
 
@@ -707,13 +712,9 @@
   gap: 1.5rem;
   padding: 2.25rem 1.75rem;
   position: relative;
-  border-radius: 1.25rem;
+  border-radius: var(--radius-surface);
   border: 1px solid hsl(var(--border));
-  background:
-    radial-gradient(120% 140% at 85% -20%, hsl(var(--primary) / 0.14), transparent 50%),
-    radial-gradient(80% 120% at 0% 110%, hsl(var(--accent) / 0.08), transparent 55%),
-    hsl(var(--card));
-  box-shadow: var(--shadow-card);
+  background: hsl(var(--card));
   overflow: hidden;
 }
 
@@ -759,7 +760,7 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.3rem 0.7rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-chip);
   border: 1px solid hsl(var(--primary) / 0.25);
   background: hsl(var(--primary) / 0.08);
   color: hsl(var(--primary));
@@ -774,12 +775,9 @@
   flex-direction: column;
   gap: 0.85rem;
   padding: 1.5rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-surface);
   border: 1px solid hsl(var(--border));
-  background:
-    radial-gradient(120% 120% at 80% -10%, hsl(var(--primary) / 0.07), transparent 55%),
-    hsl(var(--card));
-  box-shadow: var(--shadow-card);
+  background: hsl(var(--background));
   overflow: hidden;
 }
 
@@ -787,8 +785,8 @@
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: 3px;
-  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.4));
+  height: 2px;
+  background: hsl(var(--foreground) / 0.75);
 }
 
 .cjh-progress-panel-title {
@@ -883,13 +881,9 @@
   display: grid;
   gap: 0.65rem;
   padding: 1.6rem;
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--primary) / 0.25);
-  background:
-    linear-gradient(135deg, hsl(var(--primary) / 0.07), transparent 55%),
-    radial-gradient(110% 140% at 90% -10%, hsl(var(--primary) / 0.08), transparent 50%),
-    hsl(var(--card));
-  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-surface);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
   overflow: hidden;
 }
 
@@ -958,7 +952,7 @@
   width: 100%;
   height: 2.625rem;
   padding: 0 4.5rem 0 2.5rem;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-control);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
   color: hsl(var(--foreground));
@@ -986,7 +980,7 @@
   font-weight: 500;
   color: hsl(var(--muted-foreground));
   padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-chip);
   background: hsl(var(--muted));
   border: none;
   cursor: pointer;
@@ -1004,7 +998,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 2.5rem 1.5rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-control);
   border: 1px dashed hsl(var(--border));
   text-align: center;
   color: hsl(var(--muted-foreground));
@@ -1023,18 +1017,15 @@
   align-items: center;
   gap: 0.65rem 1.25rem;
   padding: 1.05rem 1.2rem;
-  border-radius: 0.875rem;
+  border-radius: var(--radius-surface);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  box-shadow: var(--shadow-card);
-  transition: background-color 0.15s ease, border-color 0.2s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: background-color 0.15s ease, border-color 0.2s ease;
 }
 
 .cjh-topic-row:hover {
   background: hsl(var(--muted) / 0.4);
-  border-color: hsl(var(--primary) / 0.35);
-  box-shadow: 0 2px 6px -2px hsl(var(--foreground) / 0.08), 0 18px 40px -18px hsl(var(--foreground) / 0.25);
-  transform: translateY(-2px);
+  border-color: hsl(var(--foreground) / 0.22);
 }
 
 .cjh-topic-num {
@@ -1044,8 +1035,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-radius: 0.55rem;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
   font-weight: 700;
@@ -1148,7 +1139,7 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.1rem 0.45rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-chip);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--background));
   color: hsl(var(--foreground));
@@ -1179,7 +1170,7 @@
 .cjh-hotlist {
   margin-top: 0.75rem;
   border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
+  border-radius: var(--radius-control);
   background: hsl(var(--card));
   overflow: hidden;
 }
@@ -1203,7 +1194,7 @@
 .cjh-hot-rank {
   width: 1.75rem;
   flex-shrink: 0;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -1252,7 +1243,7 @@
   gap: 0.25rem;
   padding: 0.1rem 0.4rem;
   border: 1px solid hsl(var(--border));
-  border-radius: 0.375rem;
+  border-radius: var(--radius-chip);
   background: hsl(var(--background));
   color: hsl(var(--muted-foreground));
   font-size: 0.75rem;
@@ -1286,18 +1277,15 @@
   align-items: flex-start;
   gap: 0.75rem 0.9rem;
   padding: 1rem 1.15rem;
-  border-radius: 0.875rem;
+  border-radius: var(--radius-surface);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
-  box-shadow: var(--shadow-card);
-  transition: border-color 0.2s ease, background-color 0.15s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.2s ease, background-color 0.15s ease;
 }
 
 .cjh-resource:hover {
-  border-color: hsl(var(--primary) / 0.35);
+  border-color: hsl(var(--foreground) / 0.22);
   background: hsl(var(--muted) / 0.35);
-  box-shadow: 0 2px 6px -2px hsl(var(--foreground) / 0.08), 0 18px 40px -18px hsl(var(--foreground) / 0.25);
-  transform: translateY(-2px);
 }
 
 .cjh-resource-icon {
@@ -1307,7 +1295,7 @@
   width: 2.25rem;
   height: 2.25rem;
   flex-shrink: 0;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-control);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
@@ -1359,7 +1347,7 @@
 
 .cjh-plan-week {
   border: 1px solid hsl(var(--border));
-  border-radius: 0.875rem;
+  border-radius: var(--radius-surface);
   background: hsl(var(--card));
   box-shadow: var(--shadow-card);
   overflow: hidden;
@@ -1397,7 +1385,7 @@
   height: 1.9rem;
   border-radius: 9999px;
   flex-shrink: 0;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
   border: 1px solid hsl(var(--border));
@@ -1430,7 +1418,7 @@
 }
 
 .cjh-plan-week-name {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 600;
   color: hsl(var(--muted-foreground));
@@ -1501,7 +1489,7 @@
   gap: 0.7rem;
   min-height: 2.75rem;
   padding: 0.5rem 0.6rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-control);
   transition: background-color 0.15s ease;
 }
 
@@ -1591,7 +1579,7 @@
 /* ── Reset confirmation dialog content ─────────────────────────────── */
 .cjh-dialog {
   max-width: 28rem;
-  border-radius: 0.875rem;
+  border-radius: var(--radius-surface);
   border: 1px solid hsl(var(--border));
 }
 
@@ -1790,7 +1778,7 @@
   background: hsl(var(--reader-quote));
   border: 1px solid hsl(var(--reader-border));
   border-left: 3px solid hsl(var(--reader-accent));
-  border-radius: 0.5rem;
+  border-radius: var(--radius-control);
   padding: 1.125rem 1.25rem;
   text-wrap: pretty;
 }
@@ -1799,7 +1787,7 @@
 .cjq-doc-box {
   background: hsl(var(--reader-surface));
   border: 1px solid hsl(var(--reader-border));
-  border-radius: 0.75rem;
+  border-radius: var(--radius-control);
   padding: 1.5rem 1.5rem 1.625rem;
 }
 
@@ -1842,7 +1830,7 @@
   font-weight: 500;
   line-height: 1;
   padding: 0.3rem 0.5rem;
-  border-radius: 0.3125rem;
+  border-radius: var(--radius-chip);
   border: 1px solid hsl(var(--reader-border));
   background: hsl(var(--reader-surface-alt));
   color: hsl(var(--reader-note));
@@ -1952,7 +1940,7 @@
   font-size: 0.9em;
   font-weight: 500;
   padding: 0.12em 0.36em;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-chip);
   background: hsl(var(--code-inline-bg));
   color: hsl(var(--code-inline-text));
   border: 1px solid hsl(var(--code-inline-border));
@@ -2095,7 +2083,7 @@
   display: block;
   background: hsl(var(--reader-surface));
   border: 1px solid hsl(var(--reader-border));
-  border-radius: 0.625rem;
+  border-radius: var(--radius-control);
   padding: 0.9rem 1rem;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -2293,7 +2281,7 @@
 }
 
 .cjq-list-root .cjq-qcard {
-  border-radius: 0.875rem;
+  border-radius: var(--radius-surface);
 }
 
 /* The browse grid can run wide — cap the measure so an expanded answer
@@ -2315,7 +2303,7 @@
 .cjh-dialog :is(a, button):focus-visible {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-chip);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -2843,7 +2831,7 @@
   background: transparent;
   border-color: transparent;
   color: hsl(var(--reader-note));
-  border-radius: 0.375rem;
+  border-radius: var(--radius-chip);
 }
 
 .cjq-w3.cjq-w3 .cjq-toolbar-btn:hover {
@@ -2856,7 +2844,7 @@
   background: transparent;
   border-color: hsl(var(--reader-border));
   color: hsl(var(--reader-heading));
-  border-radius: 0.375rem;
+  border-radius: var(--radius-chip);
 }
 
 .cjq-w3 .cjq-input:focus {
@@ -3272,7 +3260,7 @@
   box-shadow: none;
   padding: 0;
   min-height: 28px;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-chip);
 }
 
 .cjq-w3.cjq-w3 button.cjq-w3-bookmark:hover {
@@ -3374,7 +3362,7 @@
   padding: 0.85rem 1rem;
   border: 1px solid hsl(var(--reader-border));
   border-left: 3px solid hsl(var(--warning));
-  border-radius: 0.25rem;
+  border-radius: var(--radius-chip);
   background: transparent;
 }
 
@@ -3400,7 +3388,7 @@
   color: hsl(var(--reader-accent));
   background: transparent;
   border: 1px solid hsl(var(--reader-accent) / 0.45);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-chip);
   transition: background-color 0.15s ease;
 }
 
@@ -3440,7 +3428,7 @@
 .cjq-w3 :is(a, button, input):focus-visible {
   outline: 2px solid hsl(var(--reader-accent));
   outline-offset: 2px;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-chip);
 }
 
 @media (max-width: 640px) {

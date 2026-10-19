@@ -2,179 +2,443 @@
  * Shared page-level primitives.
  *
  * These encode the visual language used by the home page (`src/pages/Index.tsx`)
- * so every route in the app shares the same spacing scale, surface treatment,
- * typography rhythm and empty-state pattern.
+ * so every route in the app shares the same shell width, spacing scale,
+ * surface treatment, typography rhythm and empty/loading/error states.
+ *
+ * Width, gutters and section rhythm come from the `ui-*` vocabulary in
+ * `src/index.css`, which is driven by the shared tokens in the same file.
+ * A page renders exactly one `PageShell`; headers and sections compose inside
+ * it and never declare their own max-width, so widths cannot drift again.
  *
  * Visual only — no business logic lives here.
  */
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/* ─── Page container ──────────────────────────────────────────────── */
+/* ─── Design vocabulary types ────────────────────────────────────── */
 
-export const PageContainer = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("mx-auto w-full max-w-7xl px-5 md:px-10 lg:px-16", className)}
-    {...props}
-  />
-));
+/** Page shell width. `standard` is the default 1240px column. */
+export type ShellWidth = "standard" | "wide" | "reading" | "reader" | "full";
+/** Vertical rhythm inside a section. */
+export type SectionSpacing = "default" | "compact" | "none";
+/** Header emphasis. `display` is the landing-scale page title. */
+export type PageHeaderVariant = "display" | "standard" | "compact" | "bare";
+/** Card padding scale. */
+export type SurfacePadding = "none" | "sm" | "md" | "lg";
+/** Semantic status tones — meaning, not decoration. */
+export type PillTone =
+  | "neutral"
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "inverse";
+
+const SHELL_CLASS: Record<ShellWidth, string> = {
+  standard: "ui-shell",
+  wide: "ui-shell--wide",
+  reading: "ui-shell--reading",
+  reader: "ui-shell--reader",
+  full: "ui-shell--full",
+};
+
+const SURFACE_PADDING_CLASS: Record<SurfacePadding, string | null> = {
+  none: null,
+  sm: "p-4",
+  md: "p-5",
+  lg: "p-6 md:p-8",
+};
+
+const PILL_TONE_CLASS: Record<PillTone, string> = {
+  neutral: "ui-pill ui-pill--neutral",
+  primary: "ui-pill ui-pill--primary",
+  success: "ui-pill ui-pill--success",
+  warning: "ui-pill ui-pill--warning",
+  danger: "ui-pill ui-pill--danger",
+  inverse: "ui-pill ui-pill--inverse",
+};
+
+/* ─── Page shell ──────────────────────────────────────────────────── */
+
+export interface PageShellProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Content column width. Defaults to `standard` (1240px). */
+  width?: ShellWidth;
+}
+
+/**
+ * The one page-level width container. Expects a `.ui-app-canvas` ancestor
+ * (container context) so `cqi` gutters and `@container` rules resolve.
+ */
+export const PageShell = React.forwardRef<HTMLDivElement, PageShellProps>(
+  ({ width = "standard", className, ...props }, ref) => (
+    <div ref={ref} className={cn(SHELL_CLASS[width], className)} {...props} />
+  ),
+);
+PageShell.displayName = "PageShell";
+
+/**
+ * @deprecated Use `PageShell`. Kept as a width-compatible alias for existing
+ * call sites; it maps to the `standard` shell.
+ */
+export const PageContainer = React.forwardRef<HTMLDivElement, PageShellProps>(
+  ({ width, className, ...props }, ref) => (
+    <PageShell
+      ref={ref}
+      width={width ?? "standard"}
+      className={className}
+      {...props}
+    />
+  ),
+);
 PageContainer.displayName = "PageContainer";
 
 /* ─── Page header ─────────────────────────────────────────────────── */
 
-interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+export interface PageHeaderProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   /** Small uppercase label above the title. */
   eyebrow?: React.ReactNode;
+  /** Monospace kicker with a leading rule (the landing section label). */
+  kicker?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
+  /** Optional line kept under the lede (metadata counts, timings). */
+  meta?: React.ReactNode;
   /** Right-aligned actions (buttons, filters). */
   actions?: React.ReactNode;
   /** Optional breadcrumb rendered above the eyebrow. */
   breadcrumb?: React.ReactNode;
   /** Removes the bottom divider — use when a toolbar follows immediately. */
   bare?: boolean;
+  /** Legacy alias of `variant`: `compact` maps to the compact variant. */
   size?: "default" | "compact";
+  /** Emphasis. Defaults to `standard`. */
+  variant?: PageHeaderVariant;
 }
 
+/**
+ * Page heading block. Renders **no** width wrapper — place it inside a
+ * `PageShell` so the title, lede and first content block share one left edge.
+ */
 export function PageHeader({
   eyebrow,
+  kicker,
   title,
   description,
+  meta,
   actions,
   breadcrumb,
   bare = false,
   size = "default",
+  variant,
   className,
   ...props
 }: PageHeaderProps) {
+  const resolved: PageHeaderVariant =
+    variant ?? (size === "compact" ? "compact" : "standard");
+  const isDisplay = resolved === "display";
+  const isBare = resolved === "bare" || bare;
+  const isCompact = resolved === "compact";
+
   return (
-    <div
+    <header
       className={cn(
-        "relative",
-        !bare && "border-b border-border/60",
+        "ui-page-header",
+        `ui-page-header--${resolved}`,
+        !isBare && "ui-page-header--divided",
         className,
       )}
       {...props}
     >
-      {/* Soft, restrained radial wash — matches the home page hero */}
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,hsl(var(--primary)/0.10),transparent_35%),radial-gradient(circle_at_15%_40%,hsl(var(--accent)/0.06),transparent_30%)]"
-      />
-      <PageContainer
         className={cn(
-          "relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between",
-          size === "compact" ? "py-10 md:py-12" : "py-12 md:py-16 lg:py-20",
+          "ui-page-header__inner",
+          actions && "ui-page-header__inner--split",
         )}
       >
-        <div className="min-w-0 max-w-3xl">
-          {breadcrumb && <div className="mb-5">{breadcrumb}</div>}
-          {eyebrow && (
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-soft">
-              {eyebrow}
-            </div>
+        <div className="ui-page-header__lead">
+          {breadcrumb && (
+            <div className="ui-page-header__breadcrumb">{breadcrumb}</div>
           )}
-          <h1 className="text-3xl font-bold leading-[1.08] tracking-[-0.035em] text-foreground md:text-4xl lg:text-5xl">
+          {kicker && !eyebrow && <p className="ui-kicker">{kicker}</p>}
+          {eyebrow && (
+            <span className="ui-chip ui-chip--primary ui-page-header__eyebrow">
+              {eyebrow}
+            </span>
+          )}
+          <h1 className={isDisplay ? "ui-display" : "ui-h2"} data-page-title="">
             {title}
           </h1>
           {description && (
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">
-              {description}
-            </p>
+            <p className="ui-lede ui-page-header__lede">{description}</p>
           )}
+          {meta && <div className="ui-page-header__meta">{meta}</div>}
         </div>
-        {actions && (
-          <div className="flex shrink-0 flex-wrap items-center gap-3">{actions}</div>
-        )}
-      </PageContainer>
+        {actions && <div className="ui-page-header__actions">{actions}</div>}
+      </div>
+      {isCompact && (
+        <span className="ui-rule ui-page-header__rule" aria-hidden="true" />
+      )}
+    </header>
+  );
+}
+
+/* ─── Section heading ─────────────────────────────────────────────── */
+
+export interface SectionHeadingProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
+  kicker?: React.ReactNode;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  actions?: React.ReactNode;
+  /** Heading level — defaults to `h2`. */
+  as?: "h2" | "h3" | "h4";
+}
+
+/** The landing section-head grid: title left, lede right once there is room. */
+export function SectionHeading({
+  kicker,
+  title,
+  description,
+  actions,
+  as: Tag = "h2",
+  className,
+  ...props
+}: SectionHeadingProps) {
+  return (
+    <div className={cn("ui-section-head", className)} {...props}>
+      <div className="ui-section-head__lead">
+        {kicker && <p className="ui-kicker">{kicker}</p>}
+        <Tag className={Tag === "h2" ? "ui-h2" : "ui-h3"}>{title}</Tag>
+      </div>
+      {(description || actions) && (
+        <div className="ui-section-head__aside">
+          {description && <p className="ui-lede">{description}</p>}
+          {actions && <div className="ui-section-head__actions">{actions}</div>}
+        </div>
+      )}
     </div>
   );
 }
 
 /* ─── Section ─────────────────────────────────────────────────────── */
 
-interface SectionProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
+export interface SectionProps extends Omit<
+  React.HTMLAttributes<HTMLElement>,
+  "title"
+> {
+  kicker?: React.ReactNode;
   title?: React.ReactNode;
   description?: React.ReactNode;
   actions?: React.ReactNode;
+  /** Legacy alias of `band`. Draws a rule above the section. */
   divided?: boolean;
+  /** Draws a 1px top band separator. */
+  band?: boolean;
+  spacing?: SectionSpacing;
+  /** Heading level for the section title — defaults to `h2`. */
+  headingAs?: "h2" | "h3" | "h4";
 }
 
+/**
+ * A page band. Renders **no** width wrapper — place it inside a `PageShell`
+ * so bands run edge-to-edge within the shell column like `.lp-band`.
+ */
 export function Section({
+  kicker,
   title,
   description,
   actions,
   divided = false,
+  band,
+  spacing = "default",
+  headingAs,
   className,
   children,
   ...props
 }: SectionProps) {
-  const hasHeading = title || description || actions;
+  const hasHeading = Boolean(kicker || title || description || actions);
   return (
     <section
       className={cn(
-        "mx-auto w-full max-w-7xl px-5 md:px-10 lg:px-16",
-        divided && "border-t border-border/60",
+        "ui-section",
+        spacing === "compact" && "ui-section--compact",
+        spacing === "none" && "ui-section--flush",
+        (divided || band) && "ui-band",
         className,
       )}
       {...props}
     >
       {hasHeading && (
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="min-w-0">
-            {title && (
-              <h2 className="text-xl font-semibold tracking-[-0.02em] text-foreground md:text-2xl">
-                {title}
-              </h2>
-            )}
-            {description && (
-              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
-                {description}
-              </p>
-            )}
-          </div>
-          {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
-        </div>
+        <SectionHeading
+          kicker={kicker}
+          title={title ?? null}
+          description={description}
+          actions={actions}
+          as={headingAs}
+          className="ui-section__head"
+        />
       )}
       {children}
     </section>
   );
 }
 
+/* ─── Page state (loading / error / empty) ────────────────────────── */
+
+export type PageStateKind = "loading" | "error" | "empty";
+
+export interface PageStateProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
+  kind: PageStateKind;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
+  /** Loading skeleton row count. */
+  rows?: number;
+}
+
+const PAGE_STATE_DEFAULT_TITLE: Record<PageStateKind, string> = {
+  loading: "Loading…",
+  error: "Something went wrong",
+  empty: "Nothing here yet",
+};
+
+/** One implementation of the loading / error / empty trio for every route. */
+export function PageState({
+  kind,
+  title,
+  description,
+  icon,
+  action,
+  rows = 3,
+  className,
+  ...props
+}: PageStateProps) {
+  const isLoading = kind === "loading";
+  return (
+    <div
+      className={cn("ui-page-state", `ui-page-state--${kind}`, className)}
+      role={kind === "error" ? "alert" : undefined}
+      aria-busy={isLoading || undefined}
+      aria-live={kind === "error" ? "assertive" : "polite"}
+      {...props}
+    >
+      {isLoading ? (
+        <div className="ui-page-state__skeleton" aria-hidden="true">
+          {Array.from({ length: rows }, (_, index) => (
+            <span key={index} className="ui-page-state__line" />
+          ))}
+          <span className="sr-only">
+            {title ?? PAGE_STATE_DEFAULT_TITLE.loading}
+          </span>
+        </div>
+      ) : (
+        <>
+          {icon && <div className="ui-page-state__icon">{icon}</div>}
+          <p className="ui-page-state__title">
+            {title ?? PAGE_STATE_DEFAULT_TITLE[kind]}
+          </p>
+          {description && <p className="ui-page-state__desc">{description}</p>}
+          {action && <div className="ui-page-state__action">{action}</div>}
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ─── Surface (card) ──────────────────────────────────────────────── */
 
-export const Surface = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    interactive?: boolean;
-    padded?: boolean;
-  }
->(({ className, interactive = false, padded = true, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-2xl border border-border bg-card text-card-foreground shadow-card",
-      padded && "p-5",
-      interactive &&
-        "transition-colors hover:border-primary/35 hover:shadow-accent",
+export interface SurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
+  interactive?: boolean;
+  /** Legacy boolean: `false` means no padding. Prefer `padding`. */
+  padded?: boolean;
+  padding?: SurfacePadding;
+  /** Inverted panel — at most one per page, for the strongest CTA. */
+  inverse?: boolean;
+  /** Semantics for the surface element (e.g. `div` when it takes a role). */
+  as?: "div" | "section" | "article" | "aside";
+}
+
+export const Surface = React.forwardRef<HTMLDivElement, SurfaceProps>(
+  (
+    {
       className,
-    )}
-    {...props}
-  />
-));
+      interactive = false,
+      padded = true,
+      padding,
+      inverse = false,
+      as: Tag = "div",
+      ...props
+    },
+    ref,
+  ) => {
+    const resolvedPadding: SurfacePadding = padding ?? (padded ? "md" : "none");
+    return (
+      <Tag
+        ref={ref}
+        className={cn(
+          inverse ? "ui-surface ui-surface--inverse" : "ui-surface",
+          SURFACE_PADDING_CLASS[resolvedPadding],
+          interactive && !inverse && "ui-surface--interactive",
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
+);
 Surface.displayName = "Surface";
+
+/* ─── Meter (thin progress rule) ──────────────────────────────────── */
+
+export interface MeterProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Completion percentage, clamped to 0–100. */
+  value: number;
+  /** `primary` for progress toward a goal; `neutral` for plain quantities. */
+  tone?: "neutral" | "primary";
+  label?: string;
+}
+
+/** One progress rule for headers, cards and toolbars. */
+export function Meter({
+  value,
+  tone = "primary",
+  label,
+  className,
+  ...props
+}: MeterProps) {
+  const pct = Math.min(100, Math.max(0, Number.isFinite(value) ? value : 0));
+  return (
+    <div
+      className={cn("ui-meter", `ui-meter--${tone}`, className)}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(pct)}
+      aria-label={label}
+      {...props}
+    >
+      <span className="ui-meter__fill" style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
 
 /* ─── Stat card ───────────────────────────────────────────────────── */
 
-interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
   label: React.ReactNode;
   value: React.ReactNode;
   hint?: React.ReactNode;
   icon?: React.ReactNode;
+  /** Legacy per-card accent; now rendered as a neutral token surface. */
   accent?: string;
 }
 
@@ -183,87 +447,76 @@ export function StatCard({
   value,
   hint,
   icon,
-  accent,
   className,
   ...props
 }: StatCardProps) {
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-border bg-card p-5 shadow-card",
-        className,
-      )}
-      {...props}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        {icon && (
-          <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
-            style={{
-              background: accent ? `${accent}14` : "hsl(var(--primary) / 0.1)",
-              borderColor: accent ? `${accent}2E` : "hsl(var(--primary) / 0.2)",
-              color: accent || "hsl(var(--primary))",
-            }}
-          >
-            {icon}
-          </span>
-        )}
+    <div className={cn("ui-stat", className)} {...props}>
+      <div className="ui-stat__head">
+        <span className="ui-meta ui-stat__label">{label}</span>
+        {icon && <span className="ui-stat__icon">{icon}</span>}
       </div>
-      <div className="mt-3 text-2xl font-semibold tracking-[-0.02em] text-foreground">
-        {value}
-      </div>
-      {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
+      <div className="ui-stat__value">{value}</div>
+      {hint && <div className="ui-stat__hint">{hint}</div>}
     </div>
   );
 }
 
 /* ─── Empty state ─────────────────────────────────────────────────── */
 
-interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+export interface EmptyStateProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   icon?: React.ReactNode;
+  /** Larger illustration slot rendered above the icon. */
+  illustration?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
+  /** Additional secondary action(s). */
+  secondaryAction?: React.ReactNode;
+  /** Tighter padding for empty states nested inside a card. */
+  compact?: boolean;
 }
 
 export function EmptyState({
   icon,
+  illustration,
   title,
   description,
   action,
+  secondaryAction,
+  compact,
   className,
   ...props
 }: EmptyStateProps) {
   return (
     <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-3 px-6 py-14 text-center",
-        className,
-      )}
+      className={cn("ui-empty", compact && "ui-empty--compact", className)}
       {...props}
     >
-      {icon && (
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
-          {icon}
+      {illustration && (
+        <div className="ui-empty__illustration">{illustration}</div>
+      )}
+      {icon && <div className="ui-empty__icon">{icon}</div>}
+      <div className="ui-empty__copy">
+        <p className="ui-empty__title">{title}</p>
+        {description && <p className="ui-empty__desc">{description}</p>}
+      </div>
+      {(action || secondaryAction) && (
+        <div className="ui-empty__actions">
+          {action}
+          {secondaryAction}
         </div>
       )}
-      <div className="space-y-1">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        {description && (
-          <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">
-            {description}
-          </p>
-        )}
-      </div>
-      {action && <div className="pt-1">{action}</div>}
     </div>
   );
 }
 
 /* ─── Segmented control (tabs / filters) ──────────────────────────── */
 
-interface SegmentedControlProps<T extends string> {
+export interface SegmentedControlProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   options: Array<{ value: T; label: React.ReactNode; icon?: React.ReactNode }>;
@@ -283,8 +536,8 @@ export function SegmentedControl<T extends string>({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 rounded-lg border border-border bg-muted p-1",
-        fullWidth && "w-full",
+        "ui-segmented",
+        fullWidth && "ui-segmented--full",
         className,
       )}
       role="tablist"
@@ -299,12 +552,10 @@ export function SegmentedControl<T extends string>({
             aria-selected={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors",
-              size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-[13px]",
-              fullWidth && "flex-1",
-              active
-                ? "bg-card text-foreground shadow-soft"
-                : "text-muted-foreground hover:text-foreground",
+              "ui-segmented__item",
+              size === "sm" && "ui-segmented__item--sm",
+              fullWidth && "ui-segmented__item--fill",
+              active && "is-active",
             )}
           >
             {option.icon}
@@ -318,47 +569,54 @@ export function SegmentedControl<T extends string>({
 
 /* ─── Toolbar (sticky filter / search bar) ────────────────────────── */
 
-export const Toolbar = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { sticky?: boolean }
->(({ className, sticky = false, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
-      sticky &&
-        "sticky top-0 z-20 -mx-5 mb-6 border-b border-border bg-background/90 px-5 py-3 backdrop-blur md:-mx-10 md:px-10 lg:-mx-16 lg:px-16",
-      className,
-    )}
-    {...props}
-  />
-));
+export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
+  sticky?: boolean;
+}
+
+export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
+  ({ className, sticky = false, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn("ui-toolbar", sticky && "ui-toolbar--sticky", className)}
+      {...props}
+    />
+  ),
+);
 Toolbar.displayName = "Toolbar";
 
-/* ─── Pill (filters / metadata chips) ─────────────────────────────── */
+/* ─── Pill (status / metadata) and Chip (filters) ────────────────── */
 
-export const Pill = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }
->(({ className, active = false, ...props }, ref) => (
-  <button
-    ref={ref}
-    type="button"
-    className={cn(
-      "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
-      active
-        ? "border-primary/30 bg-primary/10 text-primary"
-        : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-      className,
-    )}
-    {...props}
-  />
-));
+export interface PillProps extends React.HTMLAttributes<HTMLSpanElement> {
+  tone?: PillTone;
+  /** Force the chip look for metadata that is not a status. */
+  variant?: "chip" | "pill";
+  mono?: boolean;
+}
+
+/** Non-interactive status or metadata token. */
+export const Pill = React.forwardRef<HTMLSpanElement, PillProps>(
+  (
+    { className, tone = "neutral", variant = "pill", mono = false, ...props },
+    ref,
+  ) => (
+    <span
+      ref={ref}
+      className={cn(
+        variant === "chip"
+          ? PILL_TONE_CLASS[tone].replace("ui-pill", "ui-chip")
+          : PILL_TONE_CLASS[tone],
+        mono && "ui-pill--mono",
+        className,
+      )}
+      {...props}
+    />
+  ),
+);
 Pill.displayName = "Pill";
 
 /* ─── Field shell (consistent form labels + errors) ───────────────── */
 
-interface FieldProps {
+export interface FieldProps {
   label: React.ReactNode;
   htmlFor?: string;
   hint?: React.ReactNode;
@@ -376,18 +634,17 @@ export function Field({
   className,
 }: FieldProps) {
   return (
-    <div className={cn("space-y-1.5", className)}>
-      <label
-        htmlFor={htmlFor}
-        className="block text-xs font-medium text-muted-foreground"
-      >
+    <div className={cn("ui-field", className)}>
+      <label htmlFor={htmlFor} className="ui-field__label">
         {label}
       </label>
       {children}
       {error ? (
-        <p className="text-xs text-destructive">{error}</p>
+        <p className="ui-field__error" role="alert">
+          {error}
+        </p>
       ) : hint ? (
-        <p className="text-xs text-muted-foreground">{hint}</p>
+        <p className="ui-field__hint">{hint}</p>
       ) : null}
     </div>
   );

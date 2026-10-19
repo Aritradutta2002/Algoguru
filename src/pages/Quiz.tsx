@@ -42,6 +42,15 @@ import {
   type QuizDifficulty,
   type QuizLanguage,
 } from "@/lib/quizBank";
+import {
+  Field,
+  PageHeader,
+  PageShell,
+  Pill,
+  Section,
+  StatCard,
+  Surface,
+} from "@/components/layout/PagePrimitives";
 import { cn } from "@/lib/utils";
 import { MAX_EXAM_WARNINGS as MAX_WARNINGS } from "@/lib/examConstants";
 import { formatExamTime } from "@/lib/formatTime";
@@ -70,15 +79,12 @@ const difficulties: { value: Difficulty; label: string }[] = [
 /* The languages a learner can actually pick, counted for the hero. Derived
    from the options above so adding one cannot silently leave the stat wrong. */
 const QUIZ_LANGUAGES = languages.filter((item) => item.value !== "mixed");
-/* One container for every band on the page. Gutters scale instead of
-   capping the width, so the page fills a wide display rather than
-   stranding a fixed 80rem column in the middle of it. */
-const containerClass =
-  "mx-auto w-full max-w-[110rem] px-4 sm:px-6 lg:px-10 2xl:px-14";
+/* The quiz is delivered full-width; bands span the shell rather than the
+   standard reading column. */
 /* 1rem on small screens avoids iOS Safari's focus-zoom, which fires on any
    form control under 16px. */
 const fieldClass =
-  "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  "mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-base text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm";
 
 const EXAM_RULES = [
   {
@@ -361,50 +367,46 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen overflow-y-auto bg-background text-foreground selection:bg-primary/20">
-      {/* ─── HEADER ─── */}
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className={cn(containerClass, "flex flex-wrap items-center justify-between gap-3 py-4")}>
+      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur-xl">
+        <PageShell
+          width="wide"
+          className="flex flex-wrap items-center justify-between gap-3 py-3"
+        >
           {phase === "running" ? (
-            <Button variant="ghost" onClick={() => setConfirmation("leave")}>
-              <ArrowLeft size={16} className="mr-2" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setConfirmation("leave")}
+            >
+              <ArrowLeft aria-hidden="true" />
               Leave quiz
             </Button>
           ) : (
             <Link
               to="/contest"
               onClick={() => void exitFullscreen()}
-              className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+              className="ui-btn ui-btn--reset ui-btn--sm"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft aria-hidden="true" />
               Back to Contest
             </Link>
           )}
-          <span className="flex items-center gap-2 font-display font-bold">
-            <Shuffle size={20} className="text-primary" />
-            Contest · MCQ Quiz
+          <span className="flex items-center gap-2">
+            <Shuffle size={16} className="text-primary" aria-hidden="true" />
+            <span className="ui-meta">Contest · MCQ quiz</span>
           </span>
-          <div className="flex items-center gap-3">
-            {/* Warning badge visible during running phase */}
+          <div className="flex items-center gap-2">
             {phase === "running" && warningCount > 0 && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold tabular-nums",
-                  warningCount >= 3
-                    ? "border-red-500/30 bg-red-500/10 text-red-500"
-                    : warningCount >= 2
-                      ? "border-orange-500/30 bg-orange-500/10 text-orange-500"
-                      : "border-amber-500/30 bg-amber-500/10 text-amber-500",
-                )}
-              >
-                <AlertTriangle size={13} />
+              <Pill tone={warningTerminated ? "danger" : "warning"} mono>
+                <AlertTriangle size={12} aria-hidden="true" />
                 {warningCount}/{MAX_WARNINGS}
-              </span>
+              </Pill>
             )}
             {phase === "running" ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
-                <Maximize2 size={15} />
+              <Pill tone="primary" variant="chip">
+                <Maximize2 size={12} aria-hidden="true" />
                 Fullscreen required
-              </span>
+              </Pill>
             ) : (
               <Button
                 variant="outline"
@@ -414,432 +416,429 @@ export default function Quiz() {
                 }
               >
                 {fullscreen ? (
-                  <Minimize2 size={16} className="mr-2" />
+                  <Minimize2 aria-hidden="true" />
                 ) : (
-                  <Maximize2 size={16} className="mr-2" />
+                  <Maximize2 aria-hidden="true" />
                 )}
                 {fullscreen ? "Exit fullscreen" : "Fullscreen"}
               </Button>
             )}
           </div>
-        </div>
+        </PageShell>
       </header>
-      {fullscreenMessage && (
-        <p
-          role="status"
-          className={cn(containerClass, "pt-4 text-sm text-muted-foreground")}
-        >
-          {fullscreenMessage}
-        </p>
-      )}
 
-      {/* ─── MAIN ─── */}
-      <main className={cn(containerClass, "py-8 sm:py-12")}>
+      <main className="ui-app-canvas">
+        {fullscreenMessage && (
+          <PageShell width="wide" className="pt-4">
+            <p role="status" className="ui-meta">
+              {fullscreenMessage}
+            </p>
+          </PageShell>
+        )}
+
         {/* ═══════════ SETUP PHASE ═══════════ */}
         {phase === "setup" && (
-          <>
-            {/* ── Hero Section ── */}
-            <section
-              className="relative mb-9 overflow-hidden rounded-3xl border border-border bg-card"
-              aria-labelledby="setup-hero-title"
+          <PageShell width="wide">
+            <PageHeader
+              variant="display"
+              kicker="Contest"
+              title={
+                <>
+                  Small questions.
+                  <br />
+                  <span className="text-primary">Big confidence.</span>
+                </>
+              }
+              description="Test what you know with random multiple-choice questions in a strict, distraction-free exam environment. Practice at your pace, or race the clock under real exam conditions."
+              meta={
+                <Pill tone="primary" variant="chip">
+                  <Sparkles size={12} aria-hidden="true" />
+                  Exam-grade MCQ challenge
+                </Pill>
+              }
+            />
+
+            <Section spacing="compact">
+              <div className="ui-grid ui-grid--3">
+                <StatCard
+                  label="Question bank"
+                  value={MCQ_QUESTIONS.length}
+                  hint="Curated MCQs"
+                  icon={<BookOpen size={14} aria-hidden="true" />}
+                />
+                <StatCard
+                  label="Languages"
+                  value={QUIZ_LANGUAGES.length}
+                  hint="Java, C++, Python"
+                  icon={<Shuffle size={14} aria-hidden="true" />}
+                />
+                <StatCard
+                  label="Scoring"
+                  value="1 pt"
+                  hint="Per correct answer"
+                  icon={<Trophy size={14} aria-hidden="true" />}
+                />
+              </div>
+            </Section>
+
+            <Section
+              band
+              kicker="Before you start"
+              title="Strict exam rules"
+              description="Read carefully before starting. Violations lead to auto-submission."
+              spacing="compact"
             >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,hsl(var(--primary)/0.12),transparent_60%)]" />
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_100%,hsl(var(--primary)/0.08),transparent_60%)]" />
-
-              <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:p-10">
-                <div className="flex flex-col justify-center">
-                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                    <Sparkles size={14} aria-hidden="true" />
-                    Exam-grade MCQ challenge
+              <div className="rounded-[var(--radius-surface)] border border-[hsl(var(--warning)/0.3)] bg-[hsl(var(--warning)/0.06)] px-4 py-3">
+                <p className="flex flex-wrap items-center gap-2 text-sm">
+                  <Shield
+                    size={15}
+                    className="text-[hsl(var(--warning))]"
+                    aria-hidden="true"
+                  />
+                  <span className="font-medium text-foreground">
+                    Mandatory fullscreen exam.{" "}
                   </span>
-                  <h1
-                    id="setup-hero-title"
-                    className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl"
-                  >
-                    Small questions.
-                    <br />
-                    <span className="text-primary">Big confidence.</span>
-                  </h1>
-                  <p className="mt-5 max-w-prose text-base leading-7 text-muted-foreground">
-                    Test what you know with random multiple-choice questions in a
-                    strict, distraction-free exam environment. Practice at your
-                    pace, or race the clock under real exam conditions.
-                  </p>
-                </div>
-                <dl className="grid grid-cols-3 gap-px self-center overflow-hidden rounded-2xl border border-border bg-border">
-                  {[
-                    ["Question bank", `${MCQ_QUESTIONS.length}`, "curated MCQs"],
-                    ["Languages", `${QUIZ_LANGUAGES.length}`, "Java, C++, Python"],
-                    ["Scoring", "1 pt", "per correct answer"],
-                  ].map(([label, value, hint]) => (
-                    <div key={label} className="bg-card px-3 py-5 text-center sm:px-4">
-                      <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        {label}
-                      </dt>
-                      <dd className="mt-1.5 font-mono text-2xl font-bold tabular-nums sm:text-3xl">
-                        {value}
-                      </dd>
-                      <dd className="mt-0.5 text-xs text-muted-foreground">
-                        {hint}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
+                  <span className="text-muted-foreground">
+                    Starting this quiz enters fullscreen. Exiting, switching
+                    tabs or minimizing triggers a warning. After{" "}
+                    <strong className="font-semibold text-foreground">
+                      {MAX_WARNINGS} violations
+                    </strong>
+                    , your exam is submitted automatically with whatever answers
+                    you have.
+                  </span>
+                </p>
               </div>
-            </section>
 
-            {/* ── Exam Rules Section ── */}
-            <section className="mb-9 rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-card to-red-500/5 p-6 sm:p-8">
-              <div className="mb-6 flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500">
-                  <Shield size={22} />
-                </span>
-                <div>
-                  <h2 className="font-display text-xl font-bold">
-                    Strict Exam Rules
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Read carefully before starting. Violations lead to
-                    auto-submission.
-                  </p>
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {EXAM_RULES.map((rule, i) => (
-                  <div
+              <div className="mt-4 ui-grid ui-grid--2 gap-4">
+                {EXAM_RULES.map((rule) => (
+                  <Surface
+                    as="article"
                     key={rule.title}
-                    className={cn(
-                      "flex items-start gap-4 rounded-2xl border p-4 transition-colors",
-                      i === 2
-                        ? "border-red-500/25 bg-red-500/5"
-                        : "border-border bg-card/60",
-                    )}
+                    className="flex items-start gap-4 p-5"
                   >
-                    <span
-                      className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                        i === 2
-                          ? "bg-red-500/15 text-red-500"
-                          : "bg-amber-500/10 text-amber-500",
-                      )}
-                    >
-                      <rule.icon size={20} />
+                    <span className="ui-stat__icon">
+                      <rule.icon size={16} aria-hidden="true" />
                     </span>
                     <div>
-                      <h3 className="text-sm font-bold">{rule.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      <h3 className="ui-h3">{rule.title}</h3>
+                      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
                         {rule.desc}
                       </p>
                     </div>
-                  </div>
+                  </Surface>
                 ))}
               </div>
-              {/* Warning escalation visual */}
-              <div className="mt-6 rounded-2xl border border-border bg-card/80 p-4">
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Warning Escalation
-                </p>
-                <div className="flex items-center gap-2">
+
+              <Surface className="mt-4 p-5">
+                <p className="ui-meta">Warning escalation</p>
+                <ol className="mt-4 flex items-center gap-2">
                   {[1, 2, 3, 4].map((step) => (
-                    <div key={step} className="flex flex-1 flex-col items-center gap-2">
-                      <div
+                    <li
+                      key={step}
+                      className="flex flex-1 flex-col items-center gap-2"
+                    >
+                      <span
                         className={cn(
-                          "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold",
-                          step <= 3
-                            ? "border-amber-500/30 bg-amber-500/10 text-amber-500"
-                            : "border-red-500/40 bg-red-500/15 text-red-500",
+                          "grid h-9 w-9 place-items-center rounded-full border font-mono text-sm font-semibold tabular-nums",
+                          step <= MAX_WARNINGS
+                            ? "border-[hsl(var(--warning)/0.35)] bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]"
+                            : "border-[hsl(var(--destructive)/0.4)] bg-[hsl(var(--destructive)/0.1)] text-destructive",
                         )}
                       >
-                        {step <= 3 ? step : "✕"}
-                      </div>
-                      <span className="text-center text-[10px] font-medium leading-tight text-muted-foreground">
-                        {step <= 3 ? `Warning ${step}` : "Auto-submit"}
+                        {step <= MAX_WARNINGS ? step : "✕"}
                       </span>
-                    </div>
+                      <span className="text-center text-[11px] font-medium leading-tight text-muted-foreground">
+                        {step <= MAX_WARNINGS
+                          ? `Warning ${step}`
+                          : "Auto-submit"}
+                      </span>
+                    </li>
                   ))}
-                </div>
-              </div>
-            </section>
+                </ol>
+              </Surface>
+            </Section>
 
-            {/* ── Configuration + Start Panel ── */}
-            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)]">
-              <section
-                className="rounded-3xl border border-border bg-card p-6 sm:p-8"
-                aria-labelledby="setup-title"
-              >
-                <h2
-                  id="setup-title"
-                  className="font-display text-2xl font-bold"
-                >
-                  Build your challenge
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Choose your focus. We'll shuffle the questions and choices.
-                </p>
-                <div className="mt-7 grid gap-5 sm:grid-cols-2">
-                  <label className="text-sm font-medium">
-                    Language
-                    <select
-                      className={fieldClass}
-                      value={language}
-                      onChange={(event) =>
-                        setLanguage(event.target.value as Language)
-                      }
-                    >
-                      {languages.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-medium">
-                    Difficulty
-                    <select
-                      className={fieldClass}
-                      value={difficulty}
-                      onChange={(event) =>
-                        setDifficulty(event.target.value as Difficulty)
-                      }
-                    >
-                      {difficulties.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-medium">
-                    Questions
-                    <select
-                      className={fieldClass}
-                      value={size}
-                      onChange={(event) => setSize(Number(event.target.value))}
-                    >
-                      {[5, 10, 15, 20].map((value) => (
-                        <option key={value} value={value}>
-                          {value} questions
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-medium">
-                    Time limit
-                    <select
-                      className={fieldClass}
-                      disabled={mode === "practice"}
-                      value={minutes}
-                      onChange={(event) =>
-                        setMinutes(Number(event.target.value))
-                      }
-                    >
-                      {[1, 5, 10, 15, 20, 30].map((value) => (
-                        <option key={value} value={value}>
-                          {value} {value === 1 ? "minute" : "minutes"}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <fieldset className="mt-7">
-                  <legend className="mb-3 text-sm font-medium">
-                    Quiz mode
-                  </legend>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {(["practice", "timed"] as const).map((value) => (
-                      <label
-                        key={value}
-                        className={cn(
-                          "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-card",
-                          mode === value
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/40 hover:bg-muted/50",
-                        )}
+            <Section
+              band
+              kicker="Configuration"
+              title="Build your challenge"
+              description="Choose your focus. We'll shuffle the questions and choices."
+              spacing="compact"
+            >
+              <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)]">
+                <Surface className="p-5 md:p-6">
+                  <div className="ui-grid ui-grid--2 gap-5">
+                    <Field label="Language" htmlFor="quiz-language">
+                      <select
+                        id="quiz-language"
+                        className={fieldClass}
+                        value={language}
+                        onChange={(event) =>
+                          setLanguage(event.target.value as Language)
+                        }
                       >
-                        <input
-                          type="radio"
-                          name="mode"
-                          value={value}
-                          checked={mode === value}
-                          onChange={() => setMode(value)}
-                          className="mt-1 accent-primary"
-                        />
-                        <span>
-                          <span className="block font-semibold">
-                            {value === "practice"
-                              ? "Practice"
-                              : "Timed challenge"}
-                          </span>
-                          <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                            {value === "practice"
-                              ? "No deadline. Take time to think."
-                              : "Live countdown. Auto-submit at zero."}
-                          </span>
-                        </span>
-                      </label>
-                    ))}
+                        {languages.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Difficulty" htmlFor="quiz-difficulty">
+                      <select
+                        id="quiz-difficulty"
+                        className={fieldClass}
+                        value={difficulty}
+                        onChange={(event) =>
+                          setDifficulty(event.target.value as Difficulty)
+                        }
+                      >
+                        {difficulties.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Questions" htmlFor="quiz-size">
+                      <select
+                        id="quiz-size"
+                        className={fieldClass}
+                        value={size}
+                        onChange={(event) =>
+                          setSize(Number(event.target.value))
+                        }
+                      >
+                        {[5, 10, 15, 20].map((value) => (
+                          <option key={value} value={value}>
+                            {value} questions
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Time limit" htmlFor="quiz-minutes">
+                      <select
+                        id="quiz-minutes"
+                        className={fieldClass}
+                        disabled={mode === "practice"}
+                        value={minutes}
+                        onChange={(event) =>
+                          setMinutes(Number(event.target.value))
+                        }
+                      >
+                        {[1, 5, 10, 15, 20, 30].map((value) => (
+                          <option key={value} value={value}>
+                            {value} {value === 1 ? "minute" : "minutes"}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
                   </div>
-                </fieldset>
 
-                {/* Fullscreen notice */}
-                <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
-                  <Maximize2 size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-amber-500" />
-                  <div>
-                    <p className="text-sm font-semibold">
-                      Mandatory fullscreen exam
-                    </p>
-                    <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-                      Starting this quiz enters fullscreen. Exiting fullscreen,
-                      switching tabs, or minimizing triggers a warning. After{" "}
-                      <strong className="text-foreground">{MAX_WARNINGS} violations</strong>,
-                      your exam is automatically submitted with whatever answers
-                      you have.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* ── Start Aside ── */}
-              <aside className="flex flex-col rounded-3xl border border-primary/20 bg-gradient-to-b from-primary/10 to-card p-6 lg:sticky lg:top-24 sm:p-8">
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">
-                  Your next session
-                </span>
-                <h2 className="mt-4 font-display text-2xl font-bold">
-                  Ready, set, challenge yourself.
-                </h2>
-                <dl className="my-6 grid gap-3 text-sm">
-                  {[
-                    [
-                      "Focus",
-                      languages.find((item) => item.value === language)?.label,
-                    ],
-                    ["Questions", `${count} random MCQs`],
-                    [
-                      "Time",
-                      mode === "timed"
-                        ? `${minutes} minutes`
-                        : "At your own pace",
-                    ],
-                    ["Scoring", "1 point each · no negative marking"],
-                    ["Warnings", `${MAX_WARNINGS} max before auto-submit`],
-                  ].map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="flex justify-between gap-4 border-b border-border/70 pb-3"
-                    >
-                      <dt className="text-muted-foreground">{label}</dt>
-                      <dd className="text-right font-medium">{value}</dd>
+                  <fieldset className="mt-7">
+                    <legend className="ui-field__label mb-3">Quiz mode</legend>
+                    <div className="ui-grid ui-grid--2 gap-3">
+                      {(["practice", "timed"] as const).map((value) => (
+                        <label
+                          key={value}
+                          className={cn(
+                            "ui-surface ui-surface--interactive flex cursor-pointer items-start gap-3 p-4 focus-within:ring-2 focus-within:ring-primary",
+                            mode === value && "border-primary",
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            name="mode"
+                            value={value}
+                            checked={mode === value}
+                            onChange={() => setMode(value)}
+                            className="mt-1 accent-primary"
+                          />
+                          <span>
+                            <span className="block font-semibold">
+                              {value === "practice"
+                                ? "Practice"
+                                : "Timed challenge"}
+                            </span>
+                            <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                              {value === "practice"
+                                ? "No deadline. Take time to think."
+                                : "Live countdown. Auto-submit at zero."}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
                     </div>
-                  ))}
-                </dl>
-                {size > available && (
-                  <p
-                    role="status"
-                    className="mb-5 rounded-xl border border-border bg-background/60 p-3 text-sm text-muted-foreground"
-                  >
-                    This selection has {available} questions. Your quiz will
-                    include all {count}, without repeats or changing difficulty.
+                  </fieldset>
+                </Surface>
+
+                {/* ── Start Aside ── */}
+                <aside className="ui-surface--inverse flex flex-col p-5 md:p-6 lg:sticky lg:top-24">
+                  <p className="ui-meta text-[hsl(var(--inverse-quiet))]">
+                    Your next session
                   </p>
-                )}
-                <Button
-                  className="mt-auto h-12 w-full gap-2 rounded-xl"
-                  onClick={() => void start()}
-                  disabled={!count || starting}
-                >
-                  {starting ? "Opening fullscreen…" : "Start quiz"}
-                  <ArrowRight size={17} />
-                </Button>
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  Fullscreen is required. Answers appear after submission.
-                </p>
-              </aside>
-            </div>
-          </>
+                  <h2 className="mt-3 font-display text-xl font-semibold tracking-tight">
+                    Ready, set, challenge yourself.
+                  </h2>
+                  <dl className="mt-5 grid gap-3 text-sm">
+                    {[
+                      [
+                        "Focus",
+                        languages.find((item) => item.value === language)
+                          ?.label,
+                      ],
+                      ["Questions", `${count} random MCQs`],
+                      [
+                        "Time",
+                        mode === "timed"
+                          ? `${minutes} minutes`
+                          : "At your own pace",
+                      ],
+                      ["Scoring", "1 point each · no negative marking"],
+                      ["Warnings", `${MAX_WARNINGS} max before auto-submit`],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="flex justify-between gap-4 border-b border-[hsl(var(--inverse-border))] pb-3"
+                      >
+                        <dt className="text-[hsl(var(--inverse-quiet))]">
+                          {label}
+                        </dt>
+                        <dd className="text-right font-medium tabular-nums">
+                          {value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {size > available && (
+                    <p
+                      role="status"
+                      className="mt-4 border-l-2 border-[hsl(var(--inverse-quiet))] pl-3 text-xs leading-5 text-[hsl(var(--inverse-quiet))]"
+                    >
+                      This selection has {available} questions. Your quiz will
+                      include all {count}, without repeats or changing
+                      difficulty.
+                    </p>
+                  )}
+                  <Button
+                    variant="inverse"
+                    className="mt-6 w-full"
+                    onClick={() => void start()}
+                    disabled={!count || starting}
+                  >
+                    {starting ? "Opening fullscreen…" : "Start quiz"}
+                    <ArrowRight aria-hidden="true" />
+                  </Button>
+                  <p className="mt-3 text-center text-[11px] leading-5 text-[hsl(var(--inverse-quiet))]">
+                    Fullscreen is required. Answers appear after submission.
+                  </p>
+                </aside>
+              </div>
+            </Section>
+          </PageShell>
         )}
 
         {/* ═══════════ RUNNING PHASE ═══════════ */}
         {phase === "running" && session && question && !examWarning && (
-          <>
-            <div className="mb-7 flex flex-wrap items-center justify-between gap-5">
+          <PageShell width="wide" className="py-8">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+                <p className="ui-meta">
                   {session.deadline ? "Timed challenge" : "Practice session"}
                 </p>
-                <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
+                <h1 className="ui-h3 mt-1.5">
                   One question. One step forward.
                 </h1>
               </div>
-              <div className="flex items-center gap-3">
-                {/* Warning indicator during exam */}
+              <div className="flex items-center gap-2.5">
                 {warningCount > 0 && (
-                  <div
-                    className={cn(
-                      "flex items-center gap-2 rounded-2xl border px-4 py-3",
-                      warningCount >= 3
-                        ? "border-red-500/30 bg-red-500/10"
-                        : warningCount >= 2
-                          ? "border-orange-500/30 bg-orange-500/10"
-                          : "border-amber-500/30 bg-amber-500/10",
-                    )}
-                  >
+                  <div className="ui-surface flex items-center gap-2.5 px-3 py-2">
                     {(() => {
                       const Icon = getWarningIcon();
-                      return <Icon size={20} className={getWarningColor()} />;
+                      return (
+                        <Icon
+                          size={16}
+                          className={getWarningColor()}
+                          aria-hidden="true"
+                        />
+                      );
                     })()}
                     <div>
-                      <p className={cn("text-[11px] font-bold uppercase tracking-wider", getWarningColor())}>
-                        Warnings
-                      </p>
-                      <p className={cn("font-mono text-lg font-bold tabular-nums", getWarningColor())}>
+                      <p className="ui-meta">Warnings</p>
+                      <p
+                        className={cn(
+                          "font-mono text-sm font-semibold tabular-nums",
+                          getWarningColor(),
+                        )}
+                      >
                         {warningCount}/{MAX_WARNINGS}
                       </p>
                     </div>
                   </div>
                 )}
-                {/* Timer */}
                 <div
                   role="timer"
                   aria-label={
                     session.deadline ? "Time remaining" : "Time elapsed"
                   }
                   className={cn(
-                    "flex items-center gap-3 rounded-2xl border px-5 py-3",
-                    session.deadline && remaining <= 60
-                      ? "border-destructive/40 bg-destructive/10 text-destructive"
-                      : "border-border bg-card",
+                    "ui-surface flex items-center gap-3 px-4 py-2",
+                    session.deadline &&
+                      remaining <= 60 &&
+                      "border-destructive/50",
                   )}
                 >
-                  <Clock3 size={22} />
+                  <Clock3
+                    size={16}
+                    aria-hidden="true"
+                    className={cn(
+                      session.deadline && remaining <= 60
+                        ? "text-destructive"
+                        : "text-muted-foreground",
+                    )}
+                  />
                   <div>
-                    <p className="text-[11px] uppercase tracking-wider">
+                    <p className="ui-meta">
                       {session.deadline ? "Time remaining" : "Time elapsed"}
                     </p>
-                    <p className="font-mono text-2xl font-bold tabular-nums">
+                    <p
+                      className={cn(
+                        "font-mono text-lg font-semibold leading-tight tabular-nums",
+                        session.deadline &&
+                          remaining <= 60 &&
+                          "text-destructive",
+                      )}
+                    >
                       {formatQuizTime(session.deadline ? remaining : elapsed)}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
+
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_clamp(18rem,22vw,24rem)]">
-              <section className="rounded-3xl border border-border bg-card p-5 sm:p-8">
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">
+              <Surface as="section" className="p-5 sm:p-7">
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <span className="ui-meta">
                     Question {index + 1} of {questions.length}
                   </span>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                    {QUIZ_LANGUAGE_LABELLED[question.language].label} ·{" "}
-                    {question.difficulty} · {question.topic}
+                  <span className="flex flex-wrap gap-1.5">
+                    <Pill variant="chip">
+                      {QUIZ_LANGUAGE_LABELLED[question.language].label}
+                    </Pill>
+                    <Pill variant="chip">{question.difficulty}</Pill>
+                    <Pill variant="chip">{question.topic}</Pill>
                   </span>
                 </div>
                 <h2
                   ref={questionRef}
                   tabIndex={-1}
-                  className="max-w-[68ch] whitespace-pre-wrap font-display text-xl font-semibold leading-relaxed outline-none sm:text-2xl"
+                  className="max-w-[68ch] whitespace-pre-wrap font-display text-xl font-semibold leading-relaxed tracking-tight outline-none sm:text-2xl"
                 >
                   {question.question}
                 </h2>
-                <fieldset className="mt-8 grid max-w-[68ch] gap-3">
+                <fieldset className="mt-7 grid max-w-[68ch] gap-2.5">
                   <legend className="sr-only">Choose one answer</legend>
                   {question.options.map((option, optionIndex) => {
                     const selected = answers[question.id] === optionIndex;
@@ -847,10 +846,9 @@ export default function Quiz() {
                       <label
                         key={optionIndex}
                         className={cn(
-                          "flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-card sm:p-5",
-                          selected
-                            ? "border-primary bg-primary/10"
-                            : "border-border hover:border-primary/40 hover:bg-muted/30",
+                          "ui-surface ui-surface--interactive flex cursor-pointer items-start gap-4 p-4 focus-within:ring-2 focus-within:ring-primary sm:p-5",
+                          selected &&
+                            "border-primary bg-[hsl(var(--primary-soft)/var(--primary-soft-alpha))]",
                         )}
                       >
                         <input
@@ -863,32 +861,35 @@ export default function Quiz() {
                         <span
                           aria-hidden="true"
                           className={cn(
-                            "grid h-7 w-7 shrink-0 place-items-center rounded-lg border font-mono text-xs font-bold transition-colors",
+                            "grid h-7 w-7 shrink-0 place-items-center rounded-full border font-mono text-xs font-semibold transition-colors",
                             selected
                               ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border bg-background text-muted-foreground",
+                              : "border-border text-muted-foreground",
                           )}
                         >
                           {String.fromCharCode(65 + optionIndex)}
                         </span>
                         <span className="min-w-0 flex-1 whitespace-pre-wrap break-words pt-0.5 text-sm leading-6 sm:text-base">
-                          <span className="sr-only">{String.fromCharCode(65 + optionIndex)}. </span>
+                          <span className="sr-only">
+                            {String.fromCharCode(65 + optionIndex)}.{" "}
+                          </span>
                           {option}
                         </span>
                         {selected && (
                           <Check
-                            size={18}
+                            size={16}
                             aria-hidden="true"
-                            className="mt-0.5 shrink-0 text-primary"
+                            className="mt-1 shrink-0 text-primary"
                           />
                         )}
                       </label>
                     );
                   })}
                 </fieldset>
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                   <Button
                     variant="ghost"
+                    size="sm"
                     onClick={() =>
                       setFlagged((current) => {
                         const next = new Set(current);
@@ -899,13 +900,14 @@ export default function Quiz() {
                     }
                     aria-pressed={flagged.has(question.id)}
                   >
-                    <Flag size={16} className="mr-2" />
+                    <Flag aria-hidden="true" />
                     {flagged.has(question.id)
                       ? "Flagged for review"
                       : "Flag for review"}
                   </Button>
                   <Button
                     variant="ghost"
+                    size="sm"
                     disabled={answers[question.id] === undefined}
                     onClick={() =>
                       setAnswers((current) => {
@@ -924,24 +926,25 @@ export default function Quiz() {
                     disabled={index === 0}
                     onClick={() => setIndex(index - 1)}
                   >
-                    <ArrowLeft size={16} className="mr-2" />
+                    <ArrowLeft aria-hidden="true" />
                     Previous
                   </Button>
                   {index < questions.length - 1 ? (
                     <Button onClick={() => setIndex(index + 1)}>
                       Next question
-                      <ArrowRight size={16} className="ml-2" />
+                      <ArrowRight aria-hidden="true" />
                     </Button>
                   ) : (
                     <Button onClick={() => setConfirmation("submit")}>
-                      Review & submit
+                      Review &amp; submit
                     </Button>
                   )}
                 </div>
-              </section>
-              <aside className="rounded-3xl border border-border bg-card p-6">
-                <h2 className="font-semibold">Your progress</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
+              </Surface>
+
+              <Surface as="aside" className="p-5">
+                <h2 className="ui-meta">Your progress</h2>
+                <p className="mt-1 font-mono text-sm tabular-nums text-muted-foreground">
                   {answered} of {questions.length} answered
                 </p>
                 <div
@@ -950,7 +953,7 @@ export default function Quiz() {
                   aria-valuenow={answered}
                   aria-valuemin={0}
                   aria-valuemax={questions.length}
-                  className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
+                  className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"
                 >
                   <div
                     className="h-full bg-primary transition-all"
@@ -959,7 +962,7 @@ export default function Quiz() {
                 </div>
                 <nav
                   aria-label="Question navigation"
-                  className="mt-6 grid grid-cols-5 gap-2"
+                  className="mt-5 grid grid-cols-5 gap-2"
                 >
                   {questions.map((item, position) => (
                     <button
@@ -969,10 +972,10 @@ export default function Quiz() {
                       aria-current={index === position ? "step" : undefined}
                       onClick={() => setIndex(position)}
                       className={cn(
-                        "relative flex h-10 items-center justify-center rounded-lg border text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "relative flex h-10 items-center justify-center rounded-lg border font-mono text-sm font-semibold tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         answers[item.id] !== undefined
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground",
+                          ? "border-primary/30 bg-[hsl(var(--primary-soft)/var(--primary-soft-alpha))] text-primary"
+                          : "border-border text-muted-foreground hover:text-foreground",
                         index === position &&
                           "ring-2 ring-primary ring-offset-2 ring-offset-card",
                       )}
@@ -981,7 +984,8 @@ export default function Quiz() {
                       {flagged.has(item.id) && (
                         <Flag
                           size={9}
-                          className="absolute right-0.5 top-0.5 text-amber-500"
+                          aria-hidden="true"
+                          className="absolute right-0.5 top-0.5 text-[hsl(var(--warning))]"
                         />
                       )}
                     </button>
@@ -993,164 +997,181 @@ export default function Quiz() {
                   You can revisit and change any answer.
                 </p>
 
-                {/* Warning status in sidebar */}
                 {warningCount > 0 && (
-                  <div
+                  <p
                     className={cn(
-                      "mt-5 rounded-xl border p-3",
-                      warningCount >= 3
-                        ? "border-red-500/25 bg-red-500/5"
-                        : "border-amber-500/25 bg-amber-500/5",
+                      "mt-5 border-l-2 pl-3 text-xs leading-5",
+                      warningTerminated
+                        ? "border-destructive"
+                        : "border-[hsl(var(--warning))]",
                     )}
                   >
-                    <p className={cn("text-xs font-bold", warningCount >= 3 ? "text-red-500" : "text-amber-500")}>
-                      ⚠ {warningCount} of {MAX_WARNINGS} warnings used
-                    </p>
-                    <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {warningCount} of {MAX_WARNINGS} warnings used.
+                    </span>{" "}
+                    <span className="text-muted-foreground">
                       {warningsRemaining <= 1
                         ? "Next violation will auto-submit your exam!"
                         : `${warningsRemaining} violations remaining before auto-submit.`}
-                    </p>
-                  </div>
+                    </span>
+                  </p>
                 )}
 
                 <Button
                   className="mt-6 w-full"
+                  variant="outline"
                   onClick={() => setConfirmation("submit")}
                 >
                   Submit quiz
                 </Button>
-              </aside>
+              </Surface>
             </div>
-          </>
+          </PageShell>
         )}
 
         {/* ═══════════ RESULTS PHASE ═══════════ */}
         {phase === "results" && session && (
-          <>
-            <section className="overflow-hidden rounded-3xl border border-primary/20 bg-card">
-              <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_minmax(0,22rem)] lg:items-center lg:gap-12 lg:p-10">
-                <div>
-                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                    <Trophy size={28} aria-hidden="true" />
-                  </span>
-                  <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">
-                    Challenge complete
-                  </p>
-                  <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
-                    {warningTerminated
-                      ? "Exam terminated."
-                      : correct === questions.length
-                        ? "A perfect finish!"
-                        : "Every attempt makes you better."}
-                  </h1>
-                  <p role="status" className="mt-3 text-muted-foreground">
-                    {warningTerminated
-                      ? `Your exam was auto-submitted after ${MAX_WARNINGS} focus violations. Answers given before termination have been recorded.`
-                      : timedOut
-                        ? "Time’s up! Your answers were submitted automatically."
-                        : "Your quiz is submitted. Let’s see how you did."}
-                  </p>
-
-                  {/* Warning summary in results */}
+          <PageShell width="wide" className="py-8">
+            <PageHeader
+              variant="display"
+              kicker="Challenge complete"
+              title={
+                warningTerminated
+                  ? "Exam terminated."
+                  : correct === questions.length
+                    ? "A perfect finish!"
+                    : "Every attempt makes you better."
+              }
+              description={
+                warningTerminated
+                  ? `Your exam was auto-submitted after ${MAX_WARNINGS} focus violations. Answers given before termination have been recorded.`
+                  : timedOut
+                    ? "Time’s up! Your answers were submitted automatically."
+                    : "Your quiz is submitted. Let’s see how you did."
+              }
+              meta={
+                <>
+                  <Pill
+                    tone={
+                      warningTerminated
+                        ? "danger"
+                        : correct === questions.length
+                          ? "success"
+                          : "primary"
+                    }
+                    variant="chip"
+                  >
+                    <Trophy size={12} aria-hidden="true" />
+                    {Math.round((correct / questions.length) * 100)}% score
+                  </Pill>
                   {warningCount > 0 && (
-                    <div
-                      className={cn(
-                        "mt-4 inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium",
-                        warningTerminated
-                          ? "border-red-500/30 bg-red-500/10 text-red-500"
-                          : "border-amber-500/30 bg-amber-500/10 text-amber-500",
-                      )}
+                    <Pill
+                      tone={warningTerminated ? "danger" : "warning"}
+                      variant="chip"
                     >
-                      <AlertTriangle size={16} />
+                      <AlertTriangle size={12} aria-hidden="true" />
                       {warningTerminated
-                        ? `Terminated after ${warningCount} focus violations`
-                        : `${warningCount} focus warning${warningCount > 1 ? "s" : ""} during exam`}
-                    </div>
+                        ? `Terminated after ${warningCount} violations`
+                        : `${warningCount} focus warning${warningCount > 1 ? "s" : ""}`}
+                    </Pill>
                   )}
+                </>
+              }
+              actions={
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={() => void start()} disabled={starting}>
+                    <RotateCcw aria-hidden="true" />
+                    Try another quiz
+                  </Button>
+                  <Button variant="outline" onClick={reset}>
+                    Change settings
+                  </Button>
+                </div>
+              }
+            />
 
-                  <div className="mt-7 flex flex-wrap gap-3">
-                    <Button onClick={() => void start()} disabled={starting}>
-                      <RotateCcw size={16} className="mr-2" />
-                      Try another quiz
-                    </Button>
-                    <Button variant="outline" onClick={reset}>
-                      Change settings
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border">
-                  {[
-                    [
-                      "Score",
-                      `${Math.round((correct / questions.length) * 100)}%`,
-                    ],
-                    ["Correct", `${correct} / ${questions.length}`],
-                    ["Unanswered", `${questions.length - answered}`],
-                    ["Time taken", formatQuizTime(elapsed)],
-                  ].map(([label, value]) => (
-                    <div key={label} className="bg-card px-4 py-5 text-center">
-                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        {label}
-                      </p>
-                      <p className="mt-1.5 font-mono text-2xl font-bold tabular-nums sm:text-3xl">
-                        {value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+            <Section spacing="compact">
+              <div role="status" className="sr-only">
+                {warningTerminated
+                  ? `Your exam was auto-submitted after ${MAX_WARNINGS} focus violations. Answers given before termination have been recorded.`
+                  : timedOut
+                    ? "Time’s up! Your answers were submitted automatically."
+                    : "Your quiz is submitted. Let’s see how you did."}
               </div>
-            </section>
-            {warningCount > 0 && (
-              <p className="mt-5 text-sm text-muted-foreground">
-                Exam focus warnings: {warningCount}
-              </p>
-            )}
-            {warningCount > 0 && (
-              <div className="mt-5 flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-4">
-                <AlertTriangle size={18} className="shrink-0 text-amber-500" />
-                <div>
+              <div className="ui-grid ui-grid--2 gap-4">
+                <StatCard
+                  label="Score"
+                  value={`${Math.round((correct / questions.length) * 100)}%`}
+                  hint="Of all questions"
+                  icon={<Trophy size={14} aria-hidden="true" />}
+                />
+                <StatCard
+                  label="Correct"
+                  value={`${correct} / ${questions.length}`}
+                  hint="One point each"
+                  icon={<CheckCircle2 size={14} aria-hidden="true" />}
+                />
+                <StatCard
+                  label="Unanswered"
+                  value={questions.length - answered}
+                  hint="No points, no penalty"
+                  icon={<XCircle size={14} aria-hidden="true" />}
+                />
+                <StatCard
+                  label="Time taken"
+                  value={formatQuizTime(elapsed)}
+                  hint={timedOut ? "Auto-submitted" : "Recorded"}
+                  icon={<Clock3 size={14} aria-hidden="true" />}
+                />
+              </div>
+
+              {warningCount > 0 && (
+                <div className="mt-4 border-l-2 border-[hsl(var(--warning))] pl-4">
                   <p className="text-sm font-semibold">
-                    Exam integrity: {warningCount} warning{warningCount > 1 ? "s" : ""}
+                    Exam integrity: {warningCount} warning
+                    {warningCount > 1 ? "s" : ""}
                   </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    <span className="sr-only">
+                      Exam focus warnings: {warningCount}
+                    </span>
                     {warningTerminated
                       ? "This exam was terminated due to exceeding the maximum allowed focus violations. In a real exam, this would disqualify the attempt."
                       : "Focus violations were recorded during this attempt. In a real exam, these would be flagged for review."}
                   </p>
                 </div>
-              </div>
-            )}
-            <section className="mt-10" aria-labelledby="review-title">
-              <h2 id="review-title" className="font-display text-2xl font-bold">
-                Answer review
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Understand the why, not just the score.
-              </p>
-              <div className="mt-6 grid items-start gap-4 xl:grid-cols-2">
+              )}
+            </Section>
+
+            <Section
+              band
+              kicker="Review"
+              title="Answer review"
+              description="Understand the why, not just the score."
+              spacing="compact"
+            >
+              <div className="grid items-start gap-4 xl:grid-cols-2">
                 {questions.map((item, position) => {
                   const selected = answers[item.id];
                   const isCorrect = selected === item.correctIndex;
                   return (
-                    <article
-                      key={item.id}
-                      className="rounded-2xl border border-border bg-card p-5 sm:p-6"
-                    >
+                    <Surface as="article" key={item.id} className="p-5">
                       <div className="flex items-start gap-3">
                         {isCorrect ? (
                           <CheckCircle2
-                            size={20}
-                            className="mt-1 shrink-0 text-emerald-500"
+                            size={18}
+                            aria-hidden="true"
+                            className="mt-1 shrink-0 text-[hsl(var(--success))]"
                           />
                         ) : (
                           <XCircle
-                            size={20}
+                            size={18}
+                            aria-hidden="true"
                             className="mt-1 shrink-0 text-destructive"
                           />
                         )}
                         <div className="min-w-0">
-                          <p className="mb-2 text-xs font-medium text-muted-foreground">
+                          <p className="ui-meta mb-2">
                             Question {position + 1} ·{" "}
                             {isCorrect
                               ? "Correct"
@@ -1159,10 +1180,10 @@ export default function Quiz() {
                                 : "Incorrect"}
                             {flagged.has(item.id) ? " · Flagged" : ""}
                           </p>
-                          <h3 className="whitespace-pre-wrap font-semibold leading-7">
+                          <h3 className="whitespace-pre-wrap font-display text-base font-semibold leading-7">
                             {item.question}
                           </h3>
-                          <p className="mt-4 whitespace-pre-wrap text-sm">
+                          <p className="mt-3 whitespace-pre-wrap text-sm leading-6">
                             <span className="text-muted-foreground">
                               Your answer:{" "}
                             </span>
@@ -1170,23 +1191,23 @@ export default function Quiz() {
                               ? "Not answered"
                               : item.options[selected]}
                           </p>
-                          <p className="mt-2 whitespace-pre-wrap text-sm">
-                            <span className="font-semibold text-emerald-500">
+                          <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6">
+                            <span className="font-semibold text-[hsl(var(--success))]">
                               Correct answer:{" "}
                             </span>
                             {item.options[item.correctIndex]}
                           </p>
-                          <p className="mt-4 border-t border-border pt-4 text-sm leading-7 text-muted-foreground">
+                          <p className="mt-3 border-t border-border pt-3 text-sm leading-7 text-muted-foreground">
                             {item.explanation}
                           </p>
                         </div>
                       </div>
-                    </article>
+                    </Surface>
                   );
                 })}
               </div>
-            </section>
-          </>
+            </Section>
+          </PageShell>
         )}
 
         {/* ═══════════ EXAM WARNING DIALOG (escalating) ═══════════ */}
@@ -1215,7 +1236,7 @@ export default function Quiz() {
             </AlertDialogHeader>
 
             {/* Warning severity meter */}
-            <div className="my-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+            <div className="my-4 rounded-[var(--radius-surface)] border border-[hsl(var(--destructive)/0.25)] bg-[hsl(var(--destructive)/0.06)] p-4">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm font-bold text-red-500">
                   Warning {warningCount} of {MAX_WARNINGS}
@@ -1265,10 +1286,7 @@ export default function Quiz() {
                 Submit and end exam
               </Button>
               {warningCount < MAX_WARNINGS && (
-                <Button
-                  onClick={() => void resumeExam()}
-                  className="bg-red-600 text-white hover:bg-red-700"
-                >
+                <Button onClick={() => void resumeExam()} variant="destructive">
                   <Maximize2 size={16} className="mr-2" />
                   Return to fullscreen
                 </Button>

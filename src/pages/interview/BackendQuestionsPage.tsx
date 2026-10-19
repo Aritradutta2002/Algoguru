@@ -84,7 +84,7 @@ const QuestionCard = memo(function QuestionCard({
   return (
     <div
       className={cn(
-        "cjq-qcard relative overflow-hidden rounded-2xl border transition-all duration-200",
+        "cjq-qcard relative overflow-hidden rounded-surface border transition-all duration-200",
         studied ? "border-success/25 bg-success/5" : "border-border/50 bg-card/70",
       )}
     >
@@ -212,7 +212,7 @@ const QuestionCard = memo(function QuestionCard({
                   <>
                     <BackendAnswer answer={question.answer} />
                     <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                      <p className="text-[11px] font-ui font-medium uppercase tracking-wide text-primary">
                         Interviewer is testing
                       </p>
                       <p className="mt-1 text-sm text-foreground">{question.explanation}</p>
@@ -477,7 +477,7 @@ export default function BackendQuestionsPage() {
         </div>
 
         {filtered.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/60 py-16 text-center">
+          <div className="rounded-surface border border-dashed border-border/60 py-16 text-center">
             <BookOpen className="mx-auto h-8 w-8 text-muted-foreground" />
             <p className="mt-3 text-sm font-medium text-foreground">No questions match those filters</p>
             <button
@@ -496,7 +496,7 @@ export default function BackendQuestionsPage() {
 
         {/* Matching practice */}
         {relatedPractice.length > 0 && (
-          <section className="mt-8 rounded-2xl border border-warning/25 bg-warning/5 p-5">
+          <section className="mt-8 rounded-surface border border-warning/25 bg-warning/5 p-5">
             <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
               <Dumbbell className="h-4 w-4 text-warning" />
               Practice this topic

@@ -81,7 +81,7 @@ const _QuestionCard = ({
 
   return (
     <div
-      className={`rounded-2xl border transition-all duration-200 overflow-hidden relative ${
+      className={`rounded-surface border transition-all duration-200 overflow-hidden relative ${
         isDone
           ? "bg-success/5 border-success/20"
           : activeView
@@ -243,7 +243,7 @@ const _QuestionCard = ({
                 </div>
               )}
               {activeView === "code" && question.code && (
-                <div className="rounded-xl overflow-hidden shadow-lg border border-border/30">
+                <div className="rounded-xl overflow-hidden shadow-card border border-border/30">
                   <CodeBlock
                     language={question.codeLanguage || "python"}
                     code={question.code}
@@ -566,7 +566,7 @@ export default function InterviewPythonQuestionsPage() {
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
-    <div className="cjq-page min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
+    <div className="cjq-page min-h-[calc(100vh-3.5rem)] flex flex-col bg-background text-foreground selection:bg-primary/15">
       {/* ── Page Header ──────────────────────────────────────────── */}
       <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
         <div className="px-4 md:px-6 py-3 flex items-center justify-between gap-4">
@@ -782,7 +782,7 @@ export default function InterviewPythonQuestionsPage() {
             <div className="space-y-10">
               {/* Sign-in nudge */}
               {!user && !authLoading && (
-                <div className="p-5 rounded-2xl border border-warning/30 bg-warning/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-5 rounded-surface border border-warning/30 bg-warning/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-sm font-bold text-warning mb-1">Your progress isn't being saved</h3>
                     <p className="text-[13px] text-muted-foreground leading-relaxed">
@@ -1042,7 +1042,7 @@ export default function InterviewPythonQuestionsPage() {
                   return (
                     <div
                       key={id}
-                      className="p-5 rounded-2xl bg-card border border-border/40 shadow-sm relative group transition-all hover:border-border/60"
+                      className="p-5 rounded-surface bg-card border border-border/40 shadow-sm relative group transition-all hover:border-border/60"
                     >
                       <div className="pr-8 mb-3">
                         {questionData && (

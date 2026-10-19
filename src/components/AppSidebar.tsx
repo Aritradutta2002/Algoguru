@@ -53,57 +53,20 @@ const dsContentMap: Record<string, ContentSection[]> = {
 import { useMode } from "@/contexts/ModeContext";
 import { useAuth } from "@/contexts/AuthContext";
 
-/* ─── Per-topic color system ─────────────────────────────── */
-const topicColors: Record<string, { from: string; to: string; glow: string; text: string }> = {
-  recursion:            { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.22)",  text: "#818cf8" },
-  backtracking:         { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#93c5fd" },
-  dp:                   { from: "#10b981", to: "#059669", glow: "rgba(16,185,129,0.22)",  text: "#34d399" },
-  graphs:               { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-  bits:                 { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#60a5fa" },
-  heaps:                { from: "#ec4899", to: "#8b5cf6", glow: "rgba(236,72,153,0.22)",  text: "#f472b6" },
-  strings:              { from: "#14b8a6", to: "#0ea5e9", glow: "rgba(20,184,166,0.22)",  text: "#2dd4bf" },
-  "number-theory":      { from: "#22c55e", to: "#16a34a", glow: "rgba(34,197,94,0.22)",  text: "#4ade80" },
-  trees:                { from: "#a78bfa", to: "#8b5cf6", glow: "rgba(167,139,250,0.22)", text: "#c4b5fd" },
-  "segment-tree":       { from: "#0ea5e9", to: "#6366f1", glow: "rgba(14,165,233,0.22)", text: "#38bdf8" },
-  "advanced-math":      { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)", text: "#38bdf8" },
-    "advanced-topics":    { from: "#ec4899", to: "#f472b6", glow: "rgba(236,72,153,0.22)", text: "#f9a8d4" },
-  "stack-queue":        { from: "#8b5cf6", to: "#6366f1", glow: "rgba(139,92,246,0.22)", text: "#a78bfa" },
-  "java-basics":        { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-  "java-oop":           { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.22)",  text: "#818cf8" },
-    "java-exceptions":    { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#93c5fd" },
-  "java-collections":   { from: "#10b981", to: "#059669", glow: "rgba(16,185,129,0.22)",  text: "#34d399" },
-  "java-generics":      { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#60a5fa" },
-  "java-streams":       { from: "#ec4899", to: "#8b5cf6", glow: "rgba(236,72,153,0.22)",  text: "#f472b6" },
-  "java-multithreading":{ from: "#14b8a6", to: "#0ea5e9", glow: "rgba(20,184,166,0.22)",  text: "#2dd4bf" },
-  "java-io":            { from: "#a78bfa", to: "#8b5cf6", glow: "rgba(167,139,250,0.22)", text: "#c4b5fd" },
-  "java-advanced":      { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-    "practice-arrays":    { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#93c5fd" },
-  "practice-strings":   { from: "#10b981", to: "#059669", glow: "rgba(16,185,129,0.22)",  text: "#34d399" },
-  "practice-recursion": { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-  "practice-dp":        { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#60a5fa" },
-  "practice-graphs":    { from: "#ec4899", to: "#8b5cf6", glow: "rgba(236,72,153,0.22)",  text: "#f472b6" },
-  "practice-trees":     { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.22)",  text: "#818cf8" },
-  "practice-greedy":    { from: "#14b8a6", to: "#0ea5e9", glow: "rgba(20,184,166,0.22)",  text: "#2dd4bf" },
-  "practice-stack-queue":{ from: "#8b5cf6", to: "#6366f1", glow: "rgba(139,92,246,0.22)", text: "#a78bfa" },
-};
-
-const getTopicColor = (id: string) =>
-  topicColors[id] ?? { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.2)", text: "#818cf8" };
-
 const modeMeta = {
-  ds:       { label: "DSA",      icon: <Layers size={11} />,  badge: "bg-violet-500/10 text-violet-400 border-violet-500/20"  },
-  lang:     { label: "Java",     icon: <Coffee size={11} />,  badge: "bg-blue-500/10 text-blue-400 border-blue-500/20"  },
-  practice: { label: "Practice", icon: <Trophy size={11} />,  badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"},
+  ds:       { label: "DSA",      icon: <Layers size={11} />,  badge: "border-primary/25 bg-primary/10 text-primary"  },
+  lang:     { label: "Java",     icon: <Coffee size={11} />,  badge: "border-border bg-muted text-muted-foreground"  },
+  practice: { label: "Practice", icon: <Trophy size={11} />,  badge: "border-success/25 bg-success/10 text-success"},
 } as const;
 
 const DifficultyPill = ({ difficulty }: { difficulty: string }) => {
   const colors: Record<string, string> = {
-    Easy:   "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    Medium: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    Hard:   "bg-red-500/10 text-red-400 border-red-500/20",
+    Easy:   "border-success/25 bg-success/10 text-success",
+    Medium: "border-warning/25 bg-warning/10 text-warning",
+    Hard:   "border-destructive/25 bg-destructive/10 text-destructive",
   };
   return (
-    <span className={cn("inline-flex items-center text-[9px] font-bold px-1.5 py-px rounded-md border tracking-wide uppercase", colors[difficulty] ?? colors.Hard)}>
+    <span className={cn("inline-flex items-center rounded-chip border px-1.5 py-px font-ui text-[9px] font-bold uppercase tracking-wide", colors[difficulty] ?? colors.Hard)}>
       {difficulty}
     </span>
   );
@@ -253,7 +216,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
         {/* ── Search ─────────────────────────────────────── */}
         <div className="px-3 pt-3 pb-1">
           <div className={cn(
-            "relative rounded-xl border transition-all duration-200",
+            "relative rounded-control border transition-all duration-200",
             searchFocused || searchQuery
               ? "border-primary/40 shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] bg-background"
               : "border-border/50 bg-muted/40 hover:border-border/80"
@@ -308,18 +271,13 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                       </div>
                     ) : (
                       searchResults.slice(0, 18).map((item) => {
-                        const topicId = item.path.split("/")[1]?.split("#")[0] ?? "";
-                        const color = getTopicColor(topicId);
                         return (
                           <button
                             key={item.path}
                             onClick={() => { navigate(item.path); setSearchQuery(""); }}
                             className="touch-manipulation w-full flex items-center gap-2.5 px-3 py-2 min-h-[38px] text-left transition-colors hover:bg-muted/50 border-b border-border/25 last:border-0 group"
                           >
-                            <div
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-[13px] flex-shrink-0 border"
-                              style={{ background: `${color.from}12`, borderColor: `${color.from}25`, color: color.text }}
-                            >
+                            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-control border border-border bg-muted/50 text-[13px] text-muted-foreground">
                               {item.icon}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -352,7 +310,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                 key={path}
                 onClick={() => navigate(path)}
                 className={cn(
-                  "touch-manipulation flex items-center gap-2.5 w-full min-w-0 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group",
+                  "touch-manipulation flex items-center gap-2.5 w-full min-w-0 px-3 py-2.5 rounded-control text-[13px] font-medium transition-all duration-150 group",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
@@ -385,7 +343,6 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             {activeTopics.map((topic) => {
               const isOpen   = openTopics[topic.id];
               const isActive = isTopicActive(topic.id);
-              const color    = getTopicColor(topic.id);
 
               return (
                 <SidebarMenuItem key={topic.id}>
@@ -393,7 +350,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                     <button
                       onClick={() => { toggleTopic(topic.id); navigate(`/${topic.id}`); }}
                       className={cn(
-                        "touch-manipulation flex items-center justify-between w-full min-w-0 gap-2 overflow-hidden px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group",
+                        "touch-manipulation flex items-center justify-between w-full min-w-0 gap-2 overflow-hidden px-2.5 py-2 rounded-control text-[13px] font-medium transition-all duration-150 group",
                         isActive
                           ? "bg-muted/80 text-foreground"
                           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -401,15 +358,12 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                     >
                       <div className="flex flex-1 items-center gap-2.5 min-w-0">
                         <div
-                          className="flex items-center justify-center w-7 h-7 rounded-lg text-[13px] flex-shrink-0 border transition-all duration-200"
-                          style={{
-                            background: isActive
-                              ? `linear-gradient(135deg, ${color.from}20, ${color.to}18)`
-                              : `${color.from}0e`,
-                            borderColor: isActive ? `${color.from}38` : `${color.from}18`,
-                            color: color.text,
-                            boxShadow: isActive ? `0 0 10px ${color.glow}` : "none",
-                          }}
+                          className={cn(
+                            "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-control border text-[13px] transition-colors duration-200",
+                            isActive
+                              ? "border-primary/35 bg-primary/10 text-primary"
+                              : "border-border bg-muted/50 text-muted-foreground group-hover:text-foreground",
+                          )}
                         >
                           {topic.icon}
                         </div>
@@ -437,10 +391,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                         transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
                         className="overflow-hidden"
                       >
-                        <SidebarMenuSub
-                          className="ml-3.5 mt-1 pl-3 space-y-0.5"
-                          style={{ borderLeft: `1.5px solid ${color.from}28` }}
-                        >
+                        <SidebarMenuSub className="ml-3.5 mt-1 border-l border-border pl-3 space-y-0.5">
                           {topic.subtopics.map((sub) => {
                             const active = isSubActive(topic.id, sub.id);
                             return (
@@ -457,8 +408,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                                       )}
                                     >
                                       <span
-                                        className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-200", active ? "scale-110" : "opacity-25 group-hover:opacity-55")}
-                                        style={{ background: active ? color.from : "currentColor" }}
+                                        className={cn("h-1.5 w-1.5 flex-shrink-0 rounded-full transition-all duration-200", active ? "scale-110 bg-primary" : "bg-current opacity-25 group-hover:opacity-55")}
                                       />
                                       <span className="min-w-0 flex-1 truncate leading-snug">{sub.title}</span>
                                     </button>
@@ -480,21 +430,21 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
         <div className="flex-1" />
 
         {/* ── User Profile Footer ────────────────────────── */}
-        <div className="mx-3 mb-3 mt-2 rounded-xl border border-border/40 bg-muted/20 overflow-hidden">
+        <div className="mx-3 mb-3 mt-2 overflow-hidden rounded-surface border border-border/40 bg-muted/20">
           <div className="flex items-center gap-2.5 px-3 py-2.5">
             <div className="relative flex-shrink-0">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt=""
-                  className="w-9 h-9 rounded-xl object-cover"
+                  className="h-9 w-9 rounded-control object-cover"
                   style={{ border: "2px solid hsl(var(--primary)/0.28)", boxShadow: "0 0 10px hsl(var(--primary)/0.18)" }}
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
               ) : (
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
+                  className="flex h-9 w-9 items-center justify-center rounded-control text-sm font-bold"
                   style={{
                     background: "linear-gradient(135deg, hsl(var(--primary)/0.85), hsl(var(--primary)/0.45))",
                     border: "2px solid hsl(var(--primary)/0.28)",
@@ -506,7 +456,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                 </div>
               )}
               <span
-                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-card"
+                className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-success"
                 style={{ boxShadow: "0 0 6px rgba(16,185,129,0.7)" }}
               />
             </div>

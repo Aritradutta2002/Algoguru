@@ -82,12 +82,12 @@ function ModeCard({
   return (
     <section
       aria-labelledby={`${to.replace(/\W/g, "")}-title`}
-      className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 transition-colors hover:border-primary/40 focus-within:border-primary/60 sm:p-7"
+      className="flex h-full flex-col rounded-surface border border-border bg-card p-6 transition-colors hover:border-primary/40 focus-within:border-primary/60 sm:p-7"
     >
       <div className="flex items-center gap-3">
         <span
           className={cn(
-            "inline-flex h-11 w-11 items-center justify-center rounded-2xl",
+            "inline-flex h-11 w-11 items-center justify-center rounded-surface",
             accent === "primary"
               ? "bg-primary/10 text-primary"
               : "bg-secondary text-secondary-foreground",
@@ -119,7 +119,7 @@ function ModeCard({
           <div
             role="status"
             aria-live="polite"
-            className="h-11 w-full animate-pulse rounded-xl bg-muted"
+            className="h-11 w-full animate-pulse rounded-control bg-muted"
           >
             <span className="sr-only">Checking availability…</span>
           </div>
@@ -152,18 +152,7 @@ export function ContestLanding() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <header className="relative overflow-hidden rounded-3xl border border-border bg-card px-6 py-10 sm:px-10 sm:py-12">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full opacity-[0.07] blur-3xl"
-          style={{ background: "hsl(var(--primary))" }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-40 -right-16 h-80 w-80 rounded-full opacity-[0.05] blur-3xl"
-          style={{ background: "hsl(var(--primary))" }}
-        />
-
+      <header className="rounded-surface border border-border bg-card px-6 py-10 sm:px-10 sm:py-12">
         <div className="relative">
           <Badge variant="secondary" className="font-normal">
             <Trophy aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
@@ -268,7 +257,7 @@ export function ContestLanding() {
 
       <section
         aria-labelledby="contest-shared-rules"
-        className="mt-8 rounded-3xl border border-border bg-card p-6 sm:p-7"
+        className="mt-8 rounded-surface border border-border bg-card p-6 sm:p-7"
       >
         <h2
           id="contest-shared-rules"

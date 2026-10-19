@@ -9,18 +9,33 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-soft hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        default:
+          "bg-primary text-primary-foreground shadow-soft hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-border bg-card text-foreground hover:bg-muted",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        /* Landing page button grammar. These reset the base recipe and
+           delegate entirely to the shared `.ui-btn` classes in index.css,
+           so one control vocabulary serves marketing and product routes. */
+        solid:
+          "ui-btn ui-btn--solid ui-btn--reset rounded-control text-[0.9375rem] tracking-[-0.01em]",
+        line: "ui-btn ui-btn--line ui-btn--reset rounded-control text-[0.9375rem] tracking-[-0.01em]",
+        inverse:
+          "ui-btn ui-btn--inv ui-btn--reset rounded-control text-[0.9375rem] tracking-[-0.01em]",
+        inverseLine:
+          "ui-btn ui-btn--ghost-inv ui-btn--reset rounded-control text-[0.9375rem] tracking-[-0.01em]",
       },
       size: {
         default: "h-10 px-4",
         sm: "h-9 px-3",
         lg: "h-11 px-6",
         icon: "h-10 w-10",
+        "icon-sm": "h-8 w-8 [&_svg]:size-3.5",
+        cta: "min-h-12 px-5 text-base",
       },
     },
     defaultVariants: {
@@ -31,7 +46,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
@@ -39,7 +55,13 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
   },
 );
 Button.displayName = "Button";

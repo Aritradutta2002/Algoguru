@@ -127,7 +127,7 @@ export default function BackendQuestionDetailPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="cjd-surface rounded-2xl border border-border/50 bg-card/70 p-5 sm:p-6"
+              className="cjd-surface rounded-surface border border-border/50 bg-card/70 p-5 sm:p-6"
             >
               <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px]">
                 <span className="font-mono font-semibold text-primary">
@@ -207,7 +207,7 @@ export default function BackendQuestionDetailPage() {
                 </span>
                 Quick Answer
               </h2>
-              <div className="cjd-mental-model mt-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+              <div className="cjd-mental-model mt-3 rounded-surface border border-primary/20 bg-primary/5 p-4 sm:p-5">
                 <div className="cjq-reading">
                   <BackendAnswer answer={quickAnswer} />
                 </div>
@@ -223,7 +223,7 @@ export default function BackendQuestionDetailPage() {
                   </span>
                   Full Explanation
                 </h2>
-                <div className="cjd-surface cjq-reading mt-3 rounded-2xl border border-border/50 bg-card/70 p-5 sm:p-6">
+                <div className="cjd-surface cjq-reading mt-3 rounded-surface border border-border/50 bg-card/70 p-5 sm:p-6">
                   <BackendAnswer answer={detailed} />
                 </div>
               </section>
@@ -256,7 +256,7 @@ export default function BackendQuestionDetailPage() {
                 </span>
                 What They&apos;re Really Testing
               </h2>
-              <div className="mt-3 rounded-2xl border border-warning/25 bg-warning/5 p-4 sm:p-5">
+              <div className="mt-3 rounded-surface border border-warning/25 bg-warning/5 p-4 sm:p-5">
                 <p className="text-sm leading-relaxed text-foreground">
                   <BackendInline text={question.explanation} />
                 </p>
@@ -310,10 +310,10 @@ export default function BackendQuestionDetailPage() {
                     <Link
                       key={problem.id}
                       to={`${BACKEND_PRACTICE_PATH}/${problem.id}`}
-                      className="group rounded-xl border border-border/50 bg-card/70 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40"
+                      className="group rounded-xl border border-border/50 bg-card/70 p-4 transition-all hover:border-primary/40"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                           {problem.difficulty} · {problem.estimatedMinutes} min
                         </span>
                         <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
@@ -360,7 +360,7 @@ export default function BackendQuestionDetailPage() {
                   to={`${BACKEND_QUESTIONS_PATH}/${neighbours.previous.slug}`}
                   className="group rounded-xl border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
                 >
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="flex items-center gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                     <ArrowLeft className="h-3 w-3" />
                     Previous
                   </span>
@@ -376,7 +376,7 @@ export default function BackendQuestionDetailPage() {
                   to={`${BACKEND_QUESTIONS_PATH}/${neighbours.next.slug}`}
                   className="group rounded-xl border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
                 >
-                  <span className="flex items-center justify-end gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="flex items-center justify-end gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                     Next
                     <ArrowRight className="h-3 w-3" />
                   </span>
@@ -391,7 +391,7 @@ export default function BackendQuestionDetailPage() {
           {/* TOC */}
           <aside className="hidden w-56 shrink-0 lg:block">
             <div className="sticky top-6">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="mb-2 text-[11px] font-ui font-medium uppercase tracking-wider text-muted-foreground">
                 On this page
               </p>
               <ul className="space-y-0.5 border-l border-border/50">

@@ -116,7 +116,7 @@ export default function InterviewCoreJavaQuestionDetailPage() {
 
   if (!entry || !question) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground px-4">
+      <div className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center bg-background text-foreground px-4">
         <p className="text-lg font-semibold mb-2">Question not found</p>
         <p className="text-sm text-muted-foreground mb-6">
           The question you&apos;re looking for doesn&apos;t exist or the link is broken.
@@ -175,7 +175,7 @@ export default function InterviewCoreJavaQuestionDetailPage() {
   };
 
   return (
-    <div ref={pageRef} className="cjq-reader cjd-page min-h-screen">
+    <div ref={pageRef} className="cjq-reader cjd-page min-h-[calc(100vh-3.5rem)]">
       {/* ── Sticky reading bar ──────────────────────────────────────── */}
       <div className="cjq-reader-bar">
         <div className="mx-auto w-full max-w-[1400px] px-4 md:px-6">
@@ -396,7 +396,7 @@ export default function InterviewCoreJavaQuestionDetailPage() {
                           Q{String(related.index + 1).padStart(2, "0")}
                         </span>
                         <span className="cjq-related-q">{related.question.question}</span>
-                        <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-[hsl(var(--reader-link))]">
+                        <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-ui font-medium text-[hsl(var(--reader-link))]">
                           Read <ArrowRight size={12} />
                         </span>
                       </Link>

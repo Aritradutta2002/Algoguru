@@ -197,6 +197,19 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // "Choose where to focus next." heading, which toggles `homeSidebarOpen`.
   const [homeSidebarOpen, setHomeSidebarOpen] = useState(false);
   const isHomeRoute = location.pathname === "/";
+  /* The footer closes every page, except the focused surfaces below which own
+     the full viewport: auth flows, the problem/playground panes, the roadmap
+     canvas, and a timed exam where anything below the fold competes with the
+     countdown. */
+  const hideFooter =
+    /^\/(auth|reset-password|problem-solver|playground)(\/|$)/.test(
+      location.pathname,
+    ) ||
+    location.pathname === "/roadmap" ||
+    location.pathname.startsWith("/roadmap/") ||
+    location.pathname === "/quiz" ||
+    (location.pathname.startsWith("/contest/") &&
+      location.pathname !== "/contest");
   // The contest landing page is a focused entry surface: no sidebar panel and
   // no resize slider, while the header keeps search / account / Guru access.
   const isContestLandingRoute = location.pathname === "/contest";
@@ -594,7 +607,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 <main ref={contentScrollRef} className="hidden">
                   <div className={contentSurfaceClass}>
                     {children}
-                    {location.pathname === "/" && (
+                    {!hideFooter && (
                       <Footer onSupportClick={() => setSupportOpen(true)} />
                     )}
                   </div>
@@ -647,7 +660,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   >
                     <div className={contentSurfaceClass}>
                       {children}
-                      {location.pathname === "/" && (
+                      {!hideFooter && (
                         <Footer onSupportClick={() => setSupportOpen(true)} />
                       )}
                     </div>
@@ -757,7 +770,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             <main ref={contentScrollRef} onScroll={handleContentScroll} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
               <div className={contentSurfaceClass}>
                 {children}
-                {location.pathname === "/" && (
+                {!hideFooter && (
                   <Footer onSupportClick={() => setSupportOpen(true)} />
                 )}
               </div>

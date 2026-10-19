@@ -19,7 +19,7 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
   const backRoute = languageLabel ? `/interview/${language}` : "/interview";
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background text-foreground selection:bg-primary/15">
       <section className="px-4 md:px-10 lg:px-16 py-9 md:py-24 max-w-7xl mx-auto relative overflow-hidden flex flex-col items-center justify-center min-h-[80vh]">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/5 blur-[160px] rounded-full pointer-events-none" />
@@ -28,7 +28,7 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
           <div className="flex justify-center md:justify-start">
             <button
               onClick={() => navigate(backRoute)}
-              className="group flex items-center gap-2.5 px-6 py-3 rounded-2xl border border-border/30 bg-muted/30 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:border-primary/30 hover:text-foreground"
+              className="group flex items-center gap-2.5 px-6 py-3 rounded-surface border border-border/30 bg-muted/30 text-[11px] font-ui font-medium uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted hover:border-primary/30 hover:text-foreground"
             >
               <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
               Back to Roadmap
@@ -60,7 +60,7 @@ export default function InterviewComingSoonLayout({ title }: InterviewComingSoon
                 </h1>
                 
                 {languageLabel && (
-                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl border border-border/30 bg-muted/20 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-surface border border-border/30 bg-muted/20 text-[11px] font-ui font-medium uppercase tracking-widest text-muted-foreground/60">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                     Target Language: {languageLabel}
                   </div>

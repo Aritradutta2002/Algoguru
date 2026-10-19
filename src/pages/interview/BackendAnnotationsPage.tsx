@@ -76,7 +76,7 @@ function AnnotationRow({ entry }: { entry: AnnotationEntry }) {
           >
             <div className="space-y-3 border-t border-border/40 px-4 py-4">
               <div>
-                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="flex items-center gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                   <Cog className="h-3 w-3" />
                   How it works internally
                 </p>
@@ -91,7 +91,7 @@ function AnnotationRow({ entry }: { entry: AnnotationEntry }) {
 
               {entry.gotcha && (
                 <div className="rounded-lg border border-warning/25 bg-warning/5 p-3">
-                  <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-warning">
+                  <p className="flex items-center gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-warning">
                     <AlertTriangle className="h-3 w-3" />
                     Gotcha
                   </p>
@@ -266,7 +266,7 @@ export default function BackendAnnotationsPage() {
         </div>
 
         {grouped.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/60 py-16 text-center">
+          <div className="rounded-surface border border-dashed border-border/60 py-16 text-center">
             <Tag className="mx-auto h-8 w-8 text-muted-foreground" />
             <p className="mt-3 text-sm font-medium text-foreground">
               No annotation matches “{query}”

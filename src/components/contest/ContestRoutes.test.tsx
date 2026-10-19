@@ -139,8 +139,10 @@ describe("Contest route table", () => {
       }),
     ).toBeInTheDocument();
     // Chrome-free: the page owns its full-height background rather than
-    // inheriting the AppLayout shell.
-    expect(document.querySelector(".min-h-screen")).toBeTruthy();
+    // inheriting the AppLayout shell. It sizes itself under the h-14 header.
+    expect(
+      document.querySelector(".min-h-\\[calc\\(100vh-3\\.5rem\\)\\]"),
+    ).toBeTruthy();
   });
 
   it("keeps the contest landing page in the app shell", () => {

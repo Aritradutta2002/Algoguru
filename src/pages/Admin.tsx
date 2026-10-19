@@ -121,23 +121,22 @@ export default function Admin() {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary/25">
+    <div className="flex-1 min-h-[calc(100vh-3.5rem)] bg-background text-foreground selection:bg-primary/25">
 
-      <section className="relative border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" />
-        <div className="relative mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20 lg:px-16">
+      <section className="border-b border-border/60">
+        <div className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-chip border border-primary/25 bg-primary/10 px-3 py-1.5 font-ui text-xs font-medium text-primary">
               <Shield size={12} />
               Admin privileges
             </div>
 
-            <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
-              Platform <span className="text-primary">control</span>
+            <h1 className="font-display text-4xl font-semibold leading-[1.04] tracking-[-0.02em] md:text-5xl lg:text-6xl">
+              Platform control
             </h1>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
@@ -148,14 +147,14 @@ export default function Admin() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-16 lg:px-16 space-y-6">
-        <div className="flex p-1 rounded-lg bg-muted border border-border w-full max-w-sm">
+        <div className="flex w-full max-w-sm gap-1 rounded-control border border-border bg-muted p-1">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-md text-sm font-medium transition-colors ${
+              className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-control font-ui text-sm font-medium transition-colors ${
                 tab === t.id
-                  ? "bg-card text-foreground shadow-sm"
+                  ? "bg-card text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -203,7 +202,7 @@ function UsersTab({
   onUnban: (id: string) => void;
 }) {
   return (
-    <div className="rounded-2xl overflow-hidden border border-border bg-card">
+    <div className="rounded-surface overflow-hidden border border-border bg-card">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -228,10 +227,10 @@ function UsersTab({
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-3">
                       {user.profile?.avatar_url ? (
-                        <img src={user.profile.avatar_url} alt="" className="w-9 h-9 rounded-lg object-cover border border-border" style={{ aspectRatio: '1/1' }} loading="lazy" />
+                        <img src={user.profile.avatar_url} alt="" className="h-9 w-9 rounded-control object-cover border border-border" style={{ aspectRatio: '1/1' }} loading="lazy" />
                       ) : (
                         <div
-                          className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold border ${banned ? "bg-destructive/10 border-destructive/20 text-destructive" : "bg-primary/10 border-primary/20 text-primary"}`}
+                          className={`flex h-9 w-9 rounded-control items-center justify-center text-sm font-semibold border ${banned ? "bg-destructive/10 border-destructive/20 text-destructive" : "bg-primary/10 border-primary/20 text-primary"}`}
                         >
                           {(user.profile?.display_name?.[0] || user.email[0]).toUpperCase()}
                         </div>
@@ -248,11 +247,11 @@ function UsersTab({
                   </td>
                   <td className="px-6 py-3.5">
                     {banned ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-md bg-destructive/10 border border-destructive/30 text-destructive">
+                      <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-chip bg-destructive/10 border border-destructive/30 text-destructive">
                         <Ban size={11} /> Banned
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-md bg-success/10 border border-success/30 text-success">
+                      <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-chip bg-success/10 border border-success/30 text-success">
                         <ShieldCheck size={11} /> Active
                       </span>
                     )}
@@ -262,7 +261,7 @@ function UsersTab({
                       value={user.roles[0] || "user"}
                       onChange={(e) => onSetRole(user.id, e.target.value)}
                       disabled={isAdminUser}
-                      className="text-xs px-2 py-1 rounded-md outline-none cursor-pointer bg-muted/40 border border-border hover:border-primary/40 focus:border-primary disabled:opacity-40"
+                      className="cursor-pointer rounded-control border border-border bg-muted/40 px-2 py-1 font-ui text-xs outline-none hover:border-primary/40 focus:border-primary disabled:opacity-40"
                     >
                       <option value="user">User</option>
                       <option value="moderator">Moderator</option>
@@ -282,7 +281,7 @@ function UsersTab({
                           <AppTooltip content="Unban user">
                             <button
                               onClick={() => onUnban(user.id)}
-                              className="p-2 rounded-md transition-colors bg-success/10 text-success hover:bg-success/20 border border-success/20"
+                              className="rounded-control p-2 transition-colors bg-success/10 text-success hover:bg-success/20 border border-success/20"
                               aria-label="Unban user"
                             >
                               <ShieldCheck size={15} />
@@ -292,7 +291,7 @@ function UsersTab({
                           <AppTooltip content="Ban user">
                             <button
                               onClick={() => onBan(user.id, user.email)}
-                              className="p-2 rounded-md transition-colors bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20"
+                              className="rounded-control p-2 transition-colors bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20"
                               aria-label="Ban user"
                             >
                               <Ban size={15} />
@@ -302,7 +301,7 @@ function UsersTab({
                         <AppTooltip content="Delete user">
                           <button
                             onClick={() => onDelete(user.id, user.email)}
-                            className="p-2 rounded-md transition-colors bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20"
+                            className="rounded-control p-2 transition-colors bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20"
                             aria-label="Delete user"
                           >
                             <Trash2 size={15} />
@@ -319,7 +318,7 @@ function UsersTab({
       </div>
       {users.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground/50">
+          <div className="h-12 w-12 rounded-control bg-muted flex items-center justify-center text-muted-foreground/50">
             <Users size={24} />
           </div>
           <p className="text-xs text-muted-foreground">No records discovered</p>
@@ -343,11 +342,11 @@ function AnalyticsTab({ stats }: { stats: Stats | null }) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="relative rounded-2xl bg-card border border-border p-6 transition-colors hover:bg-muted/30"
+          className="relative rounded-surface bg-card border border-border p-6 transition-colors hover:bg-muted/30"
         >
           <div className="space-y-3">
             <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center border"
+              className="flex h-10 w-10 rounded-control items-center justify-center border"
               style={{ background: `${card.color}10`, borderColor: `${card.color}25`, color: card.color }}
             >
               <card.icon size={20} />

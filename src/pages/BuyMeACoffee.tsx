@@ -1,6 +1,29 @@
 import { useState } from "react";
-import { Heart, Coffee, Sparkles, Zap, Shield, Gift, Users, Check, Copy, ExternalLink, CreditCard, QrCode } from "lucide-react";
+import {
+  Heart,
+  Coffee,
+  Sparkles,
+  Zap,
+  Shield,
+  Gift,
+  Users,
+  Check,
+  Copy,
+  ExternalLink,
+  CreditCard,
+  QrCode,
+  ArrowRight,
+} from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  PageShell,
+  PageHeader,
+  Section,
+  SectionHeading,
+  Surface,
+  Pill,
+} from "@/components/layout/PagePrimitives";
 
 const UPI_ID = import.meta.env.VITE_UPI_ID || "your-upi@id";
 const BUYMEACOFFEE_URL = import.meta.env.VITE_BUYMEACOFFEE_URL || "https://buymeacoffee.com/YourName";
@@ -14,6 +37,61 @@ const TIERS = [
   { amount: 199, label: "Boost", desc: "Ship a feature", popular: false },
   { amount: 499, label: "Sponsor", desc: "Sustain the build", popular: false },
 ];
+
+/* One UPI QR panel, shared by the hero card and the UPI section. The QR
+   encodes the currently selected amount, so both instances stay in sync. */
+function UpiQr({ src, size }: { src: string; size: number }) {
+  return (
+    <div className="shrink-0 rounded-surface border border-border bg-white p-2.5">
+      <img
+        src={src}
+        alt="UPI QR code for the selected amount"
+        width={size}
+        height={size}
+        className="block rounded-[calc(var(--radius-control)-0.25rem)]"
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
+/* A secondary payment channel — neutral surface, brand-mark tile only. */
+function PaymentLink({
+  href,
+  name,
+  detail,
+  mark,
+  markClassName,
+}: {
+  href: string;
+  name: string;
+  detail: string;
+  mark: React.ReactNode;
+  markClassName: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="group flex items-center gap-3 rounded-control border border-border bg-card p-3 transition-colors hover:border-border-strong hover:bg-muted/40"
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-control border font-semibold ${markClassName}`}
+      >
+        {mark}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-foreground">{name}</span>
+        <span className="ui-meta block">{detail}</span>
+      </span>
+      <ExternalLink
+        size={13}
+        className="shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+      />
+    </a>
+  );
+}
 
 export default function BuyMeACoffee() {
   const [amount, setAmount] = useState(99);
@@ -31,170 +109,292 @@ export default function BuyMeACoffee() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <section className="relative border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,hsl(var(--primary)/0.12),transparent_35%),radial-gradient(circle_at_15%_50%,hsl(var(--accent)/0.06),transparent_30%)]" />
-        <div className="relative mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-20 lg:px-16">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start lg:items-center">
-            <div className="flex-1 min-w-0">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
-                <Heart size={13} className="text-primary" /> Support the build
-              </div>
-              <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
-                Buy me a <span className="text-primary">coffee</span>
-              </h1>
-              <p className="mt-5 text-base leading-7 text-muted-foreground md:text-lg max-w-2xl">
-                AlgoGuru is free and indie-built. Your coffee keeps servers on, ships features faster, and funds high-quality interview content for everyone.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-muted border border-border text-xs font-medium text-foreground">
-                  <Shield size={12} className="text-success" /> 100% for maintenance
-                </div>
-                <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Users size={12} /> 12k+ learners
-                </div>
-                <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Gift size={12} /> Open source
-                </div>
-              </div>
+    <div className="ui-app-canvas">
+      <PageShell>
+        <PageHeader
+          variant="display"
+          kicker="Support the build"
+          title={
+            <>
+              Buy me a <span className="text-primary">coffee</span>
+            </>
+          }
+          description="AlgoGuru is free and indie-built. Your coffee keeps servers on, ships features faster, and funds high-quality interview content for everyone."
+          meta={
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <Pill tone="success">
+                <Shield size={12} /> 100% for maintenance
+              </Pill>
+              <span className="ui-meta inline-flex items-center gap-1.5">
+                <Users size={12} /> 12k+ learners
+              </span>
+              <span className="ui-meta inline-flex items-center gap-1.5">
+                <Gift size={12} /> Open source
+              </span>
             </div>
-
-            <div className="w-full lg:w-[360px] shrink-0 rounded-2xl bg-card border border-border p-6">
+          }
+          actions={
+            <Surface padding="md" className="w-full sm:w-[22rem]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <span className="flex h-10 w-10 items-center justify-center rounded-control border border-border bg-muted/60 text-primary">
                   <Coffee size={18} />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">
+                    Quick support
+                  </div>
+                  <div className="ui-meta">UPI · Card · PayPal · Crypto</div>
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-foreground">Quick support</div>
-                  <div className="text-xs text-muted-foreground">UPI · Card · PayPal · Crypto</div>
-                </div>
-                <div className="ml-auto px-2 py-0.5 rounded-md bg-success/10 text-success text-xs font-medium">Live</div>
-              </div>
-              <div className="mt-5 grid grid-cols-4 gap-2">
-                {TIERS.map((t) => (
-                  <button
-                    key={t.amount}
-                    onClick={() => { setAmount(t.amount); setCustom(""); }}
-                    className={`relative py-2.5 rounded-lg border text-sm font-medium transition-colors ${amount === t.amount && !custom ? "bg-primary border-primary text-primary-foreground" : "bg-card border-border text-foreground hover:bg-muted"}`}
-                  >
-                    {t.popular && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">Popular</span>}
-                    ₹{t.amount}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 focus-within:border-primary focus-within:bg-background">
-                <span className="text-muted-foreground">₹</span>
-                <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Custom amount" className="flex-1 bg-transparent py-2 outline-none text-sm" />
-              </div>
-              <a href={BUYMEACOFFEE_URL} target="_blank" rel="noreferrer" className="mt-4 w-full inline-flex items-center justify-center gap-2 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-95">
-                <Coffee size={15} /> Support via Buy Me a Coffee <ExternalLink size={12} />
-              </a>
-              <p className="mt-2 text-center text-[10px] font-medium text-muted-foreground">Secure · One-time or monthly</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16">
-        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6">
-          <div className="rounded-2xl bg-card border border-border overflow-hidden">
-            <div className="p-6 md:p-8">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center"><QrCode size={18} /></div>
-                <div>
-                  <h2 className="text-base font-semibold text-foreground">Scan & pay — UPI</h2>
-                  <p className="text-xs text-muted-foreground">GPay · PhonePe · Paytm · BHIM</p>
-                </div>
-                <div className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-md bg-muted text-foreground">₹{displayAmount}</div>
+                <Pill tone="success" className="ml-auto">
+                  Live
+                </Pill>
               </div>
 
-              <div className="mt-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
-                <div className="rounded-xl bg-white border border-border p-3 shrink-0">
-                  <img src={qrUrl} alt="UPI QR" width={180} height={180} className="rounded-lg block" loading="lazy" />
-                </div>
-                <div className="flex-1 min-w-0 space-y-4 w-full">
-                  <div className="rounded-lg bg-muted/40 border border-border p-3.5 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[10px] font-medium text-muted-foreground">UPI ID</div>
-                      <div className="text-sm font-medium text-foreground truncate">{UPI_ID}</div>
-                    </div>
-                    <button onClick={() => copy(UPI_ID, "upi")} className={`shrink-0 inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${copied === "upi" ? "bg-success/10 border-success/30 text-success" : "bg-card border-border text-foreground hover:bg-muted"}`}>
-                      {copied === "upi" ? <Check size={12} /> : <Copy size={12} />} {copied === "upi" ? "Copied" : "Copy"}
+              <div className="mt-7 grid grid-cols-4 gap-2">
+                {TIERS.map((t) => {
+                  const active = amount === t.amount && !custom;
+                  return (
+                    <button
+                      key={t.amount}
+                      type="button"
+                      onClick={() => {
+                        setAmount(t.amount);
+                        setCustom("");
+                      }}
+                      aria-pressed={active}
+                      className={`relative rounded-control border py-2.5 font-mono text-sm font-medium tabular-nums transition-colors ${
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border bg-card text-foreground hover:border-border-strong hover:bg-muted/50"
+                      }`}
+                    >
+                      {t.popular && (
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-semibold leading-none text-primary-foreground">
+                          Popular
+                        </span>
+                      )}
+                      ₹{t.amount}
                     </button>
+                  );
+                })}
+              </div>
+
+              <label className="mt-3 flex items-center gap-2 rounded-control border border-border bg-background px-3 focus-within:border-primary">
+                <span className="text-sm text-muted-foreground">₹</span>
+                <input
+                  value={custom}
+                  onChange={(e) => setCustom(e.target.value)}
+                  placeholder="Custom amount"
+                  inputMode="numeric"
+                  aria-label="Custom amount in rupees"
+                  className="h-11 w-full min-w-0 flex-1 bg-transparent font-mono text-sm tabular-nums outline-none"
+                />
+              </label>
+
+              <div className="mt-4 flex items-center gap-4 rounded-control border border-border bg-muted/30 p-3">
+                <UpiQr src={qrUrl} size={72} />
+                <div className="min-w-0">
+                  <div className="ui-meta">Or scan to pay</div>
+                  <div className="mt-1 text-sm font-medium text-foreground">
+                    ₹{displayAmount} via UPI
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    {[
-                      { k: "Fast", v: "Instant" },
-                      { k: "Fee", v: "Zero" },
-                      { k: "Secure", v: "UPI" },
-                    ].map((s) => (
-                      <div key={s.k} className="rounded-lg bg-muted border border-border p-2.5">
-                        <div className="text-[10px] font-medium text-muted-foreground">{s.k}</div>
-                        <div className="text-sm font-semibold text-foreground mt-0.5">{s.v}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs leading-5 text-muted-foreground">Open any UPI app → Scan → Pay ₹{displayAmount}. Your support appears instantly and 100% goes to infra & content.</p>
+                  <div className="ui-meta mt-0.5">GPay · PhonePe · Paytm</div>
                 </div>
               </div>
-            </div>
-            <div className="px-6 md:px-8 py-3 bg-muted/30 border-t border-border flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
-              <Sparkles size={12} className="text-primary" /> Thank you for keeping AlgoGuru free
-            </div>
-          </div>
 
-          <div className="space-y-4">
-            <div className="rounded-2xl bg-card border border-border p-6">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={15} className="text-muted-foreground" /> Other ways</h3>
-              <div className="mt-4 space-y-2">
-                <a href={BUYMEACOFFEE_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted transition-colors group">
-                  <div className="w-10 h-10 rounded-lg bg-[#FFDD00] flex items-center justify-center text-black"><Coffee size={16} /></div>
-                  <div className="flex-1"><div className="text-sm font-medium text-foreground">Buy Me a Coffee</div><div className="text-xs text-muted-foreground">Card · Apple Pay · Global</div></div>
-                  <ExternalLink size={13} className="text-muted-foreground group-hover:text-foreground" />
+              <Button variant="solid" size="cta" className="mt-4 w-full" asChild>
+                <a href={BUYMEACOFFEE_URL} target="_blank" rel="noreferrer">
+                  <Coffee size={15} /> Support via Buy Me a Coffee
+                  <ExternalLink size={12} />
                 </a>
-                {RAZORPAY_URL && (
-                  <a href={RAZORPAY_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted transition-colors group">
-                    <div className="w-10 h-10 rounded-lg bg-[#338dfc] flex items-center justify-center text-white"><CreditCard size={16} /></div>
-                    <div className="flex-1"><div className="text-sm font-medium text-foreground">Razorpay</div><div className="text-xs text-muted-foreground">UPI · Cards · Netbanking</div></div>
-                    <ExternalLink size={13} className="text-muted-foreground group-hover:text-foreground" />
-                  </a>
-                )}
-                {PAYPAL_URL && (
-                  <a href={PAYPAL_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted transition-colors group">
-                    <div className="w-10 h-10 rounded-lg bg-[#003087] flex items-center justify-center text-white font-semibold">P</div>
-                    <div className="flex-1"><div className="text-sm font-medium text-foreground">PayPal</div><div className="text-xs text-muted-foreground">Any currency · Global</div></div>
-                    <ExternalLink size={13} className="text-muted-foreground group-hover:text-foreground" />
-                  </a>
-                )}
-                {CRYPTO_ADDRESS && (
-                  <div className="p-3 rounded-lg border border-border bg-muted/40">
-                    <div className="text-[10px] font-medium text-muted-foreground">Crypto</div>
-                    <div className="mt-1.5 text-xs font-mono break-all text-foreground">{CRYPTO_ADDRESS}</div>
-                    <button onClick={() => copy(CRYPTO_ADDRESS, "crypto")} className={`mt-2 inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${copied === "crypto" ? "bg-success/10 border-success/30 text-success" : "bg-card border-border text-foreground hover:bg-muted"}`}>
-                      {copied === "crypto" ? <Check size={12} /> : <Copy size={12} />} {copied === "crypto" ? "Copied" : "Copy address"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+              </Button>
+              <p className="ui-meta mt-2 text-center">
+                Secure · One-time or monthly
+              </p>
+            </Surface>
+          }
+        />
 
-            <div className="rounded-2xl bg-foreground text-background p-6">
-              <h4 className="text-sm font-semibold flex items-center gap-2"><Zap size={13} className="text-primary" /> Why support?</h4>
-              <ul className="mt-3 space-y-1.5 text-sm leading-6">
-                <li>• Keeps AlgoGuru ad-free & fast</li>
-                <li>• Funds new DSA & System Design content</li>
-                <li>• Supports open-source & free for students</li>
-              </ul>
-              <Link to="/" className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium opacity-80 hover:opacity-100">Back to home →</Link>
+        <Section spacing="compact">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            {/* ── UPI / QR ───────────────────────────────────────── */}
+            <Surface padding="none" className="h-fit overflow-hidden">
+              <div className="p-5 md:p-7">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-control border border-border bg-muted/60 text-success">
+                    <QrCode size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="ui-h3">Scan &amp; pay — UPI</h2>
+                    <p className="ui-meta">GPay · PhonePe · Paytm · BHIM</p>
+                  </div>
+                  <Pill mono className="ml-auto text-foreground">
+                    ₹{displayAmount}
+                  </Pill>
+                </div>
+
+                <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-start">
+                  <UpiQr src={qrUrl} size={180} />
+                  <div className="w-full min-w-0 flex-1 space-y-4">
+                    <div className="flex items-center justify-between gap-3 rounded-control border border-border bg-muted/40 p-3.5">
+                      <div className="min-w-0">
+                        <div className="ui-meta">UPI ID</div>
+                        <div className="truncate font-mono text-sm text-foreground">
+                          {UPI_ID}
+                        </div>
+                      </div>
+                      <Button
+                        variant="line"
+                        size="sm"
+                        onClick={() => copy(UPI_ID, "upi")}
+                        className="shrink-0"
+                      >
+                        {copied === "upi" ? (
+                          <Check size={12} />
+                        ) : (
+                          <Copy size={12} />
+                        )}
+                        {copied === "upi" ? "Copied" : "Copy"}
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      {[
+                        { k: "Fast", v: "Instant" },
+                        { k: "Fee", v: "Zero" },
+                        { k: "Secure", v: "UPI" },
+                      ].map((s) => (
+                        <div
+                          key={s.k}
+                          className="rounded-control border border-border p-2.5"
+                        >
+                          <div className="ui-meta">{s.k}</div>
+                          <div className="mt-0.5 text-sm font-medium text-foreground">
+                            {s.v}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="ui-meta leading-5">
+                      Open any UPI app → Scan → Pay ₹{displayAmount}. Your
+                      support appears instantly and 100% goes to infra &amp;
+                      content.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-2 border-t border-border bg-muted/30 px-5 py-3 md:px-7">
+                <Sparkles size={12} className="text-primary" />
+                <span className="ui-meta">
+                  Thank you for keeping AlgoGuru free
+                </span>
+              </div>
+            </Surface>
+
+            {/* ── Other channels + why ───────────────────────────── */}
+            <div className="space-y-4">
+              <Surface>
+                <h3 className="ui-h3 flex items-center gap-2">
+                  <CreditCard size={15} className="text-muted-foreground" />
+                  Other ways
+                </h3>
+                <div className="mt-4 space-y-2">
+                  <PaymentLink
+                    href={BUYMEACOFFEE_URL}
+                    name="Buy Me a Coffee"
+                    detail="Card · Apple Pay · Global"
+                    mark={<Coffee size={16} />}
+                    markClassName="border-[#FFDD00]/40 bg-[#FFDD00] text-black"
+                  />
+                  {RAZORPAY_URL && (
+                    <PaymentLink
+                      href={RAZORPAY_URL}
+                      name="Razorpay"
+                      detail="UPI · Cards · Netbanking"
+                      mark={<CreditCard size={16} />}
+                      markClassName="border-[#338dfc]/40 bg-[#338dfc] text-white"
+                    />
+                  )}
+                  {PAYPAL_URL && (
+                    <PaymentLink
+                      href={PAYPAL_URL}
+                      name="PayPal"
+                      detail="Any currency · Global"
+                      mark="P"
+                      markClassName="border-[#003087]/40 bg-[#003087] text-white"
+                    />
+                  )}
+                  <PaymentLink
+                    href={`upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=AlgoGuru%20Support`}
+                    name="Any UPI app"
+                    detail="Direct · Zero fee · India"
+                    mark={<QrCode size={16} />}
+                    markClassName="bg-muted/60 text-foreground"
+                  />
+                  {CRYPTO_ADDRESS && (
+                    <div className="rounded-control border border-border bg-muted/40 p-3">
+                      <div className="ui-meta">Crypto</div>
+                      <div className="mt-1.5 break-all font-mono text-xs text-foreground">
+                        {CRYPTO_ADDRESS}
+                      </div>
+                      <Button
+                        variant="line"
+                        size="sm"
+                        onClick={() => copy(CRYPTO_ADDRESS, "crypto")}
+                        className="mt-2"
+                      >
+                        {copied === "crypto" ? (
+                          <Check size={12} />
+                        ) : (
+                          <Copy size={12} />
+                        )}
+                        {copied === "crypto" ? "Copied" : "Copy address"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Surface>
+
+              <Surface inverse>
+                <h4 className="flex items-center gap-2 text-sm font-medium">
+                  <Zap size={13} className="text-primary" /> Why support?
+                </h4>
+                <ul className="mt-3 space-y-1.5 text-sm leading-6 opacity-85">
+                  <li>Keeps AlgoGuru ad-free &amp; fast</li>
+                  <li>Funds new DSA &amp; System Design content</li>
+                  <li>Supports open source &amp; free for students</li>
+                </ul>
+                <Link
+                  to="/"
+                  className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium opacity-80 transition-opacity hover:opacity-100"
+                >
+                  Back to home <ArrowRight size={12} />
+                </Link>
+              </Surface>
             </div>
           </div>
-        </div>
+        </Section>
 
-        <div className="mt-8 rounded-2xl border border-border bg-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <span className="text-muted-foreground">Have questions? <a href="mailto:support@algoguru.online" className="font-medium text-foreground hover:underline">support@algoguru.online</a></span>
-          <span className="text-muted-foreground">Made with care in India</span>
-        </div>
-      </div>
+        <Section spacing="compact">
+          <Surface
+            padding="sm"
+            className="flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left"
+          >
+            <span className="ui-meta">
+              Have questions?{" "}
+              <a
+                href="mailto:support@algoguru.online"
+                className="font-medium text-foreground hover:underline"
+              >
+                support@algoguru.online
+              </a>
+            </span>
+            <span className="ui-meta inline-flex items-center gap-1.5">
+              <Heart size={11} className="text-primary" /> Made with care in
+              India
+            </span>
+          </Surface>
+        </Section>
+      </PageShell>
     </div>
   );
 }

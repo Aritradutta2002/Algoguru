@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -8,15 +8,21 @@
   .app-header {
     background: hsl(var(--card) / 0.96);
     border-bottom: 1px solid hsl(var(--border) / 0.65);
-    box-shadow: 0 1px 0 hsl(var(--background)), 0 4px 16px -12px hsl(var(--foreground) / 0.15);
+    box-shadow:
+      0 1px 0 hsl(var(--background)),
+      0 4px 16px -12px hsl(var(--foreground) / 0.15);
     backdrop-filter: blur(16px);
     container-type: inline-size;
-    transition: background-color 200ms ease, box-shadow 200ms ease;
+    transition:
+      background-color 200ms ease,
+      box-shadow 200ms ease;
   }
 
   .app-header[data-scrolled="true"] {
     background: hsl(var(--card) / 0.98);
-    box-shadow: 0 1px 0 hsl(var(--background)), 0 12px 32px -16px hsl(var(--foreground) / 0.3);
+    box-shadow:
+      0 1px 0 hsl(var(--background)),
+      0 12px 32px -16px hsl(var(--foreground) / 0.3);
   }
 
   .app-header button:not([role="combobox"]) {
@@ -123,7 +129,7 @@
     --secondary-foreground: 221 45% 18%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 46%;
+    --muted-foreground: 220 12% 40%;
 
     --accent: 43 95% 55%;
     --accent-foreground: 25 40% 12%;
@@ -131,7 +137,7 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 90%;
+    --border: 220 14% 88%;
     --input: 220 14% 96%;
     --ring: 217 91% 57%;
 
@@ -154,9 +160,9 @@
     --info: 210 80% 52%;
     --heap: 320 65% 52%;
 
-    --code-bg: 210 20% 96%;
-    --code-border: 210 20% 88%;
-    --code-header: 210 20% 92%;
+    --code-bg: 220 20% 97%;
+    --code-border: 220 14% 90%;
+    --code-header: 220 20% 95%;
 
     --gradient-primary: hsl(217 91% 57%);
     --gradient-accent: hsl(217 91% 57%);
@@ -179,8 +185,11 @@
        Tuned for sustained prose reading: near-black body text on pure
        white paper, a single restrained accent, and dotted rules in the
        spirit of a documentation page rather than a dashboard card. */
-    --reader-font: 'Source Sans 3', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --reader-code-font: 'Source Code Pro', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --reader-font:
+      "Source Sans 3", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --reader-code-font:
+      "Source Code Pro", "JetBrains Mono", ui-monospace, "SFMono-Regular",
+      monospace;
     --reader-page: 0 0% 100%;
     --reader-surface: 0 0% 100%;
     --reader-surface-alt: 214 45% 97.5%;
@@ -196,10 +205,15 @@
     --shadow-glow: none;
     --shadow-glow-strong: none;
     /* Restrained, layered elevation — no offset/hard shadows */
-    --shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.06);
-    --shadow-accent: 0 10px 30px -12px rgba(15, 23, 42, 0.18), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
+    --shadow-card:
+      0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+    --shadow-accent:
+      0 10px 30px -12px rgba(15, 23, 42, 0.18),
+      0 2px 6px -2px rgba(15, 23, 42, 0.08);
     --shadow-soft: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-    --shadow-overlay: 0 24px 60px -18px rgba(15, 23, 42, 0.28), 0 4px 14px -4px rgba(15, 23, 42, 0.1);
+    --shadow-overlay:
+      0 24px 60px -18px rgba(15, 23, 42, 0.28),
+      0 4px 14px -4px rgba(15, 23, 42, 0.1);
 
     --difficulty-easy: 145 55% 40%;
     --difficulty-medium: 35 90% 52%;
@@ -216,6 +230,53 @@
     --surface-panel: 0 0% 100%;
     --surface-line: 220 13% 88%;
     --surface-raised: 220 14% 96%;
+
+    /* ── Shared UI scale ────────────────────────────────────────────────
+       The landing page (``styles/landing.css``) and every product route
+       resolve their surfaces, rules and rhythm from the same slots. Add
+       roles here, never a second token set: values stay bare HSL triplets
+       so ``hsl(var(--x) / <alpha>)`` keeps working.
+       ----------------------------------------------------------------- */
+    --quiet: var(--muted-foreground);
+    --border-strong: 220 14% 80%;
+
+    --editor-surface: var(--code-bg);
+    --editor-border: var(--code-border);
+    --editor-alpha: 0.9;
+
+    --primary-soft: 217 91% 57%;
+    --primary-soft-alpha: 0.09;
+
+    --inverse: 222 32% 8%;
+    --inverse-foreground: 40 30% 97%;
+    --inverse-quiet: 220 12% 72%;
+    --inverse-border: 220 14% 22%;
+
+    --syntax-key: 221 83% 45%;
+    --syntax-type: 178 62% 28%;
+    --syntax-string: 28 88% 38%;
+    --syntax-comment: 220 10% 54%;
+
+    /* Layout rhythm — container-query based, resolved against .ui-app-canvas */
+    --shell: 1240px;
+    --shell-wide: 1760px;
+    --reading: 38rem;
+    --reader-grid: 1400px;
+    --gutter: clamp(20px, 5cqi, 56px);
+    --section-y: clamp(56px, 8cqi, 104px);
+    --section-y-compact: clamp(32px, 4cqi, 56px);
+    --section-head-gap: clamp(28px, 4cqi, 44px);
+    --control-h: 3rem;
+    --radius-control: 0.7rem;
+    --radius-chip: 0.3rem;
+    --radius-surface: var(--radius);
+    --motion-fast: 180ms;
+
+    /* Type roles */
+    --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+    --font-body: "Space Grotesk", "Inter", system-ui, sans-serif;
+    --font-ui: "Inter", "Space Grotesk", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
   }
 
   /* ===== Premium dark mode ===== */
@@ -237,7 +298,7 @@
     --secondary-foreground: 0 0% 100%;
 
     --muted: 222 18% 14%;
-    --muted-foreground: 215 18% 65%;
+    --muted-foreground: 215 14% 64%;
 
     --accent: 43 95% 55%;
     --accent-foreground: 0 0% 7%;
@@ -245,7 +306,7 @@
     --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 16% 18%;
+    --border: 220 14% 17%;
     --input: 222 18% 14%;
     --ring: 217 91% 60%;
 
@@ -277,8 +338,11 @@
     /* ── Long-form Q&A reader, night mode ─────────────────────────────
        Same structure as day mode, one step off pure black so the page
        does not glare, and body text lifted to keep a 7:1+ ratio. */
-    --reader-font: 'Source Sans 3', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --reader-code-font: 'Source Code Pro', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --reader-font:
+      "Source Sans 3", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --reader-code-font:
+      "Source Code Pro", "JetBrains Mono", ui-monospace, "SFMono-Regular",
+      monospace;
     --reader-page: 222 24% 7%;
     --reader-surface: 222 22% 10.5%;
     --reader-surface-alt: 222 20% 14%;
@@ -291,10 +355,10 @@
     --reader-border: 222 16% 22%;
     --reader-quote: 222 20% 15%;
 
-    /* Code Blocks: One Dark style */
-    --code-bg: 220 13% 18%;
-    --code-border: 0 0% 25%;
-    --code-header: 220 13% 15%;
+    /* Code blocks and editors share one deep surface */
+    --code-bg: 222 18% 7%;
+    --code-border: 220 14% 18%;
+    --code-header: 222 18% 10%;
 
     /* Difficulty chips need their own night ramp — the day values are
        tuned for white and go muddy on a dark surface. */
@@ -311,11 +375,34 @@
     --surface-line: 222 12% 16%;
     --surface-raised: 240 6% 15%;
 
+    /* ── Shared UI scale, night mode ──────────────────────────────── */
+    --quiet: var(--muted-foreground);
+    --border-strong: 220 14% 26%;
+
+    --editor-surface: var(--code-bg);
+    --editor-border: var(--code-border);
+    --editor-alpha: 0.92;
+
+    --primary-soft: 217 91% 60%;
+    --primary-soft-alpha: 0.14;
+
+    --inverse: 220 18% 9%;
+    --inverse-foreground: 40 30% 97%;
+    --inverse-quiet: 218 12% 66%;
+    --inverse-border: 220 14% 20%;
+
+    --syntax-key: 213 94% 72%;
+    --syntax-type: 172 55% 62%;
+    --syntax-string: 38 92% 66%;
+    --syntax-comment: 215 12% 48%;
+
     /* Restrained, layered elevation for dark surfaces */
     --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-    --shadow-accent: 0 16px 40px -16px rgba(0, 0, 0, 0.7), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
+    --shadow-accent:
+      0 16px 40px -16px rgba(0, 0, 0, 0.7), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
     --shadow-soft: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-    --shadow-overlay: 0 28px 70px -20px rgba(0, 0, 0, 0.8), 0 4px 14px -4px rgba(0, 0, 0, 0.6);
+    --shadow-overlay:
+      0 28px 70px -20px rgba(0, 0, 0, 0.8), 0 4px 14px -4px rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -338,16 +425,23 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Space Grotesk', 'Outfit', 'Inter', system-ui, sans-serif;
+    font-family: var(--font-body);
     letter-spacing: 0;
   }
 
-  code, pre, .font-mono {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  code,
+  pre,
+  .font-mono {
+    font-family: var(--font-mono);
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
     font-weight: 700;
     letter-spacing: 0;
   }
@@ -365,6 +459,941 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.6);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   AlgoGuru · shared page vocabulary (ui-*)
+   The single set of layout, type and control classes every route
+   composes from. Values resolve from the tokens in :root/.dark —
+   no literals here except hairline geometry.
+
+   Rules of use
+   • `.ui-app-canvas` carries `container-type` so `cqi` units and
+     `@container` rules below resolve against the routed content
+     column (this is what keeps pages responsive inside the Guru
+     split pane). Never set `container-type` on `.ui-shell` — a
+     container cannot query itself.
+   • These live in a layer, so a Tailwind utility can still win.
+     Never put `.lp-*` and `.ui-*` on the same element: the landing
+     stylesheet is unlayered and would beat every utility.
+   • Breakpoints: 640 / 860 / 1100 / 1440 container px.
+   ───────────────────────────────────────────────────────────── */
+@layer components {
+  .ui-app-canvas {
+    container-type: inline-size;
+    container-name: app-canvas;
+  }
+
+  /* ── Shells ─────────────────────────────────────────────────── */
+  .ui-shell {
+    width: 100%;
+    max-width: var(--shell);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .ui-shell--wide {
+    max-width: var(--shell-wide);
+  }
+
+  .ui-shell--reading {
+    max-width: var(--reading);
+  }
+
+  .ui-shell--reader {
+    max-width: var(--reader-grid);
+  }
+
+  .ui-shell--full {
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  /* ── Rhythm ─────────────────────────────────────────────────── */
+  .ui-band {
+    border-top: 1px solid hsl(var(--border));
+  }
+
+  .ui-band--strong {
+    border-top: 1px solid hsl(var(--border-strong));
+  }
+
+  .ui-section {
+    padding-block: var(--section-y);
+  }
+
+  .ui-section--compact {
+    padding-block: var(--section-y-compact);
+  }
+
+  .ui-rule {
+    height: 1px;
+    border: 0;
+    background: hsl(var(--border));
+  }
+
+  /* Landing section-head: title left, lede right once the column
+     has room. Stacks below 860 container px. */
+  .ui-section-head {
+    display: grid;
+    gap: 1rem;
+    padding-bottom: var(--section-head-gap);
+  }
+
+  @container app-canvas (min-width: 860px) {
+    .ui-section-head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  /* ── Type ───────────────────────────────────────────────────── */
+  .ui-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-kicker::before {
+    content: "";
+    width: 1.25rem;
+    height: 1px;
+    background: hsl(var(--border-strong));
+  }
+
+  .ui-display {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.35rem, 5.4cqi, 3.9rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .ui-h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.85rem, 3.6cqi, 2.9rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.038em;
+    text-wrap: balance;
+  }
+
+  .ui-h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 2.1cqi, 1.45rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+  }
+
+  .ui-lede {
+    margin: 0;
+    max-width: 34rem;
+    font-family: var(--font-ui);
+    font-size: clamp(0.95rem, 1.35cqi, 1.0625rem);
+    line-height: 1.7;
+    color: hsl(var(--quiet));
+    text-wrap: pretty;
+  }
+
+  .ui-meta {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--quiet));
+  }
+
+  /* ── Surfaces ───────────────────────────────────────────────── */
+  .ui-surface {
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-surface);
+    background: hsl(var(--card));
+  }
+
+  .ui-surface--interactive {
+    transition:
+      border-color var(--motion-fast) cubic-bezier(0.22, 1, 0.36, 1),
+      background-color var(--motion-fast) cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .ui-surface--interactive:hover {
+    border-color: hsl(var(--border-strong));
+  }
+
+  .ui-surface--inverse {
+    border: 1px solid hsl(var(--inverse-border));
+    border-radius: var(--radius-surface);
+    background: hsl(var(--inverse));
+    color: hsl(var(--inverse-foreground));
+  }
+
+  /* ── Chips ──────────────────────────────────────────────────── */
+  .ui-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.14rem 0.45rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-chip);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+    color: hsl(var(--quiet));
+    white-space: nowrap;
+  }
+
+  .ui-chip--primary {
+    border-color: hsl(var(--primary) / 0.28);
+    background: hsl(var(--primary-soft) / var(--primary-soft-alpha));
+    color: hsl(var(--primary));
+  }
+
+  .ui-chip--success {
+    border-color: hsl(var(--success) / 0.32);
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
+  }
+
+  .ui-chip--warning {
+    border-color: hsl(var(--warning) / 0.32);
+    background: hsl(var(--warning) / 0.1);
+    color: hsl(var(--warning));
+  }
+
+  .ui-chip--danger {
+    border-color: hsl(var(--destructive) / 0.32);
+    background: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+  }
+
+  .ui-chip--inverse {
+    border-color: hsl(var(--inverse-border));
+    background: transparent;
+    color: hsl(var(--inverse-quiet));
+  }
+
+  /* ── Buttons ────────────────────────────────────────────────────
+     Mirrors the landing `.lp-btn` grammar so page CTAs and the
+     marketing surface read as one control. `Button` variants in
+     `components/ui/button.tsx` target these classes. */
+  .ui-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: var(--control-h);
+    padding-inline: 1.3rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition:
+      background-color var(--motion-fast) ease,
+      border-color var(--motion-fast) ease,
+      color var(--motion-fast) ease;
+  }
+
+  .ui-btn:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  .ui-btn:disabled,
+  .ui-btn[aria-disabled="true"] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* Geometry reset for call sites whose own size classes would
+     otherwise fight `.ui-btn` (e.g. `Button variant="solid"`). */
+  .ui-btn--reset {
+    min-height: var(--control-h);
+    padding-inline: 1.3rem;
+  }
+
+  .ui-btn--sm {
+    min-height: 2.25rem;
+    padding-inline: 0.85rem;
+    font-size: 0.8125rem;
+  }
+
+  .ui-btn--solid {
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+  }
+
+  .ui-btn--solid:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .ui-btn--line {
+    background: transparent;
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border-strong));
+  }
+
+  .ui-btn--line:hover {
+    border-color: hsl(var(--foreground));
+    background: hsl(var(--muted) / 0.5);
+  }
+
+  .ui-btn--inv {
+    background: hsl(var(--inverse-foreground));
+    color: hsl(var(--inverse));
+  }
+
+  .ui-btn--inv:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .ui-btn--ghost-inv {
+    background: transparent;
+    color: hsl(var(--inverse-foreground));
+    border-color: hsl(var(--inverse-border));
+  }
+
+  .ui-btn--ghost-inv:hover {
+    border-color: hsl(var(--inverse-quiet));
+    background: hsl(0 0% 100% / 0.05);
+  }
+
+  .ui-btn svg {
+    transition: transform var(--motion-fast) cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .ui-btn:hover svg[data-shift="true"] {
+    transform: translateX(3px);
+  }
+
+  /* ── Grids ──────────────────────────────────────────────────── */
+  .ui-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container app-canvas (min-width: 640px) {
+    .ui-grid--2,
+    .ui-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container app-canvas (min-width: 1100px) {
+    .ui-grid--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .ui-grid--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @container app-canvas (min-width: 860px) {
+    .ui-grid--3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .ui-split {
+    display: grid;
+    gap: clamp(1.5rem, 3cqi, 3rem);
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  @container app-canvas (min-width: 860px) {
+    .ui-split {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    }
+  }
+
+  @container app-canvas (min-width: 1440px) {
+    .ui-split--wide {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+  }
+
+  /* ── Page header ────────────────────────────────────────────────
+     Composes inside `.ui-shell`; never declares a width or gutter. */
+  .ui-page-header {
+    position: relative;
+    padding-top: clamp(1rem, 2.4cqi, 1.75rem);
+  }
+
+  .ui-page-header--divided {
+    padding-bottom: var(--section-head-gap);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .ui-page-header__inner {
+    display: grid;
+    gap: 1rem 2rem;
+    align-items: end;
+  }
+
+  @container app-canvas (min-width: 860px) {
+    .ui-page-header__inner--split {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+
+  .ui-page-header__lead {
+    min-width: 0;
+  }
+
+  .ui-page-header__lead > .ui-kicker {
+    margin-bottom: 0.9rem;
+  }
+
+  .ui-page-header__eyebrow {
+    margin-bottom: 0.85rem;
+  }
+
+  .ui-page-header__breadcrumb {
+    margin-bottom: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-page-header__breadcrumb a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition:
+      color var(--motion-fast) ease,
+      border-color var(--motion-fast) ease;
+  }
+
+  .ui-page-header__breadcrumb a:hover {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border-strong));
+  }
+
+  .ui-page-header--standard .ui-h2 {
+    font-size: clamp(1.7rem, 3cqi, 2.35rem);
+    letter-spacing: -0.035em;
+  }
+
+  .ui-page-header--compact {
+    padding-top: clamp(0.75rem, 1.6cqi, 1.25rem);
+    padding-bottom: 1rem;
+  }
+
+  .ui-page-header__lede {
+    margin-top: clamp(0.7rem, 1.4cqi, 1rem);
+    max-width: 56ch;
+  }
+
+  .ui-page-header__meta {
+    margin-top: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .ui-page-header__rule {
+    margin-top: 1rem;
+  }
+
+  /* ── Section heading parts ────────────────────────────────────── */
+  .ui-section-head__lead {
+    min-width: 0;
+  }
+
+  .ui-section-head__lead > .ui-kicker {
+    margin-bottom: 0.9rem;
+  }
+
+  .ui-section-head__aside {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+
+  @container app-canvas (min-width: 860px) {
+    .ui-section-head__aside {
+      justify-items: end;
+      text-align: left;
+    }
+  }
+
+  .ui-section-head__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .ui-section__head {
+    margin-bottom: clamp(1.25rem, 2.4cqi, 1.75rem);
+  }
+
+  .ui-section--flush {
+    padding-block: 0;
+  }
+
+  /* ── Page states (loading / error / empty) ────────────────────── */
+  .ui-page-state {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    padding: clamp(2rem, 5cqi, 3.5rem) 1.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-surface);
+    background: hsl(var(--card));
+    text-align: center;
+  }
+
+  .ui-page-state--error {
+    border-color: hsl(var(--destructive) / 0.28);
+    background: hsl(var(--destructive) / 0.04);
+  }
+
+  .ui-page-state__icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 0.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 50%;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-page-state--error .ui-page-state__icon {
+    color: hsl(var(--destructive));
+    border-color: hsl(var(--destructive) / 0.3);
+  }
+
+  .ui-page-state__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .ui-page-state__desc {
+    margin: 0;
+    max-width: 44ch;
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-page-state__action {
+    margin-top: 0.75rem;
+  }
+
+  .ui-page-state__skeleton {
+    display: grid;
+    gap: 0.7rem;
+    width: 100%;
+    max-width: 34rem;
+  }
+
+  .ui-page-state__line {
+    display: block;
+    height: 0.85rem;
+    border-radius: var(--radius-chip);
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.14) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: ui-skeleton 1.4s ease-in-out infinite;
+  }
+
+  .ui-page-state__line:nth-child(even) {
+    width: 72%;
+    justify-self: center;
+  }
+
+  @keyframes ui-skeleton {
+    from {
+      background-position: 160% 0;
+    }
+    to {
+      background-position: -60% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ui-page-state__line {
+      animation: none;
+    }
+  }
+
+  /* ── Stat ─────────────────────────────────────────────────────── */
+  .ui-stat {
+    display: grid;
+    gap: 0.35rem;
+    padding: 1.15rem 1.25rem 1.2rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-surface);
+    background: hsl(var(--card));
+  }
+
+  .ui-stat__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .ui-stat__label {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .ui-stat__icon {
+    display: grid;
+    place-items: center;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-stat__value {
+    font-family: var(--font-display);
+    font-size: clamp(1.55rem, 2.9cqi, 2.05rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+
+  .ui-stat__hint {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: hsl(var(--quiet));
+  }
+
+  /* ── Empty state ──────────────────────────────────────────────── */
+  .ui-empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    padding: clamp(2rem, 5cqi, 3.25rem) 1.25rem;
+    border: 1px dashed hsl(var(--border-strong));
+    border-radius: var(--radius-surface);
+    background: hsl(var(--card) / 0.6);
+    text-align: center;
+  }
+
+  .ui-empty--compact {
+    gap: 0.4rem;
+    padding: 1.5rem 1.25rem;
+  }
+
+  .ui-empty--compact .ui-empty__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .ui-empty__illustration {
+    margin-bottom: 0.5rem;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 50%;
+    background: hsl(var(--background));
+    color: hsl(var(--quiet));
+  }
+
+  .ui-empty__copy {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .ui-empty__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .ui-empty__desc {
+    margin: 0;
+    max-width: 44ch;
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+
+  /* ── Segmented control ────────────────────────────────────────── */
+  .ui-segmented {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.2rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-control);
+    background: hsl(var(--muted) / 0.45);
+  }
+
+  .ui-segmented--full {
+    display: flex;
+    width: 100%;
+  }
+
+  .ui-segmented__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.1rem;
+    padding-inline: 0.8rem;
+    border: 0;
+    border-radius: calc(var(--radius-control) - 0.2rem);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: hsl(var(--quiet));
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--motion-fast) ease,
+      color var(--motion-fast) ease,
+      box-shadow var(--motion-fast) ease;
+  }
+
+  .ui-segmented__item:hover {
+    color: hsl(var(--foreground));
+  }
+
+  .ui-segmented__item.is-active {
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
+    box-shadow: 0 1px 2px hsl(222 40% 10% / 0.08);
+  }
+
+  .ui-segmented__item:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .ui-segmented__item--sm {
+    min-height: 1.75rem;
+    padding-inline: 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .ui-segmented__item--fill {
+    flex: 1 1 0;
+  }
+
+  /* ── Toolbar ──────────────────────────────────────────────────── */
+  .ui-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.75rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .ui-toolbar--sticky {
+    position: sticky;
+    top: var(--header-offset, 3.5rem);
+    z-index: 20;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    background: hsl(var(--background) / 0.88);
+    backdrop-filter: blur(12px);
+  }
+
+  /* ── Pills (status tokens) ────────────────────────────────────── */
+  .ui-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.16rem 0.5rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-pill--mono {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .ui-pill--primary {
+    border-color: hsl(var(--primary) / 0.28);
+    background: hsl(var(--primary-soft) / var(--primary-soft-alpha));
+    color: hsl(var(--primary));
+  }
+
+  .ui-pill--success {
+    border-color: hsl(var(--success) / 0.32);
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
+  }
+
+  .ui-pill--warning {
+    border-color: hsl(var(--warning) / 0.32);
+    background: hsl(var(--warning) / 0.1);
+    color: hsl(var(--warning));
+  }
+
+  .ui-pill--danger {
+    border-color: hsl(var(--destructive) / 0.32);
+    background: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+  }
+
+  .ui-pill--inverse {
+    border-color: hsl(var(--inverse-border));
+    color: hsl(var(--inverse-quiet));
+  }
+
+  /* ── Field ────────────────────────────────────────────────────── */
+  .ui-field {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .ui-field__label {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: hsl(var(--foreground));
+  }
+
+  .ui-field__hint {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: hsl(var(--quiet));
+  }
+
+  .ui-field__error {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: hsl(var(--destructive));
+  }
+
+  /* Text entry — one look for every input that is not a Radix control. */
+  .ui-input {
+    width: 100%;
+    padding: 0.55rem 0.875rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-control);
+    background: hsl(var(--background));
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: hsl(var(--foreground));
+    outline: none;
+    transition:
+      border-color var(--motion-fast) ease,
+      box-shadow var(--motion-fast) ease;
+  }
+
+  .ui-input::placeholder {
+    color: hsl(var(--muted-foreground) / 0.7);
+  }
+
+  .ui-input:hover {
+    border-color: hsl(var(--border-strong));
+  }
+
+  .ui-input:focus-visible {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+  }
+
+  [aria-invalid="true"].ui-input,
+  .ui-input[aria-invalid="true"] {
+    border-color: hsl(var(--destructive) / 0.6);
+  }
+
+  /* ── Meter ──────────────────────────────────────────────────────
+     Thin progress rule used in headers and toolbars. The fill is a
+     child span so callers can drive width with an inline style. */
+  .ui-meter {
+    height: 0.375rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+  }
+
+  .ui-meter__fill {
+    height: 100%;
+    border-radius: inherit;
+    background: hsl(var(--foreground));
+    transition: width calc(var(--motion-fast) * 2) cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .ui-meter--primary .ui-meter__fill {
+    background: hsl(var(--primary));
   }
 }
 
@@ -423,7 +1452,7 @@
   }
 
   .core-java-theory-copy {
-    font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+    font-family: var(--reader-font);
   }
 
   .core-java-theory-section + .core-java-theory-section {
@@ -431,7 +1460,7 @@
   }
 
   .core-java-theory-title {
-    font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: 1.05rem;
     font-weight: 700;
     line-height: 1.5;
@@ -440,7 +1469,7 @@
   }
 
   .core-java-theory-paragraph {
-    font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+    font-family: var(--reader-font);
     font-size: 0.99rem;
     line-height: 1.9;
     letter-spacing: 0.01em;
@@ -470,7 +1499,7 @@
     border: 1px solid hsl(var(--primary) / 0.35);
     background: hsl(var(--primary) / 0.12);
     color: hsl(var(--primary));
-    font-family: 'Roboto Mono', 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 0.76rem;
     font-weight: 700;
     margin-top: 0.25rem;
@@ -551,7 +1580,12 @@
 
   .section-divider {
     @apply w-full h-px my-10;
-    background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--border)),
+      transparent
+    );
   }
 
   /* ═══ Content Renderer — LeetCode-quality Layout ═══ */
@@ -563,7 +1597,9 @@
     border: 1px solid hsl(var(--reading-border));
     box-shadow: var(--shadow-card);
     border-radius: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .cr-header {
@@ -577,7 +1613,7 @@
 
   .cr-title {
     @apply text-lg md:text-2xl lg:text-[26px] font-bold tracking-tight;
-    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+    font-family: var(--font-display);
     color: hsl(var(--reading-heading));
     line-height: 1.35;
     letter-spacing: -0.02em;
@@ -585,7 +1621,7 @@
 
   .cr-diff-badge {
     @apply text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   .cr-diff-easy {
@@ -615,7 +1651,7 @@
 
   .cr-complexity-pill {
     @apply text-[12px] px-2.5 py-1 rounded-lg;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     background: hsl(var(--reading-muted) / 0.1);
     color: hsl(var(--reading-muted));
     border: 1px solid hsl(var(--reading-border));
@@ -628,7 +1664,7 @@
 
   .cr-block-label {
     @apply flex items-center gap-2 text-[11px] md:text-xs font-bold uppercase tracking-wider mb-3 px-0.5;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     color: hsl(var(--reading-muted));
   }
 
@@ -644,7 +1680,7 @@
   .cr-theory-para {
     @apply text-[15.5px] md:text-[16.5px] leading-[1.85] tracking-[-0.011em];
     color: hsl(var(--reading-body));
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-ui);
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
@@ -652,13 +1688,13 @@
   .cr-subtitle {
     @apply text-base md:text-lg font-bold mb-3;
     color: hsl(var(--reading-heading));
-    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+    font-family: var(--font-display);
   }
 
   .cr-para {
     @apply text-[15px] md:text-[16px] leading-[1.85] mb-4;
     color: hsl(var(--reading-body));
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-ui);
   }
 
   /* ── High-Contrast, Clean Bold and Monospace ── */
@@ -677,7 +1713,7 @@
   }
 
   .cr-code {
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 0.86em;
     font-weight: 550;
     padding: 0.15em 0.45em;
@@ -706,7 +1742,7 @@
   .cr-keypoint-item {
     @apply flex items-start gap-3 text-[14.5px] md:text-[15.5px] leading-[1.8];
     color: hsl(var(--reading-body));
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-ui);
   }
 
   .cr-keypoint-marker {
@@ -736,12 +1772,12 @@
 
   .cr-callout-header {
     @apply text-[11px] md:text-xs font-bold uppercase tracking-wider mb-1;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   .cr-callout-body {
     @apply text-[14.5px] md:text-[15.5px] leading-[1.8];
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-ui);
   }
 
   /* Note Callout (Blue/Info) */
@@ -832,7 +1868,7 @@
 
   .cr-example-label {
     @apply flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider mb-3;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     color: hsl(var(--success));
   }
 
@@ -842,7 +1878,7 @@
 
   .cr-io-line {
     @apply flex items-baseline gap-2.5 text-[14px] leading-relaxed py-[3px];
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   .cr-io-label {
@@ -866,7 +1902,7 @@
 
   .cr-approach-label {
     @apply flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider mb-3;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     color: hsl(var(--primary));
   }
 
@@ -877,7 +1913,7 @@
   .cr-approach-text {
     @apply text-[15px] md:text-[16px] leading-[1.85];
     color: hsl(var(--reading-body));
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-ui);
   }
 
   .cr-table-wrap {
@@ -976,7 +2012,7 @@
   }
 
   .prose-dark ul li::before {
-    content: '›';
+    content: "›";
     color: hsl(var(--primary));
     @apply mr-2 font-bold text-lg;
   }
@@ -989,7 +2025,7 @@
   .sidebar-section-header {
     @apply px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em];
     color: hsl(var(--muted-foreground));
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   .inline-code {
@@ -1008,7 +2044,7 @@
     background: hsl(var(--reading-muted) / 0.1);
     color: hsl(var(--muted-foreground));
     border: 1px solid hsl(var(--border));
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   .table-dark td {
@@ -1028,10 +2064,10 @@
 
   .table-premium th {
     @apply px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider;
-    background: hsl(var(--primary)/0.06);
+    background: hsl(var(--primary) / 0.06);
     color: hsl(var(--primary));
-    border-bottom: 2px solid hsl(var(--primary)/0.15);
-    font-family: 'JetBrains Mono', monospace;
+    border-bottom: 2px solid hsl(var(--primary) / 0.15);
+    font-family: var(--font-mono);
   }
 
   .table-premium th:first-child {
@@ -1134,18 +2170,35 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-12px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.15); }
-    50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.3); }
+    0%,
+    100% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.3);
+    }
   }
 
   .animate-glow-pulse {
@@ -1153,8 +2206,13 @@
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
   }
 
   .animate-float {
@@ -1162,12 +2220,14 @@
   }
 
   @keyframes shimmer {
-    0%   { background-position: 200% center; }
-    100% { background-position: -200% center; }
+    0% {
+      background-position: 200% center;
+    }
+    100% {
+      background-position: -200% center;
+    }
   }
-
 }
-
 
 /* Note markdown rendering styles */
 .note-rendered strong {
@@ -1184,7 +2244,7 @@
 }
 
 .note-rendered .note-code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
   background: hsl(var(--muted) / 0.5);
   padding: 1px 4px;
@@ -1211,7 +2271,7 @@
 /* ═══════════════════════════════════════════════════════════════════ */
 
 .editorial-content {
-  font-family: 'Roboto', 'Inter', system-ui, sans-serif;
+  font-family: var(--reader-font);
   font-size: 0.935rem;
   line-height: 1.85;
   color: hsl(var(--foreground) / 0.88);
@@ -1225,7 +2285,7 @@
 .editorial-content h4,
 .editorial-content h5,
 .editorial-content h6 {
-  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: hsl(var(--foreground));
@@ -1292,7 +2352,7 @@
 
 /* ── Inline Code ── */
 .editorial-content code {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: var(--font-mono);
   font-size: 0.84em;
   background: hsl(var(--primary) / 0.1);
   color: hsl(var(--primary));
@@ -1306,7 +2366,7 @@
 .editorial-content pre {
   margin: 1.5rem 0;
   padding: 0;
-  background: #0D0D0D;
+  background: #0d0d0d;
   border-radius: 1rem;
   border: 1px solid hsl(var(--border) / 0.35);
   overflow-x: auto;
@@ -1346,7 +2406,7 @@
 }
 
 .editorial-content ul > li::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0.7em;
@@ -1369,7 +2429,7 @@
 .editorial-content ol > li::marker {
   color: hsl(var(--primary));
   font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.88em;
 }
 
@@ -1437,7 +2497,12 @@
   margin: 2.5rem 0;
   border: none;
   height: 1px;
-  background: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--border)),
+    transparent
+  );
 }
 
 /* ── Images ── */
@@ -1476,7 +2541,7 @@
 }
 
 .editorial-unavailable-title {
-  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1581,7 +2646,7 @@
 /* ═══════════════════════════════════════════════════════════════════ */
 
 .problem-description {
-  font-family: 'Inter', 'Roboto', system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 0.9375rem; /* 15px — comfortable reading size */
   line-height: 1.8;
   letter-spacing: 0.01em;
@@ -1603,17 +2668,25 @@
 .problem-description h2,
 .problem-description h3,
 .problem-description h4 {
-  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.4;
   color: hsl(var(--foreground));
   margin: 1.75rem 0 0.75rem;
 }
-.problem-description h1 { font-size: 1.35rem; }
-.problem-description h2 { font-size: 1.15rem; }
-.problem-description h3 { font-size: 1.02rem; }
-.problem-description h4 { font-size: 0.95rem; }
+.problem-description h1 {
+  font-size: 1.35rem;
+}
+.problem-description h2 {
+  font-size: 1.15rem;
+}
+.problem-description h3 {
+  font-size: 1.02rem;
+}
+.problem-description h4 {
+  font-size: 0.95rem;
+}
 
 /* ── Bold & Italic ── */
 .problem-description strong,
@@ -1641,7 +2714,7 @@
 
 /* ── Inline Code Chips ── */
 .problem-description code {
-  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.86em;
   background: hsl(var(--primary) / 0.1);
   color: hsl(var(--primary));
@@ -1673,7 +2746,7 @@
   background: transparent;
   border: none;
   padding: 0;
-  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.84rem;
   color: hsl(var(--foreground) / 0.9);
 }
@@ -1743,7 +2816,7 @@
 /* ── Editorial tab — dark tweaks only where a literal is required.
       Everything else already resolves through the theme tokens. ── */
 .dark .editorial-content pre {
-  background: #0D0D0D;
+  background: #0d0d0d;
 }
 
 .dark .editorial-content pre code {
@@ -1843,7 +2916,7 @@
 
 /* Floating surfaces: dropdowns, popovers, dialogs */
 .lc-surface {
-  background: var(--lc-panel-2);
+  background: hsl(var(--popover));
   border: 1px solid var(--lc-border);
   box-shadow: var(--lc-shadow);
 }
@@ -2144,7 +3217,7 @@
   gap: 5px;
   border-radius: 9999px;
   padding: 3px 10px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
   background: var(--lc-panel-3);
@@ -2164,7 +3237,7 @@
   background: var(--lc-panel-3);
   border-radius: 8px;
   padding: 11px 13px;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--lc-text);
@@ -2312,16 +3385,20 @@
   background: var(--lc-accent);
   border-radius: 2px;
 }
-.playground-shell .lc-resizer[data-panel-group-direction="horizontal"][data-resize-handle-state="drag"]::after,
-.playground-shell .lc-resizer[data-panel-group-direction="horizontal"][data-resize-handle-state="hover"]::after {
+.playground-shell
+  .lc-resizer[data-panel-group-direction="horizontal"][data-resize-handle-state="drag"]::after,
+.playground-shell
+  .lc-resizer[data-panel-group-direction="horizontal"][data-resize-handle-state="hover"]::after {
   top: 50%;
   left: 50%;
   width: 3px;
   height: 28px;
   transform: translate(-50%, -50%);
 }
-.playground-shell .lc-resizer[data-panel-group-direction="vertical"][data-resize-handle-state="drag"]::after,
-.playground-shell .lc-resizer[data-panel-group-direction="vertical"][data-resize-handle-state="hover"]::after {
+.playground-shell
+  .lc-resizer[data-panel-group-direction="vertical"][data-resize-handle-state="drag"]::after,
+.playground-shell
+  .lc-resizer[data-panel-group-direction="vertical"][data-resize-handle-state="hover"]::after {
   top: 50%;
   left: 50%;
   width: 28px;
@@ -2348,7 +3425,7 @@
   color: var(--lc-text);
 }
 .lc-description code {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   background: var(--lc-panel-3);
   padding: 2px 6px;
@@ -2364,7 +3441,9 @@
   }
 }
 
-.react-flow__attribution { display: none !important; }
+.react-flow__attribution {
+  display: none !important;
+}
 .react-flow__edge-path {
   transition: opacity 200ms ease;
 }
@@ -2388,12 +3467,15 @@
   border: 1px solid hsl(var(--border) / 0.6) !important;
   border-bottom: 0 !important;
 }
-.react-flow__controls-button:last-child { border-bottom: 1px solid hsl(var(--border) / 0.6) !important; }
+.react-flow__controls-button:last-child {
+  border-bottom: 1px solid hsl(var(--border) / 0.6) !important;
+}
 .react-flow__controls-button:hover {
   background: hsl(var(--muted)) !important;
 }
-.react-flow__controls-button svg { fill: currentColor; }
-
+.react-flow__controls-button svg {
+  fill: currentColor;
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    Coggle-Style Radial Mind-Map Styles
@@ -2465,10 +3547,13 @@
 /* Soft shadow under branch ribbons — tuned for the near-black canvas */
 .coggle-edge-ribbon {
   filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
-  transition: opacity 200ms ease, filter 200ms ease;
+  transition:
+    opacity 200ms ease,
+    filter 200ms ease;
 }
 .coggle-edge-highlighted {
-  filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
+  filter: drop-shadow(0 0 8px currentColor)
+    drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
 }
 /* Tooltips portal outside the shell — always match the dark roadmap */
 .coggle-tip {
@@ -2491,5 +3576,3 @@
 .dark .contest-editor-surface .monaco-editor .margin {
   background-color: hsl(var(--surface-panel)) !important;
 }
-
-

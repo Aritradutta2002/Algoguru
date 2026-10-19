@@ -558,7 +558,7 @@ export default function InterviewCoreJavaQuestionsPage() {
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
-    <div className="cjq-list-root cjq-w3 cjq-page min-h-screen flex flex-col">
+    <div className="cjq-list-root cjq-w3 cjq-page min-h-[calc(100vh-3.5rem)] flex flex-col">
       {/* ── Page Header ──────────────────────────────────────────── */}
       <header className="cjq-reader-bar shrink-0">
         <div className="mx-auto w-full max-w-[1400px] px-4 md:px-6">
@@ -1001,7 +1001,7 @@ export default function InterviewCoreJavaQuestionsPage() {
                   return (
                     <div
                       key={id}
-                      className="p-5 rounded-2xl bg-card border border-border/40 shadow-sm relative group transition-all hover:border-border/60"
+                      className="p-5 rounded-surface bg-card border border-border/40 shadow-sm relative group transition-all hover:border-border/60"
                     >
                       <div className="pr-8 mb-3">
                         {questionData && (

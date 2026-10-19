@@ -214,10 +214,11 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[100] flex flex-col bg-background/95 backdrop-blur-xl"
+          className="fixed inset-0 z-[100] flex flex-col bg-background"
         >
           <div
-            className="pointer-events-none absolute inset-0 opacity-70 [background-image:radial-gradient(hsl(var(--foreground)/0.05)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,black,transparent)]"
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
             aria-hidden="true"
           />
           <div
@@ -299,17 +300,10 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                 className="mx-auto w-full max-w-4xl"
               >
-                <div className="relative overflow-hidden rounded-3xl border border-border bg-card/80 p-7 shadow-overlay backdrop-blur-xl md:p-10">
-                  <div
-                    className="absolute inset-x-0 top-0 h-px"
-                    style={{
-                      background: `linear-gradient(90deg, transparent, ${levelAccent}, transparent)`,
-                    }}
-                  />
-
+                <div className="rounded-surface border border-border bg-card p-7 md:p-10">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider"
+                      className="inline-flex items-center rounded-chip border px-2.5 py-1 text-[11px] font-ui font-medium"
                       style={{
                         background: `${levelAccent}14`,
                         borderColor: `${levelAccent}33`,
@@ -318,20 +312,20 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                     >
                       {QUIZ_DIFFICULTY_LABELLED[difficulty].label}
                     </span>
-                    <span className="rounded-full border border-border bg-background/60 px-3 py-1 text-[11px] font-semibold text-muted-foreground">
+                    <span className="rounded-chip border border-border px-2.5 py-1 text-[11px] font-ui font-medium text-muted-foreground">
                       {question.topicIcon} {question.topic}
                     </span>
                     {question.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                        className="rounded-chip bg-muted px-2 py-1 text-[11px] font-ui font-medium text-muted-foreground"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
 
-                  <h2 className="mt-7 font-display text-[1.6rem] font-bold leading-[1.25] tracking-[-0.02em] md:text-[2rem]">
+                  <h2 className="mt-6 font-display text-[1.6rem] font-semibold leading-[1.25] tracking-[-0.02em] md:text-[2rem]">
                     {question.question}
                   </h2>
 
@@ -341,7 +335,7 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.25 }}
-                      className="mt-10 flex flex-col items-start gap-4 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-8"
+                      className="mt-8 flex flex-col items-start gap-4 rounded-control border border-dashed border-border px-6 py-7"
                     >
                       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                         <Lightbulb size={16} className="text-warning" />
@@ -359,10 +353,10 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      className="mt-9 space-y-8"
+                      className="mt-8 space-y-7"
                     >
                       <div>
-                        <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+                        <p className="mb-3 text-[11px] font-ui font-medium uppercase tracking-[0.16em] text-primary">
                           Editorial answer
                         </p>
                         <CoreJavaQuestionAnswer answer={question.answer} />
@@ -376,8 +370,8 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                         />
                       )}
 
-                      <div className="rounded-2xl border border-primary/20 bg-primary/[0.06] p-5">
-                        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+                      <div className="rounded-control border border-primary/20 bg-primary/[0.06] p-5">
+                        <p className="mb-2 text-[11px] font-ui font-medium uppercase tracking-[0.16em] text-primary">
                           Why it matters
                         </p>
                         <p className="text-[14.5px] leading-7 text-foreground/85">
@@ -395,7 +389,7 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                       type="button"
                       disabled={index === 0}
                       onClick={() => goTo(Math.max(0, index - 1))}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-control border border-border bg-card text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
                       aria-label="Previous question"
                     >
                       <ChevronLeft size={18} />
@@ -404,7 +398,7 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                       type="button"
                       disabled={index + 1 >= total}
                       onClick={() => goTo(Math.min(total - 1, index + 1))}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-control border border-border bg-card text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
                       aria-label="Next question"
                     >
                       <ChevronRight size={18} />
@@ -415,7 +409,7 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                     <button
                       type="button"
                       onClick={() => navigate(question.detailPath)}
-                      className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-[13.5px] font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      className="inline-flex items-center gap-2 rounded-control border border-border bg-card px-4 py-2.5 text-[13px] font-ui font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
                     >
                       <BookOpen size={15} />
                       Full topic
@@ -428,9 +422,9 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                           setStatus("revealed");
                           setSecondsLeft(0);
                         }}
-                        className="group inline-flex items-center gap-2.5 rounded-xl bg-primary px-7 py-3.5 text-[15px] font-bold text-primary-foreground shadow-accent transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-overlay hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="inline-flex items-center gap-2 rounded-control bg-primary px-6 py-3 text-[14px] font-ui font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Eye size={17} />
+                        <Eye size={16} />
                         Reveal answer
                       </button>
                     ) : (
@@ -438,7 +432,7 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                         <button
                           type="button"
                           onClick={() => commit(false)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/[0.08] px-5 py-3.5 text-[15px] font-bold text-destructive transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:bg-destructive hover:text-destructive-foreground"
+                          className="inline-flex items-center gap-2 rounded-control border border-destructive/30 bg-destructive/[0.08] px-5 py-3 text-[14px] font-ui font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
                         >
                           <X size={16} strokeWidth={3} />
                           I missed it
@@ -446,7 +440,7 @@ export function QuizPlayer({ open, language, difficulty, onClose }: QuizPlayerPr
                         <button
                           type="button"
                           onClick={() => commit(true)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-success/30 bg-success/[0.10] px-5 py-3.5 text-[15px] font-bold text-success transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:bg-success hover:text-success-foreground"
+                          className="inline-flex items-center gap-2 rounded-control border border-success/30 bg-success/[0.10] px-5 py-3 text-[14px] font-ui font-medium text-success transition-colors hover:bg-success hover:text-success-foreground"
                         >
                           <Check size={16} strokeWidth={3} />
                           Got it right
@@ -500,7 +494,7 @@ function QuizHeader({
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <span
-            className="rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
+            className="rounded-chip border px-2.5 py-0.5 text-[11px] font-ui font-medium"
             style={{
               background: `${accent}14`,
               borderColor: `${accent}33`,
@@ -510,7 +504,7 @@ function QuizHeader({
             {QUIZ_LANGUAGE_LABELLED[language].label}
           </span>
           <span
-            className="rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider"
+            className="rounded-chip border px-2.5 py-0.5 text-[11px] font-ui font-medium"
             style={{
               background: `${levelAccent}14`,
               borderColor: `${levelAccent}33`,
@@ -520,14 +514,14 @@ function QuizHeader({
             {QUIZ_DIFFICULTY_LABELLED[difficulty].label}
           </span>
         </div>
-        <p className="mt-1.5 font-display text-sm font-semibold text-foreground">
+        <p className="mt-1.5 font-ui text-[12px] font-medium text-muted-foreground">
           Question {index + 1} of {total}
         </p>
       </div>
 
       <div className="ml-auto flex items-center gap-3">
         {correctCount > 0 && (
-          <span className="hidden items-center gap-1.5 rounded-full border border-success/25 bg-success/[0.08] px-3 py-1.5 text-[12px] font-bold text-success sm:inline-flex">
+          <span className="hidden items-center gap-1.5 rounded-chip border border-success/25 bg-success/[0.08] px-2.5 py-1.5 text-[11px] font-ui font-medium text-success sm:inline-flex">
             <Zap size={12} />
             {correctCount} correct
           </span>
@@ -570,7 +564,7 @@ function QuizHeader({
           type="button"
           onClick={onClose}
           aria-label="Close quiz"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-border bg-card text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
         >
           <X size={17} />
         </button>
@@ -647,12 +641,11 @@ function QuizResults({
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
       {/* Score card */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card/80 p-8 shadow-overlay backdrop-blur-xl md:p-10">
+      <div className="relative overflow-hidden rounded-surface border border-border bg-card p-8 md:p-10">
         <div
           className="absolute inset-x-0 top-0 h-px"
           style={{ background: `linear-gradient(90deg, transparent, ${verdict.tone}, transparent)` }}
         />
-        <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full blur-3xl" style={{ background: `${accent}1F` }} />
 
         <div className="relative flex flex-col items-center gap-8 md:flex-row md:items-center md:gap-12">
           <div className="relative flex h-40 w-40 shrink-0 items-center justify-center">
@@ -675,11 +668,11 @@ function QuizResults({
               />
             </svg>
             <div className="text-center">
-              <p className="font-display text-4xl font-bold tracking-tight tabular-nums">
+              <p className="font-display text-4xl font-semibold tracking-tight tabular-nums">
                 {correct}
                 <span className="text-muted-foreground">/{total}</span>
               </p>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <p className="text-[11px] font-ui font-medium uppercase tracking-[0.16em] text-muted-foreground">
                 Correct
               </p>
             </div>
@@ -687,7 +680,7 @@ function QuizResults({
 
           <div className="min-w-0 flex-1 text-center md:text-left">
             <span
-              className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.16em]"
+              className="inline-flex items-center gap-2 rounded-chip border px-3 py-1 text-[11px] font-ui font-medium"
               style={{
                 background: `${accent}14`,
                 borderColor: `${accent}33`,
@@ -697,7 +690,7 @@ function QuizResults({
               <Trophy size={13} />
               {QUIZ_LANGUAGE_LABELLED[language].label} · {QUIZ_DIFFICULTY_LABELLED[difficulty].label}
             </span>
-            <h2 className="mt-4 font-display text-3xl font-bold tracking-[-0.03em] md:text-4xl">
+            <h2 className="mt-4 font-display text-3xl font-semibold tracking-[-0.03em] md:text-4xl">
               {verdict.headline}
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-[15px] leading-7 text-muted-foreground md:mx-0">
@@ -716,13 +709,13 @@ function QuizResults({
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-2xl border border-border bg-background/50 px-4 py-3.5"
+              className="rounded-control border border-border bg-background/50 px-4 py-3.5"
             >
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-[11px] font-ui font-medium uppercase tracking-[0.16em] text-muted-foreground">
                 <stat.icon size={12} />
                 {stat.label}
               </div>
-              <p className="mt-1.5 font-display text-xl font-bold tabular-nums">{stat.value}</p>
+              <p className="mt-1.5 font-display text-xl font-semibold tabular-nums">{stat.value}</p>
             </div>
           ))}
         </div>
@@ -731,18 +724,18 @@ function QuizResults({
           <button
             type="button"
             onClick={onRetry}
-            className="group inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-[15px] font-bold shadow-accent transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-overlay hover:brightness-105"
+            className="group inline-flex items-center gap-2.5 rounded-control px-6 py-3 font-ui text-[14px] font-medium transition-colors duration-200 hover:brightness-105"
             style={{ background: accent, color: "hsl(var(--background))" }}
           >
-            <RotateCcw size={16} className="transition-transform duration-500 group-hover-rotate-180" />
+            <RotateCcw size={16} className="transition-transform duration-500 group-hover:-rotate-180" />
             Retake this level
           </button>
           <button
             type="button"
             onClick={onChange}
-            className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card px-6 py-3.5 text-[15px] font-semibold text-foreground shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40"
+            className="inline-flex items-center gap-2.5 rounded-control border border-border bg-card px-5 py-3 font-ui text-[14px] font-medium text-foreground transition-colors duration-200 hover:border-border-strong"
           >
-            <RefreshCw size={16} className="text-primary" />
+            <RefreshCw size={16} className="text-muted-foreground" />
             Change language or level
           </button>
         </div>
@@ -750,17 +743,17 @@ function QuizResults({
 
       {/* Review */}
       {missedAnswers.length > 0 ? (
-        <div className="rounded-3xl border border-border bg-card/60 p-7 shadow-card md:p-8">
+        <div className="rounded-surface border border-border bg-card p-7 md:p-8">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
-              <h3 className="font-display text-lg font-bold tracking-tight">
+              <h3 className="font-display text-lg font-semibold tracking-tight">
                 Review what you missed
               </h3>
               <p className="mt-1 text-[13.5px] text-muted-foreground">
                 {missedAnswers.length} question{missedAnswers.length === 1 ? "" : "s"} to close out.
               </p>
             </div>
-            <span className="rounded-full border border-destructive/25 bg-destructive/[0.08] px-3 py-1 text-[12px] font-bold text-destructive">
+            <span className="rounded-chip border border-destructive/25 bg-destructive/[0.08] px-3 py-1 text-[11px] font-ui font-medium text-destructive">
               {missedAnswers.length} to review
             </span>
           </div>
@@ -771,9 +764,9 @@ function QuizResults({
                 <button
                   type="button"
                   onClick={() => onOpenQuestion(answer.question.detailPath)}
-                  className="group flex w-full items-start gap-3.5 rounded-2xl border border-border bg-background/50 p-4 text-left transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-card"
+                  className="group flex w-full items-start gap-3.5 rounded-control border border-border bg-background/50 p-4 text-left transition-colors duration-200 hover:border-border-strong"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-destructive/25 bg-destructive/[0.08] text-[12px] font-bold text-destructive">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-chip border border-destructive/25 bg-destructive/[0.08] font-ui text-[12px] font-medium text-destructive">
                     {i + 1}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -785,7 +778,7 @@ function QuizResults({
                         {answer.question.topicIcon} {answer.question.topic}
                       </span>
                       {answer.timedOut && (
-                        <span className="rounded-full bg-warning/12 px-2 py-0.5 font-semibold text-warning">
+                        <span className="rounded-chip bg-warning/12 px-2 py-0.5 font-ui text-[11px] font-medium text-warning">
                           timed out
                         </span>
                       )}
@@ -801,11 +794,11 @@ function QuizResults({
           </ul>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-success/25 bg-success/[0.06] px-7 py-12 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-success/15 text-success">
+        <div className="flex flex-col items-center gap-3 rounded-surface border border-success/25 bg-success/[0.06] px-7 py-12 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-control bg-success/15 text-success">
             <Trophy size={22} />
           </span>
-          <p className="font-display text-lg font-bold tracking-tight">Flawless run</p>
+          <p className="font-display text-lg font-semibold tracking-tight">Flawless run</p>
           <p className="max-w-sm text-[14px] leading-6 text-muted-foreground">
             Every question correct. Push the difficulty up a notch to keep the edge.
           </p>

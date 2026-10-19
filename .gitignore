@@ -62,6 +62,7 @@ supabase/.env
 .kiro/
 .trae/documents/
 .workbuddy-ai/
+.codewhale/
 
 # ── OS junk ────────────────────────────────────────────────────────────
 .DS_Store

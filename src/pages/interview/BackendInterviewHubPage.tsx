@@ -85,7 +85,7 @@ function StatTile({
   accent: string;
 }) {
   return (
-    <div className="cjh-stat-card rounded-2xl border border-border/50 bg-card/70 p-4 backdrop-blur">
+    <div className="cjh-stat-card rounded-surface border border-border/50 bg-card/70 p-4 backdrop-blur">
       <div className="flex items-center gap-3">
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -124,7 +124,7 @@ function PillarCard({
   return (
     <Link
       to={to}
-      className="cjh-path-card group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/80 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+      className="cjh-path-card group relative flex flex-col overflow-hidden rounded-surface border border-border/50 bg-card/80 p-5 transition-all hover:border-primary/40 hover:shadow-card"
     >
       <span
         className="absolute inset-x-0 top-0 h-1"
@@ -140,7 +140,7 @@ function PillarCard({
         </span>
         <ArrowRight className="cjh-path-arrow h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
       </div>
-      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="mt-4 text-[11px] font-ui font-medium uppercase tracking-wider text-muted-foreground">
         {eyebrow}
       </p>
       <h3 className="mt-1 text-lg font-bold text-foreground">{title}</h3>
@@ -211,10 +211,10 @@ export default function BackendInterviewHubPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="cjh-hero relative overflow-hidden rounded-3xl border border-border/50 bg-card/70 p-6 backdrop-blur sm:p-8"
+          className="cjh-hero relative overflow-hidden rounded-surface border border-border/50 bg-card/70 p-6 backdrop-blur sm:p-8"
         >
           <div className="relative">
-            <span className="cjh-hero-badge inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+            <span className="cjh-hero-badge inline-flex items-center gap-1.5 rounded-chip border border-primary/25 bg-primary/10 px-3 py-1 font-ui text-[11px] font-medium uppercase tracking-wider text-primary">
               <Sparkles className="h-3 w-3" />
               Built for 3–4 years of experience
             </span>
@@ -231,21 +231,21 @@ export default function BackendInterviewHubPage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 to={nextUp ? `${BACKEND_QUESTIONS_PATH}/${nextUp.slug}` : BACKEND_QUESTIONS_PATH}
-                className="cjh-btn-primary inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
+                className="cjh-btn-primary"
               >
                 <BookOpen className="h-4 w-4" />
                 {progress.studiedCount > 0 ? "Resume where you left off" : "Start the question bank"}
               </Link>
               <Link
                 to={BACKEND_PRACTICE_PATH}
-                className="cjh-btn-secondary inline-flex items-center gap-2 rounded-xl border border-border/60 bg-background/60 px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                className="cjh-btn-secondary"
               >
                 <Dumbbell className="h-4 w-4" />
                 Practice with problems
               </Link>
               <Link
                 to={BACKEND_ANNOTATIONS_PATH}
-                className="cjh-btn-secondary inline-flex items-center gap-2 rounded-xl border border-border/60 bg-background/60 px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                className="cjh-btn-secondary"
               >
                 <Tag className="h-4 w-4" />
                 Annotation reference
@@ -289,7 +289,7 @@ export default function BackendInterviewHubPage() {
         </section>
 
         {/* Progress */}
-        <section className="cjh-progress-card mt-6 rounded-2xl border border-border/50 bg-card/70 p-5">
+        <section className="cjh-progress-card mt-6 rounded-surface border border-border/50 bg-card/70 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
@@ -386,7 +386,7 @@ export default function BackendInterviewHubPage() {
                   <Link
                     to={`${BACKEND_QUESTIONS_PATH}?topic=${stat.topic.id}`}
                     className={cn(
-                      "cjh-topic-card group flex h-full flex-col rounded-2xl border border-border/50 bg-card/70 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg",
+                      "cjh-topic-card group flex h-full flex-col rounded-surface border border-border/50 bg-card/70 p-5 transition-all hover:border-primary/40 hover:shadow-card",
                       complete && "cjh-topic-card--complete border-success/40",
                     )}
                   >
@@ -475,7 +475,7 @@ export default function BackendInterviewHubPage() {
               return (
                 <div
                   key={week.label}
-                  className="rounded-2xl border border-border/50 bg-card/70 p-4"
+                  className="rounded-surface border border-border/50 bg-card/70 p-4"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">

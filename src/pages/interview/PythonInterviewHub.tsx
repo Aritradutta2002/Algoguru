@@ -47,7 +47,7 @@ export default function PythonInterviewHub(){
   const learningPaths = LEARNING_PATHS.map((p)=> p.id==="python-qa"?{...p, subtitle:`${totalQuestions} interview questions with answers`}:p);
 
   return (
-    <div className="cjh-page min-h-screen text-foreground selection:bg-primary/20">
+    <div className="cjh-page min-h-[calc(100vh-3.5rem)] text-foreground selection:bg-primary/15">
       <div className="w-full max-w-[1800px] mx-auto px-4 md:px-10 lg:px-16 py-8 md:py-12">
         <motion.nav {...fadeUp} transition={{duration:0.4}} aria-label="Breadcrumb" className="cjh-breadcrumb text-[11px] text-muted-foreground mb-8 font-mono">
           <Link to="/" className="hover:text-primary transition-colors">Home</Link>

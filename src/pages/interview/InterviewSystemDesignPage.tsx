@@ -76,7 +76,7 @@ const _QuestionCard = ({
   onToggleDone, onToggleView, onOpenNote,
 }: QuestionCardProps) => {
   return (
-    <div className={`rounded-2xl border transition-all duration-200 overflow-hidden relative ${
+    <div className={`rounded-surface border transition-all duration-200 overflow-hidden relative ${
       isDone ? "bg-success/5 border-success/20"
         : activeView ? "bg-card border-primary/30 shadow-sm"
         : "bg-card border-border/40 hover:border-border/60"
@@ -184,7 +184,7 @@ const _QuestionCard = ({
                 </div>
               )}
               {activeView === "code" && question.code && (
-                <div className="rounded-xl overflow-hidden shadow-lg border border-border/30">
+                <div className="rounded-xl overflow-hidden shadow-card border border-border/30">
                   <CodeBlock language={question.codeLanguage || "java"} code={question.code} title="Example" />
                 </div>
               )}
@@ -417,7 +417,7 @@ export default function InterviewSystemDesignPage() {
 
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-black">
+    <div className="min-h-[calc(100vh-3.5rem)] flex flex-col bg-background text-foreground selection:bg-primary/15">
 
       {/* ── Header ── */}
       <header className="shrink-0 bg-card/90 backdrop-blur-xl border-b border-border/30 relative z-30">
@@ -648,7 +648,7 @@ export default function InterviewSystemDesignPage() {
 
               {/* Sign-in nudge */}
               {!user && !authLoading && (
-                <div className="p-5 rounded-2xl border border-warning/30 bg-warning/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-5 rounded-surface border border-warning/30 bg-warning/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-sm font-bold text-warning mb-1">Your progress isn't being saved</h3>
                     <p className="text-[13px] text-muted-foreground leading-relaxed">
@@ -688,7 +688,7 @@ export default function InterviewSystemDesignPage() {
                   <div key={topic.id} id={`topic-${topic.id}`} className="space-y-5 scroll-mt-24">
                     {/* Topic header */}
                     <div className="flex items-center gap-4 pb-5 border-b-2 border-border/30">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl shrink-0">
+                      <div className="w-12 h-12 rounded-surface bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl shrink-0">
                         {topic.icon}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -799,7 +799,7 @@ export default function InterviewSystemDesignPage() {
                       if (!note) return null;
                       const question = allQuestions.find((q) => q.id === id);
                       return (
-                        <div key={id} className="rounded-2xl border border-border/30 bg-muted/20 p-4">
+                        <div key={id} className="rounded-surface border border-border/30 bg-muted/20 p-4">
                           <div className="flex items-start justify-between gap-3 mb-3">
                             <p className="text-[13px] font-semibold text-foreground leading-tight line-clamp-2 flex-1">
                               {question?.question || id}
@@ -819,7 +819,7 @@ export default function InterviewSystemDesignPage() {
                           />
                           <button
                             onClick={() => { openNote(id); setShowNotesPanel(false); }}
-                            className="mt-2 text-[11px] font-semibold text-primary hover:underline"
+                            className="mt-2 text-[11px] font-ui font-medium text-primary hover:underline"
                           >
                             Edit note →
                           </button>

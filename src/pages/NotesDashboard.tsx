@@ -12,11 +12,10 @@ import {
   Download,
   Trash2,
   StickyNote,
-  BookOpen,
   Search,
   ChevronDown,
   ChevronUp,
-  ArrowLeft,
+  ArrowRight,
   Eye,
   PencilLine,
   Save,
@@ -24,10 +23,23 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import jsPDF from "jspdf";
-import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown";
+import {
+  renderNoteMarkdown,
+  parseNoteSegments,
+} from "@/lib/renderNoteMarkdown";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import {
+  EmptyState,
+  PageHeader,
+  PageShell,
+  Pill,
+  Section,
+  Surface,
+  Toolbar,
+} from "@/components/layout/PagePrimitives";
 
 type NoteSource = "core-java" | "practice" | "system-design";
 
@@ -46,14 +58,23 @@ const toProblemSlug = (title: string) =>
     .trim()
     .replace(/\s+/g, "-");
 
-const makeNoteKey = (source: NoteSource, questionId: string) => `${source}:${questionId}`;
+const makeNoteKey = (source: NoteSource, questionId: string) =>
+  `${source}:${questionId}`;
 
-const parseNoteKey = (key: string): { source: NoteSource; questionId: string } | null => {
+const parseNoteKey = (
+  key: string,
+): { source: NoteSource; questionId: string } | null => {
   const parts = key.split(":");
   if (parts.length < 2) return null;
   const source = parts[0];
   const questionId = parts.slice(1).join(":");
-  if ((source !== "core-java" && source !== "practice" && source !== "system-design") || !questionId) return null;
+  if (
+    (source !== "core-java" &&
+      source !== "practice" &&
+      source !== "system-design") ||
+    !questionId
+  )
+    return null;
   return { source, questionId };
 };
 
@@ -66,13 +87,15 @@ export default function NotesDashboard() {
   const [filterTopic, setFilterTopic] = useState<string>("all");
   const [searchNotes, setSearchNotes] = useState("");
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
-  const [selectedNotes, setSelectedNotes] = useState<Record<string, boolean>>({});
+  const [selectedNotes, setSelectedNotes] = useState<Record<string, boolean>>(
+    {},
+  );
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
-  const saveFeedbackTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const saveFeedbackTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -83,7 +106,10 @@ export default function NotesDashboard() {
   }, []);
 
   const coreQuestionsById = useMemo(() => {
-    const map = new Map<string, { question: string; topicId: string; topicTitle: string }>();
+    const map = new Map<
+      string,
+      { question: string; topicId: string; topicTitle: string }
+    >();
     for (const topic of coreJavaInterviewTopics) {
       for (const question of topic.questions) {
         map.set(question.id, {
@@ -122,7 +148,10 @@ export default function NotesDashboard() {
   }, []);
 
   const systemDesignQuestionsById = useMemo(() => {
-    const map = new Map<string, { question: string; topicId: string; topicTitle: string }>();
+    const map = new Map<
+      string,
+      { question: string; topicId: string; topicTitle: string }
+    >();
     for (const topic of systemDesignTopics) {
       for (const question of topic.questions) {
         map.set(question.id, {
@@ -143,7 +172,9 @@ export default function NotesDashboard() {
         return {
           title,
           topic: practice?.topicTitle ?? "Practice",
-          topicTag: practice ? `${practice.topicTitle} / ${practice.subtopicTitle}` : "Practice",
+          topicTag: practice
+            ? `${practice.topicTitle} / ${practice.subtopicTitle}`
+            : "Practice",
           sourceLabel: "Practice",
           contextPath: `/practice/solution/${entry.questionId}/${toProblemSlug(title)}`,
           contextCta: "View Problem",
@@ -172,7 +203,7 @@ export default function NotesDashboard() {
         contextCta: "View Context",
       };
     },
-    [coreQuestionsById, practiceProblemsById, systemDesignQuestionsById]
+    [coreQuestionsById, practiceProblemsById, systemDesignQuestionsById],
   );
 
   // Load notes from Supabase
@@ -201,13 +232,25 @@ export default function NotesDashboard() {
     ]);
 
     if (coreResult.error) {
-      toast({ title: "Load failed", description: coreResult.error.message, variant: "destructive" });
+      toast({
+        title: "Load failed",
+        description: coreResult.error.message,
+        variant: "destructive",
+      });
     }
     if (practiceResult.error) {
-      toast({ title: "Load failed", description: practiceResult.error.message, variant: "destructive" });
+      toast({
+        title: "Load failed",
+        description: practiceResult.error.message,
+        variant: "destructive",
+      });
     }
     if (systemDesignResult.error) {
-      toast({ title: "Load failed", description: systemDesignResult.error.message, variant: "destructive" });
+      toast({
+        title: "Load failed",
+        description: systemDesignResult.error.message,
+        variant: "destructive",
+      });
     }
 
     const coreEntries: NoteEntry[] = (coreResult.data ?? [])
@@ -242,8 +285,9 @@ export default function NotesDashboard() {
 
     setNotesData(
       [...coreEntries, ...practiceEntries, ...systemDesignEntries].sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      )
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      ),
     );
     setNotesLoading(false);
   }, [user]);
@@ -267,7 +311,7 @@ export default function NotesDashboard() {
         },
         () => {
           loadNotes();
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -279,7 +323,7 @@ export default function NotesDashboard() {
         },
         () => {
           loadNotes();
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -291,7 +335,7 @@ export default function NotesDashboard() {
         },
         () => {
           loadNotes();
-        }
+        },
       )
       .subscribe();
 
@@ -320,9 +364,18 @@ export default function NotesDashboard() {
       .eq(idColumn, entry.questionId);
 
     if (error) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      toast({
+        title: "Delete failed",
+        description: error.message,
+        variant: "destructive",
+      });
     } else {
-      setNotesData((prev) => prev.filter((n) => !(n.source === entry.source && n.questionId === entry.questionId)));
+      setNotesData((prev) =>
+        prev.filter(
+          (n) =>
+            !(n.source === entry.source && n.questionId === entry.questionId),
+        ),
+      );
       setSelectedNotes((prev) => {
         const next = { ...prev };
         delete next[noteId];
@@ -367,7 +420,8 @@ export default function NotesDashboard() {
         : parsed.source === "system-design"
           ? "system_design_user_state"
           : "core_java_user_state";
-    const idColumn = parsed.source === "practice" ? "problem_id" : "question_id";
+    const idColumn =
+      parsed.source === "practice" ? "problem_id" : "question_id";
 
     const { error } = await supabase
       .from(table)
@@ -376,7 +430,11 @@ export default function NotesDashboard() {
       .eq(idColumn, parsed.questionId);
 
     if (error) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      toast({
+        title: "Save failed",
+        description: error.message,
+        variant: "destructive",
+      });
       setSavingNoteId(null);
       setSavedNoteId(null);
       return;
@@ -384,7 +442,13 @@ export default function NotesDashboard() {
 
     if (!trimmed) {
       setNotesData((prev) =>
-        prev.filter((entry) => !(entry.source === parsed.source && entry.questionId === parsed.questionId))
+        prev.filter(
+          (entry) =>
+            !(
+              entry.source === parsed.source &&
+              entry.questionId === parsed.questionId
+            ),
+        ),
       );
       setSelectedNotes((prev) => {
         const next = { ...prev };
@@ -401,11 +465,15 @@ export default function NotesDashboard() {
     setNotesData((prev) =>
       prev
         .map((entry) =>
-          entry.source === parsed.source && entry.questionId === parsed.questionId
+          entry.source === parsed.source &&
+          entry.questionId === parsed.questionId
             ? { ...entry, notes: trimmed, updatedAt: new Date().toISOString() }
-            : entry
+            : entry,
         )
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        ),
     );
     toast({ title: "Note saved successfully" });
     setSavedNoteId(activeNoteId);
@@ -429,8 +497,14 @@ export default function NotesDashboard() {
     } else if (filterTopic === "system-design") {
       result = result.filter((n) => n.source === "system-design");
     } else if (filterTopic !== "all") {
-      const topicQuestionIds = coreJavaInterviewTopics.find((t) => t.id === filterTopic)?.questions.map((q) => q.id) ?? [];
-      result = result.filter((n) => n.source === "core-java" && topicQuestionIds.includes(n.questionId));
+      const topicQuestionIds =
+        coreJavaInterviewTopics
+          .find((t) => t.id === filterTopic)
+          ?.questions.map((q) => q.id) ?? [];
+      result = result.filter(
+        (n) =>
+          n.source === "core-java" && topicQuestionIds.includes(n.questionId),
+      );
     }
 
     if (searchNotes.trim()) {
@@ -449,146 +523,188 @@ export default function NotesDashboard() {
   }, [notesData, filterTopic, searchNotes, getNoteMeta]);
 
   const notesCount = notesData.length;
-  const selectedFilteredNotes = filteredNotes.filter((entry) => selectedNotes[makeNoteKey(entry.source, entry.questionId)]);
+  const selectedFilteredNotes = filteredNotes.filter(
+    (entry) => selectedNotes[makeNoteKey(entry.source, entry.questionId)],
+  );
   const allFilteredSelected =
     filteredNotes.length > 0 &&
-    filteredNotes.every((entry) => selectedNotes[makeNoteKey(entry.source, entry.questionId)]);
+    filteredNotes.every(
+      (entry) => selectedNotes[makeNoteKey(entry.source, entry.questionId)],
+    );
   const activeNoteEntry = useMemo(() => {
     if (!activeNoteId) return null;
     const parsed = parseNoteKey(activeNoteId);
     if (!parsed) return null;
-    return notesData.find((entry) => entry.source === parsed.source && entry.questionId === parsed.questionId) ?? null;
+    return (
+      notesData.find(
+        (entry) =>
+          entry.source === parsed.source &&
+          entry.questionId === parsed.questionId,
+      ) ?? null
+    );
   }, [activeNoteId, notesData]);
   const activeMeta = activeNoteEntry ? getNoteMeta(activeNoteEntry) : null;
 
-  const exportNotesToPDF = useCallback((entries: NoteEntry[], filename: string, title: string) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 14;
-    const usableWidth = pageWidth - margin * 2;
-    let y = 20;
+  const exportNotesToPDF = useCallback(
+    (entries: NoteEntry[], filename: string, title: string) => {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+      const usableWidth = pageWidth - margin * 2;
+      let y = 20;
 
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text(title, margin, y);
-    y += 10;
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text(title, margin, y);
+      y += 10;
 
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(120, 120, 120);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
-    y += 8;
-    doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+      y += 8;
+      doc.setTextColor(0, 0, 0);
 
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
 
-    if (entries.length === 0) {
-      doc.setFontSize(12);
-      doc.text("No notes to export.", margin, y);
-    } else {
-      for (const entry of entries) {
-        const noteMeta = getNoteMeta(entry);
+      if (entries.length === 0) {
+        doc.setFontSize(12);
+        doc.text("No notes to export.", margin, y);
+      } else {
+        for (const entry of entries) {
+          const noteMeta = getNoteMeta(entry);
 
-        if (y > 260) { doc.addPage(); y = 20; }
-
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(100, 100, 200);
-        doc.text(`${noteMeta.sourceLabel} • ${noteMeta.topicTag}`, margin, y);
-        y += 5;
-
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0, 0, 0);
-        const qText = noteMeta.title;
-        const qLines = doc.splitTextToSize(`Q: ${qText}`, usableWidth);
-        doc.text(qLines, margin, y);
-        y += qLines.length * 5 + 2;
-
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(60, 60, 60);
-
-        // Note content with formatting
-        const segments = parseNoteSegments(entry.notes);
-        let lineX = margin + 4;
-
-        for (const seg of segments) {
-          if (seg.text === "\n") {
-            y += 4.5;
-            lineX = margin + 4;
-            if (y > 275) { doc.addPage(); y = 20; }
-            continue;
+          if (y > 260) {
+            doc.addPage();
+            y = 20;
           }
 
-          const fontSize = seg.heading ? 11 : 9;
-          doc.setFontSize(fontSize);
-          const fontStyle = seg.bold ? "bold" : seg.italic ? "italic" : "normal";
-          doc.setFont("helvetica", fontStyle);
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(100, 100, 200);
+          doc.text(`${noteMeta.sourceLabel} • ${noteMeta.topicTag}`, margin, y);
+          y += 5;
 
-          const availableWidth = pageWidth - margin - lineX;
-          const textWidth = doc.getTextWidth(seg.text);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(0, 0, 0);
+          const qText = noteMeta.title;
+          const qLines = doc.splitTextToSize(`Q: ${qText}`, usableWidth);
+          doc.text(qLines, margin, y);
+          y += qLines.length * 5 + 2;
 
-          if (textWidth > availableWidth) {
-            const words = seg.text.split(" ");
-            let currentLine = "";
-            for (const word of words) {
-              const testLine = currentLine ? `${currentLine} ${word}` : word;
-              const testWidth = doc.getTextWidth(testLine);
-              if (testWidth > availableWidth && currentLine) {
-                doc.text(currentLine, lineX, y);
-                y += fontSize * 0.5;
-                lineX = margin + 4;
-                currentLine = word;
-                if (y > 275) { doc.addPage(); y = 20; }
-              } else {
-                currentLine = testLine;
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(60, 60, 60);
+
+          // Note content with formatting
+          const segments = parseNoteSegments(entry.notes);
+          let lineX = margin + 4;
+
+          for (const seg of segments) {
+            if (seg.text === "\n") {
+              y += 4.5;
+              lineX = margin + 4;
+              if (y > 275) {
+                doc.addPage();
+                y = 20;
               }
+              continue;
             }
-            if (currentLine) {
-              doc.text(currentLine, lineX, y);
-              lineX += doc.getTextWidth(currentLine) + 1;
+
+            const fontSize = seg.heading ? 11 : 9;
+            doc.setFontSize(fontSize);
+            const fontStyle = seg.bold
+              ? "bold"
+              : seg.italic
+                ? "italic"
+                : "normal";
+            doc.setFont("helvetica", fontStyle);
+
+            const availableWidth = pageWidth - margin - lineX;
+            const textWidth = doc.getTextWidth(seg.text);
+
+            if (textWidth > availableWidth) {
+              const words = seg.text.split(" ");
+              let currentLine = "";
+              for (const word of words) {
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                const testWidth = doc.getTextWidth(testLine);
+                if (testWidth > availableWidth && currentLine) {
+                  doc.text(currentLine, lineX, y);
+                  y += fontSize * 0.5;
+                  lineX = margin + 4;
+                  currentLine = word;
+                  if (y > 275) {
+                    doc.addPage();
+                    y = 20;
+                  }
+                } else {
+                  currentLine = testLine;
+                }
+              }
+              if (currentLine) {
+                doc.text(currentLine, lineX, y);
+                lineX += doc.getTextWidth(currentLine) + 1;
+              }
+            } else {
+              doc.text(seg.text, lineX, y);
+              lineX += textWidth + 1;
             }
-          } else {
-            doc.text(seg.text, lineX, y);
-            lineX += textWidth + 1;
           }
+
+          y += 8;
+
+          doc.setDrawColor(230, 230, 230);
+          doc.line(margin, y - 3, pageWidth - margin, y - 3);
+          y += 2;
         }
-
-        y += 8;
-
-        doc.setDrawColor(230, 230, 230);
-        doc.line(margin, y - 3, pageWidth - margin, y - 3);
-        y += 2;
       }
-    }
 
-    doc.save(filename);
-  }, [getNoteMeta]);
+      doc.save(filename);
+    },
+    [getNoteMeta],
+  );
 
   const downloadAllNotesPDF = useCallback(() => {
-    exportNotesToPDF(filteredNotes, "algoguru-notes-merged.pdf", "AlgoGuru — Merged Notes");
+    exportNotesToPDF(
+      filteredNotes,
+      "algoguru-notes-merged.pdf",
+      "AlgoGuru — Merged Notes",
+    );
   }, [exportNotesToPDF, filteredNotes]);
 
   const downloadSelectedNotesPDF = useCallback(() => {
     const selectedEntry = selectedFilteredNotes[0];
     const selectedKey = selectedEntry
-      ? makeNoteKey(selectedEntry.source, selectedEntry.questionId).replace(/:/g, "-")
+      ? makeNoteKey(selectedEntry.source, selectedEntry.questionId).replace(
+          /:/g,
+          "-",
+        )
       : "selected";
     exportNotesToPDF(
       selectedFilteredNotes,
       selectedFilteredNotes.length === 1
         ? `algoguru-note-${selectedKey}.pdf`
         : "algoguru-selected-notes.pdf",
-      selectedFilteredNotes.length === 1 ? "AlgoGuru — Selected Note" : "AlgoGuru — Selected Notes"
+      selectedFilteredNotes.length === 1
+        ? "AlgoGuru — Selected Note"
+        : "AlgoGuru — Selected Notes",
     );
   }, [exportNotesToPDF, selectedFilteredNotes]);
 
-  const downloadSingleNotePDF = useCallback((entry: NoteEntry) => {
-    exportNotesToPDF([entry], `algoguru-note-${entry.source}-${entry.questionId}.pdf`, "AlgoGuru — Note");
-  }, [exportNotesToPDF]);
+  const downloadSingleNotePDF = useCallback(
+    (entry: NoteEntry) => {
+      exportNotesToPDF(
+        [entry],
+        `algoguru-note-${entry.source}-${entry.questionId}.pdf`,
+        "AlgoGuru — Note",
+      );
+    },
+    [exportNotesToPDF],
+  );
 
   const toggleNoteSelection = useCallback((noteKey: string) => {
     setSelectedNotes((prev) => ({ ...prev, [noteKey]: !prev[noteKey] }));
@@ -614,258 +730,296 @@ export default function NotesDashboard() {
 
   if (notesLoading && notesData.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin" size={24} style={{ color: "hsl(var(--muted-foreground))" }} />
+      <div className="ui-app-canvas">
+        <PageShell>
+          <Section spacing="compact">
+            <p className="ui-meta flex items-center gap-2">
+              <Loader2 className="animate-spin" size={14} aria-hidden="true" />
+              Loading your notes…
+            </p>
+          </Section>
+        </PageShell>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary/25">
-
-      <section className="relative border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" />
-        <div className="relative mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20 lg:px-16">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex flex-wrap items-center gap-3 mb-5">
-              <button
-                onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                <ArrowLeft size={12} />
-                Back
-              </button>
-              <div className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-primary/30 bg-primary/10 text-xs font-medium text-primary">
-                <BookOpen size={12} />
-                Knowledge base
-              </div>
-            </div>
-
-            <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
+    <div className="ui-app-canvas">
+      <PageShell>
+        <PageHeader
+          variant="display"
+          kicker="Knowledge base"
+          title={
+            <>
               My <span className="text-primary">notes</span>
-            </h1>
-
-            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-              Manage your personal study material. {notesCount} note{notesCount !== 1 ? "s" : ""} saved across your journey. Persists across all your devices.
-            </p>
-
-            <div className="flex flex-wrap gap-2 mt-7">
-              <button
+            </>
+          }
+          description="Manage your personal study material. Notes persist across all your devices and flow back into the interview and practice tracks."
+          meta={`${notesCount} note${notesCount === 1 ? "" : "s"} saved across your journey`}
+          actions={
+            <>
+              <Button
+                variant="line"
+                size="sm"
                 onClick={downloadAllNotesPDF}
                 disabled={filteredNotes.length === 0}
-                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40"
               >
                 <Download size={14} />
-                Merge all PDF
-              </button>
-              <button
+                <span className="text-xs">Merge all PDF</span>
+              </Button>
+              <Button
+                variant="line"
+                size="sm"
                 onClick={downloadSelectedNotesPDF}
                 disabled={selectedFilteredNotes.length === 0}
-                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40"
               >
                 <Download size={14} />
-                Selected PDF
-              </button>
-              <button
+                <span className="text-xs">Selected PDF</span>
+              </Button>
+              <Button
+                variant="solid"
+                size="sm"
                 onClick={() => navigate("/interview/java/core-java-qa")}
-                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:brightness-95"
               >
                 <StickyNote size={14} />
-                Add interview notes
-              </button>
-              <button
-                onClick={() => navigate("/practice")}
-                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted"
-              >
-                <StickyNote size={14} />
-                Add practice notes
-              </button>
-              <button
-                onClick={() => navigate("/interview/java/system-design")}
-                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md border border-border bg-card text-sm font-medium text-foreground hover:bg-muted"
-              >
-                <StickyNote size={14} />
-                Add system design notes
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+                <span className="text-xs">Add interview notes</span>
+              </Button>
+            </>
+          }
+        />
 
-      <section className="mx-auto max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16 space-y-6">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3 rounded-2xl border border-border bg-card">
-          <div className="relative flex-1">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search through your notes…"
-              value={searchNotes}
-              onChange={(e) => setSearchNotes(e.target.value)}
-              className="w-full h-9 pl-10 pr-3 rounded-md bg-muted/40 border border-transparent text-sm outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/60"
+        <Section spacing="compact">
+          <div className="mb-4 flex flex-wrap gap-2">
+            <Button
+              variant="line"
+              size="sm"
+              onClick={() => navigate("/practice")}
+            >
+              <StickyNote size={14} />
+              <span className="text-xs">Add practice notes</span>
+            </Button>
+            <Button
+              variant="line"
+              size="sm"
+              onClick={() => navigate("/interview/java/system-design")}
+            >
+              <StickyNote size={14} />
+              <span className="text-xs">Add system design notes</span>
+            </Button>
+          </div>
+
+          <Toolbar className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative flex-1">
+              <Search
+                size={15}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+              />
+              <input
+                type="text"
+                placeholder="Search through your notes…"
+                value={searchNotes}
+                onChange={(e) => setSearchNotes(e.target.value)}
+                className="h-9 w-full rounded-md border border-border bg-background pl-10 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={filterTopic}
+                onChange={(e) => setFilterTopic(e.target.value)}
+                aria-label="Filter notes by track"
+                className="h-9 cursor-pointer rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
+              >
+                <option value="all">All notes</option>
+                <option value="practice">Practice</option>
+                <option value="core-java">Interview (Core Java)</option>
+                <option value="system-design">Interview (System Design)</option>
+                {coreJavaInterviewTopics.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="line"
+                size="sm"
+                onClick={toggleSelectAllFiltered}
+                disabled={filteredNotes.length === 0}
+              >
+                <span className="text-xs">
+                  {allFilteredSelected ? "Clear selection" : "Select all"}
+                </span>
+              </Button>
+            </div>
+          </Toolbar>
+
+          {filteredNotes.length > 0 && (
+            <div className="mt-4 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="ui-meta">
+                {filteredNotes.length} visible · {selectedFilteredNotes.length}{" "}
+                selected
+              </span>
+            </div>
+          )}
+
+          {/* Notes Grid */}
+          {filteredNotes.length === 0 ? (
+            <EmptyState
+              className="mt-6"
+              icon={<FileText size={22} />}
+              title={notesCount === 0 ? "No notes yet" : "No matches found"}
+              description={
+                notesCount === 0
+                  ? "Start building your knowledge base by adding notes in interview or practice pages."
+                  : "Try adjusting your filters or search terms to find what you're looking for."
+              }
+              action={
+                notesCount === 0 ? (
+                  <Button
+                    variant="solid"
+                    size="sm"
+                    onClick={() => navigate("/practice")}
+                  >
+                    <span className="text-xs">Go to Practice</span>
+                    <ArrowRight size={14} />
+                  </Button>
+                ) : undefined
+              }
             />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={filterTopic}
-              onChange={(e) => setFilterTopic(e.target.value)}
-              className="h-9 px-3 rounded-md bg-muted/40 border border-border text-sm text-foreground outline-none focus:border-primary cursor-pointer"
-            >
-              <option value="all">All notes</option>
-              <option value="practice">Practice</option>
-              <option value="core-java">Interview (Core Java)</option>
-              <option value="system-design">Interview (System Design)</option>
-              {coreJavaInterviewTopics.map((t) => (
-                <option key={t.id} value={t.id}>{t.title}</option>
-              ))}
-            </select>
-            <button
-              onClick={toggleSelectAllFiltered}
-              disabled={filteredNotes.length === 0}
-              className="px-5 py-3 rounded-xl bg-muted/20 border border-border/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all disabled:opacity-40"
-            >
-              {allFilteredSelected ? "Clear Selection" : "Select All"}
-            </button>
-          </div>
-        </div>
+          ) : (
+            <div className="mt-6 grid gap-4">
+              {filteredNotes.map((entry) => {
+                const noteMeta = getNoteMeta(entry);
+                const noteId = makeNoteKey(entry.source, entry.questionId);
+                const isExpanded = expandedNote === noteId;
 
-        {filteredNotes.length > 0 && (
-          <div className="flex items-center gap-2 px-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-              {filteredNotes.length} visible · {selectedFilteredNotes.length} selected
-            </span>
-          </div>
-        )}
+                return (
+                  <motion.div
+                    key={noteId}
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <Surface
+                      as="article"
+                      padding="none"
+                      className="group overflow-hidden"
+                    >
+                      <div className="space-y-6 p-6 md:p-8">
+                        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
+                          <div className="min-w-0 flex-1 space-y-3">
+                            <div className="flex flex-wrap items-center gap-2.5">
+                              <input
+                                type="checkbox"
+                                checked={!!selectedNotes[noteId]}
+                                onChange={() => toggleNoteSelection(noteId)}
+                                aria-label={`Select note: ${noteMeta.title}`}
+                                className="h-4 w-4 cursor-pointer rounded border-border text-primary focus:ring-primary/20"
+                              />
+                              <Pill tone="primary">{noteMeta.topicTag}</Pill>
+                              <Pill>{noteMeta.sourceLabel}</Pill>
+                              <span className="ui-meta">
+                                {new Date(entry.updatedAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <h3 className="text-lg font-medium leading-snug tracking-[-0.015em] text-foreground md:text-xl">
+                              {noteMeta.title}
+                            </h3>
+                          </div>
 
-        {/* Notes Grid */}
-        {filteredNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 bg-card/30 border border-dashed rounded-2xl">
-            <div className="w-20 h-20 rounded-[32px] bg-muted/30 flex items-center justify-center text-muted-foreground/20">
-              <FileText size={40} />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold tracking-[-0.02em] text-foreground">
-                {notesCount === 0 ? "No notes yet" : "No matches found"}
-              </h3>
-              <p className="text-sm font-medium text-muted-foreground max-w-[300px] leading-relaxed">
-                {notesCount === 0 
-                  ? "Start building your knowledge base by adding notes in interview or practice pages." 
-                  : "Try adjusting your filters or search terms to find what you're looking for."}
-              </p>
-            </div>
-            {notesCount === 0 && (
-              <button
-                onClick={() => navigate("/practice")}
-                className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-primary/90"
-              >
-                Go to Practice
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {filteredNotes.map((entry) => {
-              const noteMeta = getNoteMeta(entry);
-              const noteId = makeNoteKey(entry.source, entry.questionId);
-              const isExpanded = expandedNote === noteId;
-
-              return (
-                <motion.div
-                  key={noteId}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="group bg-card border rounded-[32px] overflow-hidden transition-all hover:shadow-overlay hover:shadow-primary/5"
-                >
-                  <div className="p-8 md:p-10 space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                      <div className="flex-1 space-y-3 min-w-0">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={!!selectedNotes[noteId]}
-                            onChange={() => toggleNoteSelection(noteId)}
-                            className="w-5 h-5 rounded-lg border-2 border-border/50 text-primary focus:ring-primary/20 cursor-pointer transition-all"
-                          />
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
-                            {noteMeta.topicTag}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted/20 border border-border/50 text-muted-foreground">
-                            {noteMeta.sourceLabel}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                            {new Date(entry.updatedAt).toLocaleDateString()}
-                          </span>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <AppTooltip content="View">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => openNoteModal(entry, false)}
+                                aria-label="View note"
+                              >
+                                <Eye size={16} />
+                              </Button>
+                            </AppTooltip>
+                            <AppTooltip content="Edit">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => openNoteModal(entry, true)}
+                                aria-label="Edit note"
+                              >
+                                <PencilLine size={16} />
+                              </Button>
+                            </AppTooltip>
+                            <AppTooltip content="Download">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => downloadSingleNotePDF(entry)}
+                                aria-label="Download note"
+                              >
+                                <Download size={16} />
+                              </Button>
+                            </AppTooltip>
+                            <AppTooltip content="Delete">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => deleteNote(entry)}
+                                disabled={deletingId === noteId}
+                                aria-label="Delete note"
+                                className="text-destructive hover:text-destructive"
+                              >
+                                {deletingId === noteId ? (
+                                  <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                  <Trash2 size={16} />
+                                )}
+                              </Button>
+                            </AppTooltip>
+                          </div>
                         </div>
-                        <h3 className="text-xl md:text-2xl font-semibold uppercase tracking-tight text-foreground leading-tight group-hover:text-primary transition-colors">
-                          {noteMeta.title}
-                        </h3>
+
+                        <div className="relative">
+                          <div
+                            className={`max-w-full text-sm leading-7 text-muted-foreground prose-p:my-2 prose-sm ${
+                              isExpanded ? "" : "line-clamp-4"
+                            }`}
+                            dangerouslySetInnerHTML={{
+                              __html: renderNoteMarkdown(entry.notes),
+                            }}
+                          />
+                          {entry.notes.length > 300 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedNote(isExpanded ? null : noteId)
+                              }
+                              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                            >
+                              {isExpanded ? "Show less" : "Read full note"}
+                              {isExpanded ? (
+                                <ChevronUp size={14} />
+                              ) : (
+                                <ChevronDown size={14} />
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </div>
+                    </Surface>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
 
-                      <div className="flex items-center gap-2 shrink-0">
-                        <AppTooltip content="View">
-                          <button onClick={() => openNoteModal(entry, false)} className="p-3 rounded-2xl bg-muted/30 text-primary hover:bg-primary/10 transition-all" aria-label="View note">
-                            <Eye size={18} />
-                          </button>
-                        </AppTooltip>
-                        <AppTooltip content="Edit">
-                          <button onClick={() => openNoteModal(entry, true)} className="p-3 rounded-2xl bg-muted/30 text-warning hover:bg-warning/10 transition-all" aria-label="Edit note">
-                            <PencilLine size={18} />
-                          </button>
-                        </AppTooltip>
-                        <AppTooltip content="Download">
-                          <button onClick={() => downloadSingleNotePDF(entry)} className="p-3 rounded-2xl bg-muted/30 text-success hover:bg-success/10 transition-all" aria-label="Download note">
-                            <Download size={18} />
-                          </button>
-                        </AppTooltip>
-                        <AppTooltip content="Delete">
-                          <button 
-                            onClick={() => deleteNote(entry)} 
-                            disabled={deletingId === noteId}
-                            className="p-3 rounded-2xl bg-muted/30 text-destructive hover:bg-destructive/10 transition-all" 
-                            aria-label="Delete note"
-                          >
-                            {deletingId === noteId ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
-                          </button>
-                        </AppTooltip>
-                      </div>
-                    </div>
-
-                    <div className="relative">
-                      <div
-                        className={`text-sm md:text-base leading-relaxed font-medium text-muted-foreground prose-sm prose-p:my-2 max-w-full ${isExpanded ? "" : "line-clamp-4"}`}
-                        dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(entry.notes) }}
-                      />
-                      {entry.notes.length > 300 && (
-                        <button
-                          onClick={() => setExpandedNote(isExpanded ? null : noteId)}
-                          className="mt-4 text-[11px] font-semibold uppercase tracking-widest text-primary hover:underline flex items-center gap-1.5"
-                        >
-                          {isExpanded ? "Show Less" : "Read Full Note"}
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
-        {notesCount > 0 && (
-          <div className="flex items-center justify-center gap-2 pt-12 border-t border-border/30">
-            <div className="w-1.5 h-1.5 rounded-full bg-success" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/40">
-              Cloud Synced • Persists across devices
-            </p>
-          </div>
-        )}
-      </section>
+          {notesCount > 0 && (
+            <div className="ui-rule mt-10 flex items-center justify-center gap-2 pt-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              <p className="ui-meta">Cloud synced · Persists across devices</p>
+            </div>
+          )}
+        </Section>
+      </PageShell>
 
       {/* Note Modal Overlay */}
       <AnimatePresence>
@@ -874,43 +1028,51 @@ export default function NotesDashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-md"
             onClick={closeNoteModal}
+            role="presentation"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-border/50 shadow-overlay bg-card"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="note-dialog-title"
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="ui-surface relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden shadow-overlay"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between gap-6 px-8 py-8 border-b border-border/50">
-                <div className="min-w-0 space-y-2">
-                  <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between gap-6 border-b border-border px-6 py-6 md:px-8">
+                <div className="min-w-0 space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     {activeMeta && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
-                        {activeMeta.topicTag}
-                      </span>
+                      <Pill tone="primary">{activeMeta.topicTag}</Pill>
                     )}
-                    {activeMeta && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted/20 border border-border/50 text-muted-foreground">
-                        {activeMeta.sourceLabel}
-                      </span>
-                    )}
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                      {isEditingNote ? "Editing Note" : "Viewing Note"}
+                    {activeMeta && <Pill>{activeMeta.sourceLabel}</Pill>}
+                    <span className="ui-meta">
+                      {isEditingNote ? "Editing note" : "Viewing note"}
                     </span>
                   </div>
-                  <h2 className="text-xl font-semibold leading-tight tracking-[-0.02em] text-foreground md:text-2xl">
+                  <h2
+                    id="note-dialog-title"
+                    className="text-lg font-medium leading-snug tracking-[-0.015em] text-foreground md:text-xl"
+                  >
                     {activeMeta?.title ?? activeNoteEntry.questionId}
                   </h2>
                 </div>
-                <button onClick={closeNoteModal} className="p-3 rounded-2xl bg-muted/30 hover:bg-muted text-muted-foreground transition-all">
-                  <X size={20} />
-                </button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={closeNoteModal}
+                  aria-label="Close note"
+                >
+                  <X size={18} />
+                </Button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-8 md:p-10">
+              <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8 md:py-8">
                 {isEditingNote ? (
                   <RichTextNoteEditor
                     value={noteDraft}
@@ -924,64 +1086,82 @@ export default function NotesDashboard() {
                   />
                 ) : (
                   <div
-                    className="text-base md:text-lg leading-relaxed font-medium text-muted-foreground prose-lg prose-p:my-4 prose-pre:bg-muted/50 prose-pre:rounded-2xl prose-pre:p-6"
-                    dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(activeNoteEntry.notes) }}
+                    className="text-[0.9375rem] leading-7 text-muted-foreground prose prose-headings:font-medium prose-p:my-4 prose-pre:rounded-xl prose-pre:bg-muted/50 prose-pre:p-5"
+                    dangerouslySetInnerHTML={{
+                      __html: renderNoteMarkdown(activeNoteEntry.notes),
+                    }}
                   />
                 )}
               </div>
 
-              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-8 py-8 border-t border-border/50 bg-muted/10">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => navigate(activeMeta?.contextPath ?? "/notes")}
-                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+              <div className="flex flex-col justify-between gap-3 border-t border-border bg-muted/20 px-6 py-4 md:flex-row md:items-center md:px-8">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="line"
+                    size="sm"
+                    onClick={() =>
+                      navigate(activeMeta?.contextPath ?? "/notes")
+                    }
                   >
-                    <StickyNote size={16} />
-                    {activeMeta?.contextCta ?? "View Context"}
-                  </button>
-                  <button
+                    <StickyNote size={14} />
+                    <span className="text-xs">
+                      {activeMeta?.contextCta ?? "View context"}
+                    </span>
+                  </Button>
+                  <Button
+                    variant="line"
+                    size="sm"
                     onClick={() => downloadSingleNotePDF(activeNoteEntry)}
-                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
                   >
-                    <Download size={16} />
-                    Export PDF
-                  </button>
+                    <Download size={14} />
+                    <span className="text-xs">Export PDF</span>
+                  </Button>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {isEditingNote ? (
                     <>
-                      <button
-                        onClick={() => { setNoteDraft(activeNoteEntry.notes); setIsEditingNote(false); }}
-                        className="flex-1 md:flex-none px-6 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                      <Button
+                        variant="line"
+                        size="sm"
+                        onClick={() => {
+                          setNoteDraft(activeNoteEntry.notes);
+                          setIsEditingNote(false);
+                        }}
                       >
-                        Cancel
-                      </button>
-                      <button
+                        <span className="text-xs">Cancel</span>
+                      </Button>
+                      <Button
+                        variant="solid"
+                        size="sm"
                         onClick={saveNote}
                         disabled={savingNoteId === activeNoteId}
-                        className="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
                       >
-                        {savingNoteId === activeNoteId
-                          ? <Loader2 size={16} className="animate-spin" />
-                          : savedNoteId === activeNoteId
-                            ? <CheckCircle2 size={16} />
-                            : <Save size={16} />}
-                        {savingNoteId === activeNoteId
-                          ? "Saving..."
-                          : savedNoteId === activeNoteId
-                            ? "Saved"
-                            : "Save Note"}
-                      </button>
+                        {savingNoteId === activeNoteId ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : savedNoteId === activeNoteId ? (
+                          <CheckCircle2 size={14} />
+                        ) : (
+                          <Save size={14} />
+                        )}
+                        <span className="text-xs">
+                          {savingNoteId === activeNoteId
+                            ? "Saving…"
+                            : savedNoteId === activeNoteId
+                              ? "Saved"
+                              : "Save note"}
+                        </span>
+                      </Button>
                     </>
                   ) : (
-                    <button
+                    <Button
+                      variant="solid"
+                      size="sm"
                       onClick={() => setIsEditingNote(true)}
-                      className="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
                     >
-                      <PencilLine size={16} />
-                      Edit Note
-                    </button>
+                      <PencilLine size={14} />
+                      <span className="text-xs">Edit note</span>
+                    </Button>
                   )}
                 </div>
               </div>

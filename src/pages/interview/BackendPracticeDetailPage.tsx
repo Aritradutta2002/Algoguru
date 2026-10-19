@@ -123,7 +123,7 @@ export default function BackendPracticeDetailPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="cjd-surface rounded-2xl border border-border/50 bg-card/70 p-5 sm:p-6"
+          className="cjd-surface rounded-surface border border-border/50 bg-card/70 p-5 sm:p-6"
         >
           <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px]">
             <span className="font-mono font-semibold text-primary">{problem.id}</span>
@@ -176,7 +176,7 @@ export default function BackendPracticeDetailPage() {
             </span>
             The Scenario
           </h2>
-          <div className="cjd-surface cjq-reading mt-3 rounded-2xl border border-border/50 bg-card/70 p-5">
+          <div className="cjd-surface cjq-reading mt-3 rounded-surface border border-border/50 bg-card/70 p-5">
             <BackendAnswer answer={problem.scenario} />
           </div>
         </section>
@@ -344,7 +344,7 @@ export default function BackendPracticeDetailPage() {
             </span>
             Interview Debrief
           </h2>
-          <div className="cjq-reading mt-3 rounded-2xl border border-primary/20 bg-primary/5 p-5">
+          <div className="cjq-reading mt-3 rounded-surface border border-primary/20 bg-primary/5 p-5">
             <BackendAnswer answer={problem.discussion} />
           </div>
         </section>
@@ -376,7 +376,7 @@ export default function BackendPracticeDetailPage() {
               to={`${BACKEND_PRACTICE_PATH}/${previous.id}`}
               className="group rounded-xl border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
             >
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="flex items-center gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                 <ArrowLeft className="h-3 w-3" />
                 Previous
               </span>
@@ -392,7 +392,7 @@ export default function BackendPracticeDetailPage() {
               to={`${BACKEND_PRACTICE_PATH}/${next.id}`}
               className="group rounded-xl border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
             >
-              <span className="flex items-center justify-end gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="flex items-center justify-end gap-1.5 text-[11px] font-ui font-medium uppercase tracking-wide text-muted-foreground">
                 Next
                 <ArrowRight className="h-3 w-3" />
               </span>

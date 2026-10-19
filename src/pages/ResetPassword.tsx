@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Field as UiField, Surface } from "@/components/layout/PagePrimitives";
 
 const resetPasswordSchema = z.object({
   password: z
@@ -51,42 +53,76 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Reset password</h1>
-          <p className="text-sm mt-1 text-muted-foreground">Enter your new password</p>
-        </div>
-        <div className="p-6 rounded-2xl bg-card border border-border">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.09),transparent_55%)]"
+        aria-hidden="true"
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-full max-w-md"
+      >
+        <Surface padding="lg">
+          <p className="ui-kicker">Account recovery</p>
+          <h1 className="ui-h3 mt-3">Reset password</h1>
+          <p className="ui-lede mt-2 text-sm">
+            Choose a new password for your AlgoGuru account.
+          </p>
+
           {success ? (
-            <div className="text-center text-sm py-4 text-success">Password updated! Redirecting…</div>
+            <div className="mt-6 rounded-[var(--radius-control)] border border-success/30 bg-success/10 px-3.5 py-3 text-sm text-success">
+              Password updated. Redirecting…
+            </div>
           ) : (
-            <form onSubmit={handleReset} className="space-y-4">
-              <div>
+            <form onSubmit={handleReset} className="mt-6 space-y-4">
+              <UiField
+                label="New password"
+                htmlFor="reset-password"
+                hint="Min 8 characters, with an uppercase letter, a lowercase letter and a number."
+                error={fieldError || undefined}
+              >
                 <div className="relative">
-                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Lock
+                    size={15}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
                   <input
+                    id="reset-password"
                     type="password"
                     placeholder="New password"
                     value={password}
-                    onChange={(e) => { setPassword(e.target.value); setFieldError(""); }}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setFieldError("");
+                    }}
                     required
                     minLength={8}
-                    className={`w-full h-10 pl-9 pr-3 rounded-lg bg-muted/40 text-sm outline-none border transition-colors focus:border-primary ${fieldError ? "border-destructive/60" : "border-border hover:border-primary/40"}`}
+                    aria-invalid={fieldError ? true : undefined}
+                    className="ui-input h-11 pl-10"
                   />
                 </div>
-                {fieldError && <p className="text-xs mt-1.5 px-1 text-destructive">{fieldError}</p>}
-                <p className="text-xs mt-1.5 px-1 text-muted-foreground">
-                  Min 8 chars, uppercase, lowercase, and a number
-                </p>
-              </div>
-              {error && <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2">{error}</div>}
-              <button type="submit" disabled={loading} className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:brightness-95 disabled:opacity-60">
+              </UiField>
+              {error && (
+                <div
+                  role="alert"
+                  className="rounded-[var(--radius-control)] border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive"
+                >
+                  {error}
+                </div>
+              )}
+              <Button
+                type="submit"
+                size="cta"
+                className="w-full"
+                disabled={loading}
+              >
                 {loading ? "Updating…" : "Update password"}
-              </button>
+              </Button>
             </form>
           )}
-        </div>
+        </Surface>
       </motion.div>
     </div>
   );

@@ -14,7 +14,7 @@ export interface AlgoGuruLockupProps {
 const HORIZONTAL = { w: 264, h: 64 };
 const STACKED = { w: 200, h: 180 };
 
-const WORDMARK_FONT = "'Space Grotesk','Outfit','Inter',system-ui,sans-serif";
+const WORDMARK_FONT = "'Space Grotesk','Inter',system-ui,sans-serif";
 
 /**
  * "Algo" inherits `currentColor` so the lockup adapts to light/dark surfaces;

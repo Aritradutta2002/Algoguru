@@ -22,10 +22,29 @@ import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
 import { practiceContentMap } from "@/data/practiceContent";
 import { ContentSection } from "@/data/recursionContent";
-import { ChevronRight, ChevronLeft, List, X, Clock, ZoomIn, ZoomOut, Sun, Moon } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  List,
+  X,
+  Clock,
+  ZoomIn,
+  ZoomOut,
+  Sun,
+  Moon,
+  ArrowRight,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMode } from "@/contexts/ModeContext";
 import { AppTooltip } from "@/components/ui/tooltip";
+import {
+  PageHeader,
+  PageShell,
+  Section,
+  Surface,
+} from "@/components/layout/PagePrimitives";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const dsContentMap: Record<string, ContentSection[]> = {
   arrays: arraysContent,
@@ -44,52 +63,6 @@ const dsContentMap: Record<string, ContentSection[]> = {
   "advanced-topics": advancedTopicsContent,
 };
 
-const topicColorVars: Record<string, string> = {
-  arrays: "hsl(var(--primary))",
-  "stack-queue": "hsl(var(--info))",
-  recursion: "hsl(var(--primary))",
-  backtracking: "hsl(var(--accent))",
-  dp: "hsl(var(--success))",
-  graphs: "hsl(var(--warning))",
-  bits: "hsl(var(--info))",
-  heaps: "hsl(var(--heap))",
-  strings: "hsl(var(--primary))",
-  "number-theory": "hsl(var(--success))",
-  trees: "hsl(var(--accent))",
-  "segment-tree": "hsl(var(--info))",
-  "advanced-math": "hsl(var(--warning))",
-  "advanced-topics": "hsl(var(--heap))",
-  "java-basics": "hsl(var(--primary))",
-  "java-oop": "hsl(var(--accent))",
-  "java-exceptions": "hsl(var(--warning))",
-  "java-collections": "hsl(var(--success))",
-  "java-generics": "hsl(var(--info))",
-  "java-streams": "hsl(var(--heap))",
-  "java-multithreading": "hsl(var(--primary))",
-  "java-io": "hsl(var(--accent))",
-  "java-advanced": "hsl(var(--warning))",
-  "java-jdbc": "hsl(var(--info))",
-  "java-sql": "hsl(var(--success))",
-  // Spring Boot
-  "spring-core": "hsl(var(--primary))",
-  "spring-boot-basics": "hsl(var(--accent))",
-  "spring-boot-rest": "hsl(var(--info))",
-  "spring-data-jpa": "hsl(var(--success))",
-  "spring-security": "hsl(var(--warning))",
-  "spring-boot-testing": "hsl(var(--heap))",
-  "spring-boot-microservices": "hsl(var(--primary))",
-  "spring-boot-actuator": "hsl(var(--info))",
-  // Practice topic colors
-  "practice-arrays": "hsl(var(--accent))",
-  "practice-strings": "hsl(var(--success))",
-  "practice-recursion": "hsl(var(--warning))",
-  "practice-dp": "hsl(var(--info))",
-  "practice-graphs": "hsl(var(--heap))",
-  "practice-trees": "hsl(var(--primary))",
-  "practice-greedy": "hsl(var(--accent))",
-  "practice-stack-queue": "hsl(var(--primary))",
-};
-
 export default function TopicPage() {
   const { topicId } = useParams<{ topicId: string }>();
   const location = useLocation();
@@ -98,12 +71,20 @@ export default function TopicPage() {
   const [tocOpen, setTocOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<string>("");
-  const { contentWidth, fontSize, increaseFontSize, decreaseFontSize, theme, toggleTheme } = useSettings();
+  const {
+    contentWidth,
+    fontSize,
+    increaseFontSize,
+    decreaseFontSize,
+    theme,
+    toggleTheme,
+  } = useSettings();
 
   // Auto-detect the correct mode based on topicId
   const detectedMode = useMemo(() => {
     if (topicId && topics.some((t) => t.id === topicId)) return "ds";
-    if (topicId && practiceTopics.some((t) => t.id === topicId)) return "practice";
+    if (topicId && practiceTopics.some((t) => t.id === topicId))
+      return "practice";
     if (topicId && javaTopics.some((t) => t.id === topicId)) return "lang";
     return currentMode.id;
   }, [topicId, currentMode.id]);
@@ -115,8 +96,18 @@ export default function TopicPage() {
     }
   }, [detectedMode, currentMode.id, setMode]);
 
-  const allTopicsForPage = detectedMode === "ds" ? topics : detectedMode === "practice" ? practiceTopics : javaTopics;
-  const contentMap = detectedMode === "ds" ? dsContentMap : detectedMode === "practice" ? practiceContentMap : javaContentMap;
+  const allTopicsForPage =
+    detectedMode === "ds"
+      ? topics
+      : detectedMode === "practice"
+        ? practiceTopics
+        : javaTopics;
+  const contentMap =
+    detectedMode === "ds"
+      ? dsContentMap
+      : detectedMode === "practice"
+        ? practiceContentMap
+        : javaContentMap;
 
   const topic = allTopicsForPage.find((t) => t.id === topicId);
   const content = topicId ? contentMap[topicId] : null;
@@ -158,7 +149,7 @@ export default function TopicPage() {
           }
         });
       },
-      { rootMargin: "-20% 0% -60% 0%", threshold: 0 }
+      { rootMargin: "-20% 0% -60% 0%", threshold: 0 },
     );
     content?.forEach((s) => {
       const el = document.getElementById(s.id);
@@ -169,236 +160,308 @@ export default function TopicPage() {
 
   if (!topic || !content) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ color: "hsl(var(--muted-foreground))" }}>
-        Topic not found
+      <div className="ui-app-canvas">
+        <PageShell>
+          <Section>
+            <p className="ui-meta">Topic not found</p>
+          </Section>
+        </PageShell>
       </div>
     );
   }
 
   const currentIdx = allTopicsForPage.findIndex((t) => t.id === topicId);
   const prevTopic = currentIdx > 0 ? allTopicsForPage[currentIdx - 1] : null;
-  const nextTopic = currentIdx < allTopicsForPage.length - 1 ? allTopicsForPage[currentIdx + 1] : null;
-  const color = topicColorVars[topic.id] || "hsl(var(--primary))";
+  const nextTopic =
+    currentIdx < allTopicsForPage.length - 1
+      ? allTopicsForPage[currentIdx + 1]
+      : null;
+  const modeLabel =
+    detectedMode === "lang"
+      ? "Java"
+      : detectedMode === "practice"
+        ? "Practice"
+        : "Data Structure";
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveSection(id);
+  };
 
   return (
-    <div className="flex min-h-screen relative bg-background selection:bg-primary/25" ref={mainRef}>
-      <div className="flex-1 min-w-0">
-        <motion.div
-          className="relative overflow-hidden border-b border-border/60"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="relative z-10 px-4 md:px-10 lg:px-16 py-12 md:py-20">
-            <div className="flex items-center gap-2 mb-5 text-xs font-medium text-muted-foreground">
-              <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/")}>
-                Home
-              </span>
-              <ChevronRight size={12} className="opacity-40" />
-              <span style={{ color }}>{topic.title}</span>
-            </div>
-
-            <div className="flex flex-col md:flex-row md:items-center gap-5">
-              <div
-                className="flex items-center justify-center w-14 h-14 rounded-2xl text-2xl font-semibold border shrink-0"
-                style={{ background: `${color}10`, borderColor: `${color}25`, color: color }}
+    <div
+      className="flex min-h-screen relative bg-background selection:bg-primary/25"
+      ref={mainRef}
+    >
+      <div className="flex-1 min-w-0 ui-app-canvas">
+        <PageShell>
+          <PageHeader
+            variant="display"
+            breadcrumb={
+              <nav
+                className="flex items-center gap-1.5"
+                aria-label="Breadcrumb"
               >
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="transition-colors hover:text-foreground"
+                >
+                  Home
+                </button>
+                <ChevronRight
+                  size={12}
+                  className="opacity-40"
+                  aria-hidden="true"
+                />
+                <span aria-current="page">{topic.title}</span>
+              </nav>
+            }
+            eyebrow={
+              <span className="inline-flex items-center gap-1.5">
                 {topic.icon}
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-[-0.035em] text-foreground">
-                  {topic.title}
-                </h1>
-                <div className="flex flex-wrap items-center justify-between gap-4 mt-3">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-muted border border-border text-muted-foreground">
-                      {detectedMode === "lang" ? "Java" : detectedMode === "practice" ? "Practice" : "Data Structure"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {content.length} sections · Comprehensive guide
-                    </span>
-                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Clock size={12} className="opacity-60" />
-                      ~{readingTimeMinutes} min read
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="inline-flex items-center rounded-lg border border-border bg-card/70 backdrop-blur-sm p-0.5 shadow-sm">
-                      <AppTooltip content="Smaller text">
-                        <button
-                          onClick={decreaseFontSize}
-                          disabled={fontSize === "sm"}
-                          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                          aria-label="Decrease font size"
-                        >
-                          <ZoomOut size={13} />
-                        </button>
-                      </AppTooltip>
-                      <span className="text-[11px] font-mono font-medium px-1.5 text-muted-foreground select-none">
-                        {fontSize.toUpperCase()}
-                      </span>
-                      <AppTooltip content="Larger text">
-                        <button
-                          onClick={increaseFontSize}
-                          disabled={fontSize === "xl"}
-                          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                          aria-label="Increase font size"
-                        >
-                          <ZoomIn size={13} />
-                        </button>
-                      </AppTooltip>
-                    </div>
-
-                    <AppTooltip content={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
-                      <button
-                        onClick={toggleTheme}
-                        className="p-2 rounded-lg border border-border bg-card/70 backdrop-blur-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shadow-sm"
-                        aria-label="Toggle theme"
-                      >
-                        {theme === "dark" ? <Sun size={13} /> : <Moon size={13} />}
-                      </button>
-                    </AppTooltip>
-                  </div>
+                {modeLabel}
+              </span>
+            }
+            title={topic.title}
+            description={
+              <span className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                <span className="ui-meta">
+                  {content.length} sections · Comprehensive guide
+                </span>
+                <span className="inline-flex items-center gap-1.5 ui-meta">
+                  <Clock size={12} className="opacity-60" aria-hidden="true" />~
+                  {readingTimeMinutes} min read
+                </span>
+              </span>
+            }
+            actions={
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center rounded-lg border border-border p-0.5">
+                  <AppTooltip content="Smaller text">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={decreaseFontSize}
+                      disabled={fontSize === "sm"}
+                      aria-label="Decrease font size"
+                    >
+                      <ZoomOut size={13} />
+                    </Button>
+                  </AppTooltip>
+                  <span className="ui-meta ui-pill--mono px-1.5 select-none">
+                    {fontSize.toUpperCase()}
+                  </span>
+                  <AppTooltip content="Larger text">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={increaseFontSize}
+                      disabled={fontSize === "xl"}
+                      aria-label="Increase font size"
+                    >
+                      <ZoomIn size={13} />
+                    </Button>
+                  </AppTooltip>
                 </div>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2 mt-7">
-              {content.map((s, i) => (
-                <AppTooltip key={i} content={s.title}>
-                  <div
-                    className="h-1 rounded-full transition-all duration-300 cursor-pointer"
-                    style={{
-                      background: activeSection === s.id ? color : "hsl(var(--muted))",
-                      width: activeSection === s.id ? "32px" : "8px",
-                    }}
-                    onClick={() => {
-                      const el = document.getElementById(s.id);
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                      setActiveSection(s.id);
-                    }}
-                    role="button"
-                    tabIndex={0}
+                <AppTooltip
+                  content={
+                    theme === "dark"
+                      ? "Switch to light mode"
+                      : "Switch to dark mode"
+                  }
+                >
+                  <Button
+                    variant="line"
+                    size="icon-sm"
+                    onClick={toggleTheme}
+                    aria-label="Toggle theme"
+                  >
+                    {theme === "dark" ? <Sun size={13} /> : <Moon size={13} />}
+                  </Button>
+                </AppTooltip>
+              </div>
+            }
+          />
+
+          <div
+            className="flex flex-wrap items-center gap-2 pt-6"
+            role="tablist"
+            aria-label="Sections"
+          >
+            {content.map((s) => {
+              const isActive = activeSection === s.id;
+              return (
+                <AppTooltip key={s.id} content={s.title}>
+                  <button
+                    type="button"
+                    aria-current={isActive ? "true" : undefined}
                     aria-label={s.title}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        const el = document.getElementById(s.id);
-                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                        setActiveSection(s.id);
-                      }
-                    }}
+                    onClick={() => scrollToSection(s.id)}
+                    className={cn(
+                      "h-1.5 rounded-full transition-all duration-200",
+                      isActive
+                        ? "w-8 bg-primary"
+                        : "w-2 bg-muted hover:bg-muted-foreground/40",
+                    )}
                   />
                 </AppTooltip>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        </motion.div>
+        </PageShell>
 
-        <div 
-          className="px-4 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16 w-full mx-auto"
+        <div
+          className="mx-auto w-full px-5 py-10 md:py-14"
           style={{ maxWidth: `${Math.min(contentWidth || 1080, 1140)}px` }}
         >
-          <div className="space-y-10 md:space-y-15 lg:space-y-20">
-            {content.map((section) => (
-              <ContentRenderer key={section.id} section={section} isPractice={detectedMode === "practice"} />
-            ))}
-          </div>
+          <Section spacing="none">
+            <div className="space-y-12 lg:space-y-16">
+              {content.map((section) => (
+                <ContentRenderer
+                  key={section.id}
+                  section={section}
+                  isPractice={detectedMode === "practice"}
+                />
+              ))}
+            </div>
+          </Section>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-16 pt-8 border-t border-border">
+          <div className="ui-rule mt-16" />
+          <nav
+            className="mt-6 grid gap-4 sm:grid-cols-2"
+            aria-label="Topic navigation"
+          >
             {prevTopic ? (
-              <motion.button
-                whileHover={{ x: -3 }}
+              <Surface
+                as="div"
+                role="button"
+                tabIndex={0}
+                interactive
                 onClick={() => navigate(`/${prevTopic.id}`)}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card text-left transition-colors hover:bg-muted"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(`/${prevTopic.id}`);
+                  }
+                }}
+                className="flex cursor-pointer items-center gap-3 p-4 text-left"
               >
-                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-                  <ChevronLeft size={16} />
-                </div>
-                <div>
-                  <div className="text-[10px] font-medium text-muted-foreground">Previous</div>
-                  <div className="text-sm font-semibold text-foreground">{prevTopic.title}</div>
-                </div>
-              </motion.button>
-            ) : <div />}
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground">
+                  <ChevronLeft size={15} />
+                </span>
+                <span className="min-w-0">
+                  <span className="ui-meta block">Previous</span>
+                  <span className="block truncate text-sm font-medium text-foreground">
+                    {prevTopic.title}
+                  </span>
+                </span>
+              </Surface>
+            ) : (
+              <span aria-hidden="true" />
+            )}
 
             {nextTopic && (
-              <motion.button
-                whileHover={{ x: 3 }}
+              <Surface
+                as="div"
+                role="button"
+                tabIndex={0}
+                interactive
                 onClick={() => navigate(`/${nextTopic.id}`)}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card text-right transition-colors hover:bg-muted group"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(`/${nextTopic.id}`);
+                  }
+                }}
+                className="flex cursor-pointer items-center justify-between gap-3 p-4 text-right"
               >
-                <div className="flex-1">
-                  <div className="text-[10px] font-medium text-primary">Next</div>
-                  <div className="text-sm font-semibold text-foreground">{nextTopic.title}</div>
-                </div>
-                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <ChevronRight size={16} />
-                </div>
-              </motion.button>
+                <span className="min-w-0">
+                  <span className="ui-meta block">Next</span>
+                  <span className="block truncate text-sm font-medium text-foreground">
+                    {nextTopic.title}
+                  </span>
+                </span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <ArrowRight size={15} />
+                </span>
+              </Surface>
             )}
-          </div>
+          </nav>
         </div>
       </div>
 
       {/* Right TOC */}
-      <div className="hidden xl:flex flex-col w-56 flex-shrink-0 border-l border-border sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-8 px-5">
-        <div className="text-[11px] font-semibold uppercase tracking-wider mb-4 text-muted-foreground">
-          On this page
-        </div>
+      <aside
+        className="hidden xl:flex flex-col w-56 flex-shrink-0 border-l border-border sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-8 px-5"
+        aria-label="On this page"
+      >
+        <p className="ui-kicker mb-4">On this page</p>
         <nav className="space-y-0.5">
           {content.map((s) => {
             const isActive = activeSection === s.id;
             return (
               <button
                 key={s.id}
-                onClick={() => navigate(`/${topicId}#${s.id}`)}
-                className="flex items-center gap-2.5 w-full text-left px-3 py-1.5 rounded-md text-xs transition-colors"
-                style={{
-                  background: isActive ? `${color}10` : "transparent",
-                  color: isActive ? color : "hsl(var(--muted-foreground))",
-                  fontWeight: isActive ? 600 : 400,
-                  borderLeft: isActive ? `2px solid ${color}` : "2px solid transparent",
-                }}
+                onClick={() => scrollToSection(s.id)}
+                aria-current={isActive ? "true" : undefined}
+                className={cn(
+                  "flex w-full items-center border-l-2 py-1.5 pl-3 pr-2 text-left text-xs transition-colors",
+                  isActive
+                    ? "border-primary font-medium text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
               >
                 {s.title}
               </button>
             );
           })}
         </nav>
-      </div>
+      </aside>
 
       {/* Mobile TOC */}
-      <motion.button
+      <button
+        type="button"
         onClick={() => setTocOpen(!tocOpen)}
-        className="xl:hidden fixed bottom-5 right-5 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-medium shadow-lg bg-card border border-border text-foreground"
+        aria-expanded={tocOpen}
+        className="ui-btn ui-btn--line ui-btn--reset fixed bottom-5 right-5 z-50 xl:hidden"
       >
         {tocOpen ? <X size={14} /> : <List size={14} />}
-        {tocOpen ? "Close" : "Contents"}
-      </motion.button>
+        <span className="text-xs">{tocOpen ? "Close" : "Contents"}</span>
+      </button>
 
       <AnimatePresence>
         {tocOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.97 }}
-            transition={{ duration: 0.18 }}
-            className="xl:hidden fixed bottom-16 right-5 z-50 w-72 rounded-xl shadow-xl p-4 bg-card border border-border"
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="ui-surface fixed bottom-20 right-5 z-50 w-72 max-w-[calc(100vw-2.5rem)] p-4 xl:hidden"
           >
-            <div className="text-xs font-semibold text-muted-foreground mb-3">
-              Sections
-            </div>
+            <p className="ui-kicker mb-3">Sections</p>
             <nav className="space-y-0.5 max-h-72 overflow-y-auto">
               {content.map((s) => (
                 <button
                   key={s.id}
-                  onClick={() => { navigate(`/${topicId}#${s.id}`); setTocOpen(false); }}
-                  className="flex items-center gap-2.5 w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors hover:bg-muted"
-                  style={{ color: activeSection === s.id ? color : "hsl(var(--foreground))" }}
+                  onClick={() => {
+                    scrollToSection(s.id);
+                    setTocOpen(false);
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-muted",
+                    activeSection === s.id
+                      ? "font-medium text-foreground"
+                      : "text-muted-foreground",
+                  )}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: activeSection === s.id ? color : "hsl(var(--border))" }} />
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 flex-shrink-0 rounded-full",
+                      activeSection === s.id ? "bg-primary" : "bg-border",
+                    )}
+                  />
                   {s.title}
                 </button>
               ))}

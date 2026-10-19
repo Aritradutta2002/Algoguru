@@ -40,7 +40,7 @@ function StatCard({
   icon: typeof CheckCircle2;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="rounded-surface border border-border bg-card p-4">
       <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         <Icon aria-hidden="true" className="h-3.5 w-3.5" />
         {label}
@@ -171,8 +171,8 @@ export function CodingContestResult() {
           aria-live="polite"
           className="mt-8 space-y-4"
         >
-          <div className="h-24 w-full animate-pulse rounded-2xl bg-muted" />
-          <div className="h-40 w-full animate-pulse rounded-2xl bg-muted/60" />
+          <div className="h-24 w-full animate-pulse rounded-surface bg-muted" />
+          <div className="h-40 w-full animate-pulse rounded-surface bg-muted/60" />
           <span className="sr-only">
             Your submission is still being evaluated. This page will not update
             automatically.
@@ -209,13 +209,13 @@ export function CodingContestResult() {
                 return (
                   <li
                     key={problem.id}
-                    className="rounded-2xl border border-border bg-card p-5"
+                    className="rounded-surface border border-border bg-card p-5"
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       {result?.solved ? (
-                        <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-emerald-600" />
+                        <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-success" />
                       ) : result?.submitted ? (
-                        <XCircle aria-hidden="true" className="h-4 w-4 text-rose-600" />
+                        <XCircle aria-hidden="true" className="h-4 w-4 text-destructive" />
                       ) : (
                         <CircleSlash aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                       )}
@@ -241,7 +241,7 @@ export function CodingContestResult() {
                         <summary className="cursor-pointer text-xs font-medium text-primary">
                           View submitted Java code
                         </summary>
-                        <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs">
+                        <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-control border border-border bg-muted/40 p-3 font-mono text-xs">
                           {result.submittedCode}
                         </pre>
                       </details>

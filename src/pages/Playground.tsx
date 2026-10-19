@@ -2168,31 +2168,25 @@ export default function Playground() {
   // Run button — ProblemSolver rocket style
   const RunButton = ({ compact = false }: { compact?: boolean }) => (
     <AppTooltip content="Run (Ctrl+Enter)">
-      <button
+      <Button
         onClick={() => runCode(false)}
         disabled={isRunning || !code.trim()}
+        variant={isRunning ? "line" : "solid"}
+        size={compact ? "icon-sm" : "sm"}
         className={cn(
-          "flex items-center justify-center gap-1.5 rounded-md font-semibold shadow-soft transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50",
-          compact ? "h-7 w-7" : "h-7 px-3",
-          isRunning
-            ? "bg-warning text-warning-foreground"
-            : "bg-primary text-primary-foreground hover:bg-primary/90",
-          compact ? "text-xs" : "text-[13px]",
+          "font-ui shadow-soft",
+          isRunning && "border-warning/40 bg-warning/10 text-warning",
         )}
         aria-label="Run code"
         aria-busy={isRunning}
       >
         {isRunning ? (
           <Loader2 size={compact ? 13 : 14} className="animate-spin" />
-        ) : compact ? (
-          <Play size={13} fill="currentColor" strokeWidth={0} />
         ) : (
-          <>
-            <Play size={13} fill="currentColor" strokeWidth={0} />
-            Run
-          </>
+          <Play size={13} fill="currentColor" strokeWidth={0} />
         )}
-      </button>
+        {!compact && (isRunning ? "Running" : "Run")}
+      </Button>
     </AppTooltip>
   );
 
@@ -2205,21 +2199,25 @@ export default function Playground() {
 
     return (
       <AppTooltip content={tooltip}>
-        <button
+        <Button
           onClick={() => runCode(true)}
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
+          variant="line"
+          size={compact ? "icon-sm" : "sm"}
           className={cn(
-            "flex items-center justify-center gap-1 rounded-md border font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40",
-            compact ? "h-7 w-7" : "h-7 px-3 text-[12px]",
-            breakpoints.size > 0
-              ? "border-purple-500/25 bg-purple-500/10 text-purple-500 dark:text-purple-400"
-              : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+            "font-ui",
+            breakpoints.size > 0 &&
+              "border-primary/35 bg-primary/10 text-primary hover:bg-primary/15",
           )}
           aria-label={tooltip}
         >
           <Bug size={13} />
-          {!compact && <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>}
-        </button>
+          {!compact && (
+            <span>
+              Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}
+            </span>
+          )}
+        </Button>
       </AppTooltip>
     );
   };
@@ -2522,7 +2520,7 @@ export default function Playground() {
           aria-label="Close settings"
         />
         <div
-          className="lc-surface relative flex w-full max-w-lg animate-in flex-col overflow-hidden rounded-2xl duration-200 fade-in zoom-in-95"
+          className="lc-surface relative flex w-full max-w-lg animate-in flex-col overflow-hidden rounded-surface duration-200 fade-in zoom-in-95"
           style={{ maxHeight: "85vh" }}
         >
           {/* Header */}
@@ -3010,7 +3008,7 @@ export default function Playground() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "flex h-full min-h-0 flex-col bg-background",
+        "ui-app-canvas flex h-full min-h-0 flex-col bg-background",
         isFullscreen ? "fixed inset-0 z-50" : "p-3 md:p-4",
       )}
     >
@@ -3018,7 +3016,9 @@ export default function Playground() {
         ref={playgroundShellRef}
         className={cn(
           "playground-shell relative flex min-h-0 flex-1 flex-col overflow-hidden bg-card text-card-foreground",
-          isFullscreen ? "h-screen" : "rounded-2xl border border-border shadow-card",
+          isFullscreen
+            ? "h-screen"
+            : "rounded-surface border border-border shadow-card",
         )}
       >
       {/* Breakpoint & debug CSS */}
@@ -3094,7 +3094,7 @@ export default function Playground() {
                   onClick={() => setShowSettingsMenu(false)}
                 />
                 <div
-                  className="lc-surface absolute left-0 top-10 z-[9999] min-w-[260px] animate-in overflow-hidden rounded-xl py-1 fade-in zoom-in-95"
+                  className="lc-surface absolute left-0 top-10 z-[9999] min-w-[260px] animate-in overflow-hidden rounded-surface py-1 fade-in zoom-in-95"
                 >
                   {availableLanguages.map((c) => {
                     const isActive = selectedLanguage.language === c.language;
@@ -3203,7 +3203,7 @@ export default function Playground() {
                     style={{ background: "var(--lc-scrim)" }}
                   />
                   <div
-                    className="lc-surface fixed left-1/2 top-16 z-[9999] max-h-[70vh] w-[90vw] max-w-md -translate-x-1/2 animate-in overflow-hidden overflow-y-auto rounded-xl fade-in zoom-in-95 duration-200"
+                    className="lc-surface fixed left-1/2 top-16 z-[9999] max-h-[70vh] w-[90vw] max-w-md -translate-x-1/2 animate-in overflow-hidden overflow-y-auto rounded-surface fade-in zoom-in-95 duration-200"
                   >
                     <div
                       className="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
@@ -3597,7 +3597,7 @@ export default function Playground() {
                 maxSize={55}
                 className="overflow-hidden p-1 sm:p-2"
               >
-                <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+                <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-surface border border-border bg-card shadow-soft">
                   {/* Panel tabs */}
                   <div className="flex h-[42px] flex-shrink-0 select-none items-center border-b border-border px-5">
                     <button
@@ -3746,7 +3746,7 @@ export default function Playground() {
             minSize={30}
             className="flex flex-col overflow-hidden p-1 sm:p-2"
           >
-            <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+            <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-surface border border-border bg-card shadow-soft">
               {/* File tab strip — ProblemSolver style */}
               <div
                 className="flex min-h-[34px] flex-shrink-0 select-none items-center overflow-x-auto border-b border-border bg-muted/40 px-2 py-1"
@@ -4123,7 +4123,7 @@ export default function Playground() {
                         )
                       }
                       aria-label="Expand console"
-                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-border bg-card px-0 py-4 shadow-soft lc-hover"
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden rounded-surface border border-border bg-card px-0 py-4 shadow-soft lc-hover"
                       style={{ color: "var(--lc-accent)" }}
                     >
                       <Keyboard size={18} />
@@ -4153,7 +4153,7 @@ export default function Playground() {
                     </button>
                   </AppTooltip>
                 ) : (
-                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-surface border border-border bg-card shadow-soft">
                     {/* Console action bar: tabs + Run/Debug */}
                     <div className="flex h-11 flex-shrink-0 select-none items-center justify-between gap-3 border-b border-border bg-muted/40 px-4">
                       <div className="flex items-center">
@@ -4417,7 +4417,7 @@ export default function Playground() {
                         }
                       }}
                       aria-label="Expand GuruBot"
-                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-border bg-card px-0 py-4 shadow-soft lc-hover"
+                      className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden rounded-surface border border-border bg-card px-0 py-4 shadow-soft lc-hover"
                       style={{ color: "var(--lc-accent)" }}
                     >
                       <Bot size={18} />
@@ -4439,7 +4439,7 @@ export default function Playground() {
                     </div>
                   </AppTooltip>
                 ) : (
-                  <div className="h-full min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+                  <div className="h-full min-w-0 overflow-hidden rounded-surface border border-border bg-card shadow-soft">
                     <GuruBot
                       open={guruBotOpen}
                       onClose={() => setGuruBotOpen(false)}

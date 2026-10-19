@@ -43,7 +43,7 @@ function ProblemCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg",
+        "group relative flex flex-col rounded-surface border p-4 transition-all hover:shadow-card",
         solved ? "border-success/30 bg-success/5" : "border-border/50 bg-card/70 hover:border-primary/40",
       )}
     >
@@ -172,7 +172,7 @@ export default function BackendPracticePage() {
           </p>
         </motion.header>
 
-        <section className="mb-5 rounded-2xl border border-border/50 bg-card/70 p-4">
+        <section className="mb-5 rounded-surface border border-border/50 bg-card/70 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
               <Target className="h-4 w-4 text-primary" />
@@ -286,7 +286,7 @@ export default function BackendPracticePage() {
         </div>
 
         {grouped.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/60 py-16 text-center">
+          <div className="rounded-surface border border-dashed border-border/60 py-16 text-center">
             <Dumbbell className="mx-auto h-8 w-8 text-muted-foreground" />
             <p className="mt-3 text-sm font-medium text-foreground">No problems match those filters</p>
             <button

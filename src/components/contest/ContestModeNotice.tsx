@@ -24,11 +24,11 @@ export function ContestModeNotice({
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-wrap items-start gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
+      className="flex flex-wrap items-start gap-3 rounded-surface border border-warning/40 bg-warning/10 p-4 text-sm"
     >
       <AlertTriangle
         aria-hidden="true"
-        className="mt-0.5 h-4 w-4 shrink-0 text-amber-600"
+        className="mt-0.5 h-4 w-4 shrink-0 text-warning"
       />
       <div className="min-w-0 flex-1">
         <p className="font-medium">Development mode — not authoritative</p>
@@ -43,7 +43,7 @@ export function ContestModeNotice({
           type="button"
           onClick={onRetry}
           disabled={retrying}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-500/50 px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60 dark:text-amber-400"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-chip border border-warning/40 px-3 py-1.5 font-ui text-xs font-medium text-warning transition-colors hover:bg-warning/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
         >
           <CloudOff aria-hidden="true" className="h-3.5 w-3.5" />
           {retrying ? "Checking…" : "Retry backend"}

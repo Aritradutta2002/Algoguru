@@ -219,11 +219,11 @@ function CodeBlock({
 
   return (
     <div
-      className="my-4 rounded-xl overflow-hidden border border-[#2e2e2e] bg-[#1a1a1a]"
+      className="my-4 overflow-hidden rounded-control border border-border bg-code-bg"
       style={{ touchAction: "pan-x pan-y" }}
     >
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border border-[#3a3a3a]">
+      <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-2.5">
+        <span className="inline-flex items-center rounded-chip border border-border bg-muted px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           {lang}
         </span>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -234,8 +234,8 @@ function CodeBlock({
                 setInserted(true);
                 setTimeout(() => setInserted(false), 1800);
               }}
-              className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
-                inserted ? "bg-[#1f3a2a] text-emerald-400" : "bg-[#3a3a3a] text-zinc-300 hover:bg-[#404040] hover:text-white"
+              className={`inline-flex items-center gap-1.5 rounded-chip px-2.5 py-1 font-ui text-xs font-medium transition-colors ${
+                inserted ? "bg-success/10 text-success" : "border border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
               }`}
               title="Insert code into Monaco editor"
             >
@@ -249,24 +249,24 @@ function CodeBlock({
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
-              copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+            className={`inline-flex items-center gap-1.5 rounded-chip px-2.5 py-1 font-ui text-xs font-medium transition-colors ${
+              copied ? "bg-success/10 text-success" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+            {copied ? <Check size={13} className="text-success" /> : <Copy size={13} />}
             {copied ? "Copied" : "Copy"}
           </button>
         </div>
       </div>
-      <div className="relative overflow-x-auto bg-[#1a1a1a]" style={{ touchAction: "pan-x" }}>
+      <div className="relative overflow-x-auto bg-code-bg" style={{ touchAction: "pan-x" }}>
         <SyntaxHighlighter
           language={lang}
           style={vscDarkPlus}
           customStyle={{
             margin: 0,
             border: "none",
-            background: "#1a1a1a",
-            backgroundColor: "#1a1a1a",
+            background: "hsl(var(--code-bg))",
+            backgroundColor: "hsl(var(--code-bg))",
             padding: "1rem 1.25rem",
             fontSize: "13.5px",
             lineHeight: "1.65",
@@ -979,8 +979,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
     // Desktop/embedded: flex container fills the parent panel.
     const shouldUseFixedOverlay = isMobile && !embedded;
     const containerClasses = shouldUseFixedOverlay
-      ? "fixed inset-0 z-50 flex h-full flex-col bg-neutral-900 text-neutral-100"
-      : "relative flex h-full flex-col overflow-hidden bg-neutral-900 text-neutral-100";
+      ? "fixed inset-0 z-50 flex h-full flex-col bg-background text-foreground"
+      : "relative flex h-full flex-col overflow-hidden bg-background text-foreground";
     const botName = showGuruTitle ? "GuruBot" : "GuruBot";
     const clearActiveChat = () => {
       if (currentId) deleteSession(currentId, { stopPropagation() {} } as unknown as React.MouseEvent);
@@ -991,19 +991,19 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
       <div ref={ref} className={containerClasses}>
         {/* ─── Header ─── */}
         {!hideHeader && (
-        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-neutral-800 bg-neutral-900 px-3 py-2.5">
+        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background px-3 py-2.5">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-800 text-indigo-400">
+            <div className="flex h-8 w-8 items-center justify-center rounded-control border border-border bg-muted/50 text-primary">
               <Bot size={16} />
             </div>
-            <span className="truncate text-[15px] font-bold tracking-tight text-neutral-100">{botName}</span>
+            <span className="truncate font-display text-[15px] font-semibold tracking-tight text-foreground">{botName}</span>
           </div>
 
           <div className="flex items-center gap-0.5">
             <AppTooltip content="New Chat">
               <button
                 onClick={startNewChat}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+                className="flex h-8 w-8 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label="New Chat"
               >
                 <MessageSquarePlus size={16} />
@@ -1012,8 +1012,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             <AppTooltip content={showHistory ? "Back to chat" : "History"}>
               <button
                 onClick={() => setShowHistory((o) => !o)}
-                className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-800 ${
-                  showHistory ? "text-indigo-400" : "text-neutral-400 hover:text-neutral-100"
+                className={`flex h-8 w-8 items-center justify-center rounded-control transition-colors hover:bg-muted ${
+                  showHistory ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
                 aria-label="History"
               >
@@ -1024,7 +1024,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               <AppTooltip content={isFullscreen ? "Exit expanded view" : "Expand panel"}>
                 <button
                   onClick={onToggleFullscreen}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+                  className="flex h-8 w-8 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label={isFullscreen ? "Exit expanded view" : "Expand panel"}
                 >
                   {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
@@ -1034,7 +1034,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             <AppTooltip content="Close">
               <button
                 onClick={handleClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+                className="flex h-8 w-8 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label="Close"
               >
                 <X size={17} />
@@ -1045,40 +1045,40 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
         )}
 
         {/* ─── Body ─── */}
-        <div className="relative flex-1 overflow-hidden bg-neutral-900">
+        <div className="relative flex-1 overflow-hidden bg-background">
           {/* Chat History Sidebar */}
           {showHistory ? (
-            <div className="absolute inset-0 z-10 animate-in slide-in-from-left-2 overflow-y-auto bg-neutral-900 duration-300">
+            <div className="absolute inset-0 z-10 animate-in slide-in-from-left-2 overflow-y-auto bg-background duration-300">
               <div className="p-4">
                 <div className="mb-4">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                    <h3 className="ui-kicker">
                       Chat history
                     </h3>
-                    <span className="rounded-full bg-neutral-800 px-2.5 py-0.5 text-[10px] text-neutral-400">
+                    <span className="rounded-chip border border-border bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
                       {sessionCountLabel}
                     </span>
                   </div>
                   <div className="relative">
-                    <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                    <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                       value={historyQuery}
                       onChange={(e) => setHistoryQuery(e.target.value)}
                       placeholder="Search chats"
-                      className="h-10 w-full rounded-xl border border-neutral-800 bg-neutral-800/50 pl-9 pr-3 text-[13px] text-neutral-100 outline-none transition-colors placeholder:text-neutral-500 focus:border-indigo-500/60"
+                      className="h-10 w-full rounded-control border border-border bg-background pl-9 pr-3 text-[13px] text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                     />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   {visibleSessions.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-neutral-800 px-5 py-14 text-center">
-                      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-800 text-indigo-400">
+                    <div className="rounded-surface border border-dashed border-border px-5 py-14 text-center">
+                      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-control border border-border bg-muted/50 text-primary">
                         <MessageSquare size={18} />
                       </div>
-                      <p className="text-sm font-medium text-neutral-200">
+                      <p className="text-sm font-medium text-foreground">
                         {sessions.length === 0 ? "No chats yet" : "No matching chats"}
                       </p>
-                      <p className="mt-1 text-xs text-neutral-500">
+                      <p className="ui-meta mt-1">
                         {sessions.length === 0 ? "Start a new conversation to build your history." : "Try a different keyword."}
                       </p>
                     </div>
@@ -1091,23 +1091,23 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setShowHistory(false);
                           setModel(s.model || "openrouter");
                         }}
-                        className={`group flex cursor-pointer items-start justify-between gap-3 rounded-xl border p-3 transition-colors ${
+                        className={`group flex cursor-pointer items-start justify-between gap-3 rounded-control border p-3 transition-colors ${
                           s.id === currentId
-                            ? "border-indigo-500/40 bg-indigo-500/10"
-                            : "border-transparent bg-neutral-800/40 hover:bg-neutral-800"
+                            ? "border-primary/40 bg-primary/5"
+                            : "border-transparent hover:bg-muted/50"
                         }`}
                       >
                         <div className="flex min-w-0 items-start gap-3">
                           <div
-                            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                              s.id === currentId ? "bg-indigo-500/20 text-indigo-300" : "bg-neutral-800 text-neutral-400"
+                            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-border ${
+                              s.id === currentId ? "bg-primary/10 text-primary" : "bg-muted/40 text-muted-foreground"
                             }`}
                           >
                             {s.pinned ? <Pin size={12} /> : <MessageSquare size={12} />}
                           </div>
                           <div className="min-w-0">
-                            <div className="truncate text-[13px] font-medium text-neutral-100">{s.title}</div>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500">
+                            <div className="truncate text-[13px] font-medium text-foreground">{s.title}</div>
+                            <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted-foreground">
                               <span className="inline-flex items-center gap-1">
                                 <Clock3 size={11} />
                                 {new Date(s.date).toLocaleDateString()}
@@ -1120,8 +1120,8 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                           <button
                             onClick={(e) => toggleSessionPin(s.id, e)}
-                            className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
-                              s.pinned ? "bg-indigo-500/15 text-indigo-300" : "text-neutral-500 hover:bg-neutral-700 hover:text-neutral-200"
+                            className={`flex h-7 w-7 items-center justify-center rounded-control transition-colors ${
+                              s.pinned ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }`}
                             aria-label={s.pinned ? "Unpin chat" : "Pin chat"}
                           >
@@ -1129,7 +1129,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           </button>
                           <button
                             onClick={(e) => deleteSession(s.id, e)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                             aria-label="Delete chat"
                           >
                             <Trash2 size={12} />
@@ -1143,19 +1143,19 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
             </div>
           ) : (
             <div
-              className="h-full space-y-5 overflow-y-auto bg-neutral-900 p-4"
+              className="h-full space-y-5 overflow-y-auto bg-background p-4"
               style={{ overscrollBehavior: "contain" }}
             >
               {messages.length === 0 && (
                 <div className="flex flex-col items-center gap-6 px-2 py-10 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-800 text-indigo-400">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-surface border border-border bg-muted/50 text-primary">
                     <Bot size={30} />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-[20px] font-bold tracking-tight text-neutral-100">
+                    <h2 className="ui-h3">
                       How can I help you today?
                     </h2>
-                    <p className="mx-auto max-w-sm text-[13px] leading-relaxed text-neutral-400">
+                    <p className="mx-auto max-w-sm text-[13px] leading-relaxed text-muted-foreground">
                       Ask about algorithms, complexity, debugging, or paste your code — {botName} is ready.
                     </p>
                   </div>
@@ -1173,10 +1173,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                           setInput(item.q);
                           setTimeout(() => inputRef.current?.focus(), 50);
                         }}
-                        className="group flex items-center justify-between rounded-xl border border-neutral-800 bg-neutral-800/40 px-4 py-3 text-left transition-colors hover:border-indigo-500/40 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="group flex items-center justify-between rounded-control border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <span className="text-[13px] font-medium text-neutral-200">{item.q}</span>
-                        <ArrowRight size={14} className="shrink-0 text-neutral-500 transition-colors group-hover:text-indigo-400" />
+                        <span className="text-[13px] font-medium text-foreground">{item.q}</span>
+                        <ArrowRight size={14} className="shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
                       </button>
                     ))}
                   </div>
@@ -1191,25 +1191,25 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                   {m.role === "assistant" ? (
                     <div className="max-w-[94%]">
                       <div className="mb-1.5 flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-neutral-800 text-indigo-400">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-control border border-border bg-muted/50 text-primary">
                           <Bot size={13} />
                         </div>
-                        <span className="text-[12px] font-semibold text-neutral-300">{botName}</span>
+                        <span className="font-ui text-[12px] font-semibold text-muted-foreground">{botName}</span>
                       </div>
-                      <div className="rounded-2xl rounded-tl-md bg-neutral-800/60 px-4 py-3">
-                        <div className="prose prose-sm prose-invert max-w-none text-[13px] leading-relaxed text-neutral-100 prose-headings:text-neutral-100 prose-strong:text-neutral-100 prose-p:my-2 prose-pre:my-3">
+                      <div className="rounded-surface rounded-tl-md border border-border bg-card px-4 py-3">
+                        <div className="editorial-content prose prose-sm max-w-none text-[13px] leading-relaxed prose-p:my-2 prose-pre:my-3">
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
                               code({ className, children, ...props }) {
                                 const isBlock = className?.startsWith("language-") || String(children).includes("\n");
                                 if (isBlock) return <CodeBlock className={className} onInsert={onInsertCode}>{String(children).replace(/\n$/, "")}</CodeBlock>;
-                                return <code className="rounded-md border border-neutral-700 bg-neutral-900 px-1.5 py-0.5 font-mono text-[12px] text-neutral-200" {...props}>{children}</code>;
+                                return <code className="rounded-chip border border-border bg-muted px-1.5 py-0.5 font-mono text-[12px] text-foreground" {...props}>{children}</code>;
                               },
                               pre({ children }) { return <>{children}</>; },
                               table({ children }) {
                                 return (
-                                  <div className="my-4 w-full overflow-x-auto rounded-xl border border-neutral-700 bg-neutral-900">
+                                  <div className="my-4 w-full overflow-x-auto rounded-control border border-border bg-background">
                                     <table className="w-full min-w-[520px] border-collapse text-left text-[12px] leading-relaxed">
                                       {children}
                                     </table>
@@ -1217,19 +1217,19 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                                 );
                               },
                               thead({ children }) {
-                                return <thead className="bg-neutral-800 text-neutral-200">{children}</thead>;
+                                return <thead className="bg-muted/60 text-foreground">{children}</thead>;
                               },
                               tbody({ children }) {
-                                return <tbody className="divide-y divide-neutral-800">{children}</tbody>;
+                                return <tbody className="divide-y divide-border">{children}</tbody>;
                               },
                               tr({ children }) {
-                                return <tr className="transition-colors hover:bg-neutral-800/50">{children}</tr>;
+                                return <tr className="transition-colors hover:bg-muted/40">{children}</tr>;
                               },
                               th({ children }) {
-                                return <th className="border-b border-neutral-700 px-3 py-2.5 align-top font-semibold">{children}</th>;
+                                return <th className="border-b border-border px-3 py-2.5 align-top font-semibold">{children}</th>;
                               },
                               td({ children }) {
-                                return <td className="px-3 py-2.5 align-top text-neutral-300">{children}</td>;
+                                return <td className="px-3 py-2.5 align-top text-muted-foreground">{children}</td>;
                               },
                             }}
                           >
@@ -1240,28 +1240,28 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                       <div className="mt-1.5 flex items-center gap-1 pl-1">
                         <button
                           onClick={() => copyReply(m.content, i)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                          className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label="Copy"
                         >
-                          {copiedMessageIndex === i ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                          {copiedMessageIndex === i ? <Check size={13} className="text-success" /> : <Copy size={13} />}
                         </button>
                         <button
                           onClick={() => { setInput(messages.find((mm) => mm.role === "user")?.content || ""); setTimeout(() => inputRef.current?.focus(), 50); }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                          className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label="Regenerate"
                         >
                           <RotateCcw size={13} />
                         </button>
                         <button
                           onClick={() => rateReply(i, 1)}
-                          className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-neutral-800 ${rating === 1 ? "text-emerald-400" : "text-neutral-500 hover:text-neutral-200"}`}
+                          className={`flex h-7 w-7 items-center justify-center rounded-control transition-colors hover:bg-muted ${rating === 1 ? "text-success" : "text-muted-foreground hover:text-foreground"}`}
                           aria-label="Thumbs up"
                         >
                           <ThumbsUp size={13} className={rating === 1 ? "fill-current" : ""} />
                         </button>
                         <button
                           onClick={() => rateReply(i, -1)}
-                          className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-neutral-800 ${rating === -1 ? "text-red-400" : "text-neutral-500 hover:text-neutral-200"}`}
+                          className={`flex h-7 w-7 items-center justify-center rounded-control transition-colors hover:bg-muted ${rating === -1 ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
                           aria-label="Thumbs down"
                         >
                           <ThumbsDown size={13} className={rating === -1 ? "fill-current" : ""} />
@@ -1270,20 +1270,20 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                     </div>
                   ) : (
                     <div className="max-w-[82%]">
-                      <div className="rounded-2xl rounded-br-md bg-neutral-700/70 px-4 py-2.5 text-[13px] leading-relaxed text-neutral-100">
+                      <div className="rounded-surface rounded-br-md border border-border bg-muted/70 px-4 py-2.5 text-[13px] leading-relaxed text-foreground">
                         {m.content}
                       </div>
                       <div className="mt-1.5 flex items-center justify-end gap-1 pr-1">
                         <button
                           onClick={() => copyReply(m.content, i)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                          className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label="Copy"
                         >
-                          {copiedMessageIndex === i ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                          {copiedMessageIndex === i ? <Check size={13} className="text-success" /> : <Copy size={13} />}
                         </button>
                         <button
                           onClick={() => { setInput(m.content); setTimeout(() => inputRef.current?.focus(), 50); }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                          className="flex h-7 w-7 items-center justify-center rounded-control text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label="Edit"
                         >
                           <Wand2 size={13} />
@@ -1299,7 +1299,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 <div className="flex justify-center">
                   <button
                     onClick={() => { setInput("Give me the full corrected code and explain the fix vs my version"); setTimeout(() => inputRef.current?.focus(), 50); }}
-                    className="rounded-lg border border-neutral-800 bg-neutral-800/50 px-4 py-2 text-[11px] font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-200"
+                    className="rounded-chip border border-border bg-card px-4 py-2 font-ui text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                   >
                     Still stuck? → Get full answer
                   </button>
@@ -1309,22 +1309,22 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               {loading &&
                 messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-neutral-800 text-indigo-400">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-control border border-border bg-muted/50 text-primary">
                       <Bot size={13} />
                     </div>
-                    <div className="flex items-center gap-2 rounded-2xl rounded-tl-md bg-neutral-800/60 px-4 py-3">
+                    <div className="flex items-center gap-2 rounded-surface rounded-tl-md border border-border bg-card px-4 py-3">
                       {/* Cycling status phrase with a quick fade so each swap
                           feels deliberate instead of jarring. */}
                       <span
                         key={thinkPhrase}
-                        className="text-[13px] text-neutral-300 animate-fade-in"
+                        className="text-[13px] text-muted-foreground animate-fade-in"
                       >
                         {thinkPhrase}
                       </span>
                       <span className="flex items-center gap-1" aria-hidden="true">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-500" style={{ animationDelay: "0ms" }} />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-500" style={{ animationDelay: "150ms" }} />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-500" style={{ animationDelay: "300ms" }} />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "0ms" }} />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "150ms" }} />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: "300ms" }} />
                       </span>
                     </div>
                   </div>
@@ -1336,13 +1336,13 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
 
         {/* ─── Input + Models + Footer ─── */}
         <div
-          className="z-20 border-t border-neutral-800 bg-neutral-900 px-3 pb-3 pt-3"
+          className="z-20 border-t border-border bg-background px-3 pb-3 pt-3"
           style={{
             paddingBottom: isMobile ? "max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))" : undefined,
           }}
         >
           {/* Input container */}
-          <div className="relative rounded-2xl border border-neutral-700 bg-neutral-800 transition-colors focus-within:border-indigo-500/60">
+          <div className="relative rounded-surface border border-border bg-card transition-colors focus-within:border-primary">
             <textarea
               ref={inputRef}
               value={input}
@@ -1368,7 +1368,7 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
               // question queue up; pressing Enter will trigger `send` (or
               // `stopChat` is the visible button action).
               disabled={loading && !inputValueRef.current}
-              className="w-full resize-none bg-transparent px-4 py-3 pr-14 text-[13px] leading-relaxed text-neutral-100 outline-none placeholder:text-neutral-500 min-h-[52px] max-h-[96px] md:max-h-[120px]"
+              className="w-full resize-none bg-transparent px-4 py-3 pr-14 text-[13px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground min-h-[52px] max-h-[96px] md:max-h-[120px]"
               rows={1}
             />
             <button
@@ -1385,10 +1385,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
                 }
               }}
               disabled={(!inputValueRef.current.trim() && !loading) || (loading && !inputValueRef.current && messages.length === 0)}
-              className={`pointer-events-auto absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
+              className={`pointer-events-auto absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-control transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
                 loading
-                  ? "bg-red-500/15 text-red-400 hover:bg-red-500/25"
-                  : "bg-indigo-600 text-white hover:bg-indigo-500"
+                  ? "bg-destructive/15 text-destructive hover:bg-destructive/25"
+                  : "bg-foreground text-background hover:opacity-90"
               }`}
               aria-label={loading ? "Stop" : "Send"}
             >
@@ -1400,10 +1400,10 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <button
               onClick={() => setAttachCode((v) => !v)}
-              className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-chip border px-3 py-1.5 font-ui text-[12px] font-medium transition-colors ${
                 attachCode
-                  ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-300"
-                  : "border-neutral-800 bg-neutral-800/40 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+                  ? "border-primary/45 bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/35 hover:text-foreground"
               }`}
               title={attachCode ? "Code attached (click to detach)" : "Attach your editor code"}
             >
@@ -1416,12 +1416,12 @@ export const GuruBot = forwardRef<HTMLDivElement, GuruBotProps>(
           <div className="mt-2.5 flex items-center justify-between">
             <button
               onClick={clearActiveChat}
-              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-neutral-500 transition-colors hover:text-red-400"
+              className="inline-flex items-center gap-1.5 font-ui text-[12px] font-medium text-muted-foreground transition-colors hover:text-destructive"
             >
               <Trash2 size={13} />
               Clear
             </button>
-            <span className="text-[11px] text-neutral-500">Shift+Enter for new line</span>
+            <span className="ui-meta">Shift+Enter for new line</span>
           </div>
         </div>
       </div>

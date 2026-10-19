@@ -233,7 +233,7 @@ export function CodingContestInstructions() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background text-foreground selection:bg-primary/20">
       <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <Button asChild variant="ghost" size="sm" className="-ml-2 text-muted-foreground hover:text-foreground">
           <Link to="/contest">
@@ -243,19 +243,8 @@ export function CodingContestInstructions() {
         </Button>
 
         {/* Hero Banner */}
-        <header className="relative mt-5 overflow-hidden rounded-3xl border border-border/80 bg-card/60 p-6 backdrop-blur-xl sm:p-10">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full opacity-10 blur-3xl"
-            style={{ background: "hsl(var(--primary))" }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-24 -right-20 h-72 w-72 rounded-full opacity-10 blur-3xl"
-            style={{ background: "hsl(var(--primary))" }}
-          />
-
-          <div className="relative">
+        <header className="mt-5 rounded-surface border border-border bg-card p-6 sm:p-10">
+          <div>
             <div className="flex flex-wrap items-center gap-2.5">
               <Badge variant="secondary" className="px-3 py-1 font-medium bg-primary/10 text-primary border border-primary/20">
                 <Code2 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
@@ -281,19 +270,19 @@ export function CodingContestInstructions() {
 
             {/* Quick Spec Pills */}
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-surface border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Duration</p>
                 <p className="mt-1 font-mono text-base font-semibold">{CODING_CONTEST_DURATION_LABEL}</p>
               </div>
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-surface border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Problems</p>
                 <p className="mt-1 font-mono text-base font-semibold">{CODING_CONTEST_CONFIG.minProblems}–{CODING_CONTEST_CONFIG.maxProblems} Assigned</p>
               </div>
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-surface border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Environment</p>
                 <p className="mt-1 font-mono text-base font-semibold">Java 17</p>
               </div>
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-surface border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Monitoring</p>
                 <p className="mt-1 font-mono text-base font-semibold">Fullscreen & Focus</p>
               </div>
@@ -314,7 +303,7 @@ export function CodingContestInstructions() {
         {error ? (
           <div
             role="alert"
-            className="mt-6 flex flex-col gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+            className="mt-6 flex flex-col gap-3 rounded-surface border border-destructive/40 bg-destructive/10 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"
           >
             <p className="flex items-start gap-2">
               <AlertTriangle
@@ -337,7 +326,7 @@ export function CodingContestInstructions() {
         {/* Contest Rules Section */}
         <section
           aria-labelledby="contest-rules"
-          className="mt-8 rounded-3xl border border-border bg-card/60 p-6 backdrop-blur-xl sm:p-8"
+          className="mt-8 rounded-surface border border-border bg-card p-6 sm:p-8"
         >
           <div className="flex items-center justify-between border-b border-border/60 pb-4">
             <div>
@@ -357,9 +346,9 @@ export function CodingContestInstructions() {
             {RULES.map((rule) => (
               <li
                 key={rule.title}
-                className="group flex gap-3.5 rounded-2xl border border-border/60 bg-muted/15 p-4 transition-all hover:border-primary/40 hover:bg-muted/30"
+                className="group flex gap-3.5 rounded-surface border border-border/60 bg-muted/15 p-4 transition-all hover:border-primary/40 hover:bg-muted/30"
               >
-                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-primary/10 text-primary transition-transform group-hover:scale-105">
                   <rule.icon aria-hidden="true" className="h-4.5 w-4.5" />
                 </span>
                 <div>
@@ -376,9 +365,9 @@ export function CodingContestInstructions() {
         {/* Acknowledgement & Launch Section */}
         <section
           aria-labelledby="contest-acknowledgement"
-          className="mt-6 rounded-3xl border border-border/80 bg-gradient-to-b from-card/80 to-card/40 p-6 backdrop-blur-xl sm:p-8"
+          className="mt-6 rounded-surface border border-border bg-card p-6 sm:p-8"
         >
-          <div className="flex items-start gap-3 rounded-2xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30">
+          <div className="flex items-start gap-3 rounded-surface border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30">
             <Checkbox
               id="contest-rules-acknowledged"
               checked={acknowledged}
@@ -397,7 +386,7 @@ export function CodingContestInstructions() {
             open={confirmOpen}
             onOpenChange={(open) => !creating && setConfirmOpen(open)}
           >
-            <AlertDialogContent className="rounded-3xl border border-border bg-card/95 backdrop-blur-xl sm:max-w-md">
+            <AlertDialogContent className="rounded-surface border border-border bg-card sm:max-w-md">
               <AlertDialogHeader>
                 <AlertDialogTitle className="font-display text-xl">Start the Java coding contest?</AlertDialogTitle>
                 <AlertDialogDescription className="space-y-3 text-left pt-2 text-sm">
@@ -416,9 +405,9 @@ export function CodingContestInstructions() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="pt-2">
-                <AlertDialogCancel disabled={creating} className="rounded-xl">Not yet</AlertDialogCancel>
+                <AlertDialogCancel disabled={creating} className="rounded-control">Not yet</AlertDialogCancel>
                 <AlertDialogAction
-                  className="rounded-xl shadow-md"
+                  className="rounded-control"
                   onClick={(event) => {
                     // Keep the dialog mounted while the session is created.
                     event.preventDefault();
@@ -435,7 +424,7 @@ export function CodingContestInstructions() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button
               size="lg"
-              className="w-full sm:w-auto px-8 rounded-xl font-medium shadow-md transition-all hover:shadow-primary/20 hover:scale-[1.01]"
+              className="w-full sm:w-auto rounded-control px-8 font-ui font-medium"
               disabled={!acknowledged || creating}
               onClick={() => setConfirmOpen(true)}
             >

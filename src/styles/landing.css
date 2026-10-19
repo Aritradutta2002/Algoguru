@@ -6,38 +6,40 @@
    ───────────────────────────────────────────────────────────── */
 
 .lp {
-  /* Surfaces */
+  /* Surfaces — every slot aliases the shared app token, so the landing
+     page cannot drift from the product. Add new colours to `:root`
+     (index.css), never here. */
   --lp-paper: hsl(var(--background));
   --lp-surface: hsl(var(--card));
   --lp-ink: hsl(var(--foreground));
-  --lp-quiet: hsl(220 12% 40%);
-  --lp-rule: hsl(220 14% 88%);
-  --lp-rule-strong: hsl(220 14% 80%);
-  --lp-editor: hsl(220 20% 97% / 0.9);
-  --lp-editor-rule: hsl(220 14% 90%);
+  --lp-quiet: hsl(var(--quiet));
+  --lp-rule: hsl(var(--border));
+  --lp-rule-strong: hsl(var(--border-strong));
+  --lp-editor: hsl(var(--editor-surface) / var(--editor-alpha));
+  --lp-editor-rule: hsl(var(--editor-border));
   --lp-accent: hsl(var(--primary));
-  --lp-accent-soft: hsl(var(--primary) / 0.09);
+  --lp-accent-soft: hsl(var(--primary-soft) / var(--primary-soft-alpha));
   --lp-warm: hsl(var(--accent));
 
   /* Inverted panel (CTA) */
-  --lp-inv: hsl(222 32% 8%);
-  --lp-inv-ink: hsl(40 30% 97%);
-  --lp-inv-quiet: hsl(220 12% 72%);
-  --lp-inv-rule: hsl(220 14% 22%);
+  --lp-inv: hsl(var(--inverse));
+  --lp-inv-ink: hsl(var(--inverse-foreground));
+  --lp-inv-quiet: hsl(var(--inverse-quiet));
+  --lp-inv-rule: hsl(var(--inverse-border));
 
-  /* Type — inherited from the app shell (Space Grotesk body, Outfit
-     headings, Inter prose) so the landing page reads as the same product. */
-  --lp-sans: "Inter", "Space Grotesk", system-ui, -apple-system, sans-serif;
-  --lp-display: "Space Grotesk", "Inter", system-ui, sans-serif;
-  --lp-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  /* Type — same role tokens the product renders with. */
+  --lp-sans: var(--font-ui);
+  --lp-display: var(--font-display);
+  --lp-mono: var(--font-mono);
   --lp-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
 
   /* Code */
-  --tok-key: hsl(221 83% 45%);
-  --tok-type: hsl(178 62% 28%);
-  --tok-str: hsl(28 88% 38%);
-  --tok-com: hsl(220 10% 54%);
+  --tok-key: hsl(var(--syntax-key));
+  --tok-type: hsl(var(--syntax-type));
+  --tok-str: hsl(var(--syntax-string));
+  --tok-com: hsl(var(--syntax-comment));
 
+  /* Elevation is a landing composition (the hero mock only), not a token. */
   --lp-shadow: 0 40px 80px -48px hsl(222 40% 10% / 0.4), 0 2px 8px -4px hsl(222 40% 10% / 0.14);
   --lp-shadow-soft: 0 18px 40px -28px hsl(222 40% 10% / 0.3);
 
@@ -51,23 +53,7 @@
 }
 
 .dark .lp {
-  --lp-quiet: hsl(215 14% 64%);
-  --lp-rule: hsl(220 14% 17%);
-  --lp-rule-strong: hsl(220 14% 26%);
-  --lp-editor: hsl(222 18% 7% / 0.92);
-  --lp-editor-rule: hsl(220 14% 18%);
-  --lp-accent-soft: hsl(var(--primary) / 0.14);
-
-  --lp-inv: hsl(220 18% 9%);
-  --lp-inv-ink: hsl(40 30% 97%);
-  --lp-inv-quiet: hsl(218 12% 66%);
-  --lp-inv-rule: hsl(220 14% 20%);
-
-  --tok-key: hsl(213 94% 72%);
-  --tok-type: hsl(172 55% 62%);
-  --tok-str: hsl(38 92% 66%);
-  --tok-com: hsl(215 12% 48%);
-
+  /* Only composition-level values remain: the shared tokens already flip. */
   --lp-shadow: 0 50px 100px -50px #000, 0 2px 10px -4px #000;
   --lp-shadow-soft: 0 24px 50px -30px #000;
 }

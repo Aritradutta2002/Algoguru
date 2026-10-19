@@ -1,6 +1,8 @@
 # AlgoGuru - Application-Wide UI Unification Plan
 
-> **Status:** proposal - no code has been changed.
+> **Status:** in progress - Phases 1-4 done (tokens, primitives, marketing/hub routes, interview
+> readers); Phase 8 partly done (footer policy, dead palettes, monaco palette, font cleanup).
+> See "Execution log" below.
 > **Reference surface:** `src/pages/Index.tsx` + `src/styles/landing.css`.
 > **Scope:** every route in `src/App.tsx`, the app shell, and shared components.
 > **Repo:** `C:\Users\aritr\Desktop\AlgoGuru\Algoguru`
@@ -101,7 +103,7 @@ A landing `<h2>` and a product `<h2>` are rendered in **different typefaces toda
 
 | File | `#hex` count | Notes |
 |---|---:|---|
-| `src/pages/ProblemSolver.tsx` | 57 | Almost all are **Monaco editor theme** keys (lines ~206-360) - legitimate, should be centralised not tokenised as UI |
+| `src/pages/ProblemSolver.tsx` | 57 (now moved to `src/lib/monacoTheme.ts`) | Almost all are **Monaco editor theme** keys (lines ~206-360) - legitimate, should be centralised not tokenised as UI |
 | `src/pages/Playground.tsx` | 52 | Visualiser / editor palettes - same treatment |
 | `src/pages/Interview.tsx` | 14 | `color: "#2563EB"`, `"#60A5FA"`, `"#9BE2C3"`, `"#F472B6"` used as inline card accents |
 | `src/pages/Profile.tsx` | 9 | chart + badge colours |
@@ -637,6 +639,48 @@ previous gate is green.
 
 ---
 
+## 6.1 Execution log
+
+| Phase | State | Evidence |
+|---|---|---|
+| 0 - baseline + audit | **not done** (deliberately deferred; no screenshots, no `ui:audit`) | - |
+| 4 - hubs + marketing | done | `Interview.tsx`, `RoadmapHub.tsx`, `TopicPage.tsx`, `NotesDashboard.tsx`, `Quiz.tsx` rewritten on `PageShell`/`PageHeader`/`Surface`; `Quiz.test.tsx` helpers updated (`closest(".ui-stat")`, regex for the fullscreen warning) |
+| 5 - reader tokens | done | `core-java-interview.css` font literals replaced with role tokens (`--font-display` / `--font-ui` / `--font-mono`); `.cjh-*` classes kept (tests assert them) |
+| 8 - cleanup (part) | done | footer policy in `App.tsx` (`hideFooter` predicate, 3 render sites); `category.*`/`accentLine.*` removed from `tailwind.config.ts` (zero class usage); Monaco palettes extracted to `src/lib/monacoTheme.ts`; `Outfit`/`Roboto`/`Roboto Mono` dropped from the Google Fonts import; `ProblemSolver.css` chrome switched to `--font-ui` with prose/headings on `--font-body`/`--font-display` |
+| 1 - tokens | done | `src/index.css` token block + `@layer components` `ui-*` layer, `tailwind.config.ts` extend, `landing.css` `.lp-*` aliases |
+| 2 - primitives | done | `PagePrimitives.tsx` rewritten, `button.tsx` variants (`solid`/`line`/`ghost`/`reset`), heading font switch to Space Grotesk, `--font-ui` |
+| 2 - pilot | done | `src/pages/Practice.tsx` migrated: `PageShell`/`PageHeader variant="display"` + progress `Surface`, per-topic `SectionHeading`, `Surface` subtopic + problem rows, `Pill` counts, `ui-chip` companies, `ui-btn` LC/GFG/Solution/note/save, `TOPIC_ACCENTS` and per-topic hex removed. Routing, Supabase upserts, celebration burst and note editor untouched. |
+| 3, 6, 7 | done | all remaining routes migrated to `PageShell`/`PageHeader`/`Surface`/`Pill`/`StatCard`: `Profile`, `Auth`, `ResetPassword`, `NotFound`, `BuyMeACoffee`, `PracticeSolution`, `SupportModal`, `Playground`, `GuruBot` + `AppSidebar` + app header, 11 interview reader files, 4 contest pages + `ContestModeNotice`, `Admin`, `ProblemSolver` chrome; `QuizPlayer.tsx` (last surface) dropped `backdrop-blur`/`shadow-accent`/`shadow-overlay`/float-on-hover/bold-uppercase pills for flat `bg-card`, radius tokens, `font-ui` labels and one top hairline |
+
+Final gate results (2026-10-19): `npm run lint` clean, `tsc -p tsconfig.app.json --noEmit` at the
+13-error baseline (RoadmapEngine, registerJavaLanguage, NotesDashboard, Playground x3, four interview
+question pages), `npm test` 31 files / 449 passed, `npm run build` exit 0 (`built in 31.20s`).
+
+Browser pass, quiz player (`/quiz?language=java`): start -> 10-question run -> answer -> submit ->
+results in both themes; flat cards, hairline borders, one blue accent, legible correct/incorrect tones.
+Still unverified: `/admin` with a real admin session, `SupportModal` open state, `GuruBot` open state,
+and a contest session under real native fullscreen (guard path only).
+
+Phase-8 (part) gate results (2026-10-19): `tsc --noEmit` 13 errors (all pre-existing, unchanged),
+`npm run lint` clean, `npm test` 447/449 (the two pre-existing `ProblemSolver.test.tsx` failures),
+`npm run build` green.
+
+Browser pass (2026-10-19, Chromium 1440x1600, synthetic Supabase session, cached daily challenge):
+footer present on `/`, `/practice`, `/interview`, `/notes`, `/contest`, `/interview/java/core-java-qa`;
+absent on `/auth`, `/reset-password`, `/problem-solver`, `/playground`, `/roadmap`, `/contest/quiz`.
+`/problem-solver` renders the real split workspace with the new chrome/prose fonts; the Core Java hub
+renders with the role-token fonts. The dark-mode `.code-block-wrapper` separation and the `.cjh-*` question-reader screen were both
+captured later and accepted (dark + light). `ProblemSolver.test.tsx` was then fixed (daily panel
+`sr-only` heading + `aria-hidden` eyebrow), so the suite is fully green.
+
+Phase-2 gate results (2026-10-19): `tsc --noEmit` 14 errors (baseline was 15 - the one
+`Practice.tsx` timer-type error was fixed), `npm run lint` clean, `npm test` 447/449 (only the
+pre-existing `ProblemSolver.test.tsx` failures), `npm run build` green, emitted CSS contains every
+new `ui-*` class. Not yet verified: browser screenshots of `/practice` and of a hub/reader/
+workspace for the heading-font change.
+
+---
+
 ## 7. Verification and QA
 
 ### 7.1 Automated gates (run in every PR)
@@ -796,9 +840,9 @@ approved change. It is not part of this plan.
 | Shared primitives | `src/components/layout/PagePrimitives.tsx` (395 lines) |
 | Only current consumer | `src/pages/interview/JavaInterviewHub.tsx:13` |
 | Button cva variants | `src/components/ui/button.tsx` |
-| Monaco theme literals | `src/pages/ProblemSolver.tsx` lines ~206-360 |
+| Monaco theme literals | `src/lib/monacoTheme.ts` (extracted from `ProblemSolver.tsx`) |
 | Interview token layer | `src/styles/core-java-interview.css` (3,488 lines) |
-| Footer gating | `src/App.tsx` (`location.pathname === "/"`) |
+| Footer gating | `src/App.tsx` (`hideFooter` predicate) |
 | Class-assertion tests | `src/pages/interview/JavaInterviewHub.test.tsx:147,149` |
 
 ---

@@ -111,9 +111,10 @@ function answer(position: number, correct = true) {
 }
 
 function expectStat(label: string, value: string) {
-  expect(
-    screen.getByText(label, { exact: true }).parentElement,
-  ).toHaveTextContent(value);
+  /* Stat cards render `<label>` and `<value>` as siblings inside `.ui-stat`. */
+  const card = screen.getByText(label, { exact: true }).closest(".ui-stat");
+  expect(card).not.toBeNull();
+  expect(card).toHaveTextContent(value);
 }
 
 function review(position: number) {
@@ -604,7 +605,7 @@ describe("Quiz mandatory fullscreen", () => {
   it("requires fullscreen without a checkbox or an exit control during the exam", async () => {
     renderQuiz();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    expect(screen.getByText("Mandatory fullscreen exam")).toBeInTheDocument();
+    expect(screen.getByText(/Mandatory fullscreen exam/)).toBeInTheDocument();
     await startQuiz();
     expect(document.documentElement.requestFullscreen).toHaveBeenCalledTimes(1);
     expect(document.fullscreenElement).toBe(document.documentElement);

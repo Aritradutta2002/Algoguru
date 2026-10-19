@@ -109,7 +109,7 @@ const CONSOLE_HANDLE_CLASS =
 
 /** Rounded, self-contained surface for one pane of the workspace. */
 const PANE_SHELL_CLASS =
-  "flex h-full min-h-0 flex-col overflow-hidden rounded-xl bg-surface-panel";
+  "flex h-full min-h-0 flex-col overflow-hidden rounded-control bg-surface-panel";
 
 /**
  * Collapsed console = just its header strip, **in pixels**.
@@ -768,7 +768,7 @@ export function CodingContestSession() {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center gap-4 p-6 text-center">
         <AlertTriangle aria-hidden="true" className="h-8 w-8 text-destructive" />
         <h1 className="font-display text-xl font-semibold">Contest unavailable</h1>
         <p className="max-w-md text-sm text-muted-foreground">{loadError}</p>
@@ -779,7 +779,7 @@ export function CodingContestSession() {
 
   if (!bundle || !activeProblem) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center gap-4">
         <Loader2 aria-hidden="true" className="h-6 w-6 animate-spin text-muted-foreground" />
         <p role="status" className="text-sm text-muted-foreground">
           Loading your contest…
@@ -888,7 +888,7 @@ export function CodingContestSession() {
   );
 
   return (
-    <div className="flex h-screen flex-col gap-[15px] overflow-hidden bg-surface-page p-[15px] selection:bg-primary/20">
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col gap-[15px] overflow-hidden bg-surface-page p-[15px] selection:bg-primary/20">
       <CodingContestHeader
         remainingSeconds={timer.remainingSeconds}
         totalProblems={bundle.problems.length}
@@ -920,7 +920,7 @@ export function CodingContestSession() {
       {finaliseError ? (
         <div
           role="alert"
-          className="flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm"
+          className="flex shrink-0 flex-wrap items-center gap-3 rounded-control border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm"
         >
           <AlertTriangle aria-hidden="true" className="h-4 w-4 shrink-0 text-destructive" />
           <span className="flex-1">
@@ -944,7 +944,7 @@ export function CodingContestSession() {
             <ResizablePanel
               defaultSize={40}
               minSize={20}
-              className="min-w-0 rounded-xl bg-surface-panel"
+              className="min-w-0 rounded-control bg-surface-panel"
             >
               {problemPane}
             </ResizablePanel>
@@ -957,7 +957,7 @@ export function CodingContestSession() {
             <ResizablePanel
               defaultSize={60}
               minSize={30}
-              className="min-w-0 rounded-xl bg-surface-panel"
+              className="min-w-0 rounded-control bg-surface-panel"
             >
               {editorColumn}
             </ResizablePanel>
@@ -1047,7 +1047,7 @@ export function CodingContestSession() {
           aria-labelledby="coding-start-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
         >
-          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-7 text-center shadow-xl">
+          <div className="w-full max-w-md rounded-surface border border-border bg-card p-7 text-center shadow-card">
             <AlgoGuruLogo size={120} showText={false} className="mx-auto text-foreground" />
             <h2
               id="coding-start-title"

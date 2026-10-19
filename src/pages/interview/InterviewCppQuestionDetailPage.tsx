@@ -139,7 +139,7 @@ export default function InterviewCppQuestionDetailPage() {
 
   if (!entry || !question) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground px-4">
+      <div className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center bg-background text-foreground px-4">
         <p className="text-lg font-semibold mb-2">Question not found</p>
         <p className="text-sm text-muted-foreground mb-6">
           The question you're looking for doesn't exist or the link is broken.
@@ -193,7 +193,7 @@ export default function InterviewCppQuestionDetailPage() {
   };
 
   return (
-    <div className="cjd-page min-h-screen bg-background text-foreground">
+    <div className="cjd-page min-h-[calc(100vh-3.5rem)] bg-background text-foreground">
       {/* ── Sticky reading header ─────────────────────────────────── */}
       <header className="cjd-sticky-bar sticky top-0 z-30 border-b bg-card/95 backdrop-blur-md">
         <div className="max-w-[1440px] mx-auto px-4 md:px-8 flex items-center gap-3 py-2.5">
@@ -239,7 +239,7 @@ export default function InterviewCppQuestionDetailPage() {
               onClick={() => setDrawerOpen(true)}
               className="w-full text-left px-3 py-2 rounded-lg border border-border/40 bg-muted/20 hover:bg-muted/50 transition-colors mb-2"
             >
-              <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+              <span className="text-[11px] font-ui font-medium text-muted-foreground flex items-center gap-1.5">
                 <List size={12} />
                 Browse all topics
               </span>
@@ -295,7 +295,7 @@ export default function InterviewCppQuestionDetailPage() {
                 <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary">
                   Q{String(entry.index + 1).padStart(2, "0")}
                 </span>
-                <span className="text-[11px] font-semibold text-muted-foreground">{topic?.icon} {topic?.title}</span>
+                <span className="text-[11px] font-ui font-medium text-muted-foreground">{topic?.icon} {topic?.title}</span>
                 {meta.difficulty && <CppDifficultyBadge difficulty={meta.difficulty} />}
                 {meta.priority && <CppPriorityBadge priority={meta.priority} />}
                 {meta.cppVersions?.map((v) => <CppVersionBadge key={v} version={v} />)}
@@ -400,7 +400,7 @@ export default function InterviewCppQuestionDetailPage() {
                         <span className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors">
                           {related.question.question}
                         </span>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary mt-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-ui font-medium text-primary mt-2">
                           Read <ArrowRight size={12} />
                         </span>
                       </Link>
