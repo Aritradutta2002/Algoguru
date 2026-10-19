@@ -132,6 +132,17 @@ Deno.serve(async (req: Request) => {
       if (!params.userId || !params.role) throw new Error("userId and role required");
       if (params.userId === caller.id) throw new Error("Cannot change own role");
 
+      // Allowlist rather than trusting the request body. The database enum would
+      // reject an unknown value anyway, but validating here keeps the error
+      // explicit and stops arbitrary strings ever reaching the insert.
+      const ASSIGNABLE_ROLES = ["admin", "moderator", "user"];
+      if (params.role !== "none" && !ASSIGNABLE_ROLES.includes(String(params.role))) {
+        return new Response(JSON.stringify({ error: "Unsupported role" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       if (params.role === "none") {
         await adminClient.from("user_roles").delete().eq("user_id", params.userId);
       } else {

@@ -63,6 +63,7 @@ import {
 import { generateHarnessMain, parseSolutionSignature, chunkTestCases } from "@/lib/javaHarness";
 import { extractExpectedOutputs } from "@/lib/extractExpectedOutputs";
 import { buildProblemSolverGuruContext, deriveGuruSuggestions } from "@/lib/guruContext";
+import { sanitizeProblemHtml } from "@/lib/sanitizeProblemHtml";
 import { toast } from "@/hooks/use-toast";
 import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
@@ -2216,7 +2217,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                             {problem.hints.map((h, i) => (
                               <li
                                 key={i}
-                                dangerouslySetInnerHTML={{ __html: h }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeProblemHtml(h) }}
                               />
                             ))}
                           </ol>
@@ -2233,7 +2234,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
               {...fadeIn}
               className="solver-prose problem-description max-w-none"
             >
-              <div dangerouslySetInnerHTML={{ __html: problem.content }} />
+              <div dangerouslySetInnerHTML={{ __html: sanitizeProblemHtml(problem.content) }} />
             </motion.div>
           )}
 
@@ -2246,7 +2247,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
               {problem.solution ? (
                   <div className="editorial-content">
                     <EditorialBody
-                      markdown={problem.solution}
+                      markdown={sanitizeProblemHtml(problem.solution)}
                       blocks={problem.solutionBlocks}
                       // The workspace editor is Java-only, so default the
                       // editorial to Java rather than the editorial author's

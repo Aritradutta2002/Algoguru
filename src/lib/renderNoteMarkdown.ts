@@ -2,6 +2,8 @@
  * Renders simple markdown in notes to HTML.
  * Supports: **bold**, *italic*, __underline__, `code`, # heading, - list, 1. list
  */
+import DOMPurify from "dompurify";
+
 export function renderNoteMarkdown(text: string): string {
   if (!text) return "";
 
@@ -42,7 +44,33 @@ export function renderNoteMarkdown(text: string): string {
     return line;
   });
 
-  return processedLines.join("\n");
+  return sanitizeNoteHtml(processedLines.join("\n"));
+}
+
+/**
+ * The rendered note HTML is injected with `dangerouslySetInnerHTML`, so the
+ * output is sanitised at the boundary. Notes are user-authored and synced
+ * through the database, which makes them an untrusted input: the escaping
+ * above only covers the characters that happen to appear in `text`, not any
+ * HTML the markdown patterns can reconstruct. DOMPurify's default profile
+ * keeps the formatting tags used here and strips scripts, event handlers and
+ * `javascript:` URLs.
+ */
+function sanitizeNoteHtml(html: string): string {
+  // DOMPurify needs a DOM. Without one it returns "", which would silently
+  // blank every note, so fall back to the escaping already applied above.
+  if (typeof document === "undefined") return html;
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      "strong",
+      "em",
+      "u",
+      "code",
+      "span",
+      "br",
+    ],
+    ALLOWED_ATTR: ["class"],
+  });
 }
 
 /**

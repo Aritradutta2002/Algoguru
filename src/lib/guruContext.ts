@@ -1,9 +1,35 @@
+import DOMPurify from "dompurify";
+
 export function stripHtml(html: string): string {
   if (!html) return "";
   try {
     if (typeof document !== "undefined") {
       const tmp = document.createElement("div");
-      tmp.innerHTML = html;
+      // Assigning `innerHTML` parses (but does not run) scripts; however inline
+      // handlers and `<img onerror>` survive parsing and the string then flows
+      // into Guru's prompt. Sanitise to text-safe markup first so nothing
+      // executable is ever materialised from third-party problem HTML.
+      tmp.innerHTML = DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [
+          "p",
+          "br",
+          "pre",
+          "code",
+          "strong",
+          "b",
+          "em",
+          "i",
+          "u",
+          "ul",
+          "ol",
+          "li",
+          "sup",
+          "sub",
+          "span",
+          "div",
+        ],
+        ALLOWED_ATTR: ["class"],
+      });
       // preserve example blocks formatting
       tmp.querySelectorAll(".example-block").forEach((el) => {
         // ensure newlines between examples

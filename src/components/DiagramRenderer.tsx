@@ -273,7 +273,10 @@ function JVMArchitectureBlueprint() {
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {["Interpreter", "JIT\nCompiler", "Garbage\nCollector"].map((comp) => {
-                  const key = comp.replace("\n", " ");
+                  // Collapse every newline, not just the first: a string argument
+                  // to `replace` is non-global, so a label with two line breaks
+                  // would build a lookup key that silently misses its tooltip.
+                  const key = comp.replace(/\n/g, " ");
                   return (
                     <AppTooltip key={comp} content={JVM_TOOLTIPS[key] || comp}>
                       <div className="flex items-center justify-center py-3 px-1.5 rounded-lg border-[2px] border-slate-800 dark:border-slate-300 bg-[#bfaee0] dark:bg-[#5c4382] text-slate-900 dark:text-slate-100 font-bold text-xs md:text-sm text-center leading-tight shadow-xs whitespace-pre-line cursor-default hover:brightness-95 transition-all">

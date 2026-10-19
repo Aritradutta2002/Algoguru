@@ -56,12 +56,21 @@ function toSuggestion(monaco: any, m: JavaMethodCompletion, range: any, sortText
   };
 }
 
+export function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function resolveVariableType(fullText: string, varName: string): string | null {
+  // `varName` is interpolated into four patterns. Even though the caller today
+  // only passes an identifier, escaping here keeps a future caller from
+  // injecting regex syntax (or a catastrophic-backtracking pattern) into the
+  // editor's completion path.
+  const name = escapeRegExp(varName);
   const typePatterns = [
-    new RegExp(`(\\w+(?:<[^>]*>)?)\\s+${varName}\\s*[=;,)]`),
-    new RegExp(`(\\w+(?:<[^>]*>)?)\\s+${varName}\\s*$`, "m"),
-    new RegExp(`(\\w+(?:<[^>]*>)?)\\[\\]\\s+${varName}\\s*[=;,)]`),
-    new RegExp(`for\\s*\\([^)]*?(\\w+(?:<[^>]*>)?)\\s+${varName}\\s*[;:]`),
+    new RegExp(`(\\w+(?:<[^>]*>)?)\\s+${name}\\s*[=;,)]`),
+    new RegExp(`(\\w+(?:<[^>]*>)?)\\s+${name}\\s*$`, "m"),
+    new RegExp(`(\\w+(?:<[^>]*>)?)\\[\\]\\s+${name}\\s*[=;,)]`),
+    new RegExp(`for\\s*\\([^)]*?(\\w+(?:<[^>]*>)?)\\s+${name}\\s*[;:]`),
   ];
   for (const pattern of typePatterns) {
     const match = fullText.match(pattern);
