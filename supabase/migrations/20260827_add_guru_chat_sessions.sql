@@ -24,6 +24,13 @@ DROP INDEX IF EXISTS idx_guru_chat_sessions_user_scope_pinned;
 ALTER TABLE public.guru_chat_sessions
 DROP CONSTRAINT IF EXISTS guru_chat_sessions_user_id_session_id_key;
 
+-- The CREATE TABLE above already declares UNIQUE (user_id, scope, session_id),
+-- which Postgres names guru_chat_sessions_user_id_scope_session_id_key. Without
+-- this DROP, re-adding it below raises 42710 duplicate_object and the migration
+-- chain cannot be replayed from scratch (`supabase db reset`, preview branches).
+ALTER TABLE public.guru_chat_sessions
+DROP CONSTRAINT IF EXISTS guru_chat_sessions_user_id_scope_session_id_key;
+
 ALTER TABLE public.guru_chat_sessions
 ADD CONSTRAINT guru_chat_sessions_user_id_scope_session_id_key UNIQUE (user_id, scope, session_id);
 

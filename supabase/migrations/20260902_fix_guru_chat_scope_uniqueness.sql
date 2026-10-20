@@ -12,6 +12,12 @@ DROP INDEX IF EXISTS idx_guru_chat_sessions_user_scope_pinned;
 ALTER TABLE public.guru_chat_sessions
 DROP CONSTRAINT IF EXISTS guru_chat_sessions_user_id_session_id_key;
 
+-- Also drop the (user_id, scope, session_id) constraint itself first, otherwise
+-- re-adding it below raises 42710 duplicate_object on a database rebuilt from
+-- scratch (`supabase db reset`, preview branches, new projects).
+ALTER TABLE public.guru_chat_sessions
+DROP CONSTRAINT IF EXISTS guru_chat_sessions_user_id_scope_session_id_key;
+
 ALTER TABLE public.guru_chat_sessions
 ADD CONSTRAINT guru_chat_sessions_user_id_scope_session_id_key UNIQUE (user_id, scope, session_id);
 
