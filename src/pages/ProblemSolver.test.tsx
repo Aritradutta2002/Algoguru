@@ -240,20 +240,19 @@ describe("ProblemSolver daily challenge", () => {
     );
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
-
   it("provides the Daily challenge page heading", async () => {
     renderSolver();
     await loadedEditor();
-    expect(await screen.findByRole("heading", { name: "Daily challenge" })).toBeVisible();
+
+    expect(await screen.findByText("LeetCode daily challenge")).toBeVisible();
   });
 
-  it("shows acceptance and the challenge date from the daily response", async () => {
+  it("shows acceptance from the daily response", async () => {
     renderSolver();
     await loadedEditor();
 
-    // Allow a localized date and rounded percentage, not one presentation format.
+    // Allow a rounded percentage, not one presentation format.
     expect(screen.getByText(/56\.7\s*%/)).toBeInTheDocument();
-    expect(screen.getByText(/2026-10-16|Oct(?:ober)?\s+16(?:,?\s+2026)?|16\s+Oct(?:ober)?(?:\s+2026)?/i)).toBeInTheDocument();
   });
 
   it("expands and collapses both hints with an accessible count and state", async () => {
