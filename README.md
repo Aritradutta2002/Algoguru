@@ -91,6 +91,30 @@ the description panel tab rather than opening a separate assistant panel.
   breakdown and [`src/data/backendInterview/README.md`](src/data/backendInterview/README.md)
   for the authoring guide.
 
+## Database access & Data API grants
+
+Since **2026-10-30** Supabase no longer auto-grants Data API access to new tables
+in the `public` schema. Existing tables keep their privileges, but every table
+created after that date — including every table recreated by `supabase db reset`,
+a preview branch, or a new project — needs an explicit `GRANT` before
+supabase-js/PostgREST can reach it, otherwise the API returns
+`permission denied`.
+
+**Rule for this repo: a migration that creates a table in `public` must contain
+that table's `GRANT` statements in the same file.** Every table already has an
+explicit, least-privilege grant; `service_role` grants are included because it
+bypasses RLS but not table privileges, so the edge functions depend on them too.
+
+`npx supabase test db` enforces this — `supabase/tests/data_api_grants.test.sql`
+fails if a public table ships without an expected grant entry.
+
+Full reference, including the privilege matrix, a copy-paste template for new
+tables, the hosted-project audit query, and the `curl` checks for leaked tables:
+[`docs/data-api-grants.md`](docs/data-api-grants.md).
+
+> `supabase/full_schema.sql` is a **deprecated**, incomplete bootstrap file. Use
+> the migrations (`supabase db push`), not that file.
+
 ## Health Check / Monitoring
 
 A lightweight health-check endpoint is available for uptime monitoring services like UptimeRobot.
@@ -152,6 +176,13 @@ GET https://tgzyttzmtsnlxxiywoww.supabase.co/functions/v1/health
 1. **Run the SQL migration** against your Supabase project:
    - Via the Supabase Dashboard → SQL Editor, run `supabase/migrations/20260815_add_health_ping_function.sql`
    - Or via CLI: `supabase db push`
+
+   > Before running `supabase db push`, check `supabase migration list` first. If
+   > the remote migration history was never populated by the CLI (SQL pasted into
+   > the Dashboard instead), `db push` would try to replay every migration against
+   > a live database. In that case run the new migration's SQL directly in the SQL
+   > editor — the grant migrations are idempotent and additive. See
+   > [`docs/data-api-grants.md`](docs/data-api-grants.md).
 
 2. **Deploy the edge function**:
    ```bash

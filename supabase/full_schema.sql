@@ -1,3 +1,24 @@
+-- =============================================================================
+-- DEPRECATED — DO NOT USE FOR NEW DEPLOYMENTS.
+--
+-- This file is a historical one-shot bootstrap, not part of the migration chain.
+-- It is incomplete (it stops at cp_templates and is missing profiles' social
+-- handle columns, practice/core-java/system-design state, playground_*,
+-- guru_chat_*, leetcode_user_cache, coding_problems and the contest tables) and
+-- it is NOT applied by `supabase db push` or `supabase db reset`.
+--
+-- Use the migrations instead:
+--     npx supabase db push        (existing project)
+--     npx supabase db reset       (local)
+--
+-- Since 2026-10-30 Supabase no longer auto-grants Data API access to new tables
+-- in `public`, so any table created here without an explicit GRANT is invisible
+-- to supabase-js/PostgREST. The grants for the three tables defined below are at
+-- the bottom of this file; the authoritative privilege matrix lives in
+-- supabase/migrations/20261020120000_data_api_grants.sql.
+-- See docs/data-api-grants.md.
+-- =============================================================================
+
 -- Create profiles table
 CREATE TABLE public.profiles (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -137,3 +158,25 @@ ON public.cp_templates
 FOR SELECT
 TO anon, authenticated
 USING (true);
+
+-- =============================================================================
+-- Explicit Data API grants (see the deprecation header at the top).
+-- Only the three tables defined in this file are covered; every other table is
+-- missing here. The authoritative matrix is
+-- supabase/migrations/20261020120000_data_api_grants.sql.
+-- =============================================================================
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+
+REVOKE ALL ON TABLE public.profiles, public.user_roles, public.cp_templates
+FROM anon, authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles   TO authenticated;
+GRANT SELECT, INSERT, DELETE          ON public.user_roles TO authenticated;
+GRANT SELECT                          ON public.cp_templates TO anon, authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+  public.profiles, public.user_roles, public.cp_templates
+TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated, service_role;
