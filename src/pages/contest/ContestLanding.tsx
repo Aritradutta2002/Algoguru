@@ -82,7 +82,7 @@ function ModeCard({
   return (
     <section
       aria-labelledby={`${to.replace(/\W/g, "")}-title`}
-      className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 transition-colors hover:border-primary/40 focus-within:border-primary/60 sm:p-7"
+      className="spotlight-card premium-card premium-card-hover flex h-full flex-col p-6 focus-within:border-primary/60 sm:p-7"
     >
       <div className="flex items-center gap-3">
         <span
@@ -152,31 +152,38 @@ export function ContestLanding() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <header className="relative overflow-hidden rounded-3xl border border-border bg-card px-6 py-10 sm:px-10 sm:py-12">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full opacity-[0.07] blur-3xl"
-          style={{ background: "hsl(var(--primary))" }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-40 -right-16 h-80 w-80 rounded-full opacity-[0.05] blur-3xl"
-          style={{ background: "hsl(var(--primary))" }}
-        />
+      <header className="relative overflow-hidden rounded-[2rem] border border-border/80 bg-card px-6 py-10 shadow-overlay sm:px-10 sm:py-12">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,hsl(var(--primary)/0.14),transparent_42%),radial-gradient(circle_at_8%_100%,hsl(var(--accent)/0.08),transparent_35%)]" />
+          <div className="absolute inset-0 bg-grid opacity-35" />
+          <div className="aurora-blob -right-10 -top-20 h-64 w-64 bg-primary/10" />
+          <div className="bg-noise absolute inset-0" />
+        </div>
 
         <div className="relative">
-          <Badge variant="secondary" className="font-normal">
+          <Badge variant="secondary" className="border border-primary/15 bg-primary/10 font-medium text-primary">
             <Trophy aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
             Assessment
           </Badge>
-          <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mt-4 font-display text-4xl font-bold tracking-[-0.045em] sm:text-5xl">
             Contest
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted-foreground">
             Two ways to be assessed: a randomized multiple-choice quiz, or a
             timed Java coding exam. Both run in a mandatory fullscreen
             examination environment and both warn you when you look away.
           </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/50 px-2.5 py-1 text-[10.5px] font-medium text-muted-foreground backdrop-blur-sm">
+              <Shuffle size={11} className="text-primary" /> {MCQ_QUESTION_COUNT} MCQ bank
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/50 px-2.5 py-1 text-[10.5px] font-medium text-muted-foreground backdrop-blur-sm">
+              <Code2 size={11} className="text-primary" /> {CODING_CONTEST_DURATION_LABEL} coding
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10.5px] font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 size={11} /> Auto-graded
+            </span>
+          </div>
         </div>
       </header>
 
@@ -268,7 +275,7 @@ export function ContestLanding() {
 
       <section
         aria-labelledby="contest-shared-rules"
-        className="mt-8 rounded-3xl border border-border bg-card p-6 sm:p-7"
+        className="premium-card mt-8 p-6 sm:p-7"
       >
         <h2
           id="contest-shared-rules"

@@ -24,10 +24,20 @@ const FONT_SIZE_CSS: Record<FontSize, string> = {
   xl: "19px",
 };
 
+const readInitialTheme = (): Theme => {
+  try {
+    const stored = localStorage.getItem("cp-theme");
+    if (stored === "light" || stored === "dark") return stored;
+    return window.matchMedia("(prefers-color-scheme: light)").matches
+      ? "light"
+      : "dark";
+  } catch {
+    return "dark";
+  }
+};
+
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem("cp-theme") as Theme) || "dark";
-  });
+  const [theme, setTheme] = useState<Theme>(readInitialTheme);
 
   const [fontSize, setFontSize] = useState<FontSize>(() => {
     return (localStorage.getItem("cp-fontsize") as FontSize) || "md";
@@ -47,7 +57,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme); // adds "dark" or "light"
+    root.style.colorScheme = theme;
     localStorage.setItem("cp-theme", theme);
+
+    const themeColor = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+    if (themeColor) {
+      themeColor.content = theme === "dark" ? "#07090D" : "#FAFAF8";
+    }
   }, [theme]);
 
   useEffect(() => {

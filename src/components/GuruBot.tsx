@@ -38,6 +38,9 @@ import { AppTooltip } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeChatMarkdown } from "@/lib/normalizeChatMarkdown";
+import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
+
+export { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Session = {
@@ -63,18 +66,8 @@ const MODELS: ModelOption[] = [
   { key: "openrouter", label: "OpenRouter Free", tag: "OpenRouter" },
 ];
 
-// Standard sizing limits for Guru panel / slider across all layouts:
-//   • MIN keeps the panel readable without breaking message bubbles or code.
-//   • DEFAULT provides an ergonomic 28% starting size.
-//   • MAX is capped at 38% so the main content / code editor always maintains
-//     at least 62% width and never feels squashed.
-export const GURU_PANEL_CONSTANTS = {
-  DEFAULT_SIZE: 28,
-  MIN_SIZE: 18,
-  MAX_SIZE: 38,
-  COLLAPSED_SIZE: 3.5,
-  EXPAND_TRIGGER_SIZE: 4.25,
-} as const;
+// Sizing limits live in `@/lib/guruPanel`; re-exported above for existing
+// imports (Playground) without pulling the chat bundle into the app shell.
 
 const MAX_MODEL_MESSAGES = 14;
 

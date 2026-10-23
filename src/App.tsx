@@ -1,4 +1,12 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,27 +20,17 @@ import {
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { AppSidebar } from "@/components/AppSidebar";
 import { FoldGlyph } from "@/components/FoldGlyph";
-import Index from "./pages/Index";
-import TopicPage from "./pages/TopicPage";
-import Playground from "./pages/Playground";
-import Practice from "./pages/Practice";
-import PracticeSolution from "./pages/PracticeSolution";
-import ProblemSolver from "./pages/ProblemSolver";
-import Interview from "./pages/Interview";
 import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import NotFound from "./pages/NotFound";
-import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft, Menu, Home, Target, Code2, GraduationCap, Trophy, Map } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft, Menu, Home, Target, Code2, GraduationCap, Trophy, Map, BookOpen } from "lucide-react";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import { UserMenu } from "@/components/UserMenu";
-import { GuruBot, GURU_PANEL_CONSTANTS } from "@/components/GuruBot";
+import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
@@ -41,26 +39,84 @@ import {
   contestAppRoutes,
   contestStandaloneRoutes,
 } from "@/components/contest/ContestRoutes";
-import Profile from "./pages/Profile";
-import NotesDashboard from "./pages/NotesDashboard";
-import Admin from "./pages/Admin";
-import BuyMeACoffee from "./pages/BuyMeACoffee";
-import { RoadmapFullscreenRoute } from "./components/roadmap/RoadmapFullscreenRoute";
-import InterviewDataStructurePage from "./pages/interview/InterviewDataStructurePage";
-import InterviewCoreJavaQuestionsPage from "./pages/interview/InterviewCoreJavaQuestionsPage";
-import InterviewCoreJavaQuestionDetailPage from "./pages/interview/InterviewCoreJavaQuestionDetailPage";
-import InterviewSystemDesignPage from "./pages/interview/InterviewSystemDesignPage";
-import InterviewSqlStructurePage from "./pages/interview/InterviewSqlStructurePage";
-import InterviewLanguageQuestionsPage, { InterviewLanguageQuestionDetailPage } from "./pages/interview/InterviewLanguageQuestionsPage";
-import BackendInterviewHubPage from "./pages/interview/BackendInterviewHubPage";
-import BackendQuestionsPage from "./pages/interview/BackendQuestionsPage";
-import BackendQuestionDetailPage from "./pages/interview/BackendQuestionDetailPage";
-import BackendAnnotationsPage from "./pages/interview/BackendAnnotationsPage";
-import BackendPracticePage from "./pages/interview/BackendPracticePage";
-import BackendPracticeDetailPage from "./pages/interview/BackendPracticeDetailPage";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ImperativePanelHandle } from "react-resizable-panels";
-import { GlobalSearch } from "@/components/GlobalSearch";
+import { GlobalSearchLauncher } from "@/components/layout/GlobalSearchLauncher";
+import { AppLoadingScreen, PageSkeleton } from "@/components/layout/RouteFallback";
+import { MobileNav } from "@/components/layout/MobileNav";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+
+// Route-level code splitting keeps the initial shell small. Auth stays eager:
+// it is the first screen for signed-out visitors and gate for everything else.
+const AppSidebar = lazy(() =>
+  import("@/components/AppSidebar").then((module) => ({
+    default: module.AppSidebar,
+  })),
+);
+const Index = lazy(() => import("./pages/Index"));
+const TopicPage = lazy(() => import("./pages/TopicPage"));
+const Playground = lazy(() => import("./pages/Playground"));
+const Practice = lazy(() => import("./pages/Practice"));
+const PracticeSolution = lazy(() => import("./pages/PracticeSolution"));
+const ProblemSolver = lazy(() => import("./pages/ProblemSolver"));
+const Interview = lazy(() => import("./pages/Interview"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Profile = lazy(() => import("./pages/Profile"));
+const NotesDashboard = lazy(() => import("./pages/NotesDashboard"));
+const Admin = lazy(() => import("./pages/Admin"));
+const BuyMeACoffee = lazy(() => import("./pages/BuyMeACoffee"));
+const RoadmapFullscreenRoute = lazy(() =>
+  import("./components/roadmap/RoadmapFullscreenRoute").then((module) => ({
+    default: module.RoadmapFullscreenRoute,
+  })),
+);
+const GuruBot = lazy(() =>
+  import("@/components/GuruBot").then((module) => ({
+    default: module.GuruBot,
+  })),
+);
+const InterviewDataStructurePage = lazy(
+  () => import("./pages/interview/InterviewDataStructurePage"),
+);
+const InterviewCoreJavaQuestionsPage = lazy(
+  () => import("./pages/interview/InterviewCoreJavaQuestionsPage"),
+);
+const InterviewCoreJavaQuestionDetailPage = lazy(
+  () => import("./pages/interview/InterviewCoreJavaQuestionDetailPage"),
+);
+const InterviewSystemDesignPage = lazy(
+  () => import("./pages/interview/InterviewSystemDesignPage"),
+);
+const InterviewSqlStructurePage = lazy(
+  () => import("./pages/interview/InterviewSqlStructurePage"),
+);
+const InterviewLanguageQuestionsPage = lazy(
+  () => import("./pages/interview/InterviewLanguageQuestionsPage"),
+);
+const InterviewLanguageQuestionDetailPage = lazy(() =>
+  import("./pages/interview/InterviewLanguageQuestionsPage").then((module) => ({
+    default: module.InterviewLanguageQuestionDetailPage,
+  })),
+);
+const BackendInterviewHubPage = lazy(
+  () => import("./pages/interview/BackendInterviewHubPage"),
+);
+const BackendQuestionsPage = lazy(
+  () => import("./pages/interview/BackendQuestionsPage"),
+);
+const BackendQuestionDetailPage = lazy(
+  () => import("./pages/interview/BackendQuestionDetailPage"),
+);
+const BackendAnnotationsPage = lazy(
+  () => import("./pages/interview/BackendAnnotationsPage"),
+);
+const BackendPracticePage = lazy(
+  () => import("./pages/interview/BackendPracticePage"),
+);
+const BackendPracticeDetailPage = lazy(
+  () => import("./pages/interview/BackendPracticeDetailPage"),
+);
 
 const queryClient = new QueryClient();
 
@@ -153,9 +209,41 @@ function ScrollToTopOnRouteChange() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // The app shell scrolls a `<main>` element rather than the window, so
+    // reset that container too. Without this, navigating to a new page keeps
+    // the previous page's scroll offset.
+    document.getElementById("main-content")?.scrollTo({ top: 0, left: 0 });
   }, [pathname, search]);
 
   return null;
+}
+
+function SidebarSkeleton() {
+  return (
+    <div className="flex h-full flex-col gap-5 border-r border-border/70 bg-card/60 p-4">
+      <div className="flex items-center gap-2.5">
+        <div className="skeleton-shimmer h-8 w-8 rounded-xl" />
+        <div className="flex-1 space-y-1.5">
+          <div className="skeleton-shimmer h-2.5 w-20 rounded-full" />
+          <div className="skeleton-shimmer h-2 w-14 rounded-full" />
+        </div>
+      </div>
+      <div className="space-y-2 pt-2">
+        {Array.from({ length: 7 }).map((_, index) => (
+          <div
+            key={index}
+            className="skeleton-shimmer h-8 rounded-lg"
+            style={{ opacity: 1 - index * 0.08 }}
+          />
+        ))}
+      </div>
+      <div className="mt-auto space-y-2">
+        <div className="skeleton-shimmer h-9 rounded-lg" />
+        <div className="skeleton-shimmer h-9 rounded-lg" />
+      </div>
+      <span className="sr-only">Loading navigation</span>
+    </div>
+  );
 }
 
 function AppLayout({ children }: { children: React.ReactNode }) {
@@ -192,6 +280,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // for programmatic fold/unfold so those animate smoothly.
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
+  // Detect mobile viewport (< lg breakpoint = 1024px). Declared here because
+  // the desktop sidebar panel must not mount at all on phones.
+  const isMobile = useMediaQuery("(max-width: 1023px)");
+
   // On the home page the left sidebar panel is hidden by default (including
   // its fold/unfold handle). It only becomes visible when the user clicks the
   // "Choose where to focus next." heading, which toggles `homeSidebarOpen`.
@@ -204,7 +296,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // non-contest-landing, or when the home visitor explicitly opens it via
   // the heading.
   const showSidebarPanel =
-    (!isHomeRoute && !isContestLandingRoute) || homeSidebarOpen;
+    !isMobile && ((!isHomeRoute && !isContestLandingRoute) || homeSidebarOpen);
   useEffect(() => {
     // The panel unmounts on the home route; reset its state before it remounts.
     if (!showSidebarPanel) setIsSidebarCollapsed(false);
@@ -247,19 +339,40 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleSidebarShortcut);
   }, [showSidebarPanel, isSidebarCollapsed, foldSidebar, unfoldSidebar]);
 
-  // Detect mobile viewport (< lg breakpoint = 1024px)
-  const isMobile = useMediaQuery('(max-width: 1023px)');
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileLibraryOpen, setMobileLibraryOpen] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
+  const scrollProgressRef = useRef<HTMLDivElement | null>(null);
+  const scrollProgressFrame = useRef<number | null>(null);
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    setMobileLibraryOpen(false);
   }, [location.pathname]);
 
   const handleContentScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
-    const scrolled = event.currentTarget.scrollTop > 8;
+    const target = event.currentTarget;
+    const scrolled = target.scrollTop > 8;
     setHeaderScrolled((prev) => (prev === scrolled ? prev : scrolled));
+
+    if (scrollProgressFrame.current !== null) {
+      cancelAnimationFrame(scrollProgressFrame.current);
+    }
+    scrollProgressFrame.current = requestAnimationFrame(() => {
+      const maxScroll = target.scrollHeight - target.clientHeight;
+      const progress = maxScroll > 0 ? Math.min(1, target.scrollTop / maxScroll) : 0;
+      if (scrollProgressRef.current) {
+        scrollProgressRef.current.style.transform = `scaleX(${progress})`;
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scrollProgressFrame.current !== null) {
+        cancelAnimationFrame(scrollProgressFrame.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -283,6 +396,19 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const isRoadmapRoute =
     location.pathname === "/roadmap" ||
     location.pathname.startsWith("/roadmap/");
+  const isContestStageRoute = location.pathname.startsWith("/contest/");
+  const isImmersiveRoute =
+    isPlaygroundRoute ||
+    isProblemSolverRoute ||
+    isRoadmapRoute ||
+    isContestStageRoute;
+  const showMobileNav = isMobile && !guruOpen && !isImmersiveRoute;
+  const mobileMoreActive =
+    !isImmersiveRoute &&
+    !["/", "/practice", "/playground", "/interview"].some((path) =>
+      isNavActive(location.pathname, path),
+    );
+
   const contentBottomPaddingClass =
     location.pathname === "/" || isPlaygroundRoute || isProblemSolverRoute || isRoadmapRoute
       ? "pb-0"
@@ -290,6 +416,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const contentSurfaceClass = isPlaygroundRoute || isProblemSolverRoute || isRoadmapRoute
     ? "h-full min-h-0 pb-0"
     : `min-h-full ${contentBottomPaddingClass}`;
+
+  const pageContent = (
+    <>
+      <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+      {location.pathname === "/" && (
+        <Footer onSupportClick={() => setSupportOpen(true)} />
+      )}
+      {showMobileNav && <div aria-hidden="true" className="h-24 lg:hidden" />}
+    </>
+  );
 
   const expandGuruPanel = (targetSize?: number) => {
     const expandedSize = clamp(
@@ -323,6 +459,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultWidth={340} widthStorageKey="algoguru-sidebar-width">
       <HomeSidebarContext.Provider value={homeSidebarValue}>
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <div
         className="flex h-[100dvh] w-full overflow-hidden"
         style={{ background: "hsl(var(--background))" }}
@@ -361,7 +500,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               )}
               aria-hidden={isSidebarCollapsed}
             >
-              <AppSidebar onCollapse={foldSidebar} />
+              <Suspense fallback={<SidebarSkeleton />}>
+                <AppSidebar onCollapse={foldSidebar} />
+              </Suspense>
             </div>
           </Panel>
           )}
@@ -508,7 +649,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
               {/* Desktop search */}
               <div className="header-search-full hidden sm:block">
-                <GlobalSearch />
+                <GlobalSearchLauncher />
               </div>
 
               {/* Divider */}
@@ -580,10 +721,33 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                         </Link>
                       );
                     })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileLibraryOpen(true);
+                      }}
+                      className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <BookOpen size={15} className="text-muted-foreground/70" />
+                      Library
+                    </button>
                   </div>
                 </motion.nav>
               )}
             </AnimatePresence>
+
+            {/* Reading progress — transform-only, updated outside React. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden"
+            >
+              <div
+                ref={scrollProgressRef}
+                className="route-progress h-full w-full bg-gradient-to-r from-primary via-sky-400 to-accent"
+                style={{ transform: "scaleX(0)" }}
+              />
+            </div>
           </header>
 
           {guruOpen ? (
@@ -591,16 +755,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               /* ── Mobile: Full-screen overlay ── */
               <>
                 {/* Main content hidden on mobile when GuruBot is open */}
-                <main ref={contentScrollRef} className="hidden">
-                  <div className={contentSurfaceClass}>
-                    {children}
-                    {location.pathname === "/" && (
-                      <Footer onSupportClick={() => setSupportOpen(true)} />
-                    )}
-                  </div>
+                <main id="main-content" tabIndex={-1} ref={contentScrollRef} className="hidden">
+                  <div className={contentSurfaceClass}>{pageContent}</div>
                 </main>
                 {/* GuruBot full-screen overlay */}
-                <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+                <Suspense fallback={<AppLoadingScreen label="Opening Guru AI" />}>
+                  <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+                </Suspense>
               </>
             ) : (
               /* ── Desktop: Resizable split with collapsible Guru panel ── */
@@ -640,17 +801,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   minSize={MAIN_PANEL_MIN_SIZE}
                 >
                   <main
+                    id="main-content"
+                    tabIndex={-1}
                     ref={contentScrollRef}
                     onScroll={handleContentScroll}
                     className="h-full overflow-y-auto"
                     style={{ overscrollBehavior: "contain" }}
                   >
-                    <div className={contentSurfaceClass}>
-                      {children}
-                      {location.pathname === "/" && (
-                        <Footer onSupportClick={() => setSupportOpen(true)} />
-                      )}
-                    </div>
+                    <div className={contentSurfaceClass}>{pageContent}</div>
                   </main>
                 </ResizablePanel>
 
@@ -736,35 +894,77 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                     </AppTooltip>
                   ) : (
                     <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border bg-background">
-                      <GuruBot
-                        open={guruOpen}
-                        onClose={() => setGuruOpen(false)}
-                        embedded
-                        showGuruTitle
-                        onToggleFullscreen={() => {
-                          const cur = guruPanelSizeRef.current;
-                          if (cur >= GURU_PANEL_MAX_SIZE - 1) expandGuruPanel(GURU_PANEL_DEFAULT_SIZE);
-                          else expandGuruPanel(GURU_PANEL_MAX_SIZE);
-                        }}
-                        isFullscreen={guruPanelSizeRef.current >= GURU_PANEL_MAX_SIZE - 1}
-                      />
+                      <Suspense
+                        fallback={
+                          <div className="flex h-full flex-col items-center justify-center gap-4 bg-card">
+                            <img
+                              src={`${import.meta.env.BASE_URL}brand/guru-ai.png`}
+                              alt=""
+                              aria-hidden="true"
+                              width={52}
+                              height={54}
+                              className="h-[54px] w-[52px] object-contain"
+                            />
+                            <div className="skeleton-shimmer h-1 w-24 rounded-full" />
+                            <span className="sr-only">Loading Guru AI</span>
+                          </div>
+                        }
+                      >
+                        <GuruBot
+                          open={guruOpen}
+                          onClose={() => setGuruOpen(false)}
+                          embedded
+                          showGuruTitle
+                          onToggleFullscreen={() => {
+                            const cur = guruPanelSizeRef.current;
+                            if (cur >= GURU_PANEL_MAX_SIZE - 1) expandGuruPanel(GURU_PANEL_DEFAULT_SIZE);
+                            else expandGuruPanel(GURU_PANEL_MAX_SIZE);
+                          }}
+                          isFullscreen={guruPanelSizeRef.current >= GURU_PANEL_MAX_SIZE - 1}
+                        />
+                      </Suspense>
                     </div>
                   )}
                 </ResizablePanel>
               </ResizablePanelGroup>
             )
           ) : (
-            <main ref={contentScrollRef} onScroll={handleContentScroll} className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
-              <div className={contentSurfaceClass}>
-                {children}
-                {location.pathname === "/" && (
-                  <Footer onSupportClick={() => setSupportOpen(true)} />
-                )}
-              </div>
+            <main
+              id="main-content"
+              tabIndex={-1}
+              ref={contentScrollRef}
+              onScroll={handleContentScroll}
+              className="flex-1 overflow-y-auto"
+              style={{ overscrollBehavior: "contain" }}
+            >
+              <div className={contentSurfaceClass}>{pageContent}</div>
             </main>
           )}
           </Panel>
         </PanelGroup>
+
+        <AnimatePresence>
+          {showMobileNav && (
+            <MobileNav
+              onMore={() => setMobileMenuOpen(true)}
+              moreActive={mobileMoreActive}
+            />
+          )}
+        </AnimatePresence>
+        <Sheet open={mobileLibraryOpen} onOpenChange={setMobileLibraryOpen}>
+          <SheetContent
+            side="left"
+            className="w-[88vw] max-w-sm border-r border-border p-0 [&>button]:hidden"
+          >
+            <SheetTitle className="sr-only">Content library</SheetTitle>
+            <SheetDescription className="sr-only">
+              Browse topics, problems, and interview guides.
+            </SheetDescription>
+            <Suspense fallback={<SidebarSkeleton />}>
+              <AppSidebar onCollapse={() => setMobileLibraryOpen(false)} />
+            </Suspense>
+          </SheetContent>
+        </Sheet>
       </div>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
       </HomeSidebarContext.Provider>
@@ -776,12 +976,14 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <SettingsProvider>
+        <MotionConfig reducedMotion="user">
         <ModeProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <ScrollToTopOnRouteChange />
             <AuthProvider>
+              <Suspense fallback={<AppLoadingScreen />}>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
@@ -837,9 +1039,11 @@ const App = () => (
                   </ProtectedRoute>
                 } />
               </Routes>
+              </Suspense>
             </AuthProvider>
           </BrowserRouter>
         </ModeProvider>
+        </MotionConfig>
       </SettingsProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -2,30 +2,88 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#07090D" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>AlgoGuru</title>
-    <meta name="theme-color" content="#2563EB" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="description" content="AlgoGuru">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
 
-    <!-- TODO: Update og:title to match your application name -->
-    
-    
+    <title>AlgoGuru — Master code. Ace interviews.</title>
+    <meta
+      name="description"
+      content="A focused workspace for mastering data structures, system design, and the interviews that move your engineering career forward."
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og-image.png">
-
+    <meta property="og:site_name" content="AlgoGuru" />
+    <meta property="og:title" content="AlgoGuru — Master code. Ace interviews." />
+    <meta
+      property="og:description"
+      content="Structured DSA paths, system design, curated interview questions and an in-browser coding workspace."
+    />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="AlgoGuru — Master code. Ace interviews."
+    />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/og-image.png">
-    <meta property="og:title" content="AlgoGuru">
-  <meta name="twitter:title" content="AlgoGuru">
-  <meta property="og:description" content="AlgoGuru">
-  <meta name="twitter:description" content="AlgoGuru">
-</head>
+    <meta name="twitter:title" content="AlgoGuru — Master code. Ace interviews." />
+    <meta
+      name="twitter:description"
+      content="Structured DSA paths, system design, curated interview questions and an in-browser coding workspace."
+    />
+    <meta name="twitter:image" content="/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="AlgoGuru — Master code. Ace interviews."
+    />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fonts are loaded here (not via a blocking CSS @import) so the first
+         paint is not held up. Only the four families the product uses. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:ital,wght@0,400..600;1,400&family=Source+Sans+3:wght@300..700&family=Space+Grotesk:wght@400..700&display=swap"
+    />
+
+    <!-- Apply the saved theme before React mounts. Without this the app paints
+         its light theme for a frame and then snaps to dark. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("cp-theme");
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          var root = document.documentElement;
+          root.classList.add(theme);
+          root.style.colorScheme = theme;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#07090D" : "#FAFAF8");
+          }
+        } catch (error) {
+          document.documentElement.classList.add("dark");
+          document.documentElement.style.colorScheme = "dark";
+        }
+      })();
+    </script>
+  </head>
 
   <body>
     <div id="root"></div>

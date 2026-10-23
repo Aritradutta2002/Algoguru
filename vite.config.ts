@@ -41,12 +41,10 @@ export default defineConfig(({ mode }) => ({
             "class-variance-authority",
             "clsx",
           ],
-          "editor": [
-            "@monaco-editor/react",
-            "react-markdown",
-            "react-syntax-highlighter",
-          ],
-          "pdf": ["jspdf", "html2canvas"],
+          // Leave heavy, lazy-only stacks (editor, markdown, PDF) ungrouped.
+          // Vite can place its dynamic-import preload helper in the first
+          // manual chunk that needs it, which would make the entry statically
+          // import and preload that entire bundle on every page.
         },
       },
     },

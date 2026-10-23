@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useViewport } from './useViewport';
-import { GURU_PANEL_CONSTANTS } from '@/components/GuruBot';
+import { GURU_PANEL_CONSTANTS } from '@/lib/guruPanel';
 
 /**
  * Storage keys for responsive preferences
