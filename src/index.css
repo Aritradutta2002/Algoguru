@@ -4,9 +4,9 @@
 
 @layer components {
   .app-header {
-    background: hsl(var(--card) / 0.96);
-    border-bottom: 1px solid hsl(var(--border) / 0.65);
-    box-shadow: 0 1px 0 hsl(var(--background)), 0 4px 16px -12px hsl(var(--foreground) / 0.15);
+    background: hsl(var(--card) / 0.94);
+    border-bottom: 1px solid hsl(var(--border) / 0.7);
+    box-shadow: 0 1px 0 hsl(var(--card) / 0.8) inset, 0 4px 20px -16px hsl(var(--foreground) / 0.18);
     backdrop-filter: blur(16px);
     container-type: inline-size;
     transition: background-color 200ms ease, box-shadow 200ms ease;
@@ -41,9 +41,9 @@
   }
 
   .app-header [data-search-trigger="true"] {
-    width: clamp(10rem, 19vw, 18rem);
-    height: 2.25rem;
-    border-radius: 0.75rem;
+    width: clamp(10rem, 16cqi, 16rem);
+    height: 2.5rem;
+    border-radius: 0.85rem;
     background: hsl(var(--muted) / 0.45);
     box-shadow: none;
   }
@@ -55,14 +55,140 @@
 
   .app-header .header-primary-nav {
     display: none;
+    align-items: center;
+    gap: 0.25rem;
+    margin-inline: auto;
+    padding: 0.25rem;
+    border: 1px solid hsl(var(--border) / 0.55);
+    border-radius: 1rem;
+    background: hsl(var(--muted) / 0.5);
+    flex-shrink: 0;
+  }
+
+  .header-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.75rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: color 180ms ease, background-color 180ms ease;
+  }
+
+  .header-nav-link:hover {
+    color: hsl(var(--foreground));
+    background: hsl(var(--card) / 0.7);
+  }
+
+  .header-nav-link[aria-current="page"] {
+    color: hsl(var(--primary));
+  }
+
+  .header-nav-indicator {
+    position: absolute;
+    inset: 0;
+    border: 1px solid hsl(var(--border) / 0.75);
+    border-radius: inherit;
+    background: hsl(var(--card));
+    box-shadow: 0 2px 5px -2px hsl(var(--foreground) / 0.15);
+  }
+
+  .header-nav-indicator::after {
+    content: "";
+    position: absolute;
+    bottom: 0.2rem;
+    left: 35%;
+    right: 35%;
+    height: 2px;
+    border-radius: 2px;
+    background: hsl(var(--primary));
+  }
+
+  .header-mobile-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3rem;
+    padding: 0.75rem;
+    border: 1px solid hsl(var(--border) / 0.65);
+    border-radius: 0.85rem;
+    background: hsl(var(--muted) / 0.4);
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .header-mobile-link:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+
+  .header-mobile-link-active {
+    border-color: hsl(var(--primary) / 0.25);
+    background: hsl(var(--primary) / 0.08);
+    color: hsl(var(--primary));
   }
 
   .app-header .header-menu-btn {
     display: flex;
   }
 
+  .app-header .header-search-compact {
+    display: none;
+  }
+
+  .app-header .header-search-full {
+    display: block;
+  }
+
   .app-header .header-menu-sheet {
     display: block;
+    position: absolute;
+    inset-inline: 0.75rem;
+    top: calc(100% + 0.5rem);
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1.25rem;
+    background: hsl(var(--card) / 0.98);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  @container (max-width: 420px) {
+    .app-header > div:first-child {
+      gap: 0.25rem;
+    }
+
+    .app-header a[aria-label="AlgoGuru Home"] {
+      padding-inline: 0;
+      margin-left: 0;
+    }
+
+    .header-actions > button:not([aria-label]) {
+      padding-inline: 0.625rem;
+    }
+
+    .header-actions {
+      gap: 0.25rem;
+    }
+
+    .header-actions > button,
+    .header-actions > div[aria-label] {
+      margin-left: 0;
+    }
+
+    .app-header button[aria-label="Search"],
+    .app-header button[aria-label="Toggle navigation menu"],
+    .app-header button[aria-label^="Switch to"] {
+      min-width: 2.5rem;
+      min-height: 2.75rem;
+    }
   }
 
   @container (min-width: 1200px) {

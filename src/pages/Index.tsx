@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { MotionConfig, motion, useReducedMotion } from "framer-motion";
+import "@/styles/landing.css";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -136,6 +137,7 @@ const PLAN_ITEMS = [
 
 export default function Index() {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const [roadmapOpen, setRoadmapOpen] = useState(false);
   const openRoadmap = () => setRoadmapOpen(true);
   const { homeSidebarOpen, toggleHomeSidebar } = useHomeSidebar();
@@ -148,9 +150,10 @@ export default function Index() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
+    <MotionConfig reducedMotion="user">
+    <main className="landing-page relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
       {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-border/60">
+      <section aria-labelledby="landing-heading" className="landing-hero relative overflow-hidden border-b border-border/60">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_-8%,hsl(var(--primary)/0.17),transparent_40%),radial-gradient(circle_at_6%_18%,hsl(var(--accent)/0.10),transparent_32%),radial-gradient(circle_at_50%_110%,hsl(var(--primary)/0.07),transparent_44%)]" />
           <div className="absolute inset-0 bg-grid opacity-40" />
@@ -166,9 +169,9 @@ export default function Index() {
           <div className="bg-noise absolute inset-0" />
         </div>
 
-        <div className="relative mx-auto grid max-w-7xl gap-14 px-6 pb-20 pt-10 sm:pt-14 md:px-10 md:pb-28 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:gap-14 lg:px-16 lg:pt-20">
+        <div className="landing-hero-layout relative mx-auto grid max-w-[1440px] gap-12 px-6 py-14 sm:px-8 sm:py-20 lg:items-center lg:gap-12 lg:px-12 xl:gap-20 xl:px-16 xl:py-24">
           <motion.div
-            initial={{ opacity: 0, y: 22 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           >
@@ -180,20 +183,22 @@ export default function Index() {
               The focused workspace for engineers
             </div>
 
-            <h1 className="mt-7 max-w-2xl font-display text-[2.8rem] font-bold leading-[1.02] tracking-[-0.05em] sm:text-6xl lg:text-[4.45rem]">
-              Become the engineer{" "}
-              <span className="text-gradient-brand">teams fight to hire.</span>
+            <h1 id="landing-heading" className="landing-headline mt-7 max-w-2xl font-display font-bold">
+              Build skills.<br />
+              Solve smarter.<br />
+              <span className="landing-gradient">Interview ready.</span>
             </h1>
 
-            <p className="mt-7 max-w-xl text-[17px] leading-8 text-muted-foreground md:text-lg md:leading-8">
-              A focused workspace for mastering data structures, system design,
-              and the interviews that move your career forward.
+            <p className="mt-6 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+              Turn your next focused session into real progress. Master DSA,
+              explore system design, and practice for your next interview —
+              all in one workspace.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3.5">
               <button
                 onClick={() => scrollToSection("modules")}
-                className="button-shine group inline-flex items-center gap-2.5 rounded-xl bg-[var(--gradient-cta)] px-7 py-4 text-[15px] font-bold text-white shadow-accent transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-overlay hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
+                className="landing-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
               >
                 Explore learning paths
                 <ArrowRight
@@ -247,7 +252,7 @@ export default function Index() {
 
           {/* Product preview */}
           <motion.div
-            initial={{ opacity: 0, y: 26, scale: 0.975 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 26, scale: 0.975 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.14, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="relative mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none lg:justify-self-end"
@@ -257,7 +262,11 @@ export default function Index() {
               aria-hidden="true"
             />
 
-            <SpotlightCard interactive className="relative rounded-[1.75rem] p-0">
+            <div className="mb-4 flex items-center justify-between px-1 text-xs font-medium text-muted-foreground">
+              <span className="inline-flex items-center gap-2"><Terminal size={14} className="text-primary" /> Your next productive session</span>
+              <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[10px]">Workspace preview</span>
+            </div>
+            <SpotlightCard className="landing-preview relative rounded-[1.75rem] p-0">
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
 
               {/* window chrome */}
@@ -272,11 +281,11 @@ export default function Index() {
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-600 dark:text-emerald-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Live
+                  Practice
                 </span>
               </div>
 
-              <div className="grid gap-3 p-4 sm:grid-cols-[1.05fr_.95fr] sm:p-5">
+              <div className="landing-preview-panes grid gap-3 p-4 sm:p-5">
                 {/* problem pane */}
                 <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
                   <div className="flex items-center justify-between">
@@ -309,7 +318,7 @@ export default function Index() {
                       <Terminal size={10} />
                       Solution.java
                     </div>
-                    <pre className="overflow-hidden font-mono text-[10.5px] leading-[1.7] text-slate-300">
+                    <pre tabIndex={0} aria-label="Example Java solution for Two Sum" className="landing-code overflow-x-auto font-mono text-[11px] leading-[1.8] text-slate-300">
                       <code>{`class Solution {
   int[] twoSum(int[] a, int t) {
     Map<Integer,Integer> m = new HashMap<>();
@@ -318,6 +327,7 @@ export default function Index() {
         return new int[]{m.get(t - a[i]), i};
       m.put(a[i], i);
     }
+    return new int[0];
   }
 }`}</code>
                     </pre>
@@ -377,10 +387,10 @@ export default function Index() {
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-border/70">
                       <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "60%" }}
+                        initial={reduceMotion ? false : { scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
                         transition={{ delay: 0.8, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-sky-400"
+                        className="h-full w-3/5 origin-left rounded-full bg-gradient-to-r from-primary to-sky-400"
                       />
                     </div>
                   </div>
@@ -404,10 +414,10 @@ export default function Index() {
 
             {/* floating product chips */}
             <motion.div
-              initial={{ opacity: 0, x: 14, y: 8 }}
+              initial={reduceMotion ? false : { opacity: 0, x: 14, y: 8 }}
               animate={{ opacity: 1, x: 0, y: 0 }}
               transition={{ delay: 0.65, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute -right-3 top-20 hidden items-center gap-2 rounded-2xl border border-border/80 bg-card/95 px-3 py-2 shadow-overlay backdrop-blur-md sm:flex"
+              className="landing-float absolute -right-3 -top-5 hidden items-center gap-2 rounded-2xl border border-border/80 bg-card/95 px-3 py-2 shadow-overlay backdrop-blur-md xl:flex"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Sparkles size={13} />
@@ -419,10 +429,10 @@ export default function Index() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: -14, y: 8 }}
+              initial={reduceMotion ? false : { opacity: 0, x: -14, y: 8 }}
               animate={{ opacity: 1, x: 0, y: 0 }}
               transition={{ delay: 0.8, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute -bottom-5 -left-3 hidden items-center gap-2.5 rounded-2xl border border-border/80 bg-card/95 px-3.5 py-2.5 shadow-overlay backdrop-blur-md sm:flex"
+              className="landing-float landing-float-delayed absolute -bottom-5 -left-3 hidden items-center gap-2.5 rounded-2xl border border-border/80 bg-card/95 px-3.5 py-2.5 shadow-overlay backdrop-blur-md xl:flex"
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/10 text-accent">
                 <Flame size={15} />
@@ -435,6 +445,15 @@ export default function Index() {
           </motion.div>
         </div>
       </section>
+
+      <div className="border-b border-border/60 bg-card/60">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-x-10 gap-y-4 px-6 py-6 text-xs font-semibold text-muted-foreground sm:text-sm">
+          <span className="text-foreground">Less tab switching. More progress.</span>
+          {[{ icon: Code2, label: "Practice in your browser" }, { icon: Layers, label: "Learn patterns, not answers" }, { icon: MapIcon, label: "Follow a clear roadmap" }].map(({ icon: Icon, label }) => (
+            <span key={label} className="inline-flex items-center gap-2"><Icon size={16} className="text-primary" aria-hidden="true" />{label}</span>
+          ))}
+        </div>
+      </div>
 
       {/* ── LEARNING PATHS ───────────────────────────────────────────── */}
       <section
@@ -479,7 +498,7 @@ export default function Index() {
               <Reveal key={section.id} delay={index * 0.055} from="bottom">
                 <SpotlightCard
                   interactive
-                  className="group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
+                  className="landing-path-card group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
                 >
                   <Link
                     to={section.route}
@@ -612,8 +631,8 @@ export default function Index() {
                   <Sparkles size={12} /> Free forever
                 </span>
                 <h2 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl">
-                  Your next role is one{" "}
-                  <span className="text-gradient-brand">focused session</span> away.
+                  Make your next session{" "}
+                  <span className="landing-gradient">count.</span>
                 </h2>
                 <p className="mx-auto mt-5 max-w-xl text-[16px] leading-7 text-muted-foreground">
                   Stop scrolling tutorials. Start a structured path and build
@@ -622,7 +641,7 @@ export default function Index() {
                 <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
                   <button
                     onClick={() => scrollToSection("modules")}
-                    className="button-shine group inline-flex items-center gap-2.5 rounded-xl bg-[var(--gradient-cta)] px-8 py-4 text-[15px] font-bold text-white shadow-accent transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-overlay hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="landing-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-8 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     Start learning free
                     <ArrowRight
@@ -648,7 +667,7 @@ export default function Index() {
       </section>
 
       {roadmapOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-border bg-card px-5 py-3 text-sm shadow-overlay">Loading your roadmap…</div>}>
           <RoadmapFullscreenOverlay
             open={roadmapOpen}
             onClose={() => setRoadmapOpen(false)}
@@ -656,5 +675,6 @@ export default function Index() {
         </Suspense>
       )}
     </main>
+    </MotionConfig>
   );
 }

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/resizable";
 import { FoldGlyph } from "@/components/FoldGlyph";
 import Auth from "./pages/Auth";
-import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft, Menu, Home, Target, Code2, GraduationCap, Trophy, Map, BookOpen } from "lucide-react";
+import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft, Menu } from "lucide-react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
@@ -44,6 +44,7 @@ import type { ImperativePanelHandle } from "react-resizable-panels";
 import { GlobalSearchLauncher } from "@/components/layout/GlobalSearchLauncher";
 import { AppLoadingScreen, PageSkeleton } from "@/components/layout/RouteFallback";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { PrimaryNavigation, MobileNavigationMenu, isNavActive } from "@/components/layout/PrimaryNavigation";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 
 // Route-level code splitting keeps the initial shell small. Auth stays eager:
@@ -138,18 +139,6 @@ const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
 const ZOOM_MAP: Record<string, string> = { sm: "85%", md: "100%", lg: "115%", xl: "125%" };
-
-const NAV_LINKS = [
-  { label: "Home", path: "/", icon: Home },
-  { label: "Practice", path: "/practice", icon: Target },
-  { label: "Playground", path: "/playground", icon: Code2 },
-  { label: "Interview", path: "/interview", icon: GraduationCap },
-  { label: "Contest", path: "/contest", icon: Trophy },
-  { label: "Roadmap", path: "/roadmap", icon: Map },
-];
-
-const isNavActive = (pathname: string, path: string) =>
-  path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
 function HeaderControls() {
   const { theme, toggleTheme, fontSize, increaseFontSize, decreaseFontSize } = useSettings();
@@ -340,6 +329,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   }, [showSidebarPanel, isSidebarCollapsed, foldSidebar, unfoldSidebar]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   const [mobileLibraryOpen, setMobileLibraryOpen] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const scrollProgressRef = useRef<HTMLDivElement | null>(null);
@@ -536,13 +526,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           >
           <header
             data-scrolled={headerScrolled ? "true" : undefined}
-            className="app-header sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-5 lg:px-6 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            className="app-header sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-5 lg:px-6"
           >
             {/* ── Left: menu + sidebar toggle + logo ───────────── */}
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 mr-auto">
               <button
                 onClick={() => setMobileMenuOpen((open) => !open)}
+                id="header-navigation-toggle"
                 aria-label="Toggle navigation menu"
+                aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
                 aria-expanded={mobileMenuOpen}
                 className="header-menu-btn touch-manipulation items-center justify-center w-9 h-9 rounded-lg border border-border/50 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.93] transition-all duration-150"
               >
@@ -607,34 +599,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* ── Center: primary navigation ───────────────────── */}
-            <nav aria-label="Primary" className="header-primary-nav items-center gap-1 mx-auto rounded-xl border border-border/50 bg-muted/40 p-1">
-              {NAV_LINKS.map(({ label, path }) => {
-                const active = isNavActive(location.pathname, path);
-                return (
-                  <Link
-                    key={path}
-                    to={path}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "relative rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition-colors duration-200",
-                      active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
-                    )}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="primary-nav-pill"
-                        className="absolute inset-0 rounded-lg bg-primary shadow-[0_2px_10px_-2px_hsl(var(--primary)/0.55)]"
-                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                      />
-                    )}
-                    <span className="relative">{label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            <PrimaryNavigation pathname={location.pathname} />
 
             {/* ── Right: search + controls + user + Guru AI ────── */}
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-3 ml-auto">
+            <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2 ml-auto">
 
               {/* Mobile search icon */}
               <AppTooltip content="Search (Ctrl+K)">
@@ -692,48 +660,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             {/* ── Mobile navigation sheet ──────────────────────── */}
             <AnimatePresence>
               {mobileMenuOpen && (
-                <motion.nav
-                  aria-label="Mobile primary"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                  className="header-menu-sheet absolute inset-x-0 top-full border-b border-border/60 bg-background/95 backdrop-blur-xl shadow-overlay"
-                >
-                  <div className="grid grid-cols-2 gap-1.5 p-3">
-                    {NAV_LINKS.map(({ label, path, icon: Icon }) => {
-                      const active = isNavActive(location.pathname, path);
-                      return (
-                        <Link
-                          key={path}
-                          to={path}
-                          onClick={() => setMobileMenuOpen(false)}
-                          aria-current={active ? "page" : undefined}
-                          className={cn(
-                            "flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors",
-                            active
-                              ? "border-primary/30 bg-primary/10 text-primary"
-                              : "border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
-                          )}
-                        >
-                          <Icon size={15} className={active ? "text-primary" : "text-muted-foreground/70"} />
-                          {label}
-                        </Link>
-                      );
-                    })}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileLibraryOpen(true);
-                      }}
-                      className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-muted/30 px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <BookOpen size={15} className="text-muted-foreground/70" />
-                      Library
-                    </button>
-                  </div>
-                </motion.nav>
+                <MobileNavigationMenu
+                  pathname={location.pathname}
+                  onClose={closeMobileMenu}
+                  onOpenLibrary={() => setMobileLibraryOpen(true)}
+                />
               )}
             </AnimatePresence>
 

@@ -81,6 +81,25 @@ no visible text, border, or background, using the optimized transparent
 to the available panel width, including when the sidebar or assistant is open.
 On problem-solving pages, Guru AI remains in
 the description panel tab rather than opening a separate assistant panel.
+The header uses a raised active tab with a cobalt indicator and consistent
+control spacing. Its mobile menu focuses the current destination, closes on
+Escape or outside interaction, restores trigger focus on Escape, and closes
+when resizing into desktop navigation. Navigation motion respects reduced-motion
+preferences. Run `npm test -- src/components/layout/PrimaryNavigation.test.tsx`
+for focused navigation checks.
+
+## Home landing page
+
+The home page supports light and dark themes, responsive layouts based on the
+available content width, and keyboard-accessible learning, quiz, playground, and
+roadmap actions. The example workspace is labeled as a preview, not live account
+progress. Landing styles are scoped in `src/styles/landing.css`; primary actions
+use an explicit high-contrast gradient background. Entrances, floating accents,
+and section scrolling respect `prefers-reduced-motion`. The roadmap is lazy
+loaded with a visible loading status.
+
+Run the focused regression checks with
+`npm test -- src/pages/Index.test.tsx src/components/quiz/QuizSection.test.tsx`.
 
 ## Interview preparation tracks
 
