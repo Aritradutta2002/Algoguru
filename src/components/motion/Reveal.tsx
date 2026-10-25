@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { EASE_OUT } from "@/lib/motion";
 
 interface RevealProps {
@@ -59,7 +58,7 @@ export function Reveal({
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once, amount, margin: "0px 0px -40px 0px" }}
       transition={{ duration, delay, ease: EASE_OUT }}
-      className={cn("will-change-transform", className)}
+      className={className}
       style={style}
     >
       {children}

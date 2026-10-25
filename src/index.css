@@ -2921,6 +2921,16 @@
   transform: translate3d(120%, 0, 0) skewX(-18deg);
 }
 
+/* Cursor pull written by useMagnetic(). Uses the standalone `translate`
+   property so it composes with transform-based hover lifts. */
+.magnetic {
+  translate: var(--mag-x, 0px) var(--mag-y, 0px);
+  transition:
+    translate 0.35s var(--ease-out),
+    transform 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out);
+}
+
 .icon-tile {
   display: inline-flex;
   align-items: center;
@@ -2960,6 +2970,44 @@
 .route-progress {
   transform-origin: 0 50%;
   will-change: transform;
+}
+
+/* Home-only shell polish: a hairline under the header and a thicker reading
+   rail once the page has scrolled. Other routes keep the original treatment. */
+.app-header::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary) / 0.4) 22%,
+    hsl(var(--info) / 0.28) 62%,
+    transparent
+  );
+  transition: opacity 200ms ease;
+}
+
+.app-header[data-route="home"][data-scrolled="true"]::after {
+  opacity: 1;
+}
+
+.app-header[data-route="home"][data-scrolled="true"] {
+  box-shadow:
+    0 1px 0 hsl(var(--background)) inset,
+    0 16px 40px -20px hsl(var(--primary) / 0.3);
+}
+
+.app-header[data-route="home"][data-scrolled="true"] .route-progress-track {
+  height: 2px;
+}
+
+.app-header[data-route="home"] .route-progress {
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.45);
 }
 
 .skeleton-shimmer {

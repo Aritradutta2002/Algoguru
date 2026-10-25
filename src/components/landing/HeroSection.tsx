@@ -7,7 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Play, Shuffle } from "lucide-react";
 import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
+import { MagneticButton } from "@/components/motion/MagneticButton";
+import { HERO_TIMELINE } from "@/lib/motion";
 import { HeroWorkspacePreview } from "./HeroWorkspacePreview";
+import { useHeroChoreography } from "./useHeroChoreography";
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -33,6 +36,7 @@ interface HeroSectionProps {
 export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionProps) {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
+  const phase = useHeroChoreography(reduceMotion);
   const heroRef = useRef<HTMLElement>(null);
   const frame = useRef<number | null>(null);
 
@@ -68,6 +72,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
   return (
     <section
       ref={heroRef}
+      data-phase={phase}
       aria-labelledby="landing-heading"
       onPointerMove={handlePointerMove}
       className="landing-hero hero-shell relative overflow-hidden border-b border-border/60"
@@ -89,7 +94,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
         <div className="hero-vignette absolute inset-0" />
       </div>
 
-      <div className="landing-hero-layout hero-layout relative mx-auto grid max-w-[1440px] gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:items-center lg:gap-12 lg:px-12 xl:gap-16 xl:px-16 xl:py-24">
+      <div className="landing-hero-layout hero-layout relative mx-auto grid max-w-[1440px] gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:items-center lg:gap-12 lg:px-12 xl:gap-16 xl:px-16 xl:py-20">
         <div className="hero-copy min-w-0">
           <motion.div
             {...rise(0.02)}
@@ -109,7 +114,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
           <motion.h1
             id="landing-heading"
             {...rise(0.08)}
-            className="hero-headline mt-7 max-w-2xl font-display font-bold"
+            className="hero-headline mt-6 max-w-2xl font-display font-bold"
           >
             <span className="hero-headline-line">Build skills.</span>
             <span className="hero-headline-line">Solve smarter.</span>
@@ -120,15 +125,15 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
 
           <motion.p
             {...rise(0.14)}
-            className="hero-subcopy mt-6 max-w-lg text-pretty text-base leading-7 text-muted-foreground sm:text-[17px] sm:leading-8"
+            className="hero-subcopy mt-5 max-w-lg text-pretty text-base leading-7 text-muted-foreground sm:text-[17px] sm:leading-8"
           >
             Turn your next focused session into real progress. Master DSA,
             explore system design, and practice for your next interview — all in
             one workspace.
           </motion.p>
 
-          <motion.div {...rise(0.2)} className="hero-cta-row mt-9 flex flex-wrap items-center gap-3.5">
-            <button
+          <motion.div {...rise(0.2)} className="hero-cta-row mt-8 flex flex-wrap items-center gap-3.5">
+            <MagneticButton
               onClick={onExplore}
               className="landing-primary hero-cta-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
             >
@@ -138,7 +143,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
                 className="transition-transform duration-300 group-hover:translate-x-1"
                 aria-hidden="true"
               />
-            </button>
+            </MagneticButton>
             <button
               onClick={() => navigate("/playground")}
               className="hero-cta-secondary group inline-flex items-center gap-2.5 rounded-xl px-5 py-4 text-[15px] font-semibold text-foreground transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
@@ -152,7 +157,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
 
           <motion.p
             {...rise(0.24)}
-            className="hero-cta-note mt-4 text-[11.5px] font-medium text-muted-foreground/80"
+            className="hero-cta-note mt-3 text-[11.5px] font-medium text-muted-foreground/80"
           >
             Free forever
             <span className="mx-1.5 text-muted-foreground/40" aria-hidden="true">·</span>
@@ -163,7 +168,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
 
           <motion.div
             {...rise(0.28)}
-            className="hero-trust mt-7 flex flex-wrap items-center gap-x-5 gap-y-3 text-[13px] font-medium text-muted-foreground"
+            className="hero-trust mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-[13px] font-medium text-muted-foreground"
           >
             {TRUST_ITEMS.map((item) => (
               <span key={item} className="hero-trust-item inline-flex items-center gap-2">
@@ -185,14 +190,18 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
 
           <motion.div
             {...rise(0.34)}
-            className="hero-stats mt-10 grid max-w-lg grid-cols-2 gap-x-6 gap-y-6 pt-7 sm:grid-cols-4"
+            className="hero-stats mt-8 grid max-w-xl grid-cols-2 gap-x-7 gap-y-5 pt-6 xl:grid-cols-4 xl:gap-x-5"
           >
             {HERO_STATS.map((stat) => (
               <div key={stat.label} className="hero-stat">
                 <p className="hero-stat-value font-display font-bold tracking-tight text-foreground">
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                  <AnimatedCounter
+                    value={stat.value}
+                    suffix={stat.suffix}
+                    delay={HERO_TIMELINE.pass}
+                  />
                 </p>
-                <p className="hero-stat-label mt-1 text-[12px] font-medium leading-snug text-muted-foreground">
+                <p className="hero-stat-label mt-1.5 text-[11.5px] font-medium leading-snug text-muted-foreground">
                   {stat.label}
                 </p>
               </div>
@@ -201,6 +210,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
         </div>
 
         <HeroWorkspacePreview
+          phase={phase}
           reduceMotion={reduceMotion}
           onOpenRoadmap={onOpenRoadmap}
         />

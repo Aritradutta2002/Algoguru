@@ -18,6 +18,38 @@ export const DURATION = {
   slow: 0.42,
 } as const;
 
+/** Per-item delays for sequenced groups (seconds). */
+export const STAGGER = {
+  line: 0.045,
+  card: 0.055,
+  row: 0.06,
+} as const;
+
+/**
+ * The hero "session" runs once per mount. Values are milliseconds from mount:
+ * code writes in, the suite runs, then results and progress settle.
+ */
+export const HERO_TIMELINE = {
+  code: 450,
+  running: 1150,
+  pass: 1600,
+  done: 2600,
+} as const;
+
+export const TILT_SPRING: Transition = {
+  type: "spring",
+  stiffness: 220,
+  damping: 26,
+  mass: 0.6,
+};
+
+export const PARALLAX_SPRING: Transition = {
+  type: "spring",
+  stiffness: 90,
+  damping: 22,
+  mass: 0.4,
+};
+
 export const springSoft: Transition = {
   type: "spring",
   stiffness: 420,

@@ -8,6 +8,8 @@ interface AnimatedCounterProps {
   prefix?: string;
   decimals?: number;
   duration?: number;
+  /** Milliseconds to wait after entering the viewport. */
+  delay?: number;
   className?: string;
 }
 
@@ -27,11 +29,13 @@ export function AnimatedCounter({
   prefix = "",
   decimals = 0,
   duration = 1400,
+  delay = 0,
   className,
 }: AnimatedCounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const [display, setDisplay] = useState(() => format(0, decimals));
   const started = useRef(false);
+  const delayTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const node = ref.current;
@@ -46,16 +50,22 @@ export function AnimatedCounter({
     const run = () => {
       if (started.current) return;
       started.current = true;
-      const start = performance.now();
-      const tick = (now: number) => {
-        const progress = Math.min(1, (now - start) / duration);
-        // expo-out keeps the motion quick at the start and settled at the end
-        const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-        setDisplay(format(value * eased, decimals));
-        if (progress < 1) requestAnimationFrame(tick);
-        else setDisplay(format(value, decimals));
+
+      const begin = () => {
+        const start = performance.now();
+        const tick = (now: number) => {
+          const progress = Math.min(1, (now - start) / duration);
+          // expo-out keeps the motion quick at the start and settled at the end
+          const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+          setDisplay(format(value * eased, decimals));
+          if (progress < 1) requestAnimationFrame(tick);
+          else setDisplay(format(value, decimals));
+        };
+        requestAnimationFrame(tick);
       };
-      requestAnimationFrame(tick);
+
+      if (delay > 0) delayTimer.current = window.setTimeout(begin, delay);
+      else begin();
     };
 
     if (!("IntersectionObserver" in window)) {
@@ -74,8 +84,11 @@ export function AnimatedCounter({
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
-  }, [value, decimals, duration]);
+    return () => {
+      observer.disconnect();
+      if (delayTimer.current !== null) window.clearTimeout(delayTimer.current);
+    };
+  }, [value, decimals, duration, delay]);
 
   return (
     <span ref={ref} className={cn("tabular-nums", className)}>

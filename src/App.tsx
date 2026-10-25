@@ -526,6 +526,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           >
           <header
             data-scrolled={headerScrolled ? "true" : undefined}
+            data-route={location.pathname === "/" ? "home" : undefined}
             className="app-header sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-5 lg:px-6"
           >
             {/* ── Left: menu + sidebar toggle + logo ───────────── */}
@@ -586,7 +587,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   className="group flex items-center gap-2.5 rounded-xl px-1.5 py-1 -ml-1 transition-all duration-200 hover:bg-muted/40 active:scale-[0.97] flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                 >
                   <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-md shadow-primary/25 ring-1 ring-inset ring-white/20 transition-transform duration-200 group-hover:scale-105"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-md shadow-primary/25 ring-1 ring-inset ring-white/20 transition-[transform,box-shadow] duration-200 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/40"
                     style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--info)) 100%)" }}
                   >
                     <AlgoGuruLogo size={21} showText={false} className="text-white" />
@@ -671,7 +672,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Reading progress — transform-only, updated outside React. */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden"
+              className="route-progress-track pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden"
             >
               <div
                 ref={scrollProgressRef}

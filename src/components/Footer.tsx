@@ -60,8 +60,16 @@ export function Footer({ onSupportClick }: FooterProps) {
   };
 
   return (
-    <footer className="relative mt-20 w-full border-t border-border/70 bg-[linear-gradient(180deg,transparent,hsl(var(--muted)/0.28))]">
-      <div className="mx-auto max-w-7xl px-6 py-14 md:px-10 md:py-16 lg:px-16">
+    <footer className="relative mt-20 w-full overflow-hidden border-t border-border/70 bg-[linear-gradient(180deg,transparent,hsl(var(--muted)/0.28))]">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.4),rgb(103_232_249/0.2),transparent)]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_75%_at_50%_0%,hsl(var(--primary)/0.055),transparent_70%)]"
+        aria-hidden="true"
+      />
+      <div className="relative mx-auto max-w-7xl px-6 py-14 md:px-10 md:py-16 lg:px-16">
         <div className="grid gap-10 md:grid-cols-[1.25fr_1fr_1fr_1.1fr] md:gap-8">
           {/* Brand */}
           <div className="max-w-xs">
@@ -175,7 +183,7 @@ export function Footer({ onSupportClick }: FooterProps) {
           </nav>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-border/70 pt-6 text-[11.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col gap-3 border-t border-border/60 pt-5 text-[11.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {currentYear} AlgoGuru. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
             <span>Built by Aritra</span>

@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import Index from "./Index";
 
+const motionPreference = vi.hoisted(() => ({ reduced: true }));
+
 vi.mock("framer-motion", async (importOriginal) => ({
   ...await importOriginal<typeof import("framer-motion")>(),
-  useReducedMotion: () => true,
+  useReducedMotion: () => motionPreference.reduced,
 }));
 
 vi.mock("@/components/roadmap/RoadmapFullscreenOverlay", () => ({
@@ -20,6 +22,8 @@ vi.mock("@/components/roadmap/RoadmapFullscreenOverlay", () => ({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.useRealTimers();
+  motionPreference.reduced = true;
 });
 
 function renderHome(toggleHomeSidebar = vi.fn()) {
@@ -96,5 +100,62 @@ describe("Home landing page", () => {
     renderHome(toggle);
     fireEvent.click(screen.getByRole("button", { name: /open library panel/i }));
     expect(toggle).toHaveBeenCalledOnce();
+  });
+
+  it("shows the finished hero session immediately for reduced motion", () => {
+    vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList);
+    renderHome();
+    expect(screen.getByText("All tests passed")).toBeInTheDocument();
+    expect(screen.getByText("12 / 12")).toBeInTheDocument();
+    expect(screen.getByText("500+")).toBeInTheDocument();
+    expect(document.querySelector(".hero-goal-fill")).toBeInTheDocument();
+  });
+
+  it("runs the hero session once and keeps a single settled result row", () => {
+    motionPreference.reduced = false;
+    vi.useFakeTimers();
+    renderHome();
+
+    expect(screen.queryByText("All tests passed")).not.toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(1200));
+    expect(screen.getByText("Running 12 tests…")).toBeInTheDocument();
+
+    act(() => vi.advanceTimersByTime(500));
+    expect(screen.getAllByText("All tests passed")).toHaveLength(1);
+
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getAllByText("All tests passed")).toHaveLength(1);
+  });
+
+  it("switches the workspace demo with clicks and with arrow keys", () => {
+    renderHome();
+    const problemTab = screen.getByRole("tab", { name: "Problem" });
+    const testsTab = screen.getByRole("tab", { name: "Tests" });
+
+    expect(problemTab).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.click(testsTab);
+    expect(testsTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Test suite")).toBeInTheDocument();
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", "demo-panel-tests");
+
+    fireEvent.keyDown(screen.getByRole("tablist", { name: "Workspace demo views" }), {
+      key: "ArrowRight",
+    });
+    expect(problemTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", "demo-panel-problem");
+  });
+
+  it("labels the annotated demo solution distinctly from the hero sample", () => {
+    renderHome();
+    fireEvent.click(screen.getByRole("tab", { name: "Solution" }));
+
+    expect(
+      screen.getByLabelText("Annotated Java solution for Valid Parentheses"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Example Java solution for Two Sum"),
+    ).toHaveAttribute("tabindex", "0");
   });
 });

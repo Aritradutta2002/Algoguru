@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   BrainCircuit,
   CalendarDays,
+  ChevronRight,
   Code2,
   Coffee,
   Layers,
@@ -19,10 +20,13 @@ import {
   Zap,
 } from "lucide-react";
 import { QuizSection } from "@/components/quiz/QuizSection";
+import { MagneticButton } from "@/components/motion/MagneticButton";
 import { Reveal } from "@/components/motion/Reveal";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
 import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
+import { cn } from "@/lib/utils";
 
 const RoadmapFullscreenOverlay = lazy(() =>
   import("@/components/roadmap/RoadmapFullscreenOverlay").then((module) => ({
@@ -37,7 +41,7 @@ const SECTIONS = [
     subtitle: "Master the deep end",
     desc: "Reflection, JVM internals, garbage collection, design patterns, and modern Java 17+ features — the theory interviewers actually ask about.",
     icon: Coffee,
-    color: "#F472B6",
+    tone: "cobalt",
     tag: "Java Theory",
     route: "/java-advanced",
     stats: "9 Deep Topics",
@@ -48,7 +52,7 @@ const SECTIONS = [
     subtitle: "Land FAANG roles",
     desc: "Curated top-company DSA questions, system design patterns, and behavioral frameworks to crush technical interviews.",
     icon: Target,
-    color: "#60A5FA",
+    tone: "cyan",
     tag: "DSA Sheets",
     route: "/practice",
     stats: "500+ Questions",
@@ -59,7 +63,7 @@ const SECTIONS = [
     subtitle: "Pattern-based mastery",
     desc: "A curated collection of essential coding interview problems categorized by sub-patterns and topics.",
     icon: Code2,
-    color: "#38BDF8",
+    tone: "cyan",
     tag: "Playlist",
     route: "/arrays",
     stats: "Pattern Wise Problems",
@@ -70,7 +74,7 @@ const SECTIONS = [
     subtitle: "Scale to millions",
     desc: "Learn system design patterns to build scalable architectures and crush your interviews.",
     icon: BrainCircuit,
-    color: "#818CF8",
+    tone: "cobalt",
     tag: "System Design",
     route: "/interview/java/system-design",
     stats: "4 Learning Paths",
@@ -81,7 +85,7 @@ const SECTIONS = [
     subtitle: "Guided preparation",
     desc: "Real insights from candidates who recently interviewed at top tech companies. Learn what to expect.",
     icon: Trophy,
-    color: "#34D399",
+    tone: "cyan",
     tag: "Experiences",
     route: "/interview",
     stats: "Real Stories",
@@ -92,12 +96,27 @@ const SECTIONS = [
     subtitle: "Solve today's problem",
     desc: "A fresh LeetCode problem every day, with a built-in Java editor to craft and test your solution.",
     icon: CalendarDays,
-    color: "#FBBF24",
+    tone: "amber",
     tag: "Today",
     route: "/problem-solver",
     stats: "Updated Daily",
   },
 ] as const;
+
+const CARD_TONES = {
+  cobalt: {
+    tile: "border-primary/25 bg-primary/10 text-primary",
+    dot: "bg-primary",
+  },
+  cyan: {
+    tile: "border-cyan-500/25 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
+    dot: "bg-cyan-500",
+  },
+  amber: {
+    tile: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    dot: "bg-amber-500",
+  },
+} as const;
 
 const HOW_IT_WORKS = [
   {
@@ -114,6 +133,24 @@ const HOW_IT_WORKS = [
     icon: <Zap size={20} />,
     title: "Practice & ship",
     desc: "Solve in the built-in editor and walk in ready to perform.",
+  },
+] as const;
+
+const PROOF_POINTS = [
+  {
+    icon: Code2,
+    label: "Practice in your browser",
+    detail: "No setup, no installs",
+  },
+  {
+    icon: Layers,
+    label: "Learn patterns, not answers",
+    detail: "Deeper intuition, faster recall",
+  },
+  {
+    icon: MapIcon,
+    label: "Follow a clear roadmap",
+    detail: "Always know what comes next",
   },
 ] as const;
 
@@ -138,14 +175,38 @@ export default function Index() {
           onOpenRoadmap={openRoadmap}
         />
 
-        <div className="border-b border-border/60 bg-card/60">
-          <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-x-10 gap-y-4 px-6 py-6 text-xs font-semibold text-muted-foreground sm:text-sm">
-            <span className="text-foreground">Less tab switching. More progress.</span>
-            {[{ icon: Code2, label: "Practice in your browser" }, { icon: Layers, label: "Learn patterns, not answers" }, { icon: MapIcon, label: "Follow a clear roadmap" }].map(({ icon: Icon, label }) => (
-              <span key={label} className="inline-flex items-center gap-2"><Icon size={16} className="text-primary" aria-hidden="true" />{label}</span>
-            ))}
+        <Reveal className="relative border-b border-border/60">
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_140%_at_50%_0%,hsl(var(--primary)/0.09),transparent_74%)]"
+            aria-hidden="true"
+          />
+          <div className="relative mx-auto flex max-w-[1440px] flex-col gap-6 px-6 py-7 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 lg:px-16">
+            <p className="flex items-center gap-2.5 font-display text-[13.5px] font-semibold tracking-[-0.01em] text-foreground">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.6)]" aria-hidden="true" />
+              Less tab switching. More progress.
+            </p>
+            <div className="grid gap-5 sm:grid-cols-3 sm:gap-0">
+              {PROOF_POINTS.map(({ icon: Icon, label, detail }, index) => (
+                <div
+                  key={label}
+                  className={cn(
+                    "group flex items-start gap-3",
+                    index > 0 && "sm:border-l sm:border-border/70 sm:pl-6",
+                    index < PROOF_POINTS.length - 1 && "sm:pr-6",
+                  )}
+                >
+                  <span className="icon-tile h-9 w-9 shrink-0 text-primary transition-all duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:border-primary/35">
+                    <Icon size={16} aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-semibold leading-5 text-foreground/90">{label}</p>
+                    <p className="mt-0.5 text-[11.5px] leading-5 text-muted-foreground">{detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </Reveal>
 
         {/* ── LEARNING PATHS ───────────────────────────────────────────── */}
         <section
@@ -186,41 +247,29 @@ export default function Index() {
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {SECTIONS.map((section, index) => {
               const Icon = section.icon;
+              const tone = CARD_TONES[section.tone];
               return (
                 <Reveal key={section.id} delay={index * 0.055} from="bottom">
                   <SpotlightCard
                     interactive
-                    className="landing-path-card group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
+                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
                   >
                     <Link
                       to={section.route}
-                      className="flex h-full min-h-[290px] flex-col rounded-3xl p-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="relative flex h-full min-h-[290px] flex-col rounded-3xl p-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       <div className="mb-7 flex items-start justify-between">
                         <div
-                          className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl border shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-105"
-                          style={{
-                            background: `${section.color}14`,
-                            borderColor: `${section.color}30`,
-                            color: section.color,
-                          }}
+                          className={cn(
+                            "flex h-[52px] w-[52px] items-center justify-center rounded-2xl border shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-105",
+                            tone.tile,
+                          )}
                         >
                           <Icon size={23} />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground"
-                            style={{
-                              background: `${section.color}0e`,
-                              borderColor: `${section.color}26`,
-                            }}
-                          >
-                            {section.tag}
-                          </span>
-                          <span className="font-mono text-[10px] text-muted-foreground/50">
-                            0{index + 1}
-                          </span>
-                        </div>
+                        <span className="rounded-full border border-border/70 bg-muted/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                          {section.tag}
+                        </span>
                       </div>
 
                       <div className="flex-1">
@@ -236,17 +285,18 @@ export default function Index() {
                       </div>
 
                       <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-5">
-                        <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full"
-                            style={{ background: section.color }}
-                          />
+                        <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-muted-foreground">
+                          <span className="font-mono text-[10px] tracking-[0.08em] text-muted-foreground/55">
+                            0{index + 1}
+                          </span>
+                          <span className="h-3 w-px bg-border" aria-hidden="true" />
+                          <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
                           {section.stats}
                         </span>
                         <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 ease-premium group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
                           <ArrowUpRight
                             size={15}
-                            className="transition-transform duration-300 group-hover:rotate-45"
+                            className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:rotate-45"
                           />
                         </span>
                       </div>
@@ -257,6 +307,9 @@ export default function Index() {
             })}
           </div>
         </section>
+
+        {/* ── INTERACTIVE WORKSPACE DEMO ───────────────────────────────── */}
+        <WorkspaceDemoSection />
 
         {/* ── QUIZ ─────────────────────────────────────────────────────── */}
         <QuizSection />
@@ -274,19 +327,24 @@ export default function Index() {
               </h2>
             </Reveal>
 
-            <div className="relative grid gap-5 md:grid-cols-3">
-              <div
-                className="pointer-events-none absolute left-[16%] right-[16%] top-[62px] hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block"
-                aria-hidden="true"
-              />
+            <div className="relative grid gap-6 md:grid-cols-3">
               {HOW_IT_WORKS.map((step, index) => (
                 <Reveal key={step.title} delay={index * 0.08} className="relative">
-                  <div className="group relative h-full rounded-2xl border border-border bg-card/80 p-7 shadow-card backdrop-blur-sm transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-primary/30 hover:shadow-overlay">
-                    <span className="absolute right-6 top-5 font-display text-4xl font-bold text-foreground/[0.05]">
-                      0{index + 1}
-                    </span>
-                    <div className="mb-5 inline-flex rounded-xl border border-primary/20 bg-primary/[0.08] p-3 text-primary shadow-soft">
-                      {step.icon}
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-border/80 bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-primary/30 hover:shadow-overlay">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.45),transparent)]"
+                    />
+                    <div className="mb-5 flex items-start justify-between">
+                      <div className="inline-flex rounded-2xl border border-primary/20 bg-primary/[0.08] p-3.5 text-primary shadow-soft">
+                        {step.icon}
+                      </div>
+                      <span
+                        aria-hidden="true"
+                        className="font-display text-[2.6rem] font-bold leading-none tracking-[-0.06em] text-foreground/[0.05] transition-colors duration-300 group-hover:text-primary/[0.09]"
+                      >
+                        0{index + 1}
+                      </span>
                     </div>
                     <h3 className="font-display text-lg font-bold tracking-tight">
                       {step.title}
@@ -297,6 +355,20 @@ export default function Index() {
                   </div>
                 </Reveal>
               ))}
+
+              {[0, 1].map((index) => (
+                <span
+                  key={index}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 hidden h-7 w-7 items-center justify-center rounded-full border border-primary/25 bg-card text-primary/80 shadow-soft md:flex"
+                  style={{
+                    left: `${((index + 1) * 100) / 3}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  <ChevronRight size={14} />
+                </span>
+              ))}
             </div>
           </div>
         </section>
@@ -306,17 +378,26 @@ export default function Index() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.18),transparent_52%)]" />
           <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28 lg:px-16">
             <Reveal>
-              <div className="relative overflow-hidden rounded-[2rem] border border-border/80 bg-card/75 px-6 py-16 text-center shadow-overlay backdrop-blur-xl md:px-12 md:py-20">
-                <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" aria-hidden="true" />
+              <SpotlightCard
+                interactive
+                className="cta-card relative overflow-hidden px-6 py-16 text-center backdrop-blur-xl md:px-12 md:py-20"
+              >
                 <div
-                  className="aurora-blob left-[12%] top-[-20%] h-64 w-64 bg-primary/10"
+                  className="pointer-events-none !absolute inset-0 overflow-hidden rounded-[inherit]"
                   aria-hidden="true"
-                />
-                <div
-                  className="aurora-blob right-[8%] bottom-[-30%] h-64 w-64 bg-accent/10"
-                  style={{ animationDelay: "-9s" }}
-                  aria-hidden="true"
-                />
+                >
+                  <div className="absolute inset-0 bg-grid opacity-30" />
+                  <div className="absolute inset-x-10 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.55),rgb(103_232_249/0.25),transparent)]" />
+                  <div className="aurora-blob absolute left-[12%] top-[-20%] h-64 w-64 bg-primary/10" />
+                  <div
+                    className="aurora-blob absolute right-[8%] bottom-[-30%] h-64 w-64 bg-accent/10"
+                    style={{ animationDelay: "-9s" }}
+                  />
+                  <div
+                    className="aurora-blob absolute left-[46%] bottom-[-24%] h-56 w-56 bg-cyan-400/[0.07]"
+                    style={{ animationDelay: "-15s", animationDuration: "30s" }}
+                  />
+                </div>
 
                 <div className="relative">
                   <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
@@ -331,7 +412,7 @@ export default function Index() {
                     real, interview-ready skill today.
                   </p>
                   <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-                    <button
+                    <MagneticButton
                       onClick={() => scrollToSection("modules")}
                       className="landing-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-8 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
@@ -340,7 +421,7 @@ export default function Index() {
                         size={17}
                         className="transition-transform duration-300 group-hover:translate-x-1"
                       />
-                    </button>
+                    </MagneticButton>
                     <button
                       onClick={openRoadmap}
                       className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card/80 px-8 py-4 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -353,7 +434,7 @@ export default function Index() {
                     No credit card. No paywall. Cancel nothing.
                   </p>
                 </div>
-              </div>
+              </SpotlightCard>
             </Reveal>
           </div>
         </section>

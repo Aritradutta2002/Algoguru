@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { MCQ_QUESTIONS } from "@/lib/mcqQuizBank";
+import { Reveal } from "@/components/motion/Reveal";
 
 function openQuizFullscreen() {
   // Fullscreen needs a user gesture; direct page visits enter it on Start quiz.
@@ -31,15 +32,15 @@ export function QuizSection() {
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 py-20 md:px-10 lg:grid-cols-[1.2fr_1fr] lg:px-16">
         {/* ── Left: CTA ── */}
-        <div>
+        <Reveal>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
             <Shuffle size={14} />
             Contest · MCQ Quiz
           </span>
-          <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+          <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.04em] md:text-5xl">
             Think fast.
             <br />
-            <span className="text-primary">Know where you stand.</span>
+            <span className="landing-gradient">Know where you stand.</span>
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-8 text-muted-foreground">
             A fresh set of random MCQs in a strict, exam-grade environment.
@@ -55,27 +56,33 @@ export function QuizSection() {
                 key={item.id}
                 to={`/contest/quiz?language=${item.id}`}
                 onClick={openQuizFullscreen}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium transition-colors hover:border-primary/50 hover:text-primary"
+                className="hero-cta-secondary group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:text-primary"
               >
                 <Code2 size={14} />
                 {item.label}
-                <ArrowRight size={13} />
+                <ArrowRight
+                  size={13}
+                  className="transition-transform duration-300 group-hover:translate-x-0.5"
+                />
               </Link>
             ))}
           </div>
           <Link
             to="/contest"
             onClick={openQuizFullscreen}
-            className="mt-8 inline-flex items-center gap-3 rounded-xl bg-primary px-6 py-3.5 font-semibold text-primary-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:bg-primary/90"
+            className="landing-primary button-shine group mt-8 inline-flex items-center gap-3 rounded-xl px-6 py-3.5 font-semibold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Open Contest
-            <ArrowRight size={18} />
+            <ArrowRight
+              size={18}
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            />
           </Link>
-        </div>
+        </Reveal>
 
         {/* ── Right: Feature card ── */}
-        <div className="overflow-hidden rounded-3xl border border-primary/20 bg-card shadow-xl">
-          <div className="flex items-center justify-between border-b border-border bg-primary/5 px-6 py-4">
+        <Reveal delay={0.08} className="premium-card overflow-hidden rounded-3xl">
+          <div className="flex items-center justify-between border-b border-border/70 bg-primary/[0.045] px-6 py-4">
             <span className="flex items-center gap-2 text-sm font-semibold">
               <Sparkles size={16} className="text-primary" />
               Exam-Grade Challenge
@@ -143,7 +150,7 @@ export function QuizSection() {
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
