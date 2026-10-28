@@ -20,7 +20,7 @@ import {
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { FoldGlyph } from "@/components/FoldGlyph";
+import { NavIcon } from "@/components/layout/NavIcon";
 import Auth from "./pages/Auth";
 import { X, PanelLeft, Menu } from "lucide-react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
@@ -292,7 +292,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleContentScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
     const target = event.currentTarget;
-    const scrolled = target.scrollTop > 8;
+    const scrolled = target.scrollTop > 8 || window.scrollY > 8;
     setHeaderScrolled((prev) => (prev === scrolled ? prev : scrolled));
 
     if (scrollProgressFrame.current !== null) {
@@ -306,6 +306,21 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       }
     });
   }, []);
+
+  useEffect(() => {
+    const mainEl = contentScrollRef.current;
+    const onScroll = () => {
+      const scrolled = window.scrollY > 8 || (mainEl ? mainEl.scrollTop > 8 : false);
+      setHeaderScrolled((prev) => (prev === scrolled ? prev : scrolled));
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    mainEl?.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      mainEl?.removeEventListener("scroll", onScroll);
+    };
+  }, [guruOpen]);
 
   useEffect(() => {
     return () => {
@@ -504,97 +519,81 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           <header
             data-scrolled={headerScrolled ? "true" : undefined}
             data-route={location.pathname === "/" ? "home" : undefined}
-            className="app-header sticky top-0 z-40 flex h-[72px] shrink-0 items-center justify-between gap-2 px-3 sm:gap-4 sm:px-5 lg:px-6"
+            className={cn(
+              "app-header sticky top-0 z-50 h-16 shrink-0 border-b border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md transition-shadow duration-200",
+              headerScrolled &&
+                "shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.45)]",
+            )}
           >
-            {/* ── 1. Logo / Workspace Experience (Desktop / Tablet / Mobile) ───── */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-              <AnimatePresence initial={false}>
-                {showSidebarPanel && isSidebarCollapsed && (
-                  <motion.div
-                    key="unfold-beside-logo"
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: "auto", opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
-                    className="flex items-center overflow-hidden flex-shrink-0"
-                  >
-                    <button
-                      onClick={unfoldSidebar}
-                      aria-label="Expand sidebar"
-                      aria-keyshortcuts="Alt+B"
-                      className={cn(
-                        "group relative touch-manipulation w-9 h-9 rounded-xl flex-shrink-0",
-                        "flex items-center justify-center",
-                        "bg-muted/50 border border-border/60",
-                        "hover:bg-primary/[0.08] hover:border-primary/35 hover:text-primary",
-                        "active:scale-[0.93] transition-all duration-200",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-                      )}
+            <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+              {/* ── 1. Logo / Workspace Block ───── */}
+              <div className="flex items-center gap-2 shrink-0">
+                <AnimatePresence initial={false}>
+                  {showSidebarPanel && isSidebarCollapsed && (
+                    <motion.div
+                      key="unfold-beside-logo"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: "auto", opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="flex items-center overflow-hidden flex-shrink-0"
                     >
-                      <PanelLeft
-                        size={14}
-                        className="absolute text-muted-foreground/70 transition-all duration-200 group-hover:opacity-0 group-hover:scale-50"
-                      />
-                      <FoldGlyph
-                        direction="unfold"
-                        size={15}
-                        strokeWidth={2.5}
-                        className="absolute text-primary opacity-0 scale-50 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100"
-                      />
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      <AppTooltip content="Expand sidebar (Alt+B)">
+                        <button
+                          type="button"
+                          onClick={unfoldSidebar}
+                          aria-label="Expand sidebar"
+                          aria-keyshortcuts="Alt+B"
+                          className="group relative touch-manipulation inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                        >
+                          <NavIcon icon={PanelLeft} />
+                        </button>
+                      </AppTooltip>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              {/* Workspace Switcher: AlgoGuru ▼ (Personal / Team / Enterprise) */}
-              <WorkspaceSwitcher compact={isMobile} />
+                <WorkspaceSwitcher />
+              </div>
+
+              {/* ── 2. Primary Navigation (Desktop >= 1024px) ───── */}
+              <div className="hidden lg:flex h-full items-center justify-center">
+                <PrimaryNavigation pathname={location.pathname} />
+              </div>
+
+              {/* ── 3. Right Side Controls (8px between icon buttons) ───── */}
+              <div className="header-actions flex shrink-0 items-center gap-2">
+                <GlobalSearchLauncher />
+
+                <div className="hidden lg:flex items-center gap-2">
+                  <AiCommandLauncher
+                    open={guruOpen}
+                    embedded={isProblemSolverRoute}
+                    onClick={toggleGuruPanel}
+                  />
+                  <NotificationCenter />
+                  <ThemeToggle />
+                  <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
+                </div>
+
+                {/* ── 4. Mobile Hamburger (ONLY below 1024px) ───── */}
+                <AppTooltip content={mobileMenuOpen ? "Close menu" : "Open menu"}>
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen((open) => !open)}
+                    id="header-navigation-toggle"
+                    aria-label="Toggle navigation menu"
+                    aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
+                    aria-expanded={mobileMenuOpen}
+                    className="header-menu-btn lg:hidden touch-manipulation inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                  >
+                    <NavIcon icon={mobileMenuOpen ? X : Menu} />
+                  </button>
+                </AppTooltip>
+              </div>
             </div>
 
-            {/* ── 2. Primary Navigation (Desktop: 6 destinations with premium pill) ───── */}
-            <div className="hidden lg:flex items-center justify-center">
-              <PrimaryNavigation pathname={location.pathname} />
-            </div>
-
-            {/* ── 3. Search Experience (Command Palette: Desktop / Tablet / Mobile) ───── */}
-            <div className="flex flex-1 items-center justify-center sm:justify-end lg:justify-end max-w-xs sm:max-w-sm lg:max-w-md mx-1.5 sm:mx-3">
-              <GlobalSearchLauncher className="w-full" />
-            </div>
-
-            {/* ── 4. Desktop Actions: Guru AI + Notifications + Theme Toggle + User Menu (Desktop only) ───── */}
-            <div className="header-actions hidden lg:flex shrink-0 items-center gap-1.5 sm:gap-2">
-              {/* Guru AI Command Center entry */}
-              <AiCommandLauncher
-                open={guruOpen}
-                embedded={isProblemSolverRoute}
-                onClick={toggleGuruPanel}
-              />
-
-              {/* Subtle divider */}
-              <div className="h-5 w-px bg-border/60 rounded-full mx-0.5" />
-
-              {/* Notifications */}
-              <NotificationCenter />
-
-              {/* Theme toggle */}
-              <ThemeToggle />
-
-              {/* User avatar menu */}
-              <UserMenu />
-            </div>
-
-            {/* ── 5. Tablet Menu / Mobile Drawer Toggle Button (Tablet & Mobile only) ───── */}
-            <button
-              onClick={() => setMobileMenuOpen((open) => !open)}
-              id="header-navigation-toggle"
-              aria-label="Toggle navigation menu"
-              aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
-              aria-expanded={mobileMenuOpen}
-              className="header-menu-btn lg:hidden touch-manipulation flex items-center justify-center w-10 h-10 rounded-xl border border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-all duration-150 ml-1 shrink-0"
-            >
-              {mobileMenuOpen ? <X size={17} /> : <Menu size={17} />}
-            </button>
-
-            {/* ── Mobile navigation sheet ──────────────────────── */}
+            {/* ── Mobile Full-Height Drawer (< 1024px) ──────────────────────── */}
             <AnimatePresence>
               {mobileMenuOpen && (
                 <MobileNavigationMenu

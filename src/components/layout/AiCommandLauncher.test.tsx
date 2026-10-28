@@ -4,19 +4,19 @@ import { AiCommandLauncher } from "./AiCommandLauncher";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 describe("AiCommandLauncher", () => {
-  it("renders closed state with Guru AI label and shortcut badge", () => {
+  it("renders closed state with Ask Guru label and status dot", () => {
     const onClick = vi.fn();
     render(
       <TooltipProvider>
         <AiCommandLauncher open={false} onClick={onClick} />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     const button = screen.getByRole("button", { name: /open guru ai command center/i });
     expect(button).toBeInTheDocument();
     expect(button).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByText("Guru AI")).toBeInTheDocument();
-    expect(screen.getByText("⌘J")).toBeInTheDocument();
+    expect(screen.getByText("Ask Guru")).toBeInTheDocument();
+    expect(screen.queryByText(/ready/i)).not.toBeInTheDocument();
 
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledOnce();
@@ -26,7 +26,7 @@ describe("AiCommandLauncher", () => {
     render(
       <TooltipProvider>
         <AiCommandLauncher open={true} onClick={() => undefined} />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     const button = screen.getByRole("button", { name: /close guru ai command center/i });
@@ -37,7 +37,7 @@ describe("AiCommandLauncher", () => {
     render(
       <TooltipProvider>
         <AiCommandLauncher embedded={true} />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     expect(screen.getByText("Guru Active")).toBeInTheDocument();

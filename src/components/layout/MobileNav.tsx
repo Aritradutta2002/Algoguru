@@ -1,13 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Code2, GraduationCap, Home, Menu, Target } from "lucide-react";
+import { BriefcaseBusiness, Code2, House, Menu, SquareTerminal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NavIcon } from "./NavIcon";
 
 const ITEMS = [
-  { label: "Home", path: "/", icon: Home },
-  { label: "Practice", path: "/practice", icon: Target },
-  { label: "Code", path: "/playground", icon: Code2 },
-  { label: "Interview", path: "/interview", icon: GraduationCap },
+  { label: "Home", path: "/", icon: House },
+  { label: "Practice", path: "/practice", icon: Code2 },
+  { label: "Code", path: "/playground", icon: SquareTerminal },
+  { label: "Interview", path: "/interview", icon: BriefcaseBusiness },
 ] as const;
 
 const isActive = (pathname: string, path: string) =>
@@ -37,30 +38,26 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
     >
       {ITEMS.map((item) => {
         const active = isActive(pathname, item.path);
-        const Icon = item.icon;
         return (
           <Link
             key={item.path}
             to={item.path}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-              active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+              "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+              active
+                ? "text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
+                : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
             )}
           >
             {active && (
               <motion.span
                 layoutId="mobile-nav-pill"
-                className="absolute inset-0 rounded-xl border border-primary/20 bg-primary/10"
+                className="absolute inset-0 rounded-xl border border-blue-500/20 bg-blue-500/10"
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             )}
-            <Icon
-              size={19}
-              strokeWidth={active ? 2.2 : 1.9}
-              className="relative"
-              aria-hidden="true"
-            />
+            <NavIcon icon={item.icon} className="relative" />
             <span className="relative">{item.label}</span>
           </Link>
         );
@@ -71,18 +68,20 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
         onClick={onMore}
         aria-label="Open more navigation"
         className={cn(
-          "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-          moreActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
+          "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+          moreActive
+            ? "text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
+            : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
         )}
       >
         {moreActive && (
           <motion.span
             layoutId="mobile-nav-pill"
-            className="absolute inset-0 rounded-xl border border-primary/20 bg-primary/10"
+            className="absolute inset-0 rounded-xl border border-blue-500/20 bg-blue-500/10"
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
           />
         )}
-        <Menu size={19} strokeWidth={moreActive ? 2.2 : 1.9} className="relative" aria-hidden="true" />
+        <NavIcon icon={Menu} className="relative" />
         <span className="relative">More</span>
       </button>
     </motion.nav>

@@ -1,8 +1,8 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { AppTooltip } from "@/components/ui/tooltip";
-import { SearchMark } from "@/components/brand/SearchMark";
 import { cn } from "@/lib/utils";
+import { NavIcon } from "./NavIcon";
 
 /**
  * The header search entry point.
@@ -27,35 +27,33 @@ interface SearchTriggerProps {
 export function SearchTrigger({
   onClick,
   className,
-  placeholder = "Search problems, topics, roadmaps, AI...",
+  placeholder = "Search...",
 }: SearchTriggerProps) {
   return (
-    <AppTooltip content="Search AlgoGuru (⌘K)">
+    <AppTooltip content="Search (⌘K)">
       <button
         type="button"
         onClick={onClick}
         aria-label="Search AlgoGuru"
         data-search-trigger="true"
         className={cn(
-          "group relative flex h-10 items-center gap-2.5 overflow-hidden rounded-xl",
-          "border border-border/60 bg-muted/40 px-3 text-left",
-          "transition-all duration-200 ease-out",
-          "hover:border-primary/30 hover:bg-muted/70 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.06)]",
-          "active:scale-[0.98] outline-none touch-manipulation select-none",
-          "focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-1",
-          className
+          "group relative inline-flex h-11 w-11 lg:h-9 lg:w-9 xl:w-56 shrink-0 items-center justify-center xl:justify-start gap-2 rounded-lg",
+          "border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-0 xl:px-3 text-left",
+          "text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400",
+          "transition-colors duration-150 ease-out",
+          "hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+          "touch-manipulation select-none",
+          className,
         )}
       >
-        <SearchMark
-          size={18}
-          className="shrink-0 transition-transform duration-300 group-hover:scale-110 opacity-80 group-hover:opacity-100"
-        />
+        <NavIcon icon={Search} />
 
-        <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground/75 transition-colors group-hover:text-foreground">
+        <span className="hidden xl:inline min-w-0 flex-1 truncate text-sm font-normal text-slate-500 dark:text-slate-400 transition-colors duration-150 group-hover:text-slate-700 dark:group-hover:text-slate-200">
           {placeholder}
         </span>
 
-        <kbd className="shrink-0 items-center gap-0.5 rounded-md border border-border/70 bg-background/80 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground/70 transition-colors group-hover:border-primary/25 group-hover:text-primary flex">
+        <kbd className="hidden xl:inline-flex shrink-0 items-center gap-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-500 dark:text-slate-400">
           <span>⌘</span>K
         </kbd>
       </button>
@@ -70,7 +68,7 @@ interface GlobalSearchLauncherProps {
 
 export function GlobalSearchLauncher({
   className,
-  placeholder = "Search problems, topics, roadmaps, AI...",
+  placeholder = "Search...",
 }: GlobalSearchLauncherProps) {
   const [loaded, setLoaded] = useState(false);
 
@@ -99,7 +97,15 @@ export function GlobalSearchLauncher({
   }
 
   return (
-    <Suspense fallback={<SearchTrigger onClick={() => undefined} className={className} placeholder={placeholder} />}>
+    <Suspense
+      fallback={
+        <SearchTrigger
+          onClick={() => undefined}
+          className={className}
+          placeholder={placeholder}
+        />
+      }
+    >
       <GlobalSearch initialOpen />
     </Suspense>
   );

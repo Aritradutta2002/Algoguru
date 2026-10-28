@@ -1,30 +1,84 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { MobileNavigationMenu, PrimaryNavigation, isNavActive } from "./PrimaryNavigation";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 describe("Primary navigation", () => {
   it.each([
-    ["/", "/", true], ["/practice", "/", false],
-    ["/interview/java", "/interview", true], ["/interviews", "/interview", false],
+    ["/", "/", true],
+    ["/practice", "/", false],
+    ["/interview/java", "/interview", true],
+    ["/interviews", "/interview", false],
   ])("matches %s against %s correctly", (pathname, path, active) => {
     expect(isNavActive(pathname, path)).toBe(active);
   });
 
   it("preserves six destinations and marks only the active parent", () => {
-    render(<MemoryRouter><PrimaryNavigation pathname="/interview/java" /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/interview/java" />
+      </MemoryRouter>,
+    );
     expect(screen.getAllByRole("link")).toHaveLength(6);
     expect(screen.getByRole("link", { name: "Interview" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Roadmap" })).toHaveAttribute("href", "/roadmap");
   });
 
+  it("hides contest live dot by default and shows it only when a contest is running", () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/" contestLive={false} />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByLabelText("Contest live")).not.toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/" contestLive={true} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByLabelText("Contest live")).toBeInTheDocument();
+  });
+
+  it("opens 2-column mega menu after 200ms hover delay and closes on Escape", () => {
+    vi.useFakeTimers();
+    render(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/" />
+      </MemoryRouter>,
+    );
+
+    const practiceLink = screen.getByRole("link", { name: "Practice" });
+    fireEvent.mouseEnter(practiceLink.parentElement!);
+
+    expect(screen.queryByRole("region", { name: /practice quick links/i })).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(screen.getByRole("region", { name: /practice quick links/i })).toBeInTheDocument();
+    expect(screen.getByText("DSA Problem Sheets")).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("region", { name: /practice quick links/i })).not.toBeInTheDocument();
+  });
+
   function renderMenu(pathname = "/practice") {
     const onClose = vi.fn();
     const onOpenLibrary = vi.fn();
-    render(<MemoryRouter><button id="header-navigation-toggle">Menu</button><MobileNavigationMenu pathname={pathname} onClose={onClose} onOpenLibrary={onOpenLibrary} /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <button id="header-navigation-toggle">Menu</button>
+        <MobileNavigationMenu pathname={pathname} onClose={onClose} onOpenLibrary={onOpenLibrary} />
+      </MemoryRouter>,
+    );
     return { onClose, onOpenLibrary };
   }
 
@@ -60,7 +114,11 @@ describe("Primary navigation", () => {
   });
 
   it("prioritizes daily driver engineering routes with high priority", () => {
-    render(<MemoryRouter><PrimaryNavigation pathname="/" /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/" />
+      </MemoryRouter>,
+    );
     const practiceLink = screen.getByRole("link", { name: "Practice" });
     const interviewLink = screen.getByRole("link", { name: "Interview" });
     const roadmapLink = screen.getByRole("link", { name: "Roadmap" });
@@ -83,7 +141,7 @@ describe("Primary navigation", () => {
           onOpenLibrary={onOpenLibrary}
           onToggleGuru={onToggleGuru}
         />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const guruButton = screen.getByRole("button", { name: /guru ai coach/i });
@@ -94,4 +152,3 @@ describe("Primary navigation", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 });
-

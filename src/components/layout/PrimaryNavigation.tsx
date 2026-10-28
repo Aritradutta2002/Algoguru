@@ -1,115 +1,356 @@
-import { useContext, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   BookOpen,
+  BriefcaseBusiness,
   Code2,
-  GraduationCap,
-  Home,
-  Map,
-  Target,
-  Trophy,
+  Compass,
+  Cpu,
+  Database,
+  GitBranch,
+  House,
+  Layers,
+  Network,
+  Play,
+  Route,
+  Server,
   Sparkles,
-  Sun,
-  Moon,
-  ChevronRight,
+  SquareTerminal,
+  Trophy,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GuruAvatar } from "@/components/brand/GuruMark";
+import { NavIcon } from "./NavIcon";
+
+export interface MegaMenuEntry {
+  title: string;
+  description: string;
+  path: string;
+  icon: LucideIcon;
+}
 
 export interface NavLinkItem {
   label: string;
   path: string;
-  icon: typeof Home;
+  icon: LucideIcon;
   priority: "high" | "normal" | "base";
   category?: "core" | "sandbox" | "overview";
-  live?: boolean;
+  megaMenu?: MegaMenuEntry[];
 }
 
+export const MEGA_MENUS: Record<string, MegaMenuEntry[]> = {
+  "/practice": [
+    {
+      title: "DSA Problem Sheets",
+      description: "Curated coding interview problems by topic and difficulty",
+      path: "/practice",
+      icon: Code2,
+    },
+    {
+      title: "Daily Challenge",
+      description: "Solve today's featured algorithmic problem in the IDE",
+      path: "/problem-solver",
+      icon: SquareTerminal,
+    },
+    {
+      title: "Arrays & Patterns",
+      description: "Pattern-wise data structure mastery and guided examples",
+      path: "/arrays",
+      icon: Layers,
+    },
+    {
+      title: "Interactive Playground",
+      description: "Instant multi-language sandbox for testing solutions",
+      path: "/playground",
+      icon: Play,
+    },
+  ],
+  "/interview": [
+    {
+      title: "Interview Prep Hub",
+      description: "Language tracks, company prep, and structured guides",
+      path: "/interview",
+      icon: BriefcaseBusiness,
+    },
+    {
+      title: "Core Java Q&A",
+      description: "Deep JVM internals, concurrency, and collections",
+      path: "/interview/java/core-java-qa",
+      icon: Cpu,
+    },
+    {
+      title: "Spring Boot Track",
+      description: "Production backend architecture, annotations & practice",
+      path: "/interview/java/spring-boot",
+      icon: Server,
+    },
+    {
+      title: "System Design",
+      description: "Scalable distributed systems and architecture case studies",
+      path: "/interview/java/system-design",
+      icon: Network,
+    },
+  ],
+  "/roadmap": [
+    {
+      title: "Interactive Roadmaps",
+      description: "Visual skill trees and step-by-step engineering paths",
+      path: "/roadmap",
+      icon: Route,
+    },
+    {
+      title: "Java Mastery Path",
+      description: "End-to-end roadmap from core syntax to backend internals",
+      path: "/roadmap/java",
+      icon: Compass,
+    },
+    {
+      title: "Data Structures Path",
+      description: "Linear, tree, and graph structures for interviews",
+      path: "/interview/java/data-structure",
+      icon: GitBranch,
+    },
+    {
+      title: "SQL & Databases",
+      description: "Relational schema design, indexing, and query tuning",
+      path: "/interview/java/sql-structure",
+      icon: Database,
+    },
+  ],
+};
+
 export const NAV_LINKS: NavLinkItem[] = [
-  { label: "Home", path: "/", icon: Home, priority: "base", category: "overview" },
-  { label: "Practice", path: "/practice", icon: Target, priority: "high", category: "core" },
-  { label: "Interview", path: "/interview", icon: GraduationCap, priority: "high", category: "core" },
-  { label: "Roadmap", path: "/roadmap", icon: Map, priority: "high", category: "core" },
-  { label: "Playground", path: "/playground", icon: Code2, priority: "normal", category: "sandbox" },
-  { label: "Contest", path: "/contest", icon: Trophy, priority: "normal", category: "sandbox", live: true },
+  { label: "Home", path: "/", icon: House, priority: "base", category: "overview" },
+  {
+    label: "Practice",
+    path: "/practice",
+    icon: Code2,
+    priority: "high",
+    category: "core",
+    megaMenu: MEGA_MENUS["/practice"],
+  },
+  {
+    label: "Interview",
+    path: "/interview",
+    icon: BriefcaseBusiness,
+    priority: "high",
+    category: "core",
+    megaMenu: MEGA_MENUS["/interview"],
+  },
+  {
+    label: "Roadmap",
+    path: "/roadmap",
+    icon: Route,
+    priority: "high",
+    category: "core",
+    megaMenu: MEGA_MENUS["/roadmap"],
+  },
+  {
+    label: "Playground",
+    path: "/playground",
+    icon: SquareTerminal,
+    priority: "normal",
+    category: "sandbox",
+  },
+  {
+    label: "Contest",
+    path: "/contest",
+    icon: Trophy,
+    priority: "normal",
+    category: "sandbox",
+  },
 ];
 
 export const isNavActive = (pathname: string, path: string) =>
   path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
-export function PrimaryNavigation({ pathname }: { pathname: string }) {
+/**
+ * Checks whether a coding or MCQ contest session is currently active.
+ * The pulsing orange Contest dot is only displayed when a contest is actually running.
+ */
+export function isContestRunning(pathname: string, explicitLive?: boolean): boolean {
+  if (typeof explicitLive === "boolean") {
+    return explicitLive;
+  }
+  if (pathname.startsWith("/contest/coding/session") || pathname.startsWith("/contest/mcq")) {
+    return true;
+  }
+  try {
+    const activeSessionId = window.localStorage.getItem("algoguru:coding-contest:active-session");
+    if (!activeSessionId) return false;
+    const raw = window.localStorage.getItem(`algoguru:coding-contest:session:${activeSessionId}`);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as {
+      session?: { status?: string; expiresAt?: number };
+    };
+    return (
+      parsed?.session?.status === "active" &&
+      typeof parsed?.session?.expiresAt === "number" &&
+      parsed.session.expiresAt > Date.now()
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function PrimaryNavigation({
+  pathname,
+  contestLive,
+}: {
+  pathname: string;
+  contestLive?: boolean;
+}) {
   const reduceMotion = useReducedMotion();
+  const [openMenuPath, setOpenMenuPath] = useState<string | null>(null);
+  const openTimerRef = useRef<number | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
+
+  const contestRunning = isContestRunning(pathname, contestLive);
+
+  const clearTimers = useCallback(() => {
+    if (openTimerRef.current !== null) {
+      window.clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleOpen = useCallback(
+    (path: string) => {
+      clearTimers();
+      openTimerRef.current = window.setTimeout(() => {
+        setOpenMenuPath(path);
+      }, 200);
+    },
+    [clearTimers],
+  );
+
+  const scheduleClose = useCallback(() => {
+    clearTimers();
+    closeTimerRef.current = window.setTimeout(() => {
+      setOpenMenuPath(null);
+    }, 150);
+  }, [clearTimers]);
+
+  useEffect(() => {
+    setOpenMenuPath(null);
+    clearTimers();
+  }, [pathname, clearTimers]);
+
+  useEffect(() => {
+    if (!openMenuPath) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenMenuPath(null);
+        clearTimers();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [openMenuPath, clearTimers]);
+
+  useEffect(() => () => clearTimers(), [clearTimers]);
 
   return (
     <nav
       aria-label="Primary"
-      className="header-primary-nav flex items-center gap-0.5 rounded-xl border border-border/50 bg-muted/30 p-1 select-none"
+      className="header-primary-nav flex h-16 items-center gap-1 select-none"
     >
-      {NAV_LINKS.map(({ label, path, icon: Icon, priority, live }, index) => {
+      {NAV_LINKS.map(({ label, path, icon, megaMenu }) => {
         const active = isNavActive(pathname, path);
-        const isCorePriority = priority === "high";
+        const showLiveDot = path === "/contest" && contestRunning;
+        const isMegaOpen = Boolean(megaMenu && openMenuPath === path);
 
         return (
-          <div key={path} className="flex items-center">
-            {/* Optical grouping divider between Core tracks and Sandbox tools */}
-            {index === 4 && (
-              <div
-                aria-hidden="true"
-                className="mx-1.5 h-4 w-px bg-border/50 shrink-0 self-center rounded-full"
-              />
-            )}
-
+          <div
+            key={path}
+            className="relative flex h-full items-center"
+            onMouseEnter={() => {
+              if (megaMenu) scheduleOpen(path);
+            }}
+            onMouseLeave={() => {
+              if (megaMenu) scheduleClose();
+            }}
+            onFocus={() => {
+              if (megaMenu) scheduleOpen(path);
+            }}
+            onBlur={(event) => {
+              if (
+                megaMenu &&
+                !event.currentTarget.contains(event.relatedTarget as Node | null)
+              ) {
+                scheduleClose();
+              }
+            }}
+          >
             <Link
               to={path}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "header-nav-link group relative inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-[12.5px] transition-colors duration-150 select-none",
+                "header-nav-link group relative inline-flex h-9 items-center gap-2 rounded-lg px-3 text-[14px] font-medium leading-none transition-colors duration-150 ease-out select-none",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
                 active
-                  ? "text-foreground font-semibold"
-                  : isCorePriority
-                  ? "text-foreground/70 font-medium hover:text-foreground"
-                  : "text-muted-foreground/65 font-normal hover:text-foreground"
+                  ? "text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
+                  : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100",
               )}
             >
-              {/* Active pill — springs between links */}
-              {active && (
-                <motion.span
-                  layoutId={reduceMotion ? undefined : "primary-nav-pill"}
-                  className="header-nav-indicator absolute inset-0 rounded-lg"
-                  transition={{ type: "spring", stiffness: 440, damping: 36 }}
-                />
-              )}
-
-              {/* Hover background (inactive only) */}
-              {!active && (
+              <NavIcon icon={icon} />
+              <span className="leading-none">{label}</span>
+              {showLiveDot && (
                 <span
-                  aria-hidden="true"
-                  className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-background/60 dark:bg-card/50"
-                />
+                  aria-label="Contest live"
+                  className="relative flex h-2 w-2 shrink-0"
+                >
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                </span>
               )}
-
-              <span className="relative z-10 flex items-center gap-1.5">
-                {/* Route icon */}
-                <Icon
-                  size={13}
-                  aria-hidden="true"
-                  className={cn(
-                    "shrink-0 transition-colors duration-150",
-                    active
-                      ? "text-primary"
-                      : "text-muted-foreground/60 group-hover:text-foreground/80",
-                  )}
-                />
-                {label}
-                {live && (
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-500" />
-                  </span>
-                )}
-              </span>
             </Link>
+
+            {/* 2px blue-600 indicator along the bottom edge of the navbar */}
+            {active && (
+              <motion.span
+                layoutId={reduceMotion ? undefined : "navbar-active-indicator"}
+                className="header-nav-indicator pointer-events-none absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-blue-600 dark:bg-blue-500"
+                transition={{ type: "spring", stiffness: 460, damping: 36 }}
+              />
+            )}
+
+            {/* Step 5: 2-Column Mega Menu Popover */}
+            {isMegaOpen && megaMenu && (
+              <div
+                role="region"
+                aria-label={`${label} quick links`}
+                className="absolute left-0 top-[calc(100%-2px)] z-50 w-[480px] rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 p-2 shadow-xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150"
+              >
+                <div className="grid grid-cols-2 gap-1">
+                  {megaMenu.map((entry) => (
+                    <Link
+                      key={entry.path + entry.title}
+                      to={entry.path}
+                      onClick={() => setOpenMenuPath(null)}
+                      className="group/item flex items-start gap-3 rounded-lg p-2.5 transition-colors duration-150 hover:bg-slate-100/80 dark:hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 transition-colors duration-150 group-hover/item:border-blue-500/30 group-hover/item:bg-blue-50/70 group-hover/item:text-blue-600 dark:group-hover/item:bg-blue-950/40 dark:group-hover/item:text-blue-400">
+                        <NavIcon icon={entry.icon} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                          {entry.title}
+                        </p>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-slate-400">
+                          {entry.description}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
       })}
@@ -122,14 +363,17 @@ export function MobileNavigationMenu({
   onClose,
   onOpenLibrary,
   onToggleGuru,
+  contestLive,
 }: {
   pathname: string;
   onClose: () => void;
   onOpenLibrary: () => void;
   onToggleGuru?: () => void;
+  contestLive?: boolean;
 }) {
   const ref = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
+  const contestRunning = isContestRunning(pathname, contestLive);
 
   useEffect(() => {
     const trigger = document.getElementById("header-navigation-toggle");
@@ -179,105 +423,85 @@ export function MobileNavigationMenu({
       ref={ref}
       id="header-navigation-menu"
       aria-label="Mobile primary"
-      initial={reduceMotion ? false : { opacity: 0, y: -8, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      initial={reduceMotion ? false : { opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 16 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="header-menu-sheet absolute inset-x-3 sm:inset-x-6 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-border/80 bg-card/95 p-3.5 shadow-2xl backdrop-blur-2xl max-h-[calc(100dvh-5.5rem)] overflow-y-auto"
+      className="header-menu-sheet fixed inset-x-0 top-16 bottom-0 z-50 flex h-[calc(100dvh-4rem)] w-full flex-col justify-between overflow-y-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 shadow-2xl sm:left-auto sm:w-80 sm:border-l lg:hidden"
     >
-      {/* Workspace Context Header */}
-      <div className="flex items-center justify-between px-3 pb-2.5 pt-1 border-b border-border/50">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            AlgoGuru Workspace
-          </p>
-          <span className="text-xs font-medium text-foreground">Developer Navigation</span>
-        </div>
-        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-          Enterprise SaaS
-        </span>
-      </div>
+      <div className="space-y-4">
+        {/* Primary Links */}
+        <div className="flex flex-col gap-1">
+          {NAV_LINKS.map(({ label, path, icon }) => {
+            const active = isNavActive(pathname, path);
+            const showLiveDot = path === "/contest" && contestRunning;
 
-      {/* Guru AI Command Card (Tablet & Mobile Access) */}
-      {onToggleGuru && (
-        <div className="pt-3 pb-1">
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={onClose}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "header-mobile-link flex min-h-[44px] items-center gap-2 rounded-lg px-3 text-[14px] font-medium transition-colors duration-150 select-none",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+                  active
+                    ? "bg-blue-50/80 dark:bg-blue-950/50 text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
+                    : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100",
+                )}
+              >
+                <NavIcon icon={icon} />
+                <span className="flex-1 truncate">{label}</span>
+                {showLiveDot && (
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="h-px bg-slate-200 dark:bg-slate-800" />
+
+        {/* Secondary actions inside mobile drawer */}
+        <div className="flex flex-col gap-2">
+          {onToggleGuru && (
+            <button
+              type="button"
+              aria-label="Ask Guru (Guru AI Coach)"
+              onClick={() => {
+                onClose();
+                onToggleGuru();
+              }}
+              className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+            >
+              <span className="flex items-center gap-2">
+                <span className="relative inline-flex items-center justify-center">
+                  <NavIcon icon={Sparkles} />
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-slate-50 dark:ring-slate-900" />
+                </span>
+                <span>Ask Guru</span>
+              </span>
+              <kbd className="inline-flex items-center rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                ⌘J
+              </kbd>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
               onClose();
-              onToggleGuru();
+              onOpenLibrary();
             }}
-            className="group w-full flex items-center justify-between rounded-xl border border-primary/25 bg-primary/[0.04] p-3 text-left transition-all hover:bg-primary/[0.08] hover:border-primary/40 active:scale-[0.99]"
+            className="flex min-h-[44px] w-full items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 cursor-pointer"
           >
-            <div className="flex items-center gap-3">
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
-                <GuruAvatar size={20} title={null} ring={false} />
-                <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-500 ring-1 ring-card" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  Guru AI Coach
-                  <span className="text-[10px] font-normal text-emerald-500">• Ready</span>
-                </span>
-                <span className="text-[11px] text-muted-foreground">
-                  Ask problem hints, complexity, or design advice
-                </span>
-              </div>
-            </div>
-            <kbd className="hidden sm:inline-flex items-center rounded border border-primary/20 bg-background/80 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary/80">
-              ⌘J
-            </kbd>
+            <NavIcon icon={BookOpen} />
+            <span>Browse learning library</span>
           </button>
         </div>
-      )}
-
-      {/* Navigation Links Grid */}
-      <div className="grid grid-cols-2 gap-2 pt-2.5 pb-2">
-        {NAV_LINKS.map(({ label, path, icon: Icon, live, priority }) => {
-          const active = isNavActive(pathname, path);
-          const isCore = priority === "high";
-
-          return (
-            <Link
-              key={path}
-              to={path}
-              onClick={onClose}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "header-mobile-link flex items-center gap-2.5 rounded-xl border p-2.5 text-xs font-semibold transition-all select-none",
-                active
-                  ? "border-primary/40 bg-primary/10 text-primary shadow-xs"
-                  : isCore
-                  ? "border-border/70 bg-muted/40 text-foreground hover:bg-muted/70"
-                  : "border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              )}
-            >
-              <Icon
-                size={17}
-                aria-hidden="true"
-                className={active ? "text-primary" : isCore ? "text-foreground/80" : "text-muted-foreground"}
-              />
-              <span className="flex-1 truncate">{label}</span>
-              {live && (
-                <span className="rounded bg-amber-500/10 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider text-amber-500">
-                  Live
-                </span>
-              )}
-            </Link>
-          );
-        })}
-
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            onOpenLibrary();
-          }}
-          className="header-mobile-link col-span-2 flex items-center gap-2.5 rounded-xl border border-border/60 bg-muted/40 p-2.5 text-xs font-semibold text-foreground hover:bg-muted/70 transition-all cursor-pointer"
-        >
-          <BookOpen size={17} aria-hidden="true" className="text-primary" />
-          <span>Browse learning library</span>
-        </button>
       </div>
     </motion.nav>
   );
