@@ -94,6 +94,49 @@ describe("GuruBot", () => {
     expect(screen.getByLabelText("Message Guru")).toHaveValue("Why does test 3 fail?");
   });
 
+  it("renders stored tool-call replies as readable coaching text", () => {
+    const now = Date.now();
+    localStorage.setItem(
+      "guru-chat-history:guest:global",
+      JSON.stringify([
+        {
+          id: "tool-chat",
+          title: "DP help",
+          messages: [
+            { id: "u1", role: "user", content: "help with dp", createdAt: now - 1000 },
+            {
+              id: "a1",
+              role: "assistant",
+              content:
+                "_call_start|>\n" +
+                "[question(\n" +
+                "  question='Your code is currently just a skeleton...',\n" +
+                "  hint='Think about what dp[i][j] should represent...',\n" +
+                "  query='What should the DP state dp[i][j] represent...?'\n" +
+                ")]\n" +
+                "<|tool_call_end|>",
+              createdAt: now,
+            },
+          ],
+          model: "openrouter",
+          date: now,
+          pinned: false,
+        },
+      ]),
+    );
+
+    renderGuru();
+
+    expect(
+      screen.getByText("What should the DP state dp[i][j] represent...?"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Think about what dp\[i\]\[j\] should represent/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/_call_start/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\[question\(/)).not.toBeInTheDocument();
+  });
+
   it("offers slash commands and inserts the template", () => {
     renderGuru();
     const input = screen.getByLabelText("Message Guru");

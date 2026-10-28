@@ -12,6 +12,7 @@ import {
   writeLocalSessions,
 } from "@/lib/guru/sessions";
 import { GuruChatError, streamGuruChat } from "@/lib/guru/stream";
+import { sanitizeGuruReply } from "@/lib/guru/toolCalls";
 import { resolvePrompt } from "@/lib/guru/commands";
 import type {
   GuruApiMessage,
@@ -521,7 +522,7 @@ export function useGuruChat({
       const flush = () => {
         frame = null;
         patchMessage(sessionId, assistantId, {
-          content: text,
+          content: sanitizeGuruReply(text, { streaming: true }),
           reasoning: reasoning || undefined,
         });
       };
@@ -547,15 +548,19 @@ export function useGuruChat({
         });
 
         if (frame !== null) cancelAnimationFrame(frame);
-        flush();
-
-        patchMessage(sessionId, assistantId, { status: "complete", error: undefined });
+        const finalText = sanitizeGuruReply(text);
+        patchMessage(sessionId, assistantId, {
+          content: finalText,
+          reasoning: reasoning || undefined,
+          status: "complete",
+          error: undefined,
+        });
         setSessions((prev) =>
           prev.map((session) =>
             session.id === sessionId ? { ...session, date: Date.now() } : session,
           ),
         );
-        if (text.trim()) completeRef.current?.(text);
+        if (finalText.trim()) completeRef.current?.(finalText);
         finishRun();
       } catch (caught) {
         if (frame !== null) cancelAnimationFrame(frame);
@@ -563,9 +568,17 @@ export function useGuruChat({
         const aborted =
           controller.signal.aborted || (caught as Error)?.name === "AbortError";
         if (aborted) {
-          flush();
-          if (!text.trim()) removeMessage(sessionId, assistantId);
-          else patchMessage(sessionId, assistantId, { status: "aborted" });
+          if (frame !== null) cancelAnimationFrame(frame);
+          const finalText = sanitizeGuruReply(text);
+          if (!finalText.trim()) {
+            removeMessage(sessionId, assistantId);
+          } else {
+            patchMessage(sessionId, assistantId, {
+              content: finalText,
+              reasoning: reasoning || undefined,
+              status: "aborted",
+            });
+          }
           abortRef.current = null;
           setStatusSafe("idle");
           return;
@@ -580,11 +593,12 @@ export function useGuruChat({
                 retryable: true,
               };
 
-        flush();
+        if (frame !== null) cancelAnimationFrame(frame);
+        const finalText = sanitizeGuruReply(text);
         patchMessage(sessionId, assistantId, {
           status: "error",
           error: info,
-          content: text,
+          content: finalText,
           reasoning: reasoning || undefined,
         });
         setError(info);

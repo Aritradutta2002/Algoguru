@@ -86,6 +86,7 @@ function buildCoachingContext({
       : `4) If the user asks for the full answer now, politely give a stronger hint (not the full code) and explain you can show the full solution if they remain stuck after trying the hint. `) +
     `5) When you do give code, keep it minimal, runnable as Solution.java, and highlight what was fixed vs their version. ` +
     `6) Be encouraging, use simple language, and ask a follow-up check.` +
+    `7) You have no tools — never emit tool-call syntax, JSON function payloads, or special tokens; ask in plain prose.` +
     contextSnippet
   );
 }

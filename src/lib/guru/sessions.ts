@@ -1,4 +1,5 @@
 import type { GuruApiMessage, GuruChatMessage, GuruSession } from "./types";
+import { sanitizeGuruReply } from "./toolCalls";
 
 /**
  * Session repository for Guru.
@@ -33,7 +34,8 @@ export function normalizeMessage(raw: unknown): GuruChatMessage | null {
   const value = raw as Partial<GuruChatMessage> & { role?: unknown; content?: unknown };
   if (value.role !== "user" && value.role !== "assistant") return null;
 
-  const content = typeof value.content === "string" ? value.content : "";
+  let content = typeof value.content === "string" ? value.content : "";
+  if (value.role === "assistant") content = sanitizeGuruReply(content);
   const error =
     value.status === "error" && value.error && typeof value.error === "object"
       ? value.error

@@ -86,6 +86,54 @@ describe("session normalisation", () => {
 
     expect(normalized?.messages[0].status).toBe("complete");
   });
+
+  it("sanitises stored tool-call markup in assistant replies", () => {
+    const normalized = normalizeSession({
+      id: "tool",
+      title: "t",
+      messages: [
+        { id: "u", role: "user", content: "help", createdAt: 1 },
+        {
+          id: "a",
+          role: "assistant",
+          content:
+            "_call_start|>\n[question(question='Your code is a skeleton', hint='Check dp[i][j]')]\n<|tool_call_end|>",
+          createdAt: 2,
+        },
+      ],
+    });
+
+    expect(normalized?.messages[1].content).toBe(
+      "Your code is a skeleton\n\n> **Hint:** Check dp[i][j]",
+    );
+  });
+
+  it("never rewrites user content that looks like tool markup", () => {
+    const content = "_call_start|>\n[question(question='mine')]\n<|tool_call_end|>";
+    const normalized = normalizeSession({
+      id: "u",
+      title: "t",
+      messages: [{ id: "u", role: "user", content }],
+    });
+
+    expect(normalized?.messages[0].content).toBe(content);
+  });
+
+  it("drops assistant rows that contain only unknown tool markup", () => {
+    const normalized = normalizeSession({
+      id: "unknown",
+      title: "t",
+      messages: [
+        {
+          id: "a",
+          role: "assistant",
+          content: '<tool_call>{"name":"shell","arguments":{"cmd":"ls"}}</tool_call>',
+        },
+      ],
+    });
+
+    expect(normalized?.messages).toHaveLength(0);
+  });
 });
 
 describe("toApiMessages", () => {
