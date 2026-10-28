@@ -44,9 +44,9 @@ export function PrimaryNavigation({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="Primary"
-      className="header-primary-nav flex items-center gap-1 rounded-xl border border-border/50 bg-muted/30 p-1 select-none"
+      className="header-primary-nav flex items-center gap-0.5 rounded-xl border border-border/50 bg-muted/30 p-1 select-none"
     >
-      {NAV_LINKS.map(({ label, path, priority, live }, index) => {
+      {NAV_LINKS.map(({ label, path, icon: Icon, priority, live }, index) => {
         const active = isNavActive(pathname, path);
         const isCorePriority = priority === "high";
 
@@ -56,7 +56,7 @@ export function PrimaryNavigation({ pathname }: { pathname: string }) {
             {index === 4 && (
               <div
                 aria-hidden="true"
-                className="mx-1 h-4 w-px bg-border/60 shrink-0 self-center"
+                className="mx-1.5 h-4 w-px bg-border/50 shrink-0 self-center rounded-full"
               />
             )}
 
@@ -64,22 +64,43 @@ export function PrimaryNavigation({ pathname }: { pathname: string }) {
               to={path}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "header-nav-link relative inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-[13px] transition-colors duration-150 select-none",
+                "header-nav-link group relative inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-[12.5px] transition-colors duration-150 select-none",
                 active
                   ? "text-foreground font-semibold"
                   : isCorePriority
-                  ? "text-foreground/85 font-medium hover:text-foreground hover:bg-muted/50"
-                  : "text-muted-foreground/80 font-normal hover:text-foreground hover:bg-muted/40"
+                  ? "text-foreground/70 font-medium hover:text-foreground"
+                  : "text-muted-foreground/65 font-normal hover:text-foreground"
               )}
             >
+              {/* Active pill — springs between links */}
               {active && (
                 <motion.span
                   layoutId={reduceMotion ? undefined : "primary-nav-pill"}
-                  className="header-nav-indicator absolute inset-0 rounded-lg bg-background/95 border border-border/80 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] dark:bg-card/90"
-                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                  className="header-nav-indicator absolute inset-0 rounded-lg"
+                  transition={{ type: "spring", stiffness: 440, damping: 36 }}
                 />
               )}
+
+              {/* Hover background (inactive only) */}
+              {!active && (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-background/60 dark:bg-card/50"
+                />
+              )}
+
               <span className="relative z-10 flex items-center gap-1.5">
+                {/* Route icon */}
+                <Icon
+                  size={13}
+                  aria-hidden="true"
+                  className={cn(
+                    "shrink-0 transition-colors duration-150",
+                    active
+                      ? "text-primary"
+                      : "text-muted-foreground/60 group-hover:text-foreground/80",
+                  )}
+                />
                 {label}
                 {live && (
                   <span className="relative flex h-1.5 w-1.5">

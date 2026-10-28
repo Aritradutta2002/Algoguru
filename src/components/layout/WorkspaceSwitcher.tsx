@@ -102,14 +102,19 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
           >
             {/* Logo Mark */}
             <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg shadow-sm shadow-primary/20 transition-transform duration-200 group-hover:scale-105">
-              <AlgoGuruMark size={28} className="rounded-lg shrink-0" />
+              {/* Subtle glow behind the mark */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary/10 blur-sm"
+              />
+              <AlgoGuruMark size={28} className="rounded-lg shrink-0 relative z-10" />
             </div>
 
             {/* Brand + Workspace Lockup (AlgoGuru ▼) */}
             <div className="flex items-center gap-1.5 min-w-0">
               <div className="flex flex-col">
                 <span className="font-display text-[15px] font-bold tracking-tight text-foreground leading-tight flex items-center gap-1">
-                  Algo<span className="text-primary">Guru</span>
+                  Algo<span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">Guru</span>
                 </span>
                 {!compact && (
                   <span className="hidden sm:block text-[10.5px] font-medium text-muted-foreground/80 leading-tight truncate">
