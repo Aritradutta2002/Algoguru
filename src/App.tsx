@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/resizable";
 import { FoldGlyph } from "@/components/FoldGlyph";
 import Auth from "./pages/Auth";
-import { Sun, Moon, ZoomIn, ZoomOut, Search, X, Sparkles, PanelLeft, Menu } from "lucide-react";
+import { Sun, Moon, ZoomIn, ZoomOut, Search, X, PanelLeft, Menu } from "lucide-react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
@@ -32,6 +32,8 @@ import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
+import { GuruAvatar } from "@/components/brand/GuruMark";
+import { GuruLauncher } from "@/components/brand/GuruLauncher";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -446,6 +448,33 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ⌘/Ctrl+J toggles Guru, matching the tooltip. Ignored while typing or on
+  // routes that expose Guru through their own surface (ProblemSolver tab).
+  useEffect(() => {
+    const isTypingTarget = (target: EventTarget | null) => {
+      const element = target as HTMLElement | null;
+      if (!element) return false;
+      const tag = element.tagName;
+      return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        element.isContentEditable
+      );
+    };
+
+    const handleGuruShortcut = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+      if (event.key.toLowerCase() !== "j") return;
+      if (isProblemSolverRoute || isTypingTarget(event.target)) return;
+      event.preventDefault();
+      toggleGuruPanel();
+    };
+
+    window.addEventListener("keydown", handleGuruShortcut);
+    return () => window.removeEventListener("keydown", handleGuruShortcut);
+  }, [isProblemSolverRoute, isMobile, guruOpen]);
+
   return (
     <SidebarProvider defaultWidth={340} widthStorageKey="algoguru-sidebar-width">
       <HomeSidebarContext.Provider value={homeSidebarValue}>
@@ -635,25 +664,20 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
               {/* Guru AI button */}
               {isProblemSolverRoute ? (
-                <AppTooltip content="Guru AI is in the description panel — Guru AI tab.">
-                  <div
-                    tabIndex={0}
-                    aria-label="Guru AI is available in the description panel tab"
-                    className="ml-2 sm:ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-                  >
-                    <img src={`${import.meta.env.BASE_URL}brand/guru-ai.png`} alt="" aria-hidden="true" width={40} height={42} className="h-[42px] w-10 shrink-0 object-contain" />
-                  </div>
-                </AppTooltip>
+                <span
+                  title="Guru AI is in the description panel — open the Guru AI tab."
+                  className="ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:ml-4"
+                >
+                  <GuruAvatar size={32} ring status="ready" title={null} />
+                  <span className="sr-only">Guru AI is available in the description panel</span>
+                </span>
               ) : (
-                <AppTooltip content={guruOpen ? "Close Guru AI" : "Open Guru AI"}>
-                  <button
+                <AppTooltip content={guruOpen ? "Close Guru AI (Ctrl/⌘ J)" : "Open Guru AI (Ctrl/⌘ J)"}>
+                  <GuruLauncher
+                    open={guruOpen}
                     onClick={toggleGuruPanel}
-                    aria-label={guruOpen ? "Close Guru AI" : "Open Guru AI"}
-                    aria-pressed={guruOpen}
-                    className="touch-manipulation ml-2 sm:ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent p-0 transition-all duration-200 hover:scale-105 hover:drop-shadow-[0_0_10px_hsl(var(--primary)/0.35)] select-none"
-                  >
-                    <img src={`${import.meta.env.BASE_URL}brand/guru-ai.png`} alt="" aria-hidden="true" width={40} height={42} className="h-[42px] w-10 shrink-0 object-contain" />
-                  </button>
+                    className="ml-2 sm:ml-4"
+                  />
                 </AppTooltip>
               )}
             </div>
@@ -807,7 +831,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                         aria-label="Expand Guru AI"
                         className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-border bg-muted px-0 py-4 transition-colors hover:bg-muted/70"
                       >
-                        <Sparkles size={16} className="text-primary" />
+                        <GuruAvatar size={20} title={null} />
                         <span className="[writing-mode:vertical-rl] rotate-180 text-xs font-medium text-foreground">
                           Guru AI
                         </span>
@@ -829,14 +853,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                       <Suspense
                         fallback={
                           <div className="flex h-full flex-col items-center justify-center gap-4 bg-card">
-                            <img
-                              src={`${import.meta.env.BASE_URL}brand/guru-ai.png`}
-                              alt=""
-                              aria-hidden="true"
-                              width={52}
-                              height={54}
-                              className="h-[54px] w-[52px] object-contain"
-                            />
+                            <GuruAvatar size={52} ring mood="thinking" glow title={null} />
                             <div className="skeleton-shimmer h-1 w-24 rounded-full" />
                             <span className="sr-only">Loading Guru AI</span>
                           </div>

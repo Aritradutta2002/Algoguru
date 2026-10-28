@@ -30,7 +30,6 @@ import {
   Bug,
   GitBranch,
   StickyNote,
-  Bot,
   Lock,
   Lightbulb,
   GitMerge,
@@ -122,6 +121,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { GuruBot, GURU_PANEL_CONSTANTS } from "@/components/GuruBot";
+import { GuruAvatar } from "@/components/brand/GuruMark";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -4420,7 +4420,7 @@ export default function Playground() {
                       className="group flex h-full w-full cursor-pointer select-none flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-border bg-card px-0 py-4 shadow-soft lc-hover"
                       style={{ color: "var(--lc-accent)" }}
                     >
-                      <Bot size={18} />
+                      <GuruAvatar size={22} title={null} />
                       <span className="rotate-180 text-[11px] font-medium tracking-widest [writing-mode:vertical-rl]" style={{ color: "var(--lc-text)" }}>
                         GuruBot
                       </span>
@@ -4568,7 +4568,7 @@ export default function Playground() {
                 guruBotOpen && !guruBotCollapsed ? "Close GuruBot" : "Open GuruBot"
               }
             >
-              <Bot size={13} />
+              <GuruAvatar size={16} title={null} />
               <span>GuruBot</span>
             </button>
           </AppTooltip>

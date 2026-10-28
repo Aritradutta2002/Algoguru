@@ -1,0 +1,83 @@
+/* ─────────────────────────────────────────────────────────────
+   Guru AI cockpit
+   Scoped styles for the assistant surface. Colour tokens live in
+   index.css (`--guru-*`) so the panel keeps its dark identity in both
+   app themes without touching the surrounding page.
+   ───────────────────────────────────────────────────────────── */
+
+.guru-cockpit {
+  color-scheme: dark;
+  --guru-scroll-thumb: hsl(var(--guru-line) / 0.9);
+  --guru-scroll-track: transparent;
+}
+
+.guru-cockpit ::selection {
+  background: hsl(var(--guru-accent) / 0.35);
+  color: hsl(var(--guru-text));
+}
+
+/* Slim, quiet scrollbars — the transcript is the only scrolling surface. */
+.guru-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--guru-scroll-thumb) var(--guru-scroll-track);
+}
+.guru-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.guru-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.guru-scroll::-webkit-scrollbar-thumb {
+  background: var(--guru-scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.guru-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--guru-accent) / 0.55);
+  background-clip: padding-box;
+}
+
+/* Markdown: long identifiers and URLs must wrap instead of forcing the panel
+   to scroll horizontally. Code blocks keep their own x-scroll. */
+.guru-markdown {
+  overflow-wrap: anywhere;
+}
+.guru-markdown :where(p, li, td, th, blockquote) {
+  text-wrap: pretty;
+}
+.guru-markdown :where(pre, code) {
+  overflow-wrap: normal;
+}
+.guru-markdown :where(.katex-display) {
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+}
+.guru-markdown :where(.katex) {
+  font-size: 1.02em;
+}
+.guru-markdown :where(table) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The composer grows with content; the browser scrollbar should stay subtle. */
+.guru-cockpit textarea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--guru-scroll-thumb) transparent;
+}
+
+/* Fold the mascot loops for users who ask for less motion. The global rule in
+   index.css already covers most of it; this keeps Guru honest on its own. */
+@media (prefers-reduced-motion: reduce) {
+  .guru-cockpit *,
+  .guru-cockpit *::before,
+  .guru-cockpit *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

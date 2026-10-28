@@ -100,6 +100,20 @@ export default {
           border: "hsl(var(--code-border))",
           header: "hsl(var(--code-header))",
         },
+        /* Guru AI cockpit. A deliberately dark surface in both themes so the
+           assistant reads as its own product surface — see `--guru-*` in
+           index.css. Never use raw neutral-* greys inside Guru. */
+        guru: {
+          bg: "hsl(var(--guru-bg))",
+          surface: "hsl(var(--guru-surface))",
+          raised: "hsl(var(--guru-raised))",
+          line: "hsl(var(--guru-line))",
+          text: "hsl(var(--guru-text))",
+          muted: "hsl(var(--guru-muted))",
+          accent: "hsl(var(--guru-accent))",
+          "accent-2": "hsl(var(--guru-accent-2))",
+          "accent-soft": "hsl(var(--guru-accent) / 0.14)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -130,6 +144,28 @@ export default {
           "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.15)" },
           "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.3)" },
         },
+        /* Guru mascot: antenna orb breathes, eyelids blink, halo drifts.
+           All transform/opacity only so the loop stays on the compositor. */
+        "guru-orb": {
+          "0%, 100%": { opacity: "0.55", transform: "scale(0.9)" },
+          "50%": { opacity: "1", transform: "scale(1.08)" },
+        },
+        "guru-blink": {
+          "0%, 92%, 100%": { transform: "scaleY(1)" },
+          "95%, 97%": { transform: "scaleY(0.08)" },
+        },
+        "guru-halo": {
+          "0%, 100%": { opacity: "0.45", transform: "scale(1)" },
+          "50%": { opacity: "0.8", transform: "scale(1.06)" },
+        },
+        "guru-caret": {
+          "0%, 45%": { opacity: "1" },
+          "55%, 100%": { opacity: "0" },
+        },
+        "guru-shimmer": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(200%)" },
+        },
         "slide-in": {
           from: { opacity: "0", transform: "translateX(-8px)" },
           to: { opacity: "1", transform: "translateX(0)" },
@@ -143,6 +179,11 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "glow-pulse": "glow-pulse 4s ease-in-out infinite",
+        "guru-orb": "guru-orb 3.2s ease-in-out infinite",
+        "guru-blink": "guru-blink 5.5s ease-in-out infinite",
+        "guru-halo": "guru-halo 4.5s ease-in-out infinite",
+        "guru-caret": "guru-caret 1.1s steps(1, end) infinite",
+        "guru-shimmer": "guru-shimmer 1.8s ease-in-out infinite",
         "slide-in": "slide-in 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
         "fade-in": "fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
       },
