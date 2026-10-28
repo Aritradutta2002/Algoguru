@@ -29,7 +29,7 @@ interface GuruMessageProps {
 
 function ReasoningDisclosure({ reasoning }: { reasoning: string }) {
   return (
-    <details className="group/reasoning mb-1.5 rounded-lg border border-guru-line/50 bg-white/[0.02]">
+    <details className="group/reasoning mb-1.5 rounded-lg border border-guru-line/50 bg-guru-text/[0.025]">
       <summary className="flex cursor-pointer list-none items-center gap-1.5 px-2.5 py-1.5 text-[11.5px] font-medium text-guru-muted transition-colors hover:text-guru-text [&::-webkit-details-marker]:hidden">
         <ChevronDown
           size={12}
@@ -57,10 +57,10 @@ function ErrorCard({
   return (
     <div
       role="alert"
-      className="rounded-xl border border-red-500/25 bg-red-500/[0.07] px-3.5 py-3"
+      className="rounded-xl border border-guru-danger/25 bg-guru-danger/[0.07] px-3.5 py-3"
     >
       <div className="flex items-start gap-2">
-        <AlertTriangle size={14} className="mt-0.5 shrink-0 text-red-400" />
+        <AlertTriangle size={14} className="mt-0.5 shrink-0 text-guru-danger" />
         <div className="min-w-0 flex-1">
           <p className="text-[12.5px] leading-relaxed text-guru-text/90">{info.message}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -68,7 +68,7 @@ function ErrorCard({
               <button
                 type="button"
                 onClick={() => onRetry(message.id)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-white/[0.07] px-2.5 py-1 text-[11.5px] font-semibold text-guru-text transition-colors hover:bg-white/[0.12]"
+                className="inline-flex items-center gap-1.5 rounded-md bg-guru-text/[0.07] px-2.5 py-1 text-[11.5px] font-semibold text-guru-text transition-colors hover:bg-guru-text/[0.12]"
               >
                 <RotateCcw size={12} />
                 Try again
@@ -83,7 +83,7 @@ function ErrorCard({
               <summary className="cursor-pointer text-[11px] text-guru-muted/80 hover:text-guru-muted">
                 Technical details
               </summary>
-              <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap rounded bg-black/30 p-2 font-mono text-[10.5px] leading-relaxed text-guru-muted">
+              <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap rounded bg-guru-text/[0.06] p-2 font-mono text-[10.5px] leading-relaxed text-guru-muted">
                 {info.detail}
                 {info.requestId ? `\nrequest: ${info.requestId}` : ""}
               </pre>
@@ -175,7 +175,7 @@ export const GuruMessage = memo(function GuruMessage({
                   setDraft(message.content);
                   setEditing(false);
                 }}
-                className="rounded-md px-2.5 py-1 text-[11.5px] font-medium text-guru-muted transition-colors hover:bg-white/[0.06] hover:text-guru-text"
+                className="rounded-md px-2.5 py-1 text-[11.5px] font-medium text-guru-muted transition-colors hover:bg-guru-text/[0.06] hover:text-guru-text"
               >
                 Cancel
               </button>
@@ -183,14 +183,14 @@ export const GuruMessage = memo(function GuruMessage({
                 type="button"
                 onClick={submitEdit}
                 disabled={!draft.trim()}
-                className="rounded-md bg-guru-accent px-2.5 py-1 text-[11.5px] font-semibold text-white transition-colors hover:bg-guru-accent/90 disabled:opacity-40"
+                className="rounded-md bg-guru-accent px-2.5 py-1 text-[11.5px] font-semibold text-guru-on-accent transition-colors hover:bg-guru-accent/90 disabled:opacity-40"
               >
                 Save &amp; send
               </button>
             </div>
           </div>
         ) : (
-          <div className="max-w-[92%] rounded-2xl rounded-br-md border border-white/[0.06] bg-guru-raised px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap break-words text-guru-text">
+          <div className="max-w-[92%] rounded-2xl rounded-br-md border border-guru-line/60 bg-guru-raised px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap break-words text-guru-text">
             {message.content}
           </div>
         )}
@@ -201,7 +201,7 @@ export const GuruMessage = memo(function GuruMessage({
             onClick={handleCopy}
             className="h-7 w-7"
           >
-            {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+            {copied ? <Check size={12} className="text-guru-success" /> : <Copy size={12} />}
           </GuruIconButton>
           <GuruIconButton
             label="Edit and resend"
@@ -239,7 +239,7 @@ export const GuruMessage = memo(function GuruMessage({
             {formatClock(message.createdAt)}
           </span>
           {message.status === "aborted" && (
-            <span className="rounded bg-white/[0.06] px-1.5 py-px text-[10px] font-medium text-guru-muted">
+            <span className="rounded bg-guru-text/[0.06] px-1.5 py-px text-[10px] font-medium text-guru-muted">
               Stopped
             </span>
           )}
@@ -293,7 +293,7 @@ export const GuruMessage = memo(function GuruMessage({
               className="h-7 w-7"
               disabled={!message.content.trim()}
             >
-              {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+              {copied ? <Check size={12} className="text-guru-success" /> : <Copy size={12} />}
             </GuruIconButton>
             {!isError && (
               <GuruIconButton

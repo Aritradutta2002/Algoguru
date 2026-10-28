@@ -1,14 +1,18 @@
 /* ─────────────────────────────────────────────────────────────
    Guru AI cockpit
    Scoped styles for the assistant surface. Colour tokens live in
-   index.css (`--guru-*`) so the panel keeps its dark identity in both
-   app themes without touching the surrounding page.
+   index.css (`--guru-*`) and switch with the app's `.dark` class, so every
+   part of Guru follows the same day/night control as the surrounding page.
    ───────────────────────────────────────────────────────────── */
 
 .guru-cockpit {
-  color-scheme: dark;
+  color-scheme: light;
   --guru-scroll-thumb: hsl(var(--guru-line) / 0.9);
   --guru-scroll-track: transparent;
+}
+
+.dark .guru-cockpit {
+  color-scheme: dark;
 }
 
 .guru-cockpit ::selection {

@@ -39,8 +39,8 @@ export function GuruEmptyState({
       </div>
 
       {debugMode && contextAttached && (
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-emerald-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-guru-success/25 bg-guru-success/[0.08] px-2.5 py-1 text-[11px] font-medium text-guru-success">
+          <span className="h-1.5 w-1.5 rounded-full bg-guru-success" />
           Problem, code and last run attached
         </div>
       )}

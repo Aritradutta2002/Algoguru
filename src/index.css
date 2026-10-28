@@ -282,20 +282,22 @@
     --code-border: 210 20% 88%;
     --code-header: 210 20% 92%;
 
-    /* ── Guru AI cockpit ──────────────────────────────────────────────
-       Intentionally theme-independent: the assistant is a dark "cockpit"
-       in both day and night mode, matching how professional IDE copilots
-       behave. Values are declared once here so the panel never depends on
-       the surrounding page theme. Indigo→violet is the Guru identity
-       colour (the mascot's palette); blue stays the app's action colour. */
-    --guru-bg: 222 26% 5.5%;
-    --guru-surface: 222 20% 9%;
-    --guru-raised: 222 17% 13%;
-    --guru-line: 222 15% 19%;
-    --guru-text: 210 22% 96%;
-    --guru-muted: 215 16% 65%;
-    --guru-accent: 245 78% 64%;
-    --guru-accent-2: 268 84% 68%;
+    /* ── Guru AI, day mode ────────────────────────────────────────────
+       A quiet porcelain surface with enough violet to retain Guru's own
+       identity. Night values live in `.dark`; every assistant surface and
+       control resolves through these shared tokens. */
+    --guru-bg: 250 33% 99%;
+    --guru-surface: 0 0% 100%;
+    --guru-raised: 246 28% 96%;
+    --guru-line: 244 18% 88%;
+    --guru-text: 237 27% 16%;
+    --guru-muted: 233 10% 42%;
+    --guru-accent: 246 70% 55%;
+    --guru-accent-2: 268 68% 56%;
+    --guru-success: 152 62% 32%;
+    --guru-danger: 0 62% 47%;
+    --guru-code: 246 25% 97%;
+    --guru-on-accent: 0 0% 100%;
 
     --gradient-primary: hsl(217 91% 57%);
     --gradient-accent: hsl(217 91% 57%);
@@ -411,6 +413,20 @@
     --border: 222 15% 18%;
     --input: 222 16% 13.5%;
     --ring: 217 91% 60%;
+
+    /* ── Guru AI, night mode ────────────────────────────────────────── */
+    --guru-bg: 222 26% 5.5%;
+    --guru-surface: 222 20% 9%;
+    --guru-raised: 222 17% 13%;
+    --guru-line: 222 15% 19%;
+    --guru-text: 210 22% 96%;
+    --guru-muted: 215 16% 65%;
+    --guru-accent: 245 78% 64%;
+    --guru-accent-2: 268 84% 68%;
+    --guru-success: 152 62% 62%;
+    --guru-danger: 0 72% 68%;
+    --guru-code: 220 18% 8%;
+    --guru-on-accent: 0 0% 100%;
 
     --sidebar-background: 222 25% 7%;
     --sidebar-foreground: 210 20% 96%;

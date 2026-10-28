@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 /**
  * Guru — the AlgoGuru AI mascot, drawn as vectors.
  *
- * The marketing PNG (`public/brand/guru-ai.png`) is a 144px raster with baked-in
- * sparkles and a drop shadow, which turns to mush at avatar sizes. This module
- * is the same character authored on a 64 grid so it stays crisp from 16px in a
- * message row up to 96px in an empty state.
+ * A crisp, friendly AI guide authored on a 64 grid: dimensional violet shell,
+ * porcelain face, expressive eyes and a signature golden idea-spark. Vector
+ * geometry keeps the identity sharp from a 16px launcher to a 96px empty state,
+ * while the surrounding avatar surfaces inherit the app's day/night tokens.
  *
  * Deliberately dependency-free (no lucide, no framer-motion, no CSS import) so
  * the app shell can render the launcher without pulling the chat bundle in.
@@ -32,7 +32,7 @@ export interface GuruMarkProps {
   variant?: GuruMarkVariant;
   /** Force sparkles/cheeks on or off. Default: auto (off below 24px). */
   detail?: boolean;
-  /** Play the idle orb pulse / blink loop. Default: true for idle + thinking. */
+  /** Play the idea-spark pulse / blink loop. Default: true for idle + thinking. */
   animated?: boolean;
   className?: string;
   /** Accessible name. Pass `null` when a neighbouring label already names it. */
@@ -40,14 +40,15 @@ export interface GuruMarkProps {
 }
 
 /* ── Geometry (64 grid) ───────────────────────────────────────────
-   Head 8–56 × 12.5–56.5, optically centred at (32, 33). The face plate is
-   inset 7.5 on each side so the badge keeps a confident coloured rim. */
-const HEAD = { x: 8, y: 12.5, w: 48, h: 44, r: 17 };
-const FACE = { x: 15.5, y: 20.5, w: 33, h: 29, r: 12.5 };
+   Broad curves and a generously inset face keep the silhouette readable at
+   favicon-like sizes. The spark, rather than a generic antenna, is Guru's
+   distinguishing feature. */
+const HEAD = { x: 7.5, y: 14, w: 49, h: 43, r: 16 };
+const FACE = { x: 14, y: 21, w: 36, h: 28, r: 11 };
 
 const CHEEK = "#FF8FB1";
-const INK = "#232447";
-const ORB = "#FFC24B";
+const INK = "#28234F";
+const ORB = "#FFC95C";
 
 export function GuruMark({
   size = 32,
@@ -63,12 +64,13 @@ export function GuruMark({
   const headGrad = `guru-head-${uid}`;
   const orbGrad = `guru-orb-${uid}`;
   const shineGrad = `guru-shine-${uid}`;
+  const faceGrad = `guru-face-${uid}`;
   const headClip = `guru-clip-${uid}`;
 
   const showDetail = detail ?? size >= 24;
   const isLine = variant === "knockout";
   const faceFill =
-    variant === "mono" || variant === "knockout" ? "none" : "#F6F7FF";
+    variant === "mono" || variant === "knockout" ? "none" : `url(#${faceGrad})`;
   // Mono is a silhouette: the head is one colour and the features are punched
   // out of it with the surrounding cockpit colour.
   const ink = variant === "mono" ? "hsl(var(--guru-bg))" : isLine ? "currentColor" : INK;
@@ -80,7 +82,7 @@ export function GuruMark({
         ? "hsl(var(--guru-accent))"
         : `url(#${headGrad})`;
   const rimStroke =
-    isLine || variant === "mono" ? "none" : "rgba(11,14,24,0.28)";
+    isLine || variant === "mono" ? "none" : "hsl(var(--guru-accent-2) / 0.42)";
   const blink = animated && mood !== "happy";
 
   return (
@@ -98,48 +100,57 @@ export function GuruMark({
       {title ? <title>{title}</title> : null}
 
       <defs>
-        <linearGradient id={headGrad} x1="10" y1="14" x2="54" y2="57" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="hsl(246 82% 68%)" />
-          <stop offset="52%" stopColor="hsl(252 76% 62%)" />
-          <stop offset="100%" stopColor="hsl(268 78% 58%)" />
+        <linearGradient id={headGrad} x1="12" y1="12" x2="53" y2="58" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#9A91FF" />
+          <stop offset="42%" stopColor="#7968F2" />
+          <stop offset="76%" stopColor="#7352DF" />
+          <stop offset="100%" stopColor="#A050D4" />
         </linearGradient>
-        <linearGradient id={orbGrad} x1="29" y1="3" x2="35" y2="10" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFE7A3" />
+        <linearGradient id={orbGrad} x1="28" y1="2" x2="36" y2="12" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FFF3C4" />
+          <stop offset="45%" stopColor="#FFDC7E" />
           <stop offset="100%" stopColor={ORB} />
         </linearGradient>
-        <linearGradient id={shineGrad} x1="14" y1="18" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+        <linearGradient id={shineGrad} x1="32" y1="14" x2="32" y2="48" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.42" />
+          <stop offset="55%" stopColor="#FFFFFF" stopOpacity="0.08" />
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={faceGrad} x1="22" y1="20" x2="42" y2="50" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="58%" stopColor="#F7F6FF" />
+          <stop offset="100%" stopColor="#EAE7FA" />
         </linearGradient>
         <clipPath id={headClip}>
           <rect x={HEAD.x} y={HEAD.y} width={HEAD.w} height={HEAD.h} rx={HEAD.r} />
         </clipPath>
       </defs>
 
-      {/* Antenna orb + stem */}
+      {/* Signature idea-spark + stem */}
       <g opacity={isLine ? 0.9 : 1}>
         <circle
           cx="32"
-          cy="6.2"
-          r="5.4"
+          cy="6.6"
+          r="6"
           fill={isLine ? "none" : `url(#${orbGrad})`}
-          opacity={isLine ? 0 : 0.22}
+          opacity={isLine ? 0 : 0.2}
           className={animated && mood !== "happy" ? "animate-guru-orb" : undefined}
           style={{ transformBox: "fill-box", transformOrigin: "center" }}
         />
-        <circle
-          cx="32"
-          cy="6.2"
-          r="3.4"
+        <path
+          d="M32 1.4c.72 3.45 1.95 4.68 5.4 5.4-3.45.72-4.68 1.95-5.4 5.4-.72-3.45-1.95-4.68-5.4-5.4 3.45-.72 4.68-1.95 5.4-5.4Z"
           fill={isLine ? "currentColor" : `url(#${orbGrad})`}
+          stroke={isLine ? "currentColor" : "#FFF4CF"}
+          strokeWidth={isLine ? 1.2 : 0.55}
+          strokeLinejoin="round"
         />
         <rect
-          x="31.1"
-          y="8.9"
-          width="1.8"
-          height="5"
-          rx="0.9"
-          fill={isLine ? "currentColor" : "hsl(252 70% 58%)"}
+          x="31"
+          y="11"
+          width="2"
+          height="4.5"
+          rx="1"
+          fill={isLine ? "currentColor" : "hsl(252 70% 66%)"}
         />
       </g>
 
@@ -177,12 +188,23 @@ export function GuruMark({
         strokeWidth={isLine ? 1.8 : 0.8}
       />
       {!isLine && variant !== "mono" && (
-        <path
-          d="M14 45c2-14 9-24 24-27 4-1 8 0 11 2-4-14-15-21-27-16C10 9 3 26 8 38c1 3 3 5 6 7Z"
-          fill={`url(#${shineGrad})`}
-          opacity="0.55"
-          clipPath={`url(#${headClip})`}
-        />
+        <>
+          <rect
+            x={HEAD.x}
+            y={HEAD.y}
+            width={HEAD.w}
+            height={HEAD.h}
+            rx={HEAD.r}
+            fill={`url(#${shineGrad})`}
+            clipPath={`url(#${headClip})`}
+          />
+          <path
+            d="M12 49.5c10.5 5.2 29.5 5.2 40 0-2.1 4.7-6.2 7-12.5 7h-15c-6.3 0-10.4-2.3-12.5-7Z"
+            fill="#382484"
+            opacity="0.16"
+            clipPath={`url(#${headClip})`}
+          />
+        </>
       )}
 
       {/* Face plate */}
@@ -193,8 +215,8 @@ export function GuruMark({
         height={FACE.h}
         rx={FACE.r}
         fill={faceFill}
-        stroke={variant === "mono" ? "none" : isLine ? "currentColor" : "rgba(255,255,255,0.35)"}
-        strokeWidth={isLine ? 1.4 : 0.8}
+        stroke={variant === "mono" ? "none" : isLine ? "currentColor" : "rgba(255,255,255,0.72)"}
+        strokeWidth={isLine ? 1.4 : 0.9}
       />
 
       {/* Eyes — happy uses the classic "^ ^" arc, idle blinks periodically */}
@@ -257,10 +279,10 @@ export interface GuruAvatarProps {
 }
 
 const STATUS_COLOR: Record<NonNullable<GuruAvatarProps["status"]>, string> = {
-  ready: "bg-emerald-400",
+  ready: "bg-guru-success",
   // Guru's own accent, not the app's blue CTA — the dot belongs to the mascot.
   busy: "bg-guru-accent",
-  error: "bg-red-400",
+  error: "bg-guru-danger",
 };
 
 /**
@@ -293,15 +315,30 @@ export function GuruAvatar({
       <span
         className={cn(
           "flex h-full w-full items-center justify-center rounded-[30%]",
-          ring &&
-            "bg-gradient-to-br from-guru-accent/25 via-guru-accent-2/15 to-transparent p-[1.5px] ring-1 ring-white/10",
+          ring && "p-px shadow-[0_5px_16px_-8px_hsl(var(--guru-accent)/0.75)]",
         )}
+        style={
+          ring
+            ? {
+                background:
+                  "linear-gradient(145deg, hsl(var(--guru-accent) / 0.85), hsl(var(--guru-accent-2) / 0.42) 52%, hsl(var(--guru-line) / 0.9))",
+              }
+            : undefined
+        }
       >
         <span
           className={cn(
             "flex h-full w-full items-center justify-center rounded-[30%]",
-            ring && "bg-guru-bg",
+            ring && "shadow-[inset_0_1px_0_hsl(var(--guru-text)/0.05)]",
           )}
+          style={
+            ring
+              ? {
+                  background:
+                    "linear-gradient(155deg, hsl(var(--guru-surface)), hsl(var(--guru-bg)))",
+                }
+              : undefined
+          }
         >
           <GuruMark size={Math.round(size * (ring ? 0.82 : 1))} mood={mood} variant={variant} title={title} />
         </span>

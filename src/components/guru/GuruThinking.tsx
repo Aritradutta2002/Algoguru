@@ -53,7 +53,7 @@ export function GuruThinking({
             {[100, 82, 58].map((width) => (
               <div
                 key={width}
-                className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.06]"
+                className="relative h-1.5 overflow-hidden rounded-full bg-guru-text/[0.06]"
                 style={{ width: `${width}%` }}
               >
                 <div className="absolute inset-0 animate-guru-shimmer bg-gradient-to-r from-transparent via-guru-accent/35 to-transparent" />

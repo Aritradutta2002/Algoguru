@@ -100,9 +100,8 @@ export default {
           border: "hsl(var(--code-border))",
           header: "hsl(var(--code-header))",
         },
-        /* Guru AI cockpit. A deliberately dark surface in both themes so the
-           assistant reads as its own product surface — see `--guru-*` in
-           index.css. Never use raw neutral-* greys inside Guru. */
+        /* Guru AI surfaces follow the app's day/night theme while keeping
+           the assistant's violet identity. See `--guru-*` in index.css. */
         guru: {
           bg: "hsl(var(--guru-bg))",
           surface: "hsl(var(--guru-surface))",
@@ -113,6 +112,10 @@ export default {
           accent: "hsl(var(--guru-accent))",
           "accent-2": "hsl(var(--guru-accent-2))",
           "accent-soft": "hsl(var(--guru-accent) / 0.14)",
+          "on-accent": "hsl(var(--guru-on-accent))",
+          success: "hsl(var(--guru-success))",
+          danger: "hsl(var(--guru-danger))",
+          code: "hsl(var(--guru-code))",
         },
       },
       borderRadius: {

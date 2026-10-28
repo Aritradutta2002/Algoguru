@@ -148,7 +148,7 @@ export function GuruComposer({
         <div
           role="listbox"
           aria-label="Slash commands"
-          className="mb-2 overflow-hidden rounded-xl border border-guru-line bg-guru-surface shadow-lg shadow-black/40"
+          className="mb-2 overflow-hidden rounded-xl border border-guru-line bg-guru-surface shadow-lg shadow-black/10 dark:shadow-black/40"
         >
           {commands.map((command, index) => (
             <button
@@ -160,7 +160,7 @@ export function GuruComposer({
               onClick={() => applyCommand(index)}
               className={cn(
                 "flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors",
-                index === commandIndex ? "bg-guru-accent/12" : "hover:bg-white/[0.04]",
+                index === commandIndex ? "bg-guru-accent/10" : "hover:bg-guru-text/[0.04]",
               )}
             >
               <span className="w-20 shrink-0 font-mono text-[11.5px] text-guru-accent">
@@ -220,8 +220,8 @@ export function GuruComposer({
             "absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guru-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-guru-bg",
             busy
-              ? "bg-red-500/15 text-red-400 hover:bg-red-500/25"
-              : "bg-gradient-to-br from-guru-accent to-guru-accent-2 text-white shadow-[0_6px_18px_-8px_hsl(var(--guru-accent)/0.9)] hover:brightness-110",
+              ? "bg-guru-danger/15 text-guru-danger hover:bg-guru-danger/25"
+              : "bg-gradient-to-br from-guru-accent to-guru-accent-2 text-guru-on-accent shadow-[0_6px_18px_-8px_hsl(var(--guru-accent)/0.9)] hover:brightness-110",
             !busy && !canSend && "opacity-40",
           )}
         >
@@ -243,7 +243,7 @@ export function GuruComposer({
             "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
             attachCode
               ? "border-guru-accent/35 bg-guru-accent/10 text-guru-accent"
-              : "border-guru-line bg-white/[0.02] text-guru-muted hover:border-guru-line/80 hover:text-guru-text",
+              : "border-guru-line bg-guru-text/[0.025] text-guru-muted hover:border-guru-line/80 hover:text-guru-text",
           )}
         >
           <Code2 size={11} className="shrink-0" />

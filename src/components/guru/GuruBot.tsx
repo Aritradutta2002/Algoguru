@@ -459,7 +459,7 @@ export function GuruBot({
               setPinnedToBottom(true);
               scrollToBottom("smooth");
             }}
-            className="pointer-events-auto absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-guru-line bg-guru-surface/95 px-3 py-1.5 text-[11px] font-medium text-guru-text shadow-lg shadow-black/40 backdrop-blur transition-colors hover:border-guru-accent/40"
+            className="pointer-events-auto absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-guru-line bg-guru-surface/95 px-3 py-1.5 text-[11px] font-medium text-guru-text shadow-lg shadow-black/10 backdrop-blur dark:shadow-black/40 transition-colors hover:border-guru-accent/40"
           >
             <ArrowDown size={12} />
             Jump to latest

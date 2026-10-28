@@ -1,39 +1,45 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 /** Small shared primitives for the Guru surface. */
 
-export function GuruIconButton({
-  label,
-  active = false,
-  danger = false,
-  className,
-  children,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+type GuruIconButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   label: string;
   active?: boolean;
   danger?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-lg text-guru-muted transition-colors duration-150",
-        "hover:bg-white/[0.07] hover:text-guru-text",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guru-accent/70 focus-visible:ring-offset-1 focus-visible:ring-offset-guru-bg",
-        "disabled:cursor-not-allowed disabled:opacity-40",
-        active && "bg-guru-accent/15 text-guru-accent",
-        danger && "hover:bg-red-500/15 hover:text-red-400",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
+};
+
+export const GuruIconButton = forwardRef<HTMLButtonElement, GuruIconButtonProps>(
+  function GuruIconButton({
+    label,
+    active = false,
+    danger = false,
+    className,
+    children,
+    ...props
+  }, ref) {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        aria-label={label}
+        title={label}
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-lg text-guru-muted transition-colors duration-150",
+          "hover:bg-guru-text/[0.07] hover:text-guru-text",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guru-accent/70 focus-visible:ring-offset-1 focus-visible:ring-offset-guru-bg",
+          "disabled:cursor-not-allowed disabled:opacity-40",
+          active && "bg-guru-accent/15 text-guru-accent",
+          danger && "hover:bg-guru-danger/15 hover:text-guru-danger",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  },
+);
 
 export function GuruStatusDot({ tone }: { tone: "idle" | "busy" | "error" }) {
   return (
@@ -41,9 +47,9 @@ export function GuruStatusDot({ tone }: { tone: "idle" | "busy" | "error" }) {
       aria-hidden="true"
       className={cn(
         "h-1.5 w-1.5 shrink-0 rounded-full",
-        tone === "idle" && "bg-emerald-400",
+        tone === "idle" && "bg-guru-success",
         tone === "busy" && "bg-guru-accent animate-pulse",
-        tone === "error" && "bg-red-400",
+        tone === "error" && "bg-guru-danger",
       )}
     />
   );

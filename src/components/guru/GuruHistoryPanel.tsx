@@ -87,7 +87,7 @@ export function GuruHistoryPanel({
           <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-guru-muted">
             History
           </h3>
-          <span className="rounded-full bg-white/[0.06] px-1.5 py-px text-[10px] tabular-nums text-guru-muted">
+          <span className="rounded-full bg-guru-text/[0.06] px-1.5 py-px text-[10px] tabular-nums text-guru-muted">
             {totalCount}
           </span>
         </div>
@@ -115,7 +115,7 @@ export function GuruHistoryPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {visibleCount === 0 ? (
           <div className="mx-1 mt-6 rounded-xl border border-dashed border-guru-line/70 px-4 py-8 text-center">
-            <div className="mx-auto mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.04] text-guru-accent">
+            <div className="mx-auto mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-guru-text/[0.04] text-guru-accent">
               <MessageSquare size={16} />
             </div>
             <p className="text-[12.5px] font-medium text-guru-text">
@@ -161,7 +161,7 @@ export function GuruHistoryPanel({
                             type="button"
                             onClick={commitRename}
                             aria-label="Save title"
-                            className="rounded p-1 text-emerald-400 transition-colors hover:bg-white/[0.06]"
+                            className="rounded p-1 text-guru-success transition-colors hover:bg-guru-text/[0.06]"
                           >
                             <Check size={12} />
                           </button>
@@ -172,7 +172,7 @@ export function GuruHistoryPanel({
                             "group flex items-start gap-1 rounded-lg border pr-1 transition-colors",
                             active
                               ? "border-guru-accent/30 bg-guru-accent/[0.1]"
-                              : "border-transparent hover:bg-white/[0.04]",
+                              : "border-transparent hover:bg-guru-text/[0.04]",
                           )}
                         >
                           <button
@@ -186,7 +186,7 @@ export function GuruHistoryPanel({
                                 "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
                                 active
                                   ? "bg-guru-accent/20 text-guru-accent"
-                                  : "bg-white/[0.04] text-guru-muted",
+                                  : "bg-guru-text/[0.04] text-guru-muted",
                               )}
                             >
                               {session.pinned ? <Pin size={10} /> : <MessageSquare size={10} />}
@@ -217,7 +217,7 @@ export function GuruHistoryPanel({
                                 "flex h-6 w-6 items-center justify-center rounded transition-colors",
                                 session.pinned
                                   ? "text-guru-accent"
-                                  : "text-guru-muted hover:bg-white/[0.06] hover:text-guru-text",
+                                  : "text-guru-muted hover:bg-guru-text/[0.06] hover:text-guru-text",
                               )}
                             >
                               <Pin size={10} className={session.pinned ? "fill-current" : undefined} />
@@ -226,7 +226,7 @@ export function GuruHistoryPanel({
                               type="button"
                               onClick={() => startRename(session)}
                               aria-label="Rename chat"
-                              className="flex h-6 w-6 items-center justify-center rounded text-guru-muted transition-colors hover:bg-white/[0.06] hover:text-guru-text"
+                              className="flex h-6 w-6 items-center justify-center rounded text-guru-muted transition-colors hover:bg-guru-text/[0.06] hover:text-guru-text"
                             >
                               <Pencil size={10} />
                             </button>
@@ -234,7 +234,7 @@ export function GuruHistoryPanel({
                               type="button"
                               onClick={() => onDelete(session.id)}
                               aria-label="Delete chat"
-                              className="flex h-6 w-6 items-center justify-center rounded text-guru-muted transition-colors hover:bg-red-500/15 hover:text-red-400"
+                              className="flex h-6 w-6 items-center justify-center rounded text-guru-muted transition-colors hover:bg-guru-danger/15 hover:text-guru-danger"
                             >
                               <Trash2 size={10} />
                             </button>
@@ -256,7 +256,7 @@ export function GuruHistoryPanel({
             type="button"
             onClick={onExport}
             disabled={!canExport}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11.5px] font-medium text-guru-muted transition-colors hover:bg-white/[0.05] hover:text-guru-text disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11.5px] font-medium text-guru-muted transition-colors hover:bg-guru-text/[0.05] hover:text-guru-text disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Download size={12} />
             Export current chat
