@@ -11,6 +11,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AlgoGuru" />
     <meta name="format-detection" content="telephone=no" />
 
     <title>AlgoGuru — Master code. Ace interviews.</title>
@@ -47,7 +48,15 @@
       content="AlgoGuru — Master code. Ace interviews."
     />
 
+    <!-- Icons: SVG for modern browsers, multi-res ICO for legacy, PNG for
+         iOS home screens, and a monochrome mask for Safari pinned tabs. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/mask-icon.svg" color="#2F6BE8" />
+    <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Fonts are loaded here (not via a blocking CSS @import) so the first
          paint is not held up. Only the four families the product uses. -->
@@ -83,9 +92,226 @@
         }
       })();
     </script>
+
+    <!-- Pre-hydration splash: paints the brand immediately so a cold load never
+         shows an empty page. `main.tsx` fades and removes it on mount. -->
+    <style>
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: #fafaf8;
+        transition: opacity 240ms ease, visibility 240ms ease;
+      }
+
+      html.dark #boot-splash {
+        background: #07090d;
+      }
+
+      #boot-splash[data-state="leaving"] {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .boot-splash__inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* The hydrated screen centres a stage + label column, which puts its
+           mark ~19.5px above the viewport centre. Matching that offset means
+           the two marks land on the same pixels during the cross-fade. */
+        padding-bottom: 39px;
+      }
+
+      .boot-splash__badge {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 124px;
+        height: 124px;
+      }
+
+      .boot-splash__badge::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        border: 2px solid rgba(47, 107, 232, 0.16);
+      }
+
+      .boot-splash__orbit {
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        background: conic-gradient(
+          from 0turn,
+          rgba(47, 107, 232, 0) 0turn,
+          rgba(47, 107, 232, 0) 0.32turn,
+          rgba(47, 107, 232, 0.55) 0.66turn,
+          #2f6be8 0.86turn,
+          rgba(47, 107, 232, 0) 1turn
+        );
+        -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 calc(100% - 1.5px));
+        mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 calc(100% - 1.5px));
+        animation: boot-orbit 2.6s linear infinite;
+        will-change: transform;
+      }
+
+      /* Counter-rotating cyan arc: the loader's second orbit, mirrored here so
+         the splash and the hydrated loading screen are the same object. */
+      .boot-splash__orbit--inner {
+        inset: 8%;
+        background: conic-gradient(
+          from 0turn,
+          rgba(111, 227, 248, 0) 0turn,
+          rgba(111, 227, 248, 0) 0.5turn,
+          rgba(111, 227, 248, 0.65) 0.84turn,
+          rgba(111, 227, 248, 0) 1turn
+        );
+        -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 1.5px), #000 calc(100% - 1px));
+        mask: radial-gradient(farthest-side, #0000 calc(100% - 1.5px), #000 calc(100% - 1px));
+        animation: boot-orbit 4.4s linear infinite reverse;
+      }
+
+      .boot-splash__halo {
+        position: absolute;
+        inset: 6%;
+        border-radius: 9999px;
+        background: radial-gradient(circle, rgba(47, 107, 232, 0.34), transparent 64%);
+        filter: blur(5px);
+        animation: boot-halo 3.6s ease-in-out infinite;
+      }
+
+      .boot-splash__mark {
+        position: relative;
+        display: block;
+        filter: drop-shadow(0 6px 16px rgba(28, 79, 214, 0.35));
+      }
+
+      @keyframes boot-orbit {
+        to {
+          transform: rotate(1turn);
+        }
+      }
+
+      @keyframes boot-halo {
+        0%,
+        100% {
+          opacity: 0.5;
+          transform: scale(0.96);
+        }
+        50% {
+          opacity: 0.9;
+          transform: scale(1.06);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .boot-splash__orbit--inner,
+        .boot-splash__halo {
+          animation: none;
+        }
+
+        .boot-splash__orbit {
+          animation: none;
+          transform: rotate(-0.14turn);
+        }
+
+        .boot-splash__orbit--inner {
+          opacity: 0.55;
+          transform: rotate(0.3turn);
+        }
+
+        .boot-splash__halo {
+          opacity: 0.75;
+        }
+      }
+    </style>
   </head>
 
   <body>
+    <div id="boot-splash" aria-hidden="true">
+      <div class="boot-splash__inner">
+        <div class="boot-splash__badge">
+          <span class="boot-splash__halo"></span>
+          <span class="boot-splash__orbit"></span>
+          <span class="boot-splash__orbit boot-splash__orbit--inner"></span>
+          <svg
+            class="boot-splash__mark"
+            viewBox="0 0 64 64"
+            width="72"
+            height="72"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <defs>
+              <linearGradient id="bootTileGrad" x1="4" y1="0" x2="60" y2="64" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#A6C2FF" />
+                <stop offset="24%" stop-color="#6E97FB" />
+                <stop offset="56%" stop-color="#3D6DF0" />
+                <stop offset="80%" stop-color="#2249CE" />
+                <stop offset="100%" stop-color="#122F92" />
+              </linearGradient>
+              <linearGradient id="bootInkGrad" x1="32" y1="12" x2="32" y2="52" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFFFFF" />
+                <stop offset="52%" stop-color="#FBFDFF" />
+                <stop offset="100%" stop-color="#EDF3FF" />
+              </linearGradient>
+              <radialGradient id="bootBloom" cx="0.86" cy="0.92" r="0.8">
+                <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.42" />
+                <stop offset="42%" stop-color="#22D3EE" stop-opacity="0.13" />
+                <stop offset="100%" stop-color="#22D3EE" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="bootGloss" cx="0.2" cy="0.02" r="0.95">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.58" />
+                <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.17" />
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient id="bootShade" x1="32" y1="26" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#04102B" stop-opacity="0" />
+                <stop offset="100%" stop-color="#04102B" stop-opacity="0.3" />
+              </linearGradient>
+              <linearGradient id="bootRim" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75" />
+                <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.1" />
+                <stop offset="70%" stop-color="#0A1B45" stop-opacity="0.12" />
+                <stop offset="100%" stop-color="#0A1B45" stop-opacity="0.38" />
+              </linearGradient>
+              <radialGradient id="bootNode" cx="0.34" cy="0.28" r="0.82">
+                <stop offset="0%" stop-color="#B7F4FF" />
+                <stop offset="52%" stop-color="#4FD8F2" />
+                <stop offset="100%" stop-color="#1C9EC4" />
+              </radialGradient>
+              <path id="bootTile" d="M64.00 32.00L63.98 40.63L63.93 43.66L63.85 45.89L63.73 47.72L63.58 49.30L63.39 50.69L63.17 51.94L62.92 53.08L62.63 54.12L62.30 55.08L61.93 55.96L61.53 56.78L61.09 57.55L60.61 58.26L60.09 58.91L59.52 59.52L58.91 60.09L58.26 60.61L57.55 61.09L56.78 61.53L55.96 61.93L55.08 62.30L54.12 62.63L53.08 62.92L51.94 63.17L50.69 63.39L49.30 63.58L47.72 63.73L45.89 63.85L43.66 63.93L40.63 63.98L32.00 64.00L23.37 63.98L20.34 63.93L18.11 63.85L16.28 63.73L14.70 63.58L13.31 63.39L12.06 63.17L10.92 62.92L9.88 62.63L8.92 62.30L8.04 61.93L7.22 61.53L6.45 61.09L5.74 60.61L5.09 60.09L4.48 59.52L3.91 58.91L3.39 58.26L2.91 57.55L2.47 56.78L2.07 55.96L1.70 55.08L1.37 54.12L1.08 53.08L0.83 51.94L0.61 50.69L0.42 49.30L0.27 47.72L0.15 45.89L0.07 43.66L0.02 40.63L0.00 32.00L0.02 23.37L0.07 20.34L0.15 18.11L0.27 16.28L0.42 14.70L0.61 13.31L0.83 12.06L1.08 10.92L1.37 9.88L1.70 8.92L2.07 8.04L2.47 7.22L2.91 6.45L3.39 5.74L3.91 5.09L4.48 4.48L5.09 3.91L5.74 3.39L6.45 2.91L7.22 2.47L8.04 2.07L8.92 1.70L9.88 1.37L10.92 1.08L12.06 0.83L13.31 0.61L14.70 0.42L16.28 0.27L18.11 0.15L20.34 0.07L23.37 0.02L32.00 0.00L40.63 0.02L43.66 0.07L45.89 0.15L47.72 0.27L49.30 0.42L50.69 0.61L51.94 0.83L53.08 1.08L54.12 1.37L55.08 1.70L55.96 2.07L56.78 2.47L57.55 2.91L58.26 3.39L58.91 3.91L59.52 4.48L60.09 5.09L60.61 5.74L61.09 6.45L61.53 7.22L61.93 8.04L62.30 8.92L62.63 9.88L62.92 10.92L63.17 12.06L63.39 13.31L63.58 14.70L63.73 16.28L63.85 18.11L63.93 20.34L63.98 23.37Z" />
+              <filter id="bootLift" x="-30%" y="-30%" width="160%" height="180%">
+                <feDropShadow dx="0" dy="1.2" stdDeviation="2.6" flood-color="#05132F" flood-opacity="0.3" />
+              </filter>
+            </defs>
+            <use href="#bootTile" fill="url(#bootTileGrad)" />
+            <use href="#bootTile" fill="url(#bootBloom)" />
+            <use href="#bootTile" fill="url(#bootGloss)" />
+            <use href="#bootTile" fill="url(#bootShade)" />
+            <use href="#bootTile" fill="none" stroke="url(#bootRim)" stroke-width="1.5" />
+            <g
+              filter="url(#bootLift)"
+              fill="none"
+              stroke="url(#bootInkGrad)"
+              stroke-width="7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M16.88 49.28 L32 14.72 L47.12 49.28" />
+              <path d="M21.74 37.4 H42.26" />
+            </g>
+            <circle cx="38.91" cy="37.4" r="2.6" fill="url(#bootNode)" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

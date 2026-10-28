@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "security:scan": "semgrep scan --config=p/security-audit --config=p/secrets --config=p/owasp-top-ten --config=p/javascript --config=p/typescript --metrics=off --error ."
+    "security:scan": "semgrep scan --config=p/security-audit --config=p/secrets --config=p/owasp-top-ten --config=p/javascript --config=p/typescript --metrics=off --error .",
+    "brand:assets": "node scripts/generate-brand-assets.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "4.6.0",

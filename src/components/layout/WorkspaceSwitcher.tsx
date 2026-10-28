@@ -96,12 +96,25 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
       <Link
         to="/"
         aria-label="AlgoGuru Home"
-        className="group inline-flex h-9 items-center gap-2 rounded-lg px-1.5 text-slate-900 dark:text-slate-100 transition-colors duration-150 hover:text-slate-950 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 select-none"
+        className="group inline-flex h-9 items-center gap-2.5 rounded-lg px-1.5 text-slate-900 dark:text-slate-100 transition-colors duration-150 hover:text-slate-950 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 select-none"
       >
-        <AlgoGuruMark size={24} title={null} className="rounded-md shrink-0" />
-        <span className="font-display text-[15px] font-semibold tracking-tight leading-none flex items-center gap-1">
-          <span>Algo</span>
-          <span>Guru</span>
+        <span className="relative inline-flex shrink-0 items-center justify-center">
+          {/* Bloom only on hover — the header stays quiet at rest. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-2 rounded-full bg-blue-500/0 blur-md transition-colors duration-300 group-hover:bg-blue-500/25"
+          />
+          <AlgoGuruMark
+            size={26}
+            title={null}
+            className="relative transition-transform duration-300 ease-out group-hover:-translate-y-px group-hover:scale-[1.05]"
+          />
+        </span>
+        <span className="flex items-baseline font-display text-[15.5px] font-semibold leading-none tracking-[-0.02em]">
+          <span className="text-slate-900 dark:text-slate-50">Algo</span>
+          <span className="bg-gradient-to-br from-blue-600 to-sky-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-sky-300">
+            Guru
+          </span>
         </span>
       </Link>
 

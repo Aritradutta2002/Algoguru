@@ -1,74 +1,301 @@
 /* ─────────────────────────────────────────────────────────────
    AlgoGuru brand loader
-   Only `transform`, `opacity` and `stroke-dashoffset` are animated, so the
-   loop stays on the compositor and never triggers layout or paint — no jank.
-   Loop length is 1.6s by default; override with --agl-duration.
+
+   One story per cycle: the letter traces itself from the left foot up over
+   the apex and down to the right foot, the crossbar sweeps in to meet it,
+   and the node at that junction ignites with a sonar ping. Then it holds,
+   releases, and climbs again.
+
+   Only `transform`, `opacity` and `stroke-dashoffset` animate, so the loop
+   stays on the compositor and never triggers layout or paint.
+   Override the rhythm with `--agl-cycle`.
    ───────────────────────────────────────────────────────────── */
 
 .agl {
-  --agl-duration: 1.6s;
+  --agl-cycle: 3.4s;
+  --agl-orbit-outer: 2.6s;
+  --agl-orbit-inner: 4.4s;
+  --agl-orbit-thickness: 2px;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1.15rem;
 }
 
-.agl--row {
+.agl--inline {
   flex-direction: row;
+  gap: 0.55rem;
 }
 
-/* Dim track: the glyph sits at 28% so the travelling trace reads clearly. */
-.agl__track {
-  opacity: 0.28;
+.agl--screen {
+  gap: 1.6rem;
 }
 
-/* A bright dash segment travelling along the glyph — a signal crossing the graph. */
-.agl__trace {
-  animation: agl-trace var(--agl-duration) cubic-bezier(0.45, 0, 0.55, 1) infinite;
+/* ── Stage ────────────────────────────────────────────────────
+   Two arcs orbit in opposite directions around the tile: a cobalt comet
+   outside, a cyan tail inside. Reads as a mechanism, not a spinner. */
+.agl__stage {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
 }
 
-/* Graph vertices light up as the signal passes them. */
-.agl__node {
+.agl__halo {
+  position: absolute;
+  inset: -4%;
+  border-radius: 9999px;
+  background: radial-gradient(circle, hsl(var(--primary) / 0.4), transparent 66%);
+  filter: blur(7px);
+  pointer-events: none;
+  animation: agl-halo var(--agl-cycle) ease-in-out infinite;
+}
+
+.agl__ring {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.agl__ring--track {
+  inset: 0;
+  border: var(--agl-orbit-thickness) solid hsl(var(--primary) / 0.14);
+}
+
+.agl__ring--outer {
+  inset: 0;
+  background: conic-gradient(
+    from 0turn,
+    hsl(var(--primary) / 0) 0turn,
+    hsl(var(--primary) / 0) 0.34turn,
+    hsl(var(--primary) / 0.45) 0.68turn,
+    hsl(var(--primary)) 0.87turn,
+    hsl(var(--primary) / 0) 1turn
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    #0000 calc(100% - var(--agl-orbit-thickness)),
+    #000 calc(100% - var(--agl-orbit-thickness) + 0.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    #0000 calc(100% - var(--agl-orbit-thickness)),
+    #000 calc(100% - var(--agl-orbit-thickness) + 0.5px)
+  );
+  animation: agl-spin var(--agl-orbit-outer) linear infinite;
+  will-change: transform;
+}
+
+.agl__ring--inner {
+  inset: 9%;
+  background: conic-gradient(
+    from 0turn,
+    rgb(111 227 248 / 0) 0turn,
+    rgb(111 227 248 / 0) 0.46turn,
+    rgb(111 227 248 / 0.75) 0.85turn,
+    rgb(111 227 248 / 0) 1turn
+  );
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 1.5px), #000 calc(100% - 1px));
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 1.5px), #000 calc(100% - 1px));
+  animation: agl-spin var(--agl-orbit-inner) linear infinite reverse;
+  will-change: transform;
+}
+
+/* Sonar ping released the moment the node ignites. */
+.agl__ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid hsl(var(--primary) / 0.55);
+  pointer-events: none;
+  opacity: 0;
+  animation: agl-ping var(--agl-cycle) cubic-bezier(0.22, 0.9, 0.3, 1) infinite;
+}
+
+.agl__mark {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 10px 20px rgb(9 25 70 / 0.42));
+  animation: agl-breathe var(--agl-cycle) ease-in-out infinite;
+}
+
+/* ── Self-drawing letterform ──────────────────────────────── */
+.agl__glyph {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.agl__drawgroup {
+  animation: agl-fade var(--agl-cycle) linear infinite;
+}
+
+.agl__draw {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--agl-len);
+  stroke-dashoffset: var(--agl-len);
+}
+
+.agl__draw--outline {
+  --agl-len: 75.44;
+  animation: agl-draw-outline var(--agl-cycle) cubic-bezier(0.3, 0, 0.2, 1) infinite;
+}
+
+.agl__draw--bar {
+  --agl-len: 20.52;
+  animation: agl-draw-bar var(--agl-cycle) cubic-bezier(0.3, 0, 0.2, 1) infinite;
+}
+
+.agl__spark {
   transform-box: fill-box;
   transform-origin: center;
-  animation: agl-node var(--agl-duration) ease-out infinite;
+  filter: drop-shadow(0 0 3px rgb(111 227 248 / 0.9));
+  animation: agl-spark var(--agl-cycle) cubic-bezier(0.3, 1.4, 0.4, 1) infinite;
 }
 
-@keyframes agl-trace {
-  0% {
-    stroke-dashoffset: var(--agl-from);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  88% {
-    opacity: 1;
-  }
-  100% {
-    stroke-dashoffset: var(--agl-to);
-    opacity: 0;
-  }
+/* The flash behind the node at the instant it lights. */
+.agl__burst {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: agl-burst var(--agl-cycle) cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
-@keyframes agl-node {
+@keyframes agl-draw-outline {
   0%,
-  26% {
+  5% {
+    stroke-dashoffset: 75.44;
+  }
+  38%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes agl-draw-bar {
+  0%,
+  37% {
+    stroke-dashoffset: 20.52;
+  }
+  52%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes agl-fade {
+  0%,
+  3% {
     opacity: 0;
-    transform: scale(0.4);
   }
-  42% {
+  7%,
+  87% {
     opacity: 1;
-    transform: scale(1.15);
   }
-  60%,
-  84% {
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes agl-spark {
+  0%,
+  51% {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+  57% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+  64%,
+  86% {
     opacity: 1;
     transform: scale(1);
   }
+  92%,
   100% {
     opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes agl-burst {
+  0%,
+  50% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  56% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes agl-ping {
+  0%,
+  52% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  56% {
+    opacity: 0.7;
+  }
+  78%,
+  100% {
+    opacity: 0;
+    transform: scale(1.32);
+  }
+}
+
+@keyframes agl-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes agl-halo {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.94);
+  }
+  45% {
+    opacity: 0.95;
+    transform: scale(1.06);
+  }
+  70% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+@keyframes agl-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.035);
+  }
+  70% {
     transform: scale(1);
   }
 }
@@ -80,32 +307,49 @@
   color: hsl(var(--muted-foreground));
 }
 
+.agl--screen .agl__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 /* ── Reduced motion ──────────────────────────────────────────
-   No looping motion at all: render the plain static brand mark and let the
-   text label communicate that work is in progress. */
+   No looping motion: the letter is fully drawn, the node is lit, the arcs are
+   parked. The text label carries the meaning. */
 @media (prefers-reduced-motion: reduce) {
-  .agl__trace {
+  .agl__drawgroup,
+  .agl__draw,
+  .agl__spark,
+  .agl__burst,
+  .agl__halo,
+  .agl__ping,
+  .agl__mark,
+  .agl__ring--outer,
+  .agl__ring--inner {
     animation: none;
-    opacity: 0;
   }
 
-  .agl__node {
-    animation: none;
-    opacity: 0;
-  }
-
-  .agl__track {
+  .agl__drawgroup,
+  .agl__spark {
     opacity: 1;
   }
-}
 
-/* Escape hatch for callers that need to force the static treatment. */
-.agl--static .agl__trace,
-.agl--static .agl__node {
-  animation: none;
-  opacity: 0;
-}
+  .agl__draw {
+    stroke-dashoffset: 0;
+  }
 
-.agl--static .agl__track {
-  opacity: 1;
+  .agl__ping,
+  .agl__burst {
+    opacity: 0;
+  }
+
+  .agl__ring--outer {
+    transform: rotate(-0.13turn);
+  }
+
+  .agl__ring--inner {
+    transform: rotate(0.32turn);
+    opacity: 0.6;
+  }
 }

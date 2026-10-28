@@ -1,5 +1,17 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
+import {
+  BRAND_ACCENT,
+  BRAND_ACCENT_DEEP,
+  BRAND_BADGE_STOPS,
+  BRAND_BLUE,
+  BRAND_GLYPH,
+  BRAND_GLYPH_STOPS,
+  BRAND_TILE_PATH,
+  LOCKUP_HORIZONTAL,
+  LOCKUP_STACKED,
+  WORDMARK_FONT,
+} from "./brandGeometry";
 
 export interface AlgoGuruLockupProps {
   /** Lockup height in px. Width is derived from the lockup's aspect ratio. */
@@ -10,15 +22,12 @@ export interface AlgoGuruLockupProps {
   title?: string | null;
 }
 
-/* Lockup canvases — see public/brand/*.svg for the matching standalone files. */
-const HORIZONTAL = { w: 264, h: 64 };
-const STACKED = { w: 200, h: 180 };
-
-const WORDMARK_FONT = "'Space Grotesk','Outfit','Inter',system-ui,sans-serif";
-
 /**
+ * Mark + wordmark, drawn as one SVG so the tile, the baseline and the
+ * letter-spacing can never fall out of alignment across breakpoints.
+ *
  * "Algo" inherits `currentColor` so the lockup adapts to light/dark surfaces;
- * "Guru" stays on-brand blue in both.
+ * "Guru" stays on-brand cobalt in both.
  */
 export function AlgoGuruLockup({
   size = 40,
@@ -26,12 +35,40 @@ export function AlgoGuruLockup({
   className,
   title = "AlgoGuru",
 }: AlgoGuruLockupProps) {
-  const uid = useId().replace(/:/g, "");
-  const gradId = `ag-lock-grad-${uid}`;
-  const maskId = `ag-lock-mask-${uid}`;
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const tileId = `ag-lock-tile-${uid}`;
+  const inkId = `ag-lock-ink-${uid}`;
+  const bloomId = `ag-lock-bloom-${uid}`;
+  const glossId = `ag-lock-gloss-${uid}`;
+  const shadeId = `ag-lock-shade-${uid}`;
+  const rimId = `ag-lock-rim-${uid}`;
+  const nodeId = `ag-lock-node-${uid}`;
+  const liftId = `ag-lock-lift-${uid}`;
 
-  const canvas = orientation === "horizontal" ? HORIZONTAL : STACKED;
+  const canvas = orientation === "horizontal" ? LOCKUP_HORIZONTAL : LOCKUP_STACKED;
   const width = (size * canvas.w) / canvas.h;
+
+  const mark = (
+    <>
+      <path d={BRAND_TILE_PATH} fill={`url(#${tileId})`} />
+      <path d={BRAND_TILE_PATH} fill={`url(#${bloomId})`} />
+      <path d={BRAND_TILE_PATH} fill={`url(#${glossId})`} />
+      <path d={BRAND_TILE_PATH} fill={`url(#${shadeId})`} />
+      <path d={BRAND_TILE_PATH} fill="none" stroke={`url(#${rimId})`} strokeWidth="1.5" />
+      <g
+        filter={`url(#${liftId})`}
+        fill="none"
+        stroke={`url(#${inkId})`}
+        strokeWidth={BRAND_GLYPH.stroke}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d={BRAND_GLYPH.legs} />
+        <path d={BRAND_GLYPH.bar} />
+      </g>
+      <circle cx={BRAND_GLYPH.node.cx} cy={BRAND_GLYPH.node.cy} r={BRAND_GLYPH.node.r} fill={`url(#${nodeId})`} />
+    </>
+  );
 
   return (
     <svg
@@ -43,81 +80,86 @@ export function AlgoGuruLockup({
       role={title ? "img" : "presentation"}
       aria-label={title ?? undefined}
       aria-hidden={title ? undefined : true}
+      focusable="false"
     >
       {title ? <title>{title}</title> : null}
 
       <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#3B82F6" />
-          <stop offset="1" stopColor="#2563EB" />
+        <linearGradient id={tileId} x1="4" y1="0" x2="60" y2="64" gradientUnits="userSpaceOnUse">
+          {BRAND_BADGE_STOPS.map((stop) => (
+            <stop key={stop.offset} offset={stop.offset} stopColor={stop.color} />
+          ))}
         </linearGradient>
-        <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
-          <rect width="64" height="64" fill="#fff" />
-          <g fill="#000">
-            <circle cx="17" cy="46" r="2.2" />
-            <circle cx="32" cy="18" r="2.4" />
-            <circle cx="47" cy="46" r="2.2" />
-            <circle cx="22.09" cy="36.5" r="1.8" />
-            <circle cx="41.91" cy="36.5" r="1.8" />
-          </g>
-        </mask>
+        <linearGradient id={inkId} x1="32" y1="12" x2="32" y2="52" gradientUnits="userSpaceOnUse">
+          {BRAND_GLYPH_STOPS.map((stop) => (
+            <stop key={stop.offset} offset={stop.offset} stopColor={stop.color} />
+          ))}
+        </linearGradient>
+        <radialGradient id={bloomId} cx="0.86" cy="0.92" r="0.8">
+          <stop offset="0%" stopColor={BRAND_ACCENT_DEEP} stopOpacity="0.42" />
+          <stop offset="42%" stopColor={BRAND_ACCENT_DEEP} stopOpacity="0.13" />
+          <stop offset="100%" stopColor={BRAND_ACCENT_DEEP} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={glossId} cx="0.2" cy="0.02" r="0.95">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.58" />
+          <stop offset="30%" stopColor="#FFFFFF" stopOpacity="0.17" />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={shadeId} x1="32" y1="26" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#04102B" stopOpacity="0" />
+          <stop offset="100%" stopColor="#04102B" stopOpacity="0.3" />
+        </linearGradient>
+        <linearGradient id={rimId} x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.75" />
+          <stop offset="30%" stopColor="#FFFFFF" stopOpacity="0.1" />
+          <stop offset="70%" stopColor="#0A1B45" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#0A1B45" stopOpacity="0.38" />
+        </linearGradient>
+        <radialGradient id={nodeId} cx="0.34" cy="0.28" r="0.82">
+          <stop offset="0%" stopColor="#B7F4FF" />
+          <stop offset="52%" stopColor="#4FD8F2" />
+          <stop offset="100%" stopColor="#1C9EC4" />
+        </radialGradient>
+        <filter id={liftId} x="-30%" y="-30%" width="160%" height="180%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="2.6" floodColor="#05132F" floodOpacity="0.3" />
+        </filter>
       </defs>
 
       {orientation === "horizontal" ? (
-        <>
-          <rect width="64" height="64" rx="16" fill={`url(#${gradId})`} />
-          <g
-            mask={`url(#${maskId})`}
-            fill="none"
-            stroke="#FFFFFF"
-            strokeWidth={6}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M17 46 L32 18 L47 46" />
-            <path d="M22.09 36.5 H41.91" />
-          </g>
-          <text
-            x="84"
-            y="44"
-            fontFamily={WORDMARK_FONT}
-            fontSize={34}
-            fontWeight={600}
-            letterSpacing="-0.6"
-          >
-            <tspan fill="currentColor">Algo</tspan>
-            <tspan fill="#2563EB">Guru</tspan>
-          </text>
-        </>
+        <g>{mark}</g>
       ) : (
-        <>
-          <g transform="translate(52 4) scale(1.5)">
-            <rect width="64" height="64" rx="16" fill={`url(#${gradId})`} />
-            <g
-              mask={`url(#${maskId})`}
-              fill="none"
-              stroke="#FFFFFF"
-              strokeWidth={6}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M17 46 L32 18 L47 46" />
-              <path d="M22.09 36.5 H41.91" />
-            </g>
-          </g>
-          <text
-            x="100"
-            y="158"
-            textAnchor="middle"
-            fontFamily={WORDMARK_FONT}
-            fontSize={38}
-            fontWeight={600}
-            letterSpacing="-0.8"
-          >
-            <tspan fill="currentColor">Algo</tspan>
-            <tspan fill="#2563EB">Guru</tspan>
-          </text>
-        </>
+        /* A nested <svg> establishes its own 64-space so the gradients still
+           resolve against the glyph instead of the outer canvas. */
+        <svg x="52" y="14" width="96" height="96" viewBox="0 0 64 64">
+          {mark}
+        </svg>
+      )}
+
+      {orientation === "horizontal" ? (
+        <text
+          x="82"
+          y="43.5"
+          fontFamily={WORDMARK_FONT}
+          fontSize={33}
+          fontWeight={600}
+          letterSpacing="-0.9"
+        >
+          <tspan fill="currentColor">Algo</tspan>
+          <tspan fill={BRAND_BLUE}>Guru</tspan>
+        </text>
+      ) : (
+        <text
+          x="100"
+          y="158"
+          textAnchor="middle"
+          fontFamily={WORDMARK_FONT}
+          fontSize={38}
+          fontWeight={600}
+          letterSpacing="-1"
+        >
+          <tspan fill="currentColor">Algo</tspan>
+          <tspan fill={BRAND_BLUE}>Guru</tspan>
+        </text>
       )}
     </svg>
   );

@@ -14,7 +14,7 @@ import { practiceTopics } from "@/data/practiceTopics";
 import { ChevronDown, Home, Layers, Coffee, Search, X, Code2, LogOut, Trophy, ChevronRight, PanelLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
+import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
 import { AppTooltip } from "@/components/ui/tooltip";
 
 import { recursionContent } from "@/data/recursionContent";
@@ -215,17 +215,18 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
         <div className="absolute inset-0 pointer-events-none opacity-40"
           style={{ background: "radial-gradient(ellipse at 0% 50%, hsl(var(--primary)/0.12) 0%, transparent 65%)" }} />
         <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-xl p-1 transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <div
-            className="flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.65) 100%)",
-              boxShadow: "0 0 16px hsl(var(--primary)/0.35), inset 0 1px 0 rgba(255,255,255,0.25)",
-            }}
-          >
-            <AlgoGuruLogo size={22} showText={false} className="text-white" />
-          </div>
+          <span className="relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-[30%] bg-primary/25 blur-[10px]"
+            />
+            <AlgoGuruMark size={34} title={null} className="relative" />
+          </span>
           <div className="flex flex-col min-w-0">
-            <span className="text-[14.5px] font-bold tracking-tight text-foreground leading-tight truncate">AlgoGuru</span>
+            <span className="font-display text-[14.5px] font-semibold tracking-[-0.02em] leading-tight truncate">
+              <span className="text-foreground">Algo</span>
+              <span className="text-primary">Guru</span>
+            </span>
             <span className={cn(
               "inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border w-fit",
               meta.badge
