@@ -59,3 +59,38 @@ if (typeof globalThis.IntersectionObserver === "undefined") {
   globalThis.IntersectionObserver =
     IntersectionObserverStub as unknown as typeof IntersectionObserver;
 }
+
+// jsdom lacks PointerEvent implementation. Polyfill PointerEvent to inherit from
+// MouseEvent so button, ctrlKey, and other pointer interactions work with Radix UI.
+if (typeof globalThis.PointerEvent === "undefined") {
+  class PointerEventStub extends MouseEvent {
+    pointerId?: number;
+    width?: number;
+    height?: number;
+    pressure?: number;
+    tangentialPressure?: number;
+    tiltX?: number;
+    tiltY?: number;
+    twist?: number;
+    pointerType?: string;
+    isPrimary?: boolean;
+
+    constructor(type: string, params: PointerEventInit = {}) {
+      super(type, params);
+      this.pointerId = params.pointerId ?? 0;
+      this.width = params.width ?? 1;
+      this.height = params.height ?? 1;
+      this.pressure = params.pressure ?? 0;
+      this.tangentialPressure = params.tangentialPressure ?? 0;
+      this.tiltX = params.tiltX ?? 0;
+      this.tiltY = params.tiltY ?? 0;
+      this.twist = params.twist ?? 0;
+      this.pointerType = params.pointerType ?? "mouse";
+      this.isPrimary = params.isPrimary ?? false;
+    }
+  }
+
+  globalThis.PointerEvent = PointerEventStub as unknown as typeof PointerEvent;
+  window.PointerEvent = PointerEventStub as unknown as typeof PointerEvent;
+}
+

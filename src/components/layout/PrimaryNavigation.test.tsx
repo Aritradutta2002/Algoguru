@@ -58,4 +58,40 @@ describe("Primary navigation", () => {
     expect(onOpenLibrary).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledTimes(2);
   });
+
+  it("prioritizes daily driver engineering routes with high priority", () => {
+    render(<MemoryRouter><PrimaryNavigation pathname="/" /></MemoryRouter>);
+    const practiceLink = screen.getByRole("link", { name: "Practice" });
+    const interviewLink = screen.getByRole("link", { name: "Interview" });
+    const roadmapLink = screen.getByRole("link", { name: "Roadmap" });
+    expect(practiceLink).toBeInTheDocument();
+    expect(interviewLink).toBeInTheDocument();
+    expect(roadmapLink).toBeInTheDocument();
+  });
+
+  it("triggers Guru AI when launched from mobile drawer", () => {
+    const onClose = vi.fn();
+    const onOpenLibrary = vi.fn();
+    const onToggleGuru = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <button id="header-navigation-toggle">Menu</button>
+        <MobileNavigationMenu
+          pathname="/practice"
+          onClose={onClose}
+          onOpenLibrary={onOpenLibrary}
+          onToggleGuru={onToggleGuru}
+        />
+      </MemoryRouter>
+    );
+
+    const guruButton = screen.getByRole("button", { name: /guru ai coach/i });
+    expect(guruButton).toBeInTheDocument();
+    fireEvent.click(guruButton);
+
+    expect(onToggleGuru).toHaveBeenCalledOnce();
+    expect(onClose).toHaveBeenCalledOnce();
+  });
 });
+

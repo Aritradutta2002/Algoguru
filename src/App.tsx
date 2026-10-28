@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/resizable";
 import { FoldGlyph } from "@/components/FoldGlyph";
 import Auth from "./pages/Auth";
-import { Sun, Moon, ZoomIn, ZoomOut, Search, X, PanelLeft, Menu } from "lucide-react";
+import { X, PanelLeft, Menu } from "lucide-react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
@@ -31,9 +31,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
-import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
 import { GuruAvatar } from "@/components/brand/GuruMark";
-import { GuruLauncher } from "@/components/brand/GuruLauncher";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -47,6 +45,10 @@ import { GlobalSearchLauncher } from "@/components/layout/GlobalSearchLauncher";
 import { AppLoadingScreen, PageSkeleton } from "@/components/layout/RouteFallback";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { PrimaryNavigation, MobileNavigationMenu, isNavActive } from "@/components/layout/PrimaryNavigation";
+import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
+import { NotificationCenter } from "@/components/layout/NotificationCenter";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { AiCommandLauncher } from "@/components/layout/AiCommandLauncher";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 
 // Route-level code splitting keeps the initial shell small. Auth stays eager:
@@ -140,60 +142,6 @@ const MAIN_PANEL_MIN_SIZE = 100 - GURU_PANEL_MAX_SIZE;
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
-const ZOOM_MAP: Record<string, string> = { sm: "85%", md: "100%", lg: "115%", xl: "125%" };
-
-function HeaderControls() {
-  const { theme, toggleTheme, fontSize, increaseFontSize, decreaseFontSize } = useSettings();
-  const isDark = theme === "dark";
-  const isMin = fontSize === "sm";
-  const isMax = fontSize === "xl";
-
-  return (
-    <div className="flex items-center gap-2">
-      {/* Zoom cluster — desktop only */}
-      <div className="header-zoom hidden md:flex items-center h-9 rounded-lg border border-border/50 bg-muted/40 p-1 gap-0.5">
-        <AppTooltip content="Zoom out text">
-          <button
-            onClick={decreaseFontSize}
-            disabled={isMin}
-            aria-label="Zoom out"
-            className="touch-manipulation flex items-center justify-center w-7 h-7 rounded-md transition-all disabled:opacity-25 hover:bg-background/80 text-muted-foreground/70 hover:text-foreground active:scale-[0.92]"
-          >
-            <ZoomOut size={12} />
-          </button>
-        </AppTooltip>
-        <span className="text-[10.5px] font-semibold min-w-[34px] text-center text-muted-foreground/70 font-mono tabular-nums select-none">
-          {ZOOM_MAP[fontSize] || "100%"}
-        </span>
-        <AppTooltip content="Zoom in text">
-          <button
-            onClick={increaseFontSize}
-            disabled={isMax}
-            aria-label="Zoom in"
-            className="touch-manipulation flex items-center justify-center w-7 h-7 rounded-md transition-all disabled:opacity-25 hover:bg-background/80 text-muted-foreground/70 hover:text-foreground active:scale-[0.92]"
-          >
-            <ZoomIn size={12} />
-          </button>
-        </AppTooltip>
-      </div>
-
-      {/* Theme toggle */}
-      <AppTooltip content={isDark ? "Switch to light mode" : "Switch to dark mode"}>
-        <button
-          onClick={toggleTheme}
-          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          className="group touch-manipulation flex items-center justify-center w-9 h-9 rounded-lg border border-border/50 bg-muted/40 hover:bg-muted hover:border-border/80 text-muted-foreground transition-all duration-200 active:scale-[0.93]"
-        >
-          {isDark ? (
-            <Sun size={15} className="transition-transform duration-300 group-hover:rotate-45 text-amber-400/90 group-hover:text-amber-400" />
-          ) : (
-            <Moon size={15} className="transition-transform duration-300 group-hover:-rotate-12 text-slate-500 dark:text-slate-400" />
-          )}
-        </button>
-      </AppTooltip>
-    </div>
-  );
-}
 
 function ScrollToTopOnRouteChange() {
   const { pathname, search } = useLocation();
@@ -556,20 +504,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           <header
             data-scrolled={headerScrolled ? "true" : undefined}
             data-route={location.pathname === "/" ? "home" : undefined}
-            className="app-header sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 px-4 sm:gap-4 sm:px-5 lg:px-6"
+            className="app-header sticky top-0 z-40 flex h-[72px] shrink-0 items-center justify-between gap-2 px-3 sm:gap-4 sm:px-5 lg:px-6"
           >
-            {/* ── Left: menu + sidebar toggle + logo ───────────── */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 mr-auto">
-              <button
-                onClick={() => setMobileMenuOpen((open) => !open)}
-                id="header-navigation-toggle"
-                aria-label="Toggle navigation menu"
-                aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
-                aria-expanded={mobileMenuOpen}
-                className="header-menu-btn touch-manipulation items-center justify-center w-9 h-9 rounded-lg border border-border/50 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.93] transition-all duration-150"
-              >
-                {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
-              </button>
+            {/* ── 1. Logo / Workspace Experience (Desktop / Tablet / Mobile) ───── */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
               <AnimatePresence initial={false}>
                 {showSidebarPanel && isSidebarCollapsed && (
                   <motion.div
@@ -585,7 +523,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                       aria-label="Expand sidebar"
                       aria-keyshortcuts="Alt+B"
                       className={cn(
-                        "group relative touch-manipulation w-9 h-9 rounded-lg flex-shrink-0",
+                        "group relative touch-manipulation w-9 h-9 rounded-xl flex-shrink-0",
                         "flex items-center justify-center",
                         "bg-muted/50 border border-border/60",
                         "hover:bg-primary/[0.08] hover:border-primary/35 hover:text-primary",
@@ -608,79 +546,53 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
               </AnimatePresence>
 
-              {/* Logo lockup */}
-              <AppTooltip content="Go to home">
-                <Link
-                  to="/"
-                  aria-label="AlgoGuru Home"
-                  className="group flex items-center gap-2.5 rounded-xl px-1.5 py-1 -ml-1 transition-all duration-200 hover:bg-muted/40 active:scale-[0.97] flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-                >
-                  <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-md shadow-primary/25 ring-1 ring-inset ring-white/20 transition-[transform,box-shadow] duration-200 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/40"
-                    style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--info)) 100%)" }}
-                  >
-                    <AlgoGuruLogo size={21} showText={false} className="text-white" />
-                  </div>
-                  <span className="hidden sm:inline font-display text-[15px] font-bold tracking-tight text-foreground">
-                    Algo<span className="text-primary">Guru</span>
-                  </span>
-                </Link>
-              </AppTooltip>
+              {/* Workspace Switcher: AlgoGuru ▼ (Personal / Team / Enterprise) */}
+              <WorkspaceSwitcher compact={isMobile} />
             </div>
 
-            {/* ── Center: primary navigation ───────────────────── */}
-            <PrimaryNavigation pathname={location.pathname} />
+            {/* ── 2. Primary Navigation (Desktop: 6 destinations with premium pill) ───── */}
+            <div className="hidden lg:flex items-center justify-center">
+              <PrimaryNavigation pathname={location.pathname} />
+            </div>
 
-            {/* ── Right: search + controls + user + Guru AI ────── */}
-            <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2 ml-auto">
+            {/* ── 3. Search Experience (Command Palette: Desktop / Tablet / Mobile) ───── */}
+            <div className="flex flex-1 items-center justify-center sm:justify-end lg:justify-end max-w-xs sm:max-w-sm lg:max-w-md mx-1.5 sm:mx-3">
+              <GlobalSearchLauncher className="w-full" />
+            </div>
 
-              {/* Mobile search icon */}
-              <AppTooltip content="Search (Ctrl+K)">
-                <button
-                  onClick={() => document.querySelector<HTMLButtonElement>('[data-search-trigger="true"]')?.click()}
-                  className="header-search-compact sm:hidden touch-manipulation flex items-center justify-center w-9 h-9 rounded-lg border border-border/50 bg-muted/40 hover:bg-muted hover:border-border/80 text-muted-foreground hover:text-primary transition-all duration-150 active:scale-[0.93]"
-                  aria-label="Search"
-                >
-                  <Search size={15} />
-                </button>
-              </AppTooltip>
+            {/* ── 4. Desktop Actions: Guru AI + Notifications + Theme Toggle + User Menu (Desktop only) ───── */}
+            <div className="header-actions hidden lg:flex shrink-0 items-center gap-1.5 sm:gap-2">
+              {/* Guru AI Command Center entry */}
+              <AiCommandLauncher
+                open={guruOpen}
+                embedded={isProblemSolverRoute}
+                onClick={toggleGuruPanel}
+              />
 
-              {/* Desktop search */}
-              <div className="header-search-full hidden sm:block">
-                <GlobalSearchLauncher />
-              </div>
+              {/* Subtle divider */}
+              <div className="h-5 w-px bg-border/60 rounded-full mx-0.5" />
 
-              {/* Divider */}
-              <div className="hidden sm:block h-5 w-px bg-border/60 rounded-full mx-1.5" />
+              {/* Notifications */}
+              <NotificationCenter />
 
-              {/* Theme / zoom controls */}
-              <HeaderControls />
-
-              {/* Divider */}
-              <div className="hidden sm:block h-5 w-px bg-border/60 rounded-full mx-1.5" />
+              {/* Theme toggle */}
+              <ThemeToggle />
 
               {/* User avatar menu */}
               <UserMenu />
-
-              {/* Guru AI button */}
-              {isProblemSolverRoute ? (
-                <span
-                  title="Guru AI is in the description panel — open the Guru AI tab."
-                  className="ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:ml-4"
-                >
-                  <GuruAvatar size={32} ring status="ready" title={null} />
-                  <span className="sr-only">Guru AI is available in the description panel</span>
-                </span>
-              ) : (
-                <AppTooltip content={guruOpen ? "Close Guru AI (Ctrl/⌘ J)" : "Open Guru AI (Ctrl/⌘ J)"}>
-                  <GuruLauncher
-                    open={guruOpen}
-                    onClick={toggleGuruPanel}
-                    className="ml-2 sm:ml-4"
-                  />
-                </AppTooltip>
-              )}
             </div>
+
+            {/* ── 5. Tablet Menu / Mobile Drawer Toggle Button (Tablet & Mobile only) ───── */}
+            <button
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              id="header-navigation-toggle"
+              aria-label="Toggle navigation menu"
+              aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
+              aria-expanded={mobileMenuOpen}
+              className="header-menu-btn lg:hidden touch-manipulation flex items-center justify-center w-10 h-10 rounded-xl border border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-all duration-150 ml-1 shrink-0"
+            >
+              {mobileMenuOpen ? <X size={17} /> : <Menu size={17} />}
+            </button>
 
             {/* ── Mobile navigation sheet ──────────────────────── */}
             <AnimatePresence>
@@ -689,6 +601,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   pathname={location.pathname}
                   onClose={closeMobileMenu}
                   onOpenLibrary={() => setMobileLibraryOpen(true)}
+                  onToggleGuru={toggleGuruPanel}
                 />
               )}
             </AnimatePresence>
