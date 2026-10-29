@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   BookOpen,
   BriefcaseBusiness,
+  ChevronDown,
   Code2,
   Compass,
   Cpu,
@@ -20,6 +21,12 @@ import {
   Trophy,
   type LucideIcon,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { NavIcon } from "./NavIcon";
 
@@ -194,19 +201,78 @@ export function isContestRunning(pathname: string, explicitLive?: boolean): bool
   }
 }
 
+export function partitionNavLinks(count: number): {
+  visibleLinks: NavLinkItem[];
+  overflowLinks: NavLinkItem[];
+} {
+  const safeCount = Math.max(0, Math.min(NAV_LINKS.length, count));
+  if (safeCount >= 6) {
+    return { visibleLinks: NAV_LINKS, overflowLinks: [] };
+  }
+  if (safeCount === 5) {
+    return {
+      visibleLinks: NAV_LINKS.slice(0, 5),
+      overflowLinks: NAV_LINKS.slice(5),
+    };
+  }
+  if (safeCount === 4) {
+    return {
+      visibleLinks: NAV_LINKS.slice(0, 4),
+      overflowLinks: NAV_LINKS.slice(4),
+    };
+  }
+  if (safeCount === 3) {
+    const core = NAV_LINKS.filter((l) => l.priority === "high");
+    const rest = NAV_LINKS.filter((l) => l.priority !== "high");
+    return { visibleLinks: core, overflowLinks: rest };
+  }
+  const topCore = NAV_LINKS.filter((l) => l.path === "/practice" || l.path === "/interview");
+  const others = NAV_LINKS.filter((l) => l.path !== "/practice" && l.path !== "/interview");
+  return { visibleLinks: topCore, overflowLinks: others };
+}
+
 export function PrimaryNavigation({
   pathname,
   contestLive,
+  maxVisibleItems,
 }: {
   pathname: string;
   contestLive?: boolean;
+  maxVisibleItems?: number;
 }) {
   const reduceMotion = useReducedMotion();
+  const navRef = useRef<HTMLElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
   const [openMenuPath, setOpenMenuPath] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const openTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
 
   const contestRunning = isContestRunning(pathname, contestLive);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // When containerWidth is 0 (tests/SSR/initial), default to all 6 items
+  const effectiveCount = maxVisibleItems ?? (
+    containerWidth === 0 || containerWidth >= 580 ? 6 :
+    containerWidth >= 460 ? 4 :
+    containerWidth >= 340 ? 3 : 2
+  );
+
+  const { visibleLinks, overflowLinks } = partitionNavLinks(effectiveCount);
 
   const clearTimers = useCallback(() => {
     if (openTimerRef.current !== null) {
@@ -238,6 +304,7 @@ export function PrimaryNavigation({
 
   useEffect(() => {
     setOpenMenuPath(null);
+    setMoreOpen(false);
     clearTimers();
   }, [pathname, clearTimers]);
 
@@ -255,12 +322,18 @@ export function PrimaryNavigation({
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
+  const isOverflowActive = overflowLinks.some((l) => isNavActive(pathname, l.path));
+  const overflowHasLiveContest = overflowLinks.some(
+    (l) => l.path === "/contest" && contestRunning,
+  );
+
   return (
     <nav
+      ref={navRef}
       aria-label="Primary"
-      className="header-primary-nav flex h-16 items-center gap-1 select-none"
+      className="header-primary-nav flex h-16 items-center gap-1 select-none max-w-full overflow-visible"
     >
-      {NAV_LINKS.map(({ label, path, icon, megaMenu }) => {
+      {visibleLinks.map(({ label, path, icon, megaMenu }) => {
         const active = isNavActive(pathname, path);
         const showLiveDot = path === "/contest" && contestRunning;
         const isMegaOpen = Boolean(megaMenu && openMenuPath === path);
@@ -291,7 +364,7 @@ export function PrimaryNavigation({
               to={path}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "header-nav-link group relative inline-flex h-9 items-center gap-2 rounded-lg px-3 text-[14px] font-medium leading-none transition-colors duration-150 ease-out select-none",
+                "header-nav-link group relative inline-flex h-9 items-center gap-2 rounded-lg px-3 text-[14px] font-medium leading-none transition-colors duration-150 ease-out select-none whitespace-nowrap",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
                 active
                   ? "text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
@@ -320,7 +393,7 @@ export function PrimaryNavigation({
               />
             )}
 
-            {/* Step 5: 2-Column Mega Menu Popover */}
+            {/* 2-Column Mega Menu Popover */}
             {isMegaOpen && megaMenu && (
               <div
                 role="region"
@@ -354,6 +427,105 @@ export function PrimaryNavigation({
           </div>
         );
       })}
+
+      {/* Dynamic Overflow Dropdown */}
+      {overflowLinks.length > 0 && (
+        <div className="relative flex h-full items-center">
+          <DropdownMenu open={moreOpen} onOpenChange={setMoreOpen}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="More navigation options"
+                aria-expanded={moreOpen}
+                className={cn(
+                  "header-nav-link group relative inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[14px] font-medium leading-none transition-colors duration-150 ease-out select-none whitespace-nowrap cursor-pointer",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+                  isOverflowActive
+                    ? "text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
+                    : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100",
+                )}
+              >
+                <span className="leading-none">More</span>
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 transition-transform duration-150",
+                    moreOpen && "rotate-180",
+                  )}
+                  aria-hidden="true"
+                />
+
+                {overflowHasLiveContest && (
+                  <span
+                    aria-label="Contest live"
+                    className="relative flex h-2 w-2 shrink-0 ml-0.5"
+                  >
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                  </span>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-56 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 p-1.5 shadow-xl backdrop-blur-md z-50 animate-in fade-in-0 zoom-in-95 duration-150"
+            >
+              <div className="space-y-0.5">
+                {overflowLinks.map((item) => {
+                  const active = isNavActive(pathname, item.path);
+                  const showLiveDot = item.path === "/contest" && contestRunning;
+
+                  return (
+                    <DropdownMenuItem asChild key={item.path} onSelect={() => setMoreOpen(false)}>
+                      <Link
+                        to={item.path}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors cursor-pointer select-none",
+                          active
+                            ? "bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
+                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-slate-900/70 hover:text-slate-900 dark:hover:text-slate-100 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border",
+                            active
+                              ? "border-blue-500/30 bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400"
+                              : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400",
+                          )}
+                        >
+                          <NavIcon icon={item.icon} chip />
+                        </div>
+                        <span className="flex-1 truncate">{item.label}</span>
+                        {showLiveDot && (
+                          <span
+                            aria-label="Contest live"
+                            className="relative flex h-2 w-2 shrink-0"
+                          >
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                          </span>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* 2px blue indicator along the bottom edge when an overflow destination is active */}
+          {isOverflowActive && (
+            <motion.span
+              layoutId={reduceMotion ? undefined : "navbar-active-indicator"}
+              className="header-nav-indicator pointer-events-none absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-blue-600 dark:bg-blue-500"
+              transition={{ type: "spring", stiffness: 460, damping: 36 }}
+            />
+          )}
+        </div>
+      )}
     </nav>
   );
 }
@@ -427,7 +599,7 @@ export function MobileNavigationMenu({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 16 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="header-menu-sheet fixed inset-x-0 top-16 bottom-0 z-50 flex h-[calc(100dvh-4rem)] w-full flex-col justify-between overflow-y-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 shadow-2xl sm:left-auto sm:w-80 sm:border-l lg:hidden"
+      className="header-menu-sheet fixed inset-x-0 top-16 bottom-0 z-50 flex h-[calc(100dvh-4rem)] w-full flex-col justify-between overflow-y-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 shadow-2xl sm:left-auto sm:w-80 sm:border-l"
     >
       <div className="space-y-4">
         {/* Primary Links */}

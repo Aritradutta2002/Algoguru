@@ -285,6 +285,28 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const scrollProgressRef = useRef<HTMLDivElement | null>(null);
   const scrollProgressFrame = useRef<number | null>(null);
 
+  const headerContainerRef = useRef<HTMLDivElement>(null);
+  const [headerWidth, setHeaderWidth] = useState<number>(0);
+
+  useEffect(() => {
+    const el = headerContainerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setHeaderWidth(entry.contentRect.width);
+      }
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const isHeaderNarrow = isMobile || (headerWidth > 0 && headerWidth < 680);
+  const isHeaderCompact = isMobile || (headerWidth > 0 && headerWidth < 980);
+  const isHeaderWide = !isMobile && (headerWidth === 0 || headerWidth >= 1200);
+
   useEffect(() => {
     setMobileMenuOpen(false);
     setMobileLibraryOpen(false);
@@ -525,7 +547,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 "shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.45)]",
             )}
           >
-            <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+            <div
+              ref={headerContainerRef}
+              className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6"
+            >
               {/* ── 1. Logo / Workspace Block ───── */}
               <div className="flex items-center gap-2 shrink-0">
                 <AnimatePresence initial={false}>
@@ -553,43 +578,50 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   )}
                 </AnimatePresence>
 
-                <WorkspaceSwitcher />
+                <WorkspaceSwitcher compact={isHeaderCompact} />
               </div>
 
-              {/* ── 2. Primary Navigation (Desktop >= 1024px) ───── */}
-              <div className="hidden lg:flex h-full items-center justify-center">
-                <PrimaryNavigation pathname={location.pathname} />
-              </div>
-
-              {/* ── 3. Right Side Controls (8px between icon buttons) ───── */}
-              <div className="header-actions flex shrink-0 items-center gap-2">
-                <GlobalSearchLauncher />
-
-                <div className="hidden lg:flex items-center gap-2">
-                  <AiCommandLauncher
-                    open={guruOpen}
-                    embedded={isProblemSolverRoute}
-                    onClick={toggleGuruPanel}
-                  />
-                  <NotificationCenter />
-                  <ThemeToggle />
-                  <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
+              {/* ── 2. Primary Navigation (Dynamic responsive with More dropdown) ───── */}
+              {!isHeaderNarrow && (
+                <div className="flex h-full items-center justify-center min-w-0 flex-1 px-1 sm:px-2">
+                  <PrimaryNavigation pathname={location.pathname} />
                 </div>
+              )}
 
-                {/* ── 4. Mobile Hamburger (ONLY below 1024px) ───── */}
-                <AppTooltip content={mobileMenuOpen ? "Close menu" : "Open menu"}>
-                  <button
-                    type="button"
-                    onClick={() => setMobileMenuOpen((open) => !open)}
-                    id="header-navigation-toggle"
-                    aria-label="Toggle navigation menu"
-                    aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
-                    aria-expanded={mobileMenuOpen}
-                    className="header-menu-btn lg:hidden touch-manipulation inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
-                  >
-                    <NavIcon icon={mobileMenuOpen ? X : Menu} />
-                  </button>
-                </AppTooltip>
+              {/* ── 3. Right Side Controls ───── */}
+              <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2">
+                <GlobalSearchLauncher compact={isHeaderCompact || !isHeaderWide} />
+
+                {!isHeaderNarrow && (
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <AiCommandLauncher
+                      open={guruOpen}
+                      embedded={isProblemSolverRoute}
+                      compact={isHeaderCompact}
+                      onClick={toggleGuruPanel}
+                    />
+                    <NotificationCenter />
+                    <ThemeToggle />
+                    <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
+                  </div>
+                )}
+
+                {/* ── 4. Mobile / Compact Menu Toggle (When header is narrow or mobile) ───── */}
+                {isHeaderNarrow && (
+                  <AppTooltip content={mobileMenuOpen ? "Close menu" : "Open menu"}>
+                    <button
+                      type="button"
+                      onClick={() => setMobileMenuOpen((open) => !open)}
+                      id="header-navigation-toggle"
+                      aria-label="Toggle navigation menu"
+                      aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
+                      aria-expanded={mobileMenuOpen}
+                      className="header-menu-btn touch-manipulation inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                    >
+                      <NavIcon icon={mobileMenuOpen ? X : Menu} />
+                    </button>
+                  </AppTooltip>
+                )}
               </div>
             </div>
 

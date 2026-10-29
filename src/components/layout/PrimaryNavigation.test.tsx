@@ -151,4 +151,55 @@ describe("Primary navigation", () => {
     expect(onToggleGuru).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it("partitions links and renders 'More' dropdown when constrained", () => {
+    render(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/" maxVisibleItems={4} />
+      </MemoryRouter>,
+    );
+
+    // 4 visible links
+    expect(screen.getByRole("link", { name: "Home" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Practice" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Interview" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Roadmap" })).toBeInTheDocument();
+    // Overflow items should not be direct links in the nav
+    expect(screen.queryByRole("link", { name: "Playground" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Contest" })).not.toBeInTheDocument();
+
+    // "More" button is present
+    const moreButton = screen.getByRole("button", { name: /more navigation options/i });
+    expect(moreButton).toBeInTheDocument();
+
+    // Open dropdown via Radix pointer/keyboard interaction
+    fireEvent.pointerDown(moreButton, { button: 0, ctrlKey: false });
+    if (moreButton.getAttribute("aria-expanded") !== "true") {
+      fireEvent.keyDown(moreButton, { key: "Enter" });
+    }
+    expect(screen.getByRole("menuitem", { name: /playground/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /contest/i })).toBeInTheDocument();
+  });
+
+  it("activates 'More' button when active route is an overflow destination", () => {
+    render(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/contest" maxVisibleItems={4} />
+      </MemoryRouter>,
+    );
+
+    const moreButton = screen.getByRole("button", { name: /more navigation options/i });
+    expect(moreButton).toHaveClass("text-slate-900");
+  });
+
+  it("shows contest live dot on 'More' button when contest is live in overflow", () => {
+    render(
+      <MemoryRouter>
+        <PrimaryNavigation pathname="/" contestLive={true} maxVisibleItems={4} />
+      </MemoryRouter>,
+    );
+
+    const moreButton = screen.getByRole("button", { name: /more navigation options/i });
+    expect(moreButton.querySelector('[aria-label="Contest live"]')).toBeInTheDocument();
+  });
 });
