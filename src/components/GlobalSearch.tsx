@@ -249,11 +249,30 @@ const ResultRow = ({ doc, query, onSelect }: { doc: ScoredDoc; query: string; on
       </span>
     </span>
 
+    {doc.companies && doc.companies.length > 0 && (
+      <div className="hidden sm:flex items-center gap-1 shrink-0">
+        {doc.companies.slice(0, 2).map((comp) => (
+          <span
+            key={comp}
+            className="rounded border border-border/70 bg-muted/50 px-1.5 py-px text-[9.5px] font-medium text-muted-foreground/80 capitalize"
+          >
+            {comp}
+          </span>
+        ))}
+        {doc.companies.length > 2 && (
+          <span className="text-[9.5px] text-muted-foreground/60">
+            +{doc.companies.length - 2}
+          </span>
+        )}
+      </div>
+    )}
+
     {doc.difficulty && (
       <span
         className={cn(
-          "shrink-0 rounded-md border px-1.5 py-px text-[10px] font-semibold leading-tight",
+          "shrink-0 rounded-md border px-1.5 py-px text-[10px] font-semibold leading-tight capitalize",
           DIFFICULTY_STYLES[doc.difficulty] ??
+            DIFFICULTY_STYLES[doc.difficulty.charAt(0).toUpperCase() + doc.difficulty.slice(1).toLowerCase()] ??
             "border-border bg-muted text-muted-foreground",
         )}
       >
@@ -293,8 +312,34 @@ const QuickAccessChip = ({ doc, onSelect }: { doc: SearchDoc; onSelect: () => vo
 /* Palette                                                                     */
 /* -------------------------------------------------------------------------- */
 
-export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean }) {
-  const [open, setOpen] = useState(initialOpen);
+export interface GlobalSearchProps {
+  initialOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  showTrigger?: boolean;
+}
+
+export function GlobalSearch({
+  initialOpen = false,
+  open: controlledOpen,
+  onOpenChange,
+  showTrigger = true,
+}: GlobalSearchProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(initialOpen);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+
+  const setOpen = useCallback(
+    (next: boolean | ((prev: boolean) => boolean)) => {
+      const nextValue = typeof next === "function" ? next(open) : next;
+      if (!isControlled) {
+        setInternalOpen(nextValue);
+      }
+      onOpenChange?.(nextValue);
+    },
+    [isControlled, open, onOpenChange],
+  );
+
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<SearchTab>("all");
   const [recents, setRecents] = useState<RecentEntry[]>([]);
@@ -352,7 +397,7 @@ export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean })
       setTab("all");
       navigate(doc.path);
     },
-    [navigate, remember],
+    [navigate, remember, setOpen],
   );
 
   useEffect(() => {
@@ -378,29 +423,34 @@ export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean })
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [setOpen]);
 
   return (
     <>
-      <AppTooltip content="Search AlgoGuru (Ctrl+K)">
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Search AlgoGuru"
-          data-search-trigger="true"
-          className="group relative flex h-8 w-44 items-center gap-2 overflow-hidden rounded-lg border border-border/60 bg-muted/40 pl-1.5 pr-3 text-left transition-all duration-200 hover:border-primary/30 hover:bg-muted/70 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] active:scale-[0.98] sm:w-56 md:w-64 lg:w-72"
-        >
-          <SearchMark
-            size={20}
-            className="transition-transform duration-300 group-hover:scale-110"
-          />
-          <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/65 transition-colors group-hover:text-muted-foreground sm:inline">
-            Search topics, problems…
-          </span>
-          <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/55 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
-            <span>⌘</span>K
-          </kbd>
-        </button>
-      </AppTooltip>
+      {showTrigger && (
+        <AppTooltip content="Search AlgoGuru (Ctrl+K)">
+          <button
+            type="button"
+            onClick={() => setOpen((previous) => !previous)}
+            aria-label="Search AlgoGuru"
+            aria-expanded={open}
+            aria-haspopup="dialog"
+            data-search-trigger="true"
+            className="group relative flex h-8 w-44 items-center gap-2 overflow-hidden rounded-lg border border-border/60 bg-muted/40 pl-1.5 pr-3 text-left transition-all duration-200 hover:border-primary/30 hover:bg-muted/70 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] active:scale-[0.98] sm:w-56 md:w-64 lg:w-72"
+          >
+            <SearchMark
+              size={20}
+              className="transition-transform duration-300 group-hover:scale-110"
+            />
+            <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/65 transition-colors group-hover:text-muted-foreground sm:inline">
+              Search topics, problems…
+            </span>
+            <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/55 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
+              <span>⌘</span>K
+            </kbd>
+          </button>
+        </AppTooltip>
+      )}
 
       {open &&
         createPortal(
@@ -408,7 +458,11 @@ export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean })
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.14 }}
-            onClick={() => setOpen(false)}
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                setOpen(false);
+              }
+            }}
             className="fixed inset-0 z-[9999] flex items-start justify-center px-4 pt-[7vh]"
           >
             {/* Vignette: a radial wash instead of a flat scrim, so the
@@ -431,9 +485,9 @@ export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean })
                 <div className="flex shrink-0 items-center gap-3 px-4 pb-3.5 pt-4">
                   <SearchMark size={30} className="drop-shadow-sm" />
 
-<CommandInput
-                      ref={inputRef}
-                      icon={null}
+                  <CommandInput
+                    ref={inputRef}
+                    icon={null}
                     value={query}
                     onValueChange={setQuery}
                     placeholder="Search anything on AlgoGuru..."
@@ -441,17 +495,32 @@ export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean })
                     className="h-auto bg-transparent py-0 text-[16px] font-normal tracking-[-0.01em] placeholder:font-normal placeholder:tracking-normal placeholder:text-muted-foreground/55"
                   />
 
+                  {trimmed && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery("");
+                        inputRef.current?.focus();
+                      }}
+                      aria-label="Clear query"
+                      className="flex h-6 w-6 shrink-0 touch-manipulation items-center justify-center rounded-md border border-border/60 bg-muted/50 text-muted-foreground/80 hover:bg-muted hover:text-foreground active:scale-95 transition-all text-xs"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+
                   {trimmed && !showEmptyState && (
                     <motion.span
                       initial={{ opacity: 0, scale: 0.85 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="shrink-0 rounded-full bg-muted px-2 py-0.5 font-mono text-[10.5px] font-semibold tabular-nums text-muted-foreground"
+                      className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[10.5px] font-semibold tabular-nums text-primary border border-primary/20"
                     >
                       {results.length}
                     </motion.span>
                   )}
 
                   <button
+                    type="button"
                     onClick={() => setOpen(false)}
                     aria-label="Close search"
                     className="flex h-7 w-7 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-transparent text-muted-foreground/70 transition-all hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
@@ -494,9 +563,23 @@ export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean })
                 <CommandList className="max-h-none flex-1 overflow-y-auto px-2 pb-3 pt-1">
                   {showEmptyState ? (
                     <>
-                      <SectionLabel>
-                        {recents.length === 0 ? "Quick Access" : "Recent"}
-                      </SectionLabel>
+                      <div className="flex items-center justify-between px-2 pt-2 pb-0">
+                        <SectionLabel>
+                          {recents.length === 0 ? "Quick Access" : "Recent Searches"}
+                        </SectionLabel>
+                        {recents.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              writeRecents([]);
+                              setRecents([]);
+                            }}
+                            className="text-[11px] font-medium text-muted-foreground/60 hover:text-primary transition-colors cursor-pointer mr-1"
+                          >
+                            Clear recent
+                          </button>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-1.5 px-2 pb-2">
                         {quickAccess.map((doc) => (
                           <QuickAccessChip key={doc.id} doc={doc} onSelect={() => go(doc)} />
@@ -509,15 +592,15 @@ export function GlobalSearch({ initialOpen = false }: { initialOpen?: boolean })
                           <div className="text-[15px] font-medium text-foreground">
                             Search anything
                           </div>
-                        <div className="mt-0.5 text-[13px] text-muted-foreground">
-                          Type at least {MIN_QUERY_LENGTH} characters to begin search
+                          <div className="mt-0.5 text-[13px] text-muted-foreground">
+                            Type at least {MIN_QUERY_LENGTH} characters to begin search
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <CommandEmpty>
+                    </>
+                  ) : (
+                    <>
+                      <CommandEmpty>
                       <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                         <SearchMark size={28} className="opacity-70" />
                         <div>

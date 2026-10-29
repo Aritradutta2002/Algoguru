@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ interface SearchTriggerProps {
   className?: string;
   placeholder?: string;
   compact?: boolean;
+  ariaExpanded?: boolean;
 }
 
 export function SearchTrigger({
@@ -30,6 +31,7 @@ export function SearchTrigger({
   className,
   placeholder = "Search...",
   compact,
+  ariaExpanded,
 }: SearchTriggerProps) {
   const isCompact = compact === true;
   const isExplicitWide = compact === false;
@@ -40,6 +42,8 @@ export function SearchTrigger({
         type="button"
         onClick={onClick}
         aria-label="Search AlgoGuru"
+        aria-expanded={ariaExpanded}
+        aria-haspopup="dialog"
         data-search-trigger="true"
         className={cn(
           "group relative inline-flex shrink-0 items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-left text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 ease-out hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 touch-manipulation select-none",
@@ -87,44 +91,47 @@ export function GlobalSearchLauncher({
   compact,
 }: GlobalSearchLauncherProps) {
   const [loaded, setLoaded] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleToggle = useCallback(() => {
+    if (!loaded) {
+      setLoaded(true);
+      setOpen(true);
+    } else {
+      setOpen((prev) => !prev);
+    }
+  }, [loaded]);
 
   useEffect(() => {
-    if (loaded) return;
-
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setLoaded(true);
+        handleToggle();
       }
     };
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [loaded]);
+  }, [handleToggle]);
 
-  if (!loaded) {
-    return (
+  return (
+    <>
       <SearchTrigger
-        onClick={() => setLoaded(true)}
+        onClick={handleToggle}
         className={className}
         placeholder={placeholder}
         compact={compact}
+        ariaExpanded={open}
       />
-    );
-  }
-
-  return (
-    <Suspense
-      fallback={
-        <SearchTrigger
-          onClick={() => undefined}
-          className={className}
-          placeholder={placeholder}
-          compact={compact}
-        />
-      }
-    >
-      <GlobalSearch initialOpen />
-    </Suspense>
+      {loaded && (
+        <Suspense fallback={null}>
+          <GlobalSearch
+            showTrigger={false}
+            open={open}
+            onOpenChange={setOpen}
+          />
+        </Suspense>
+      )}
+    </>
   );
 }

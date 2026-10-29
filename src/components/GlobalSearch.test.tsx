@@ -178,4 +178,29 @@ describe("GlobalSearch", () => {
       expect(className).not.toMatch(/data-\[selected[^\s]*\]:bg-accent/);
     });
   });
+
+  it("toggles closed when clicking the search trigger while open", async () => {
+    renderSearch();
+    const trigger = screen.getByRole("button", { name: /search algoguru/i });
+
+    // Open palette
+    fireEvent.click(trigger);
+    expect(await screen.findByPlaceholderText(PLACEHOLDER)).toBeInTheDocument();
+
+    // Clicking trigger again closes palette
+    fireEvent.click(trigger);
+    expect(screen.queryByPlaceholderText(PLACEHOLDER)).not.toBeInTheDocument();
+  });
+
+  it("clears the search query when the clear button is clicked", async () => {
+    renderSearch();
+    const input = await openPalette();
+    type(input, "binary search");
+
+    expect(screen.getByRole("button", { name: /clear query/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /clear query/i }));
+
+    expect((input as HTMLInputElement).value).toBe("");
+    expect(screen.getByText(/type at least 2 characters/i)).toBeInTheDocument();
+  });
 });

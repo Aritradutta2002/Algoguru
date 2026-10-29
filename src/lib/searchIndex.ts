@@ -107,6 +107,7 @@ export interface SearchDoc {
   /** Emoji tile shown in the row / quick-access chip. */
   icon: string;
   difficulty?: string;
+  companies?: string[];
   /** Extra text folded into the searchable haystack (parents, tags, answers). */
   haystack: string;
 }
@@ -276,6 +277,35 @@ const buildStaticDocs = (): SearchDoc[] => {
           section.spaceComplexity ?? "",
           parentTopic?.title ?? topicId,
         ].join(" ").toLowerCase(),
+      });
+    });
+  });
+
+  // --- Curated DSA Practice Problems (490+ problems across all sheets) -----
+  practiceData.forEach((topic) => {
+    topic.subtopics.forEach((subtopic) => {
+      subtopic.problems.forEach((problem) => {
+        push({
+          id: `practice:${problem.id}`,
+          title: problem.title,
+          subtitle: `Practice — ${topic.title} (${subtopic.title})`,
+          category: "problems",
+          path: `/practice/solution/${problem.id}/${toProblemSlug(problem.title)}`,
+          icon: "🎯",
+          difficulty: problem.difficulty,
+          companies: problem.companies,
+          haystack: [
+            problem.title,
+            topic.title,
+            subtopic.title,
+            ...(problem.companies ?? []),
+            "practice",
+            "dsa",
+            "problem",
+            "leetcode",
+            "solution",
+          ].join(" ").toLowerCase(),
+        });
       });
     });
   });
@@ -482,27 +512,55 @@ export const STATIC_SEARCH_DOCS: SearchDoc[] = buildStaticDocs();
 
 const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim();
 
+const ACRONYM_MAP: Record<string, string> = {
+  lru: "least recently used",
+  lfu: "least frequently used",
+  bfs: "breadth first",
+  dfs: "depth first",
+  dp: "dynamic programming",
+  bst: "binary search tree",
+  dsu: "disjoint set",
+  kmp: "knuth morris pratt",
+  lcs: "longest common",
+  lis: "longest increasing",
+  mst: "minimum spanning tree",
+  trie: "prefix tree",
+};
+
 const scoreDoc = (doc: SearchDoc, terms: string[], needle: string): number => {
   const title = normalize(doc.title);
   const subtitle = normalize(doc.subtitle);
   const haystack = `${doc.haystack} ${subtitle}`;
 
-  let score = 0;
+  // Check for acronym expansion match
+  const expanded = ACRONYM_MAP[needle];
+  const acronymHit = Boolean(expanded && (title.includes(expanded) || haystack.includes(expanded)));
+
+  let score = acronymHit ? 35 : 0;
   for (const term of terms) {
     let termScore = 0;
-    if (title === term) termScore += 40;
-    else if (title.startsWith(term)) termScore += 22;
-    else if (title.includes(term)) termScore += 12;
+    if (title === term) termScore += 50;
+    else if (title.startsWith(term)) termScore += 25;
+    else if (title.includes(term)) termScore += 14;
 
-    if (subtitle.includes(term)) termScore += 4;
-    if (haystack.includes(term)) termScore += 2;
+    if (subtitle.includes(term)) termScore += 6;
+    if (haystack.includes(term)) termScore += 3;
+
+    // If this term didn't match directly, check if it matches an acronym
+    if (termScore === 0 && ACRONYM_MAP[term]) {
+      const exp = ACRONYM_MAP[term];
+      if (title.includes(exp) || haystack.includes(exp)) {
+        termScore += 30;
+      }
+    }
 
     // AND semantics: a doc only survives when every typed term lands
     // somewhere, so extra words always narrow the result set.
     if (termScore === 0) return 0;
     score += termScore;
   }
-  if (title.startsWith(needle)) score += 8;
+  if (title === needle) score += 50;
+  else if (title.startsWith(needle)) score += 15;
 
   return score;
 };

@@ -85,6 +85,30 @@ describe("global search index", () => {
   it("needs at least two characters before searching", () => {
     expect(MIN_QUERY_LENGTH).toBe(2);
   });
+
+  it("indexes curated DSA practice problems from practiceData", () => {
+    const results = searchDocs("trapping rain water");
+    expect(results.length).toBeGreaterThan(0);
+    const rainWater = results.find((r) => r.id.startsWith("practice:"));
+    expect(rainWater).toBeDefined();
+    expect(rainWater?.category).toBe("problems");
+    expect(rainWater?.path).toContain("/practice/solution/");
+  });
+
+  it("resolves acronym queries such as LRU and BFS", () => {
+    const lruResults = searchDocs("lru");
+    expect(lruResults.length).toBeGreaterThan(0);
+    expect(lruResults.some((r) => r.title.toLowerCase().includes("lru") || r.haystack.includes("lru"))).toBe(true);
+
+    const bfsResults = searchDocs("bfs");
+    expect(bfsResults.length).toBeGreaterThan(0);
+  });
+
+  it("finds practice problems by company name", () => {
+    const results = searchDocs("amazon");
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.some((r) => r.category === "problems")).toBe(true);
+  });
 });
 
 describe("note search", () => {
