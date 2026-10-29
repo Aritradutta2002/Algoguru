@@ -44,7 +44,7 @@ export const PUBLIC_JAVA_PROBLEMS: PublicCodingProblem[] = [
         explanation: "nums[0] + nums[1] === 2 + 7 === 9.",
       },
       {
-        input: "2\n3 2 4\n6",
+        input: "3\n3 2 4\n6",
         output: "1 2",
         explanation: "2 + 4 === 6, at indices 1 and 2.",
       },
@@ -62,8 +62,8 @@ class Solution {
     functionSignature: "public int[] twoSum(int[] nums, int target)",
     visibleTestCases: [
       { id: "visible-1", input: "4\n2 7 11 15\n9", expectedOutput: "0 1" },
-      { id: "visible-2", input: "2\n3 2 4\n6", expectedOutput: "1 2" },
-      { id: "visible-3", input: "5\n1 5 9 2 8\n10", expectedOutput: "2 3" },
+      { id: "visible-2", input: "3\n3 2 4\n6", expectedOutput: "1 2" },
+      { id: "visible-3", input: "5\n1 5 9 2 8\n11", expectedOutput: "2 3" },
     ],
     timeLimitMs: 2000,
     memoryLimitMb: 256,
@@ -77,10 +77,7 @@ class Solution {
       "Given an integer array, return the largest sum obtainable from any contiguous, non-empty subarray.",
     difficulty: "medium",
     topics: ["Arrays", "Dynamic Programming"],
-    constraints: [
-      "1 <= nums.length <= 100_000",
-      "-10^4 <= nums[i] <= 10^4",
-    ],
+    constraints: ["1 <= nums.length <= 100_000", "-10^4 <= nums[i] <= 10^4"],
     inputFormat: "Line 1: n\nLine 2: n space-separated integers",
     outputFormat: "A single integer: the maximum subarray sum.",
     examples: [
@@ -131,8 +128,7 @@ class Solution {
     ],
     inputFormat:
       "Line 1: m (number of intervals)\nThen m lines, each: start end",
-    outputFormat:
-      "One line per merged interval: start end, ordered by start.",
+    outputFormat: "One line per merged interval: start end, ordered by start.",
     examples: [
       {
         input: "5\n1 3\n2 6\n8 10\n15 18\n8 9",
@@ -192,8 +188,8 @@ class Solution {
     examples: [
       {
         input: "7\n1 2 2 2 3 4 5\n2",
-        output: "2",
-        explanation: "2 first appears at index 2, not at 1 or 3.",
+        output: "1",
+        explanation: "2 first appears at index 1, not at 2 or 3.",
       },
       {
         input: "4\n1 3 5 7\n4",
@@ -210,7 +206,7 @@ class Solution {
 `,
     functionSignature: "public int search(int[] nums, int target)",
     visibleTestCases: [
-      { id: "visible-1", input: "7\n1 2 2 2 3 4 5\n2", expectedOutput: "2" },
+      { id: "visible-1", input: "7\n1 2 2 2 3 4 5\n2", expectedOutput: "1" },
       { id: "visible-2", input: "4\n1 3 5 7\n4", expectedOutput: "-1" },
       { id: "visible-3", input: "0\n\n9", expectedOutput: "-1" },
     ],
@@ -233,13 +229,13 @@ class Solution {
     ],
     inputFormat:
       "Line 1: k (number of strings)\nThen k lines, one string per line",
-    outputFormat:
-      "One group per line; members separated by a single space.",
+    outputFormat: "One group per line; members separated by a single space.",
     examples: [
       {
         input: "6\neat\ntea\ntan\nate\nnat\nbat",
         output: "eat tea ate\ntan nat\nbat",
-        explanation: "eat/tea/ate share a key; tan/nat share one; bat is alone.",
+        explanation:
+          "eat/tea/ate share a key; tan/nat share one; bat is alone.",
       },
       {
         input: "1\na",
@@ -257,7 +253,8 @@ class Solution {
     }
 }
 `,
-    functionSignature: "public List<List<String>> groupAnagrams(List<String> strs)",
+    functionSignature:
+      "public List<List<String>> groupAnagrams(List<String> strs)",
     visibleTestCases: [
       {
         id: "visible-1",
@@ -333,8 +330,16 @@ class Solution {
     inputFormat: "Line 1: the string s (may be empty)",
     outputFormat: "true when balanced, otherwise false.",
     examples: [
-      { input: "({[]})", output: "true", explanation: "Every bracket is closed in order." },
-      { input: "([)]", output: "false", explanation: "The [ is closed by the wrong type." },
+      {
+        input: "({[]})",
+        output: "true",
+        explanation: "Every bracket is closed in order.",
+      },
+      {
+        input: "([)]",
+        output: "false",
+        explanation: "The [ is closed by the wrong type.",
+      },
     ],
     starterCode: `import java.util.ArrayDeque;
 import java.util.Deque;
@@ -370,14 +375,15 @@ class Solution {
       "pop and top are only called on a non-empty stack",
     ],
     inputFormat:
-      "Line 1: q (number of operations)\nThen q lines, each either 'push <v>' or 'pop'",
+      "Line 1: q (number of operations)\nThen q lines, each either 'push <v>', 'pop', 'top' or 'getMin'",
     outputFormat:
-      "One line per 'pop' or 'getMin' operation: the value or current minimum.",
+      "One line per 'pop', 'top' or 'getMin' operation: the removed value, the top value, or the current minimum.",
     examples: [
       {
         input: "5\npush 3\npush 1\npop\npush 2\npop",
-        output: "3\n1",
-        explanation: "Each pop emits the removed value: 3 then 1.",
+        output: "1\n2",
+        explanation:
+          "A stack is last-in-first-out, so the first pop removes 1 and the second removes 2.",
       },
       {
         input: "3\npush 5\npush 7\npush 2",
@@ -396,8 +402,9 @@ class MinStack {
         // Your solution here.
     }
 
-    public void pop() {
+    public int pop() {
         // Your solution here.
+        return 0;
     }
 
     public int top() {
@@ -411,11 +418,24 @@ class MinStack {
     }
 }
 `,
-    functionSignature: "public void push(int value), public void pop(), public int top(), public int getMin()",
+    functionSignature:
+      "public void push(int value), public int pop(), public int top(), public int getMin()",
     visibleTestCases: [
-      { id: "visible-1", input: "5\npush 3\npush 1\npop\npush 2\npop", expectedOutput: "3\n1" },
-      { id: "visible-2", input: "3\npush 5\npush 7\npush 2", expectedOutput: "" },
-      { id: "visible-3", input: "4\npush 4\npush 4\npop\npop", expectedOutput: "4\n4" },
+      {
+        id: "visible-1",
+        input: "5\npush 3\npush 1\npop\npush 2\npop",
+        expectedOutput: "1\n2",
+      },
+      {
+        id: "visible-2",
+        input: "3\npush 5\npush 7\npush 2",
+        expectedOutput: "",
+      },
+      {
+        id: "visible-3",
+        input: "4\npush 4\npush 4\npop\npop",
+        expectedOutput: "4\n4",
+      },
     ],
     timeLimitMs: 2000,
     memoryLimitMb: 256,
@@ -430,11 +450,14 @@ class MinStack {
     difficulty: "easy",
     topics: ["Linked Lists", "Recursion"],
     constraints: ["0 <= list.length <= 10^4"],
-    inputFormat:
-      "Line 1: n\nLine 2: n space-separated values in list order",
+    inputFormat: "Line 1: n\nLine 2: n space-separated values in list order",
     outputFormat: "The values of the reversed list, space separated.",
     examples: [
-      { input: "5\n1 2 3 4 5", output: "5 4 3 2 1", explanation: "The order is fully reversed." },
+      {
+        input: "5\n1 2 3 4 5",
+        output: "5 4 3 2 1",
+        explanation: "The order is fully reversed.",
+      },
       { input: "0\n", output: "", explanation: "An empty list stays empty." },
     ],
     starterCode: `class ListNode {
@@ -471,16 +494,21 @@ class Solution {
       "Given the head of a linked list, remove the n-th node from the end of the list and return the head. One pass, no extra storage beyond a fixed number of pointers.",
     difficulty: "medium",
     topics: ["Linked Lists", "Collections", "Java Streams"],
-    constraints: [
-      "1 <= n <= list.length <= 10^4",
-      "n is always valid",
-    ],
+    constraints: ["1 <= n <= list.length <= 10^4", "n is always valid"],
     inputFormat:
-      "Line 1: n\nLine 2: list length m, then m values in list order",
+      "Line 1: n (position from the end, 1-based)\nLine 2: m (list length)\nLine 3: m space-separated values in list order",
     outputFormat: "The remaining values, space separated.",
     examples: [
-      { input: "2\n5\n1 2 3 4 5", output: "1 2 3 5", explanation: "The 2nd from the end is 4, which is removed." },
-      { input: "1\n1\n7", output: "", explanation: "Removing the only node leaves an empty list." },
+      {
+        input: "2\n5\n1 2 3 4 5",
+        output: "1 2 3 5",
+        explanation: "The 2nd from the end is 4, which is removed.",
+      },
+      {
+        input: "1\n1\n7",
+        output: "",
+        explanation: "Removing the only node leaves an empty list.",
+      },
     ],
     starterCode: `class ListNode {
     int val;
@@ -502,7 +530,7 @@ class Solution {
     visibleTestCases: [
       { id: "visible-1", input: "2\n5\n1 2 3 4 5", expectedOutput: "1 2 3 5" },
       { id: "visible-2", input: "1\n1\n7", expectedOutput: "" },
-      { id: "visible-3", input: "3\n4\n1 2 3 4", expectedOutput: "1 2 4" },
+      { id: "visible-3", input: "3\n4\n1 2 3 4", expectedOutput: "1 3 4" },
     ],
     timeLimitMs: 2000,
     memoryLimitMb: 256,
@@ -526,7 +554,7 @@ class Solution {
     outputFormat: "The k words, separated by a single space.",
     examples: [
       {
-        input: "2\n5\na b a c b a",
+        input: "2\n6\na b a c b a",
         output: "a b",
         explanation: "a appears 3 times and b twice, so a then b.",
       },
@@ -545,11 +573,16 @@ class Solution {
     }
 }
 `,
-    functionSignature: "public List<String> topKFrequent(List<String> words, int k)",
+    functionSignature:
+      "public List<String> topKFrequent(List<String> words, int k)",
     visibleTestCases: [
-      { id: "visible-1", input: "2\n5\na b a c b a", expectedOutput: "a b" },
+      { id: "visible-1", input: "2\n6\na b a c b a", expectedOutput: "a b" },
       { id: "visible-2", input: "1\n3\nx y z", expectedOutput: "x" },
-      { id: "visible-3", input: "3\n6\nb a c a b c a", expectedOutput: "a b c" },
+      {
+        id: "visible-3",
+        input: "3\n7\nb a c a b c a",
+        expectedOutput: "a b c",
+      },
     ],
     timeLimitMs: 3000,
     memoryLimitMb: 256,
@@ -768,18 +801,21 @@ class Solution {
       "0 <= strs[i].length <= 200",
       "strs[i] contains lowercase English letters only",
     ],
-    inputFormat: "Line 1: k (number of strings)\nThen k lines, one string per line",
+    inputFormat:
+      "Line 1: k (number of strings)\nThen k lines, one string per line",
     outputFormat: "The longest common prefix, possibly an empty line.",
     examples: [
       {
         input: "3\nflower\nflow\nflight",
-        output: "flow",
-        explanation: "All three strings begin with flow.",
+        output: "fl",
+        explanation:
+          "All three strings begin with fl; the next characters (o and i) differ.",
       },
       {
         input: "3\ndog\nracecar\ncar",
         output: "",
-        explanation: "The first characters already differ, so the prefix is empty.",
+        explanation:
+          "The first characters already differ, so the prefix is empty.",
       },
     ],
     starterCode: `class Solution {
@@ -791,9 +827,17 @@ class Solution {
 `,
     functionSignature: "public String longestCommonPrefix(String[] strs)",
     visibleTestCases: [
-      { id: "visible-1", input: "3\nflower\nflow\nflight", expectedOutput: "flow" },
+      {
+        id: "visible-1",
+        input: "3\nflower\nflow\nflight",
+        expectedOutput: "fl",
+      },
       { id: "visible-2", input: "3\ndog\nracecar\ncar", expectedOutput: "" },
-      { id: "visible-3", input: "2\ninterspecies\ninterstellar", expectedOutput: "inters" },
+      {
+        id: "visible-3",
+        input: "2\ninterspecies\ninterstellar",
+        expectedOutput: "inters",
+      },
     ],
     timeLimitMs: 2000,
     memoryLimitMb: 256,
@@ -949,7 +993,7 @@ class Solution {
         explanation: "5 + 5 + 1 makes 11 with three coins.",
       },
       {
-        input: "2\n2\n3",
+        input: "1\n2\n3",
         output: "-1",
         explanation: "An odd amount is impossible using only 2-valued coins.",
       },
@@ -964,7 +1008,7 @@ class Solution {
     functionSignature: "public int coinChange(int[] coins, int amount)",
     visibleTestCases: [
       { id: "visible-1", input: "3\n1 2 5\n11", expectedOutput: "3" },
-      { id: "visible-2", input: "2\n2\n3", expectedOutput: "-1" },
+      { id: "visible-2", input: "1\n2\n3", expectedOutput: "-1" },
       { id: "visible-3", input: "1\n1\n0", expectedOutput: "0" },
     ],
     timeLimitMs: 2000,
@@ -979,10 +1023,7 @@ class Solution {
       "A robot starts at the top-left corner of an m by n grid and moves only right or down. Return the number of distinct paths that reach the bottom-right corner.",
     difficulty: "medium",
     topics: ["Dynamic Programming", "Recursion"],
-    constraints: [
-      "1 <= m, n <= 100",
-      "The answer fits in a 32-bit integer",
-    ],
+    constraints: ["1 <= m, n <= 100", "The answer fits in a 32-bit integer"],
     inputFormat: "Line 1: m\nLine 2: n",
     outputFormat: "A single integer: the number of unique paths.",
     examples: [
@@ -1022,10 +1063,7 @@ class Solution {
       "Given an integer array and an integer k, return the k-th largest element in sorted order, counting duplicates. Note that this is the k-th largest, not the k-th distinct value.",
     difficulty: "medium",
     topics: ["Arrays", "Sorting & Searching", "Java Streams"],
-    constraints: [
-      "1 <= k <= nums.length <= 10^5",
-      "-10^4 <= nums[i] <= 10^4",
-    ],
+    constraints: ["1 <= k <= nums.length <= 10^5", "-10^4 <= nums[i] <= 10^4"],
     inputFormat:
       "Line 1: k\nLine 2: n (number of elements)\nLine 3: n space-separated integers",
     outputFormat: "A single integer: the k-th largest element.",
@@ -1053,7 +1091,11 @@ class Solution {
     functionSignature: "public int findKthLargest(int[] nums, int k)",
     visibleTestCases: [
       { id: "visible-1", input: "2\n6\n3 2 1 5 6 4", expectedOutput: "5" },
-      { id: "visible-2", input: "4\n9\n3 2 3 1 2 4 5 5 6", expectedOutput: "4" },
+      {
+        id: "visible-2",
+        input: "4\n9\n3 2 3 1 2 4 5 5 6",
+        expectedOutput: "4",
+      },
       { id: "visible-3", input: "1\n1\n7", expectedOutput: "7" },
     ],
     timeLimitMs: 3000,
@@ -1068,10 +1110,7 @@ class Solution {
       "Given an elevation map whose bar widths are all 1, return the total units of water it can trap after raining. This is a classic hard interview question solvable with two pointers, prefix maxima or a monotonic stack.",
     difficulty: "hard",
     topics: ["Arrays", "Dynamic Programming", "Stacks & Queues"],
-    constraints: [
-      "1 <= height.length <= 2 * 10^4",
-      "0 <= height[i] <= 10^5",
-    ],
+    constraints: ["1 <= height.length <= 2 * 10^4", "0 <= height[i] <= 10^5"],
     inputFormat: "Line 1: n\nLine 2: n space-separated elevations",
     outputFormat: "A single integer: the total units of trapped water.",
     examples: [
@@ -1095,7 +1134,11 @@ class Solution {
 `,
     functionSignature: "public int trap(int[] height)",
     visibleTestCases: [
-      { id: "visible-1", input: "12\n0 1 0 2 1 0 1 3 2 1 2 1", expectedOutput: "6" },
+      {
+        id: "visible-1",
+        input: "12\n0 1 0 2 1 0 1 3 2 1 2 1",
+        expectedOutput: "6",
+      },
       { id: "visible-2", input: "5\n3 0 2 0 4", expectedOutput: "7" },
       { id: "visible-3", input: "4\n1 2 3 4", expectedOutput: "0" },
     ],

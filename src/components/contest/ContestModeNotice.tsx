@@ -34,8 +34,9 @@ export function ContestModeNotice({
         <p className="font-medium">Development mode — not authoritative</p>
         <p className="mt-1 leading-relaxed text-muted-foreground">
           {reason ?? "The contest session service is not reachable."} Your
-          contest, code and results are stored in this browser only. Hidden
-          tests do not run, so no score from this session counts.
+          contest, code and results are stored in this browser only. You can
+          compile and run your code against each problem's visible sample tests,
+          but hidden tests do not run, so no score from this session counts.
         </p>
       </div>
       {onRetry ? (

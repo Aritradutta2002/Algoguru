@@ -126,6 +126,27 @@ const RULES: Rule[] = [
   },
 ];
 
+/**
+ * The rules above describe the authoritative backend. In local practice mode
+ * (the backend is unreachable) execution and scoring work differently, so those
+ * three cards are rewritten rather than left misleading.
+ */
+const LOCAL_RULE_DETAILS: Record<string, string> = {
+  "Visible samples and hidden tests":
+    "Each problem shows sample inputs and their expected output, and you can compile and run your code against those samples. The hidden test set is never evaluated in local practice mode.",
+  "Compilation and execution limits":
+    "Your code is compiled and executed against the visible sample inputs from this browser. Runs that exceed the limit are reported as timed out. No server-side sandbox is involved, so the samples shown are the only inputs that run.",
+  Scoring:
+    "Local practice mode produces no score. A problem is marked solved when every visible sample passes, and the result page says so plainly.",
+};
+
+const rulesFor = (mode: ContestSessionMode): Rule[] =>
+  RULES.map((rule) =>
+    mode === "local" && LOCAL_RULE_DETAILS[rule.title]
+      ? { ...rule, detail: LOCAL_RULE_DETAILS[rule.title] }
+      : rule,
+  );
+
 export function CodingContestInstructions() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -235,7 +256,12 @@ export function CodingContestInstructions() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
       <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <Button asChild variant="ghost" size="sm" className="-ml-2 text-muted-foreground hover:text-foreground">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="-ml-2 text-muted-foreground hover:text-foreground"
+        >
           <Link to="/contest">
             <ArrowLeft aria-hidden="true" className="mr-2 h-4 w-4" />
             Return to Contest
@@ -257,17 +283,30 @@ export function CodingContestInstructions() {
 
           <div className="relative">
             <div className="flex flex-wrap items-center gap-2.5">
-              <Badge variant="secondary" className="px-3 py-1 font-medium bg-primary/10 text-primary border border-primary/20">
+              <Badge
+                variant="secondary"
+                className="px-3 py-1 font-medium bg-primary/10 text-primary border border-primary/20"
+              >
                 <Code2 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
                 Java
               </Badge>
-              <Badge variant="outline" className="px-3 py-1 font-normal text-muted-foreground border-border/60">
+              <Badge
+                variant="outline"
+                className="px-3 py-1 font-normal text-muted-foreground border-border/60"
+              >
                 <Clock3 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
                 {CODING_CONTEST_DURATION_LABEL}
               </Badge>
-              <Badge variant="outline" className="px-3 py-1 font-normal text-muted-foreground border-border/60">
-                <CheckCircle2 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
-                {CODING_CONTEST_CONFIG.minProblems}–{CODING_CONTEST_CONFIG.maxProblems} Problems
+              <Badge
+                variant="outline"
+                className="px-3 py-1 font-normal text-muted-foreground border-border/60"
+              >
+                <CheckCircle2
+                  aria-hidden="true"
+                  className="mr-1.5 h-3.5 w-3.5"
+                />
+                {CODING_CONTEST_CONFIG.minProblems}–
+                {CODING_CONTEST_CONFIG.maxProblems} Problems
               </Badge>
             </div>
 
@@ -276,26 +315,36 @@ export function CodingContestInstructions() {
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
               Read these rules before you begin. Once you start, the clock is
-              running and the rules apply for the full {CODING_CONTEST_DURATION_LABEL}.
+              running and the rules apply for the full{" "}
+              {CODING_CONTEST_DURATION_LABEL}.
             </p>
 
             {/* Quick Spec Pills */}
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Duration</p>
-                <p className="mt-1 font-mono text-base font-semibold">{CODING_CONTEST_DURATION_LABEL}</p>
+                <p className="mt-1 font-mono text-base font-semibold">
+                  {CODING_CONTEST_DURATION_LABEL}
+                </p>
               </div>
               <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Problems</p>
-                <p className="mt-1 font-mono text-base font-semibold">{CODING_CONTEST_CONFIG.minProblems}–{CODING_CONTEST_CONFIG.maxProblems} Assigned</p>
+                <p className="mt-1 font-mono text-base font-semibold">
+                  {CODING_CONTEST_CONFIG.minProblems}–
+                  {CODING_CONTEST_CONFIG.maxProblems} Assigned
+                </p>
               </div>
               <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Environment</p>
-                <p className="mt-1 font-mono text-base font-semibold">Java 17</p>
+                <p className="mt-1 font-mono text-base font-semibold">
+                  Java 17
+                </p>
               </div>
               <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Monitoring</p>
-                <p className="mt-1 font-mono text-base font-semibold">Fullscreen & Focus</p>
+                <p className="mt-1 font-mono text-base font-semibold">
+                  Fullscreen & Focus
+                </p>
               </div>
             </div>
           </div>
@@ -341,20 +390,24 @@ export function CodingContestInstructions() {
         >
           <div className="flex items-center justify-between border-b border-border/60 pb-4">
             <div>
-              <h2 id="contest-rules" className="font-display text-lg font-semibold tracking-tight">
+              <h2
+                id="contest-rules"
+                className="font-display text-lg font-semibold tracking-tight"
+              >
                 Contest rules
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Please review the guidelines carefully before starting your challenge.
+                Please review the guidelines carefully before starting your
+                challenge.
               </p>
             </div>
             <Badge variant="outline" className="font-mono text-xs">
-              {RULES.length} Rules
+              {rulesFor(mode).length} Rules
             </Badge>
           </div>
 
           <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {RULES.map((rule) => (
+            {rulesFor(mode).map((rule) => (
               <li
                 key={rule.title}
                 className="group flex gap-3.5 rounded-2xl border border-border/60 bg-muted/15 p-4 transition-all hover:border-primary/40 hover:bg-muted/30"
@@ -363,7 +416,9 @@ export function CodingContestInstructions() {
                   <rule.icon aria-hidden="true" className="h-4.5 w-4.5" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{rule.title}</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {rule.title}
+                  </p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {rule.detail}
                   </p>
@@ -399,7 +454,9 @@ export function CodingContestInstructions() {
           >
             <AlertDialogContent className="rounded-3xl border border-border bg-card/95 backdrop-blur-xl sm:max-w-md">
               <AlertDialogHeader>
-                <AlertDialogTitle className="font-display text-xl">Start the Java coding contest?</AlertDialogTitle>
+                <AlertDialogTitle className="font-display text-xl">
+                  Start the Java coding contest?
+                </AlertDialogTitle>
                 <AlertDialogDescription className="space-y-3 text-left pt-2 text-sm">
                   <span className="block text-foreground/90">
                     You will get {CODING_CONTEST_CONFIG.minProblems} or{" "}
@@ -416,7 +473,9 @@ export function CodingContestInstructions() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="pt-2">
-                <AlertDialogCancel disabled={creating} className="rounded-xl">Not yet</AlertDialogCancel>
+                <AlertDialogCancel disabled={creating} className="rounded-xl">
+                  Not yet
+                </AlertDialogCancel>
                 <AlertDialogAction
                   className="rounded-xl shadow-md"
                   onClick={(event) => {

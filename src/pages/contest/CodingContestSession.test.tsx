@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import CodingContestSession from "@/pages/contest/CodingContestSession";
 import { MAX_EXAM_WARNINGS } from "@/lib/examConstants";
@@ -36,12 +43,16 @@ vi.mock("@monaco-editor/react", () => ({
   ),
 }));
 
-const finalize = vi.fn<(sessionId: string, reason: string) => Promise<unknown>>();
-const saveDraft = vi.fn<(s: string, p: string, c: string) => Promise<unknown>>();
+const finalize =
+  vi.fn<(sessionId: string, reason: string) => Promise<unknown>>();
+const saveDraft =
+  vi.fn<(s: string, p: string, c: string) => Promise<unknown>>();
 const recordWarning = vi.fn<(s: string, r: string) => Promise<unknown>>();
 
 vi.mock("@/contexts/AuthContext", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   useAuth: () => ({
     session: { user: { id: "user-1" } },
     user: { id: "user-1" },
@@ -71,9 +82,8 @@ let service: {
 let finalizeImpl: ((s: string, r: string) => Promise<unknown>) | null = null;
 
 vi.mock("@/lib/contest/contestServices", async () => {
-  const { createDevLocalContestSessionService } = await import(
-    "@/lib/contest/devLocalContestSessionService"
-  );
+  const { createDevLocalContestSessionService } =
+    await import("@/lib/contest/devLocalContestSessionService");
   return {
     resolveContestSessionService: () => {
       const local = createDevLocalContestSessionService({
@@ -140,9 +150,8 @@ function renderWorkspace(sessionId = SESSION_ID) {
 
 /** Creates an active session and enters fullscreen, then renders. */
 async function startContest() {
-  const { createDevLocalContestSessionService } = await import(
-    "@/lib/contest/devLocalContestSessionService"
-  );
+  const { createDevLocalContestSessionService } =
+    await import("@/lib/contest/devLocalContestSessionService");
   const local = createDevLocalContestSessionService({
     userId: "user-1",
     random: () => 0.9,
@@ -172,6 +181,33 @@ async function passStartGate() {
   await waitFor(() =>
     expect(screen.getByLabelText("Java code editor")).toBeInTheDocument(),
   );
+}
+
+/**
+ * Stubs the public compile service the practice runner calls. Everything else
+ * about the run — the generated driver, the protocol parsing, the verdicts — is
+ * the real implementation.
+ */
+function stubRunner(makeReply: () => Record<string, unknown>) {
+  const fetchMock = vi.fn(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => makeReply(),
+  }));
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock as unknown as ReturnType<typeof vi.fn>;
+}
+
+/** One line of the runner protocol, base64 encoded like the JVM writes it. */
+function caseLine(index: number, actual: string, captured = ""): string {
+  const encode = (value: string) => {
+    if (!value) return "-";
+    let binary = "";
+    for (const char of new TextEncoder().encode(value))
+      binary += String.fromCharCode(char);
+    return btoa(binary);
+  };
+  return `@@CASE ${index} OK ${encode(actual)} ${encode(captured)}`;
 }
 
 /**
@@ -208,6 +244,7 @@ afterEach(() => {
   restoreExamBrowserEnv();
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("CodingContestSession", () => {
@@ -217,7 +254,9 @@ describe("CodingContestSession", () => {
       screen.getByRole("alertdialog", { name: /Enter fullscreen to begin/i }),
     ).toBeInTheDocument();
     // 30:00 is present but the clock has not begun: no time has been consumed.
-    expect(screen.getByRole("timer", { name: "Time remaining" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("timer", { name: "Time remaining" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("alertdialog", { name: /Enter fullscreen to begin/i }),
     ).toHaveTextContent("30 minutes");
@@ -277,8 +316,12 @@ describe("CodingContestSession", () => {
     await passStartGate();
 
     // Collapsed by default, so a fresh question gets the full editor height.
-    expect(screen.getByRole("button", { name: /Expand results/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Run code/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Expand results/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Run code/i }),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Run code/i }));
     await waitFor(() =>
@@ -365,18 +408,82 @@ describe("CodingContestSession", () => {
   });
 
   it("shows a compile failure state without inventing a test pass", async () => {
+    stubRunner(() => ({
+      status: "1",
+      compiler_error:
+        "prog.java:3: error: reached end of file while parsing\n1 error",
+      compiler_message: "",
+      program_output: "",
+      program_error: "",
+    }));
     await startContest();
     await passStartGate();
     const editor = screen.getByLabelText("Java code editor");
-    fireEvent.change(editor, { target: { value: "class Solution { public int f() { return 1; }" } });
+    fireEvent.change(editor, {
+      target: { value: "class Solution { public int f() { return 1; }" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Run code/i }));
 
     await waitFor(() =>
       expect(screen.getByText("Compilation problems")).toBeInTheDocument(),
     );
     expect(screen.getByText("Compile error")).toBeInTheDocument();
-    // Never claims a hidden evaluation.
-    expect(screen.getByText(/was not/i)).toBeInTheDocument();
+    // A compile failure can never look like a graded pass.
+    expect(screen.queryByText("Accepted")).not.toBeInTheDocument();
+    expect(screen.getByText(/no score is recorded/i)).toBeInTheDocument();
+  });
+
+  it("really runs the learner's code and reports the visible cases", async () => {
+    const fetchMock = stubRunner(() => ({
+      status: "0",
+      compiler_error: "",
+      compiler_message: "",
+      program_output: [
+        caseLine(0, "0 1"),
+        caseLine(1, "1 2"),
+        caseLine(2, "2 3"),
+      ].join("\n"),
+      program_error: "",
+    }));
+    await startContest();
+    await passStartGate();
+    fireEvent.change(screen.getByLabelText("Java code editor"), {
+      target: {
+        value:
+          "class Solution { public int[] twoSum(int[] n, int t) { return new int[0]; } }",
+      },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Run code/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText("Accepted")).toBeInTheDocument(),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // The request carries the learner's code, not a canned answer.
+    const sent = JSON.parse(
+      String((fetchMock.mock.calls[0][1] as RequestInit).body),
+    ) as { code: string };
+    expect(sent.code).toContain("return new int[0];");
+    expect(screen.getByText(/3 of 3 visible tests passed/)).toBeInTheDocument();
+    // Honest labelling: a practice run is never a score.
+    expect(screen.getByText(/no score is recorded/i)).toBeInTheDocument();
+  });
+
+  it("offers a retry when the runner is unreachable", async () => {
+    stubRunner(() => {
+      throw new Error("network down");
+    });
+    await startContest();
+    await passStartGate();
+    fireEvent.click(screen.getByRole("button", { name: /Run code/i }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /Execution unavailable/i }),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByRole("button", { name: /Retry/i })).toBeInTheDocument();
+    expect(screen.queryByText("Accepted")).not.toBeInTheDocument();
   });
 
   it("locks the workspace on fullscreen loss but keeps the timer running", async () => {
@@ -415,7 +522,9 @@ describe("CodingContestSession", () => {
       setHidden(true);
     });
     await waitFor(() =>
-      expect(screen.getByText("Exam focus warnings: 1 of 4")).toBeInTheDocument(),
+      expect(
+        screen.getByText("Exam focus warnings: 1 of 4"),
+      ).toBeInTheDocument(),
     );
     expect(recordWarning).toHaveBeenCalledTimes(1);
   });
@@ -472,9 +581,7 @@ describe("CodingContestSession", () => {
         screen.getByText(`Exam focus warnings: ${MAX_EXAM_WARNINGS} of 4`),
       ).toBeInTheDocument(),
     );
-    expect(
-      screen.getByText(/This was the final warning/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/This was the final warning/i)).toBeInTheDocument();
   });
 
   it("auto-submits on timeout even while the workspace is locked", async () => {
@@ -532,9 +639,8 @@ describe("CodingContestSession", () => {
     // Seam into the service the component actually calls.
     finalizeImpl = () => Promise.reject(new Error("network unreachable"));
 
-    const { createDevLocalContestSessionService } = await import(
-      "@/lib/contest/devLocalContestSessionService"
-    );
+    const { createDevLocalContestSessionService } =
+      await import("@/lib/contest/devLocalContestSessionService");
     const local = createDevLocalContestSessionService({
       userId: "user-1",
       random: () => 0.9,
@@ -555,7 +661,9 @@ describe("CodingContestSession", () => {
 
     // Actionable error, still on the workspace, no result navigation.
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("network unreachable"),
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "network unreachable",
+      ),
     );
     expect(
       screen.getByRole("button", { name: /Retry submission/i }),
@@ -566,9 +674,8 @@ describe("CodingContestSession", () => {
   });
 
   it("sends an already-expired restored session straight to the result", async () => {
-    const { createDevLocalContestSessionService } = await import(
-      "@/lib/contest/devLocalContestSessionService"
-    );
+    const { createDevLocalContestSessionService } =
+      await import("@/lib/contest/devLocalContestSessionService");
     const local = createDevLocalContestSessionService({
       userId: "user-1",
       random: () => 0.9,
@@ -636,7 +743,9 @@ describe("CodingContestSession", () => {
 
     // Closing the scratch tab falls back to the solution.
     fireEvent.click(screen.getByRole("button", { name: "Close Tab-2" }));
-    expect(screen.queryByRole("tab", { name: "Tab-2" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Tab-2" }),
+    ).not.toBeInTheDocument();
     expect(editor()).toHaveValue("// solution");
   });
 
@@ -667,8 +776,12 @@ describe("CodingContestSession", () => {
       ).toBeInTheDocument(),
     );
 
-    expect(await screen.findByRole("tab", { name: "Tab-2" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Java code editor")).toHaveValue("// scratch notes");
+    expect(
+      await screen.findByRole("tab", { name: "Tab-2" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Java code editor")).toHaveValue(
+      "// scratch notes",
+    );
   });
 
   it("formats the buffer that is on screen", async () => {
@@ -698,4 +811,3 @@ describe("CodingContestSession", () => {
     ).not.toBeInTheDocument();
   });
 });
-

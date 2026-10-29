@@ -135,7 +135,11 @@ function readLocalDraft(sessionId: string, problemId: string): string {
   }
 }
 
-function writeLocalDraft(sessionId: string, problemId: string, code: string): void {
+function writeLocalDraft(
+  sessionId: string,
+  problemId: string,
+  code: string,
+): void {
   try {
     window.localStorage.setItem(draftKey(sessionId, problemId), code);
   } catch {
@@ -255,14 +259,18 @@ export function CodingContestSession() {
   const [startGateOpen, setStartGateOpen] = useState(false);
   const [questionMenuOpen, setQuestionMenuOpen] = useState(false);
   const [questionListOpen, setQuestionListOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"split" | "editor" | "problem">("split");
+  const [viewMode, setViewMode] = useState<"split" | "editor" | "problem">(
+    "split",
+  );
   /** Results start collapsed to their header strip; a run opens them again. */
   const [consoleCollapsed, setConsoleCollapsed] = useState(true);
   /** Scratch buffers per question; the solution tab is implicit, not stored. */
-  const [scratchTabs, setScratchTabs] = useState<Record<string, ScratchTab[]>>({});
-  const [activeTabByProblem, setActiveTabByProblem] = useState<Record<string, string>>(
+  const [scratchTabs, setScratchTabs] = useState<Record<string, ScratchTab[]>>(
     {},
   );
+  const [activeTabByProblem, setActiveTabByProblem] = useState<
+    Record<string, string>
+  >({});
   /** Last visible-test tally per question, so switching questions never loses it. */
   const [lastResults, setLastResults] = useState<
     Record<string, { passed: number; total: number }>
@@ -309,7 +317,9 @@ export function CodingContestSession() {
         setActiveTabByProblem(initialActiveTab);
         setActiveId((current) => current || loaded.problems[0]?.id || "");
         setVisited(
-          Object.fromEntries(loaded.problems.map((problem) => [problem.id, true])),
+          Object.fromEntries(
+            loaded.problems.map((problem) => [problem.id, true]),
+          ),
         );
 
         // A session restored after the deadline is already closed.
@@ -342,7 +352,8 @@ export function CodingContestSession() {
   // ── Editor tabs ──────────────────────────────────────────────────────
   // Tab 1 is the graded solution (backed by `drafts`); the rest are scratch
   // buffers held in this browser only.
-  const problemScratchTabs = (activeProblem && scratchTabs[activeProblem.id]) || [];
+  const problemScratchTabs =
+    (activeProblem && scratchTabs[activeProblem.id]) || [];
   const activeTabId =
     (activeProblem && activeTabByProblem[activeProblem.id]) || SOLUTION_TAB_ID;
   const activeScratchTab =
@@ -362,7 +373,10 @@ export function CodingContestSession() {
   const selectTab = useCallback(
     (tabId: string) => {
       if (!activeProblem) return;
-      setActiveTabByProblem((current) => ({ ...current, [activeProblem.id]: tabId }));
+      setActiveTabByProblem((current) => ({
+        ...current,
+        [activeProblem.id]: tabId,
+      }));
     },
     [activeProblem],
   );
@@ -372,25 +386,28 @@ export function CodingContestSession() {
     const id = `scratch-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
     setScratchTabs((current) => ({
       ...current,
-      [activeProblem.id]: [...(current[activeProblem.id] ?? []), { id, code: "" }],
+      [activeProblem.id]: [
+        ...(current[activeProblem.id] ?? []),
+        { id, code: "" },
+      ],
     }));
-    setActiveTabByProblem((current) => ({ ...current, [activeProblem.id]: id }));
+    setActiveTabByProblem((current) => ({
+      ...current,
+      [activeProblem.id]: id,
+    }));
   }, [activeProblem]);
 
-  const closeScratchTab = useCallback(
-    (problemId: string, tabId: string) => {
-      setScratchTabs((current) => ({
-        ...current,
-        [problemId]: (current[problemId] ?? []).filter((tab) => tab.id !== tabId),
-      }));
-      setActiveTabByProblem((current) =>
-        current[problemId] === tabId
-          ? { ...current, [problemId]: SOLUTION_TAB_ID }
-          : current,
-      );
-    },
-    [],
-  );
+  const closeScratchTab = useCallback((problemId: string, tabId: string) => {
+    setScratchTabs((current) => ({
+      ...current,
+      [problemId]: (current[problemId] ?? []).filter((tab) => tab.id !== tabId),
+    }));
+    setActiveTabByProblem((current) =>
+      current[problemId] === tabId
+        ? { ...current, [problemId]: SOLUTION_TAB_ID }
+        : current,
+    );
+  }, []);
 
   const finalizeContest = useCallback(
     async (reason: CodingFinalizationReason) => {
@@ -469,7 +486,8 @@ export function CodingContestSession() {
   // reload. The local hook state is the UI mirror of this.
   const lastRecordedWarning = useRef(0);
   useEffect(() => {
-    if (!bundle || integrity.warningCount <= lastRecordedWarning.current) return;
+    if (!bundle || integrity.warningCount <= lastRecordedWarning.current)
+      return;
     lastRecordedWarning.current = integrity.warningCount;
     void service
       .recordWarning(sessionId, integrity.warning ?? "focus violation")
@@ -482,7 +500,14 @@ export function CodingContestSession() {
       .catch(() => {
         /* non-fatal: the server re-derives the count on the next read */
       });
-  }, [bundle, integrity.warning, integrity.warningCount, navigate, service, sessionId]);
+  }, [
+    bundle,
+    integrity.warning,
+    integrity.warningCount,
+    navigate,
+    service,
+    sessionId,
+  ]);
 
   // ── Drafts ───────────────────────────────────────────────────────────
   const persistDraft = useCallback(
@@ -559,6 +584,9 @@ export function CodingContestSession() {
   const runOrSubmit = useCallback(
     async (action: "run" | "submit") => {
       if (!bundle || !activeProblem || inFlightRef.current) return;
+      // The practice runner is a lazy chunk; never let a click land on the
+      // placeholder "unavailable" service while it is still loading.
+      if (execution.loading) return;
       inFlightRef.current = true;
       setBusy(action);
       setResult(null);
@@ -571,6 +599,7 @@ export function CodingContestSession() {
             ? await execution.service.run({
                 sessionId: bundle.session.id,
                 problemId: activeProblem.id,
+                problemSlug: activeProblem.slug,
                 language: "java",
                 code: activeCode,
                 mode: "run",
@@ -578,6 +607,7 @@ export function CodingContestSession() {
             : await execution.service.submit({
                 sessionId: bundle.session.id,
                 problemId: activeProblem.id,
+                problemSlug: activeProblem.slug,
                 language: "java",
                 code: activeCode,
                 mode: "submit",
@@ -591,13 +621,17 @@ export function CodingContestSession() {
           setSubmitted((current) => ({ ...current, [activeProblem.id]: true }));
           if (!bundle.authoritative) {
             // Only the local development adapter keeps per-problem results;
-            // the real backend scores on the server.
+            // the real backend scores on the server. Practice runs evaluate the
+            // visible cases, so "solved" means "every visible case passed" —
+            // the result page still labels the session non-authoritative.
+            const solved =
+              outcome.total > 0 && outcome.passed === outcome.total;
             recordLocalProblemResult(window.localStorage, bundle.session.id, {
               problemId: activeProblem.id,
               title: activeProblem.title,
               difficulty: activeProblem.difficulty,
               submitted: true,
-              solved: false,
+              solved,
               passed: outcome.passed,
               total: outcome.total,
               submittedCode: activeCode,
@@ -619,14 +653,14 @@ export function CodingContestSession() {
           passed: 0,
           total: 0,
           hiddenEvaluated: false,
-          mode: "production",
+          mode: "practice",
         });
       } finally {
         inFlightRef.current = false;
         setBusy(null);
       }
     },
-    [activeCode, activeProblem, bundle, execution.service],
+    [activeCode, activeProblem, bundle, execution.loading, execution.service],
   );
 
   // ── Start gate ───────────────────────────────────────────────────────
@@ -652,7 +686,10 @@ export function CodingContestSession() {
   const stateFor = useCallback(
     (problem: PublicCodingProblem): ProblemState => {
       if (submitted[problem.id]) return "Submitted";
-      if (runAttempted[problem.id] && (lastResults[problem.id]?.passed ?? 0) > 0) {
+      if (
+        runAttempted[problem.id] &&
+        (lastResults[problem.id]?.passed ?? 0) > 0
+      ) {
         return "Visible tests passed";
       }
       if (runAttempted[problem.id]) return "Run attempted";
@@ -665,14 +702,11 @@ export function CodingContestSession() {
 
   const submittedCount = Object.values(submitted).filter(Boolean).length;
 
-  const selectProblem = useCallback(
-    (problemId: string) => {
-      setActiveId(problemId);
-      setVisited((current) => ({ ...current, [problemId]: true }));
-      setResult(null);
-    },
-    [],
-  );
+  const selectProblem = useCallback((problemId: string) => {
+    setActiveId(problemId);
+    setVisited((current) => ({ ...current, [problemId]: true }));
+    setResult(null);
+  }, []);
 
   const resetActiveCode = useCallback(() => {
     if (!activeProblem) return;
@@ -719,7 +753,10 @@ export function CodingContestSession() {
     const measure = () => {
       const height = element.getBoundingClientRect().height;
       if (height <= 0) return;
-      const percent = Math.min(50, Math.max(1, (CONSOLE_COLLAPSED_PX / height) * 100));
+      const percent = Math.min(
+        50,
+        Math.max(1, (CONSOLE_COLLAPSED_PX / height) * 100),
+      );
       setConsoleCollapsedPercent((current) =>
         Math.abs(current - percent) < 0.05 ? current : percent,
       );
@@ -769,8 +806,13 @@ export function CodingContestSession() {
   if (loadError) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-        <AlertTriangle aria-hidden="true" className="h-8 w-8 text-destructive" />
-        <h1 className="font-display text-xl font-semibold">Contest unavailable</h1>
+        <AlertTriangle
+          aria-hidden="true"
+          className="h-8 w-8 text-destructive"
+        />
+        <h1 className="font-display text-xl font-semibold">
+          Contest unavailable
+        </h1>
         <p className="max-w-md text-sm text-muted-foreground">{loadError}</p>
         <Button onClick={() => navigate("/contest")}>Return to Contest</Button>
       </div>
@@ -780,7 +822,10 @@ export function CodingContestSession() {
   if (!bundle || !activeProblem) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <Loader2 aria-hidden="true" className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Loader2
+          aria-hidden="true"
+          className="h-6 w-6 animate-spin text-muted-foreground"
+        />
         <p role="status" className="text-sm text-muted-foreground">
           Loading your contest…
         </p>
@@ -825,7 +870,12 @@ export function CodingContestSession() {
           keyboardResizeBy={5}
         >
           <ResizablePanel defaultSize={76} minSize={25} className="min-h-0">
-            <div className={cn("h-full", locked && "pointer-events-none opacity-40")}>
+            <div
+              className={cn(
+                "h-full",
+                locked && "pointer-events-none opacity-40",
+              )}
+            >
               <CodingEditorPanel
                 problem={activeProblem}
                 value={activeCode}
@@ -871,6 +921,8 @@ export function CodingContestSession() {
               mode={busy}
               result={result}
               supportsCustomInput={execution.service.supportsCustomInput}
+              graded={execution.service.graded}
+              onRetry={() => void runOrSubmit("run")}
               collapsed={consoleCollapsed}
               onCollapsedChange={setConsoleCollapsed}
             />
@@ -922,11 +974,18 @@ export function CodingContestSession() {
           role="alert"
           className="flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm"
         >
-          <AlertTriangle aria-hidden="true" className="h-4 w-4 shrink-0 text-destructive" />
+          <AlertTriangle
+            aria-hidden="true"
+            className="h-4 w-4 shrink-0 text-destructive"
+          />
           <span className="flex-1">
             {finaliseError} Your answers are safe — try submitting again.
           </span>
-          <Button size="sm" variant="outline" onClick={() => void finalizeContest("expired")}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void finalizeContest("expired")}
+          >
             Retry submission
           </Button>
         </div>
@@ -995,8 +1054,10 @@ export function CodingContestSession() {
             <AlertDialogDescription className="space-y-3 text-left">
               <span className="block">
                 Time remaining:{" "}
-                <strong>{Math.floor(timer.remainingSeconds / 60)}m{" "}
-                {timer.remainingSeconds % 60}s</strong>
+                <strong>
+                  {Math.floor(timer.remainingSeconds / 60)}m{" "}
+                  {timer.remainingSeconds % 60}s
+                </strong>
               </span>
               <span className="block">
                 Submitted problems: <strong>{submittedCount}</strong> of{" "}
@@ -1005,15 +1066,21 @@ export function CodingContestSession() {
               <span className="block">
                 Attempted but not submitted:{" "}
                 <strong>
-                  {bundle.problems.filter(
-                    (problem) => touched[problem.id] && !submitted[problem.id],
-                  ).length}
+                  {
+                    bundle.problems.filter(
+                      (problem) =>
+                        touched[problem.id] && !submitted[problem.id],
+                    ).length
+                  }
                 </strong>
               </span>
               <span className="block">
                 Unattempted:{" "}
                 <strong>
-                  {bundle.problems.filter((problem) => !touched[problem.id]).length}
+                  {
+                    bundle.problems.filter((problem) => !touched[problem.id])
+                      .length
+                  }
                 </strong>
               </span>
               {integrity.warningCount > 0 ? (
@@ -1048,7 +1115,11 @@ export function CodingContestSession() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
         >
           <div className="w-full max-w-md rounded-3xl border border-border bg-card p-7 text-center shadow-xl">
-            <AlgoGuruLogo size={120} showText={false} className="mx-auto text-foreground" />
+            <AlgoGuruLogo
+              size={120}
+              showText={false}
+              className="mx-auto text-foreground"
+            />
             <h2
               id="coding-start-title"
               className="mt-4 font-display text-lg font-semibold tracking-tight"
@@ -1064,13 +1135,23 @@ export function CodingContestSession() {
                 {fullscreen.message}
               </p>
             ) : null}
-            <Button size="lg" className="mt-6 w-full" onClick={() => void beginExam()} disabled={returningFullscreen}>
+            <Button
+              size="lg"
+              className="mt-6 w-full"
+              onClick={() => void beginExam()}
+              disabled={returningFullscreen}
+            >
               {returningFullscreen ? (
-                <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2
+                  aria-hidden="true"
+                  className="mr-2 h-4 w-4 animate-spin"
+                />
               ) : (
                 <Maximize aria-hidden="true" className="mr-2 h-4 w-4" />
               )}
-              {returningFullscreen ? "Opening fullscreen…" : "Enter fullscreen and start"}
+              {returningFullscreen
+                ? "Opening fullscreen…"
+                : "Enter fullscreen and start"}
             </Button>
           </div>
         </div>

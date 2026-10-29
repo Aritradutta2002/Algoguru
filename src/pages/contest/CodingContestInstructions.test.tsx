@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import CodingContestInstructions from "@/pages/contest/CodingContestInstructions";
 
@@ -11,7 +17,9 @@ const finalize = vi.fn();
 const getResult = vi.fn();
 
 vi.mock("@/contexts/AuthContext", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   useAuth: () => ({
     session: { user: { id: "user-1" } },
     user: { id: "user-1", email: "learner@example.com" },
@@ -26,9 +34,8 @@ vi.mock("@/contexts/AuthContext", () => ({
 // Deterministic 3-problem assignment, and a localStorage-backed session so the
 // happy path runs without a deployed backend.
 vi.mock("@/lib/contest/contestServices", async () => {
-  const { createDevLocalContestSessionService } = await import(
-    "@/lib/contest/devLocalContestSessionService"
-  );
+  const { createDevLocalContestSessionService } =
+    await import("@/lib/contest/devLocalContestSessionService");
   const { ContestServiceError } = await import("@/lib/contest/sessionService");
   return {
     resolveContestSessionService: (mode: string, userId: string) => {
@@ -66,10 +73,7 @@ function renderPage() {
     <MemoryRouter initialEntries={["/contest/coding"]} future={ROUTER_FUTURE}>
       <LocationProbe />
       <Routes>
-        <Route
-          path="/contest/coding"
-          element={<CodingContestInstructions />}
-        />
+        <Route path="/contest/coding" element={<CodingContestInstructions />} />
         <Route
           path="/contest/coding/session/:sessionId"
           element={<div>workspace</div>}
@@ -123,7 +127,9 @@ describe("CodingContestInstructions", () => {
   it("enables Start Contest once the acknowledgement is ticked", () => {
     renderPage();
     fireEvent.click(screen.getByRole("checkbox"));
-    expect(screen.getByRole("button", { name: /Start Contest/i })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /Start Contest/i }),
+    ).toBeEnabled();
   });
 
   it("does not create a session before the final confirmation", () => {
@@ -150,9 +156,7 @@ describe("CodingContestInstructions", () => {
     // Dialog open, nothing persisted yet.
     expect(window.localStorage.getItem(ACTIVE_POINTER)).toBeNull();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /Confirm and start/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Confirm and start/i }));
 
     await waitFor(() =>
       expect(screen.getByTestId("pathname")).toHaveTextContent(
@@ -183,14 +187,14 @@ describe("CodingContestInstructions", () => {
         name: /Start the Java coding contest\?/i,
       }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Start Contest/i })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /Start Contest/i }),
+    ).toBeEnabled();
   });
 
   it("states the fullscreen requirement and that the timer does not pause", () => {
     renderPage();
-    expect(
-      screen.getByText(/The timer does not pause/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/The timer does not pause/i)).toBeInTheDocument();
   });
 
   it("offers a way back to the contest landing", () => {
@@ -207,7 +211,9 @@ describe("CodingContestInstructions", () => {
     );
     // Crucially: the start flow is still usable.
     fireEvent.click(screen.getByRole("checkbox"));
-    expect(screen.getByRole("button", { name: /Start Contest/i })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /Start Contest/i }),
+    ).toBeEnabled();
   });
 
   it("still creates a real session and navigates when the backend is down", async () => {
@@ -217,15 +223,18 @@ describe("CodingContestInstructions", () => {
     );
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: /Start Contest/i }));
-    fireEvent.click(await screen.findByRole("button", { name: /Confirm and start/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Confirm and start/i }),
+    );
 
     await waitFor(() =>
       expect(screen.getByTestId("pathname")).toHaveTextContent(
         "/contest/coding/session/",
       ),
     );
-    expect(window.localStorage.getItem("algoguru:coding-contest:active-session"))
-      .toBeTruthy();
+    expect(
+      window.localStorage.getItem("algoguru:coding-contest:active-session"),
+    ).toBeTruthy();
   });
 
   it("states plainly that the session is not authoritative", async () => {
@@ -234,7 +243,9 @@ describe("CodingContestInstructions", () => {
       expect(screen.getByText(/not authoritative/i)).toBeInTheDocument(),
     );
     expect(
-      screen.getByText(/Hidden tests do not run, so no score from this session counts/i),
+      screen.getByText(
+        /hidden tests do not run, so no score from this session counts/i,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -254,10 +265,14 @@ describe("CodingContestInstructions", () => {
       expect(screen.getByText(/not authoritative/i)).toBeInTheDocument(),
     );
     expect(
-      screen.queryByText(/backend is not reachable, so a session cannot be created/i),
+      screen.queryByText(
+        /backend is not reachable, so a session cannot be created/i,
+      ),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Continue in local practice mode/i }),
+      screen.queryByRole("button", {
+        name: /Continue in local practice mode/i,
+      }),
     ).not.toBeInTheDocument();
   });
 });

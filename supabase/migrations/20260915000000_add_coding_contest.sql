@@ -185,10 +185,10 @@ INSERT INTO public.coding_problems (
   ARRAY['2 <= nums.length <= 10^4', '-10^9 <= nums[i] <= 10^9', 'Exactly one valid answer exists'],
   'Line 1: n' || chr(10) || 'Line 2: n space-separated integers' || chr(10) || 'Line 3: target',
   'Two space-separated 0-based indices, smaller index first.',
-  '[{"input":"4\n2 7 11 15\n9","output":"0 1","explanation":"nums[0] + nums[1] === 2 + 7 === 9."},{"input":"2\n3 2 4\n6","output":"1 2","explanation":"2 + 4 === 6, at indices 1 and 2."}]'::jsonb,
+  '[{"input":"4\n2 7 11 15\n9","output":"0 1","explanation":"nums[0] + nums[1] === 2 + 7 === 9."},{"input":"3\n3 2 4\n6","output":"1 2","explanation":"2 + 4 === 6, at indices 1 and 2."}]'::jsonb,
   E'class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Your solution here.\n        return new int[0];\n    }\n}',
   'public int[] twoSum(int[] nums, int target)',
-  '[{"id":"visible-1","input":"4\n2 7 11 15\n9","expectedOutput":"0 1"},{"id":"visible-2","input":"2\n3 2 4\n6","expectedOutput":"1 2"},{"id":"visible-3","input":"5\n1 5 9 2 8\n10","expectedOutput":"2 3"}]'::jsonb,
+  '[{"id":"visible-1","input":"4\n2 7 11 15\n9","expectedOutput":"0 1"},{"id":"visible-2","input":"3\n3 2 4\n6","expectedOutput":"1 2"},{"id":"visible-3","input":"5\n1 5 9 2 8\n11","expectedOutput":"2 3"}]'::jsonb,
   2000, 256, FALSE
 ),
 (
@@ -228,12 +228,12 @@ INSERT INTO public.coding_problems (
   'easy',
   ARRAY['Sorting & Searching', 'Recursion'],
   ARRAY['0 <= nums.length <= 10^5', 'nums is sorted in non-decreasing order'],
-  'Line 1: n' || chr(10) || 'Line 2: n space-separated integers' || chr(10) || 'Line 3: target',
+  'Line 1: n' || chr(10) || 'Line 2: n space-separated integers (may be empty for n = 0)' || chr(10) || 'Line 3: target',
   'A single integer: the first index of target, or -1.',
-  '[{"input":"7\n1 2 2 2 3 4 5\n2","output":"2","explanation":"2 first appears at index 2, not at 1 or 3."},{"input":"4\n1 3 5 7\n4","output":"-1","explanation":"4 is not present."}]'::jsonb,
+  '[{"input":"7\n1 2 2 2 3 4 5\n2","output":"1","explanation":"2 first appears at index 1, not at 2 or 3."},{"input":"4\n1 3 5 7\n4","output":"-1","explanation":"4 is not present."}]'::jsonb,
   E'class Solution {\n    public int search(int[] nums, int target) {\n        // Your solution here (use a private recursive helper if you like).\n        return -1;\n    }\n}',
   'public int search(int[] nums, int target)',
-  '[{"id":"visible-1","input":"7\n1 2 2 2 3 4 5\n2","expectedOutput":"2"},{"id":"visible-2","input":"4\n1 3 5 7\n4","expectedOutput":"-1"},{"id":"visible-3","input":"0\n\n9","expectedOutput":"-1"}]'::jsonb,
+  '[{"id":"visible-1","input":"7\n1 2 2 2 3 4 5\n2","expectedOutput":"1"},{"id":"visible-2","input":"4\n1 3 5 7\n4","expectedOutput":"-1"},{"id":"visible-3","input":"0\n\n9","expectedOutput":"-1"}]'::jsonb,
   2000, 256, FALSE
 ),
 (
@@ -288,12 +288,12 @@ INSERT INTO public.coding_problems (
   'medium',
   ARRAY['Stacks & Queues', 'OOP'],
   ARRAY['Operations must each take O(1) time', '-10^9 <= values <= 10^9', 'pop and top are only called on a non-empty stack'],
-  'Line 1: q (number of operations)' || chr(10) || 'Then q lines, each either push <v> or pop',
-  'One line per pop or getMin operation: the value or current minimum.',
-  '[{"input":"5\npush 3\npush 1\npop\npush 2\npop","output":"3\n1","explanation":"Each pop emits the removed value: 3 then 1."}]'::jsonb,
-  E'class MinStack {\n    private final Deque<Integer> values = new ArrayDeque<>();\n    public void push(int value) { }\n    public void pop() { }\n    public int top() { return 0; }\n    public int getMin() { return 0; }\n}',
-  'public void push(int value), public void pop(), public int top(), public int getMin()',
-  '[{"id":"visible-1","input":"5\npush 3\npush 1\npop\npush 2\npop","expectedOutput":"3\n1"},{"id":"visible-2","input":"3\npush 5\npush 7\npush 2","expectedOutput":""},{"id":"visible-3","input":"4\npush 4\npush 4\npop\npop","expectedOutput":"4\n4"}]'::jsonb,
+  'Line 1: q (number of operations)' || chr(10) || 'Then q lines, each either ''push <v>'', ''pop'', ''top'' or ''getMin''',
+  'One line per pop, top or getMin operation: the removed value, the top value, or the current minimum.',
+  '[{"input":"5\npush 3\npush 1\npop\npush 2\npop","output":"1\n2","explanation":"A stack is last-in-first-out, so the first pop removes 1 and the second removes 2."}]'::jsonb,
+  E'class MinStack {\n    private final Deque<Integer> values = new ArrayDeque<>();\n    private final Deque<Integer> minimums = new ArrayDeque<>();\n\n    public void push(int value) {\n        // Your solution here.\n    }\n\n    public int pop() {\n        // Your solution here.\n        return 0;\n    }\n\n    public int top() {\n        // Your solution here.\n        return 0;\n    }\n\n    public int getMin() {\n        // Your solution here.\n        return 0;\n    }\n}',
+  'public void push(int value), public int pop(), public int top(), public int getMin()',
+  '[{"id":"visible-1","input":"5\npush 3\npush 1\npop\npush 2\npop","expectedOutput":"1\n2"},{"id":"visible-2","input":"3\npush 5\npush 7\npush 2","expectedOutput":""},{"id":"visible-3","input":"4\npush 4\npush 4\npop\npop","expectedOutput":"4\n4"}]'::jsonb,
   2000, 256, FALSE
 ),
 (
@@ -318,12 +318,12 @@ INSERT INTO public.coding_problems (
   'medium',
   ARRAY['Linked Lists', 'Collections', 'Java Streams'],
   ARRAY['1 <= n <= list.length <= 10^4', 'n is always valid'],
-  'Line 1: n' || chr(10) || 'Line 2: list length m, then m values in list order',
+  'Line 1: n (position from the end, 1-based)' || chr(10) || 'Line 2: m (list length)' || chr(10) || 'Line 3: m space-separated values in list order',
   'The remaining values, space separated.',
   '[{"input":"2\n5\n1 2 3 4 5","output":"1 2 3 5","explanation":"The 2nd from the end is 4, which is removed."},{"input":"1\n1\n7","output":"","explanation":"Removing the only node leaves an empty list."}]'::jsonb,
   E'class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        // Your solution here.\n        return head;\n    }\n}',
   'public ListNode removeNthFromEnd(ListNode head, int n)',
-  '[{"id":"visible-1","input":"2\n5\n1 2 3 4 5","expectedOutput":"1 2 3 5"},{"id":"visible-2","input":"1\n1\n7","expectedOutput":""},{"id":"visible-3","input":"3\n4\n1 2 3 4","expectedOutput":"1 2 4"}]'::jsonb,
+  '[{"id":"visible-1","input":"2\n5\n1 2 3 4 5","expectedOutput":"1 2 3 5"},{"id":"visible-2","input":"1\n1\n7","expectedOutput":""},{"id":"visible-3","input":"3\n4\n1 2 3 4","expectedOutput":"1 3 4"}]'::jsonb,
   2000, 256, FALSE
 ),
 (
@@ -335,10 +335,10 @@ INSERT INTO public.coding_problems (
   ARRAY['1 <= words.length <= 10^5', '1 <= k <= words.length', 'words contain lowercase English letters only'],
   'Line 1: k' || chr(10) || 'Line 2: w (number of words)' || chr(10) || 'Line 3: w space-separated words',
   'The k words, separated by a single space.',
-  '[{"input":"2\n5\na b a c b a","output":"a b","explanation":"a appears 3 times and b twice, so a then b."},{"input":"1\n3\nx y z","output":"x","explanation":"All counts are 1, so ascending word order picks x."}]'::jsonb,
+  '[{"input":"2\n6\na b a c b a","output":"a b","explanation":"a appears 3 times and b twice, so a then b."},{"input":"1\n3\nx y z","output":"x","explanation":"All counts are 1, so ascending word order picks x."}]'::jsonb,
   E'class Solution {\n    public List<String> topKFrequent(List<String> words, int k) {\n        // Your solution here.\n        return List.of();\n    }\n}',
   'public List<String> topKFrequent(List<String> words, int k)',
-  '[{"id":"visible-1","input":"2\n5\na b a c b a","expectedOutput":"a b"},{"id":"visible-2","input":"1\n3\nx y z","expectedOutput":"x"},{"id":"visible-3","input":"3\n6\nb a c a b c a","expectedOutput":"a b c"}]'::jsonb,
+  '[{"id":"visible-1","input":"2\n6\na b a c b a","expectedOutput":"a b"},{"id":"visible-2","input":"1\n3\nx y z","expectedOutput":"x"},{"id":"visible-3","input":"3\n7\nb a c a b c a","expectedOutput":"a b c"}]'::jsonb,
   3000, 256, FALSE
 ),
 (
@@ -426,10 +426,10 @@ INSERT INTO public.coding_problems (
   ARRAY['1 <= strs.length <= 200', '0 <= strs[i].length <= 200', 'strs[i] contains lowercase English letters only'],
   'Line 1: k (number of strings)' || chr(10) || 'Then k lines, one string per line',
   'The longest common prefix, possibly an empty line.',
-  '[{"input":"3\nflower\nflow\nflight","output":"flow","explanation":"All three strings begin with flow."},{"input":"3\ndog\nracecar\ncar","output":"","explanation":"The first characters already differ, so the prefix is empty."}]'::jsonb,
+  '[{"input":"3\nflower\nflow\nflight","output":"fl","explanation":"All three strings begin with fl; the next characters (o and i) differ."},{"input":"3\ndog\nracecar\ncar","output":"","explanation":"The first characters already differ, so the prefix is empty."}]'::jsonb,
   E'class Solution {\n    public String longestCommonPrefix(String[] strs) {\n        // Your solution here.\n        return "";\n    }\n}',
   'public String longestCommonPrefix(String[] strs)',
-  '[{"id":"visible-1","input":"3\nflower\nflow\nflight","expectedOutput":"flow"},{"id":"visible-2","input":"3\ndog\nracecar\ncar","expectedOutput":""},{"id":"visible-3","input":"2\ninterspecies\ninterstellar","expectedOutput":"inters"}]'::jsonb,
+  '[{"id":"visible-1","input":"3\nflower\nflow\nflight","expectedOutput":"fl"},{"id":"visible-2","input":"3\ndog\nracecar\ncar","expectedOutput":""},{"id":"visible-3","input":"2\ninterspecies\ninterstellar","expectedOutput":"inters"}]'::jsonb,
   2000, 256, FALSE
 ),
 (
@@ -486,10 +486,10 @@ INSERT INTO public.coding_problems (
   ARRAY['1 <= coins.length <= 12', '1 <= coins[i] <= 2^31 - 1', '0 <= amount <= 10^4'],
   'Line 1: c (number of denominations)' || chr(10) || 'Line 2: c space-separated coin values' || chr(10) || 'Line 3: the target amount',
   'A single integer: the fewest coins needed, or -1 when the amount is unreachable.',
-  '[{"input":"3\n1 2 5\n11","output":"3","explanation":"5 + 5 + 1 makes 11 with three coins."},{"input":"2\n2\n3","output":"-1","explanation":"An odd amount is impossible using only 2-valued coins."}]'::jsonb,
+  '[{"input":"3\n1 2 5\n11","output":"3","explanation":"5 + 5 + 1 makes 11 with three coins."},{"input":"1\n2\n3","output":"-1","explanation":"An odd amount is impossible using only 2-valued coins."}]'::jsonb,
   E'class Solution {\n    public int coinChange(int[] coins, int amount) {\n        // Your solution here.\n        return -1;\n    }\n}',
   'public int coinChange(int[] coins, int amount)',
-  '[{"id":"visible-1","input":"3\n1 2 5\n11","expectedOutput":"3"},{"id":"visible-2","input":"2\n2\n3","expectedOutput":"-1"},{"id":"visible-3","input":"1\n1\n0","expectedOutput":"0"}]'::jsonb,
+  '[{"id":"visible-1","input":"3\n1 2 5\n11","expectedOutput":"3"},{"id":"visible-2","input":"1\n2\n3","expectedOutput":"-1"},{"id":"visible-3","input":"1\n1\n0","expectedOutput":"0"}]'::jsonb,
   2000, 256, FALSE
 ),
 (

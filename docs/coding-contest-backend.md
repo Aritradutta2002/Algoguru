@@ -9,11 +9,15 @@ feature.
 |---|---|---|
 | Session lifecycle, authoritative deadline, warning count, finalization, drafts, results | **Implemented** | `supabase/functions/contest-coding/index.ts` + `20260915000000_add_coding_contest.sql` |
 | Hidden-test grading and score computation | **Not implemented** | This document |
-| Code execution | **Not implemented** | This document |
+| Graded code execution (`contest-execute`) | **Not implemented** | This document |
+| Ungraded **practice** execution against the visible samples | **Implemented** | `src/lib/contest/practiceExecutionService.ts` + `src/lib/contest/contestRunner.ts` |
 
-Until `contest-execute` exists, the browser runs a development adapter that
-executes nothing and labels every result `mode: "development"`,
-`hiddenEvaluated: false`. It never reports a pass it did not earn.
+Until `contest-execute` exists, the workspace runs the practice runner: the
+learner's Java is really compiled and executed, but only against the problem's
+**public visible** cases. Every result is labelled `mode: "practice"`,
+`hiddenEvaluated: false`, and the service reports `graded: false`, so no score
+can be derived from it. `VITE_CONTEST_EXECUTION_MODE=off` disables execution
+entirely and the console offers a retry.
 
 ---
 
@@ -27,9 +31,12 @@ the authority for a contest score.**
 - The browser calls *this application's backend*. It never calls a third-party
   execution provider directly, and no provider credential is ever placed in a
   `VITE_*` variable.
-  - Note: `src/pages/Playground.tsx` still calls `wandbox.org` straight from the
-    browser. That is a pre-existing path, unrelated to the Contest module, and
-    deliberately not reused here. Do not copy it.
+  - This rule is about **graded** execution. The ungraded practice runner
+    (`practiceExecutionService.ts`) does call the public Wandbox compile
+    service from the browser, the same transport `Playground.tsx` and
+    `ProblemSolver.tsx` already use. That is acceptable only because it runs
+    public sample data, is never authoritative, and carries no credential.
+    Grading must not reuse it; `contest-execute` must go through the backend.
 
 ---
 

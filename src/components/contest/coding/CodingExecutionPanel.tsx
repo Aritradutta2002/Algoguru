@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   AlertTriangle,
   ChevronDown,
   ChevronRight,
   ChevronUp,
   Cpu,
+  ExternalLink,
   Loader2,
+  RefreshCw,
   Terminal,
   Timer,
   XCircle,
@@ -28,14 +31,21 @@ import { cn } from "@/lib/utils";
  */
 
 const VERDICT_STYLES: Record<ExecutionVerdict, string> = {
-  accepted: "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold",
-  wrong_answer: "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-semibold",
-  compile_error: "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-semibold",
-  runtime_error: "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-semibold",
-  time_limit_exceeded: "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold",
-  memory_limit_exceeded: "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold",
+  accepted:
+    "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold",
+  wrong_answer:
+    "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-semibold",
+  compile_error:
+    "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-semibold",
+  runtime_error:
+    "border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-semibold",
+  time_limit_exceeded:
+    "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold",
+  memory_limit_exceeded:
+    "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold",
   unavailable: "border-border bg-muted text-muted-foreground",
-  rate_limited: "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold",
+  rate_limited:
+    "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold",
 };
 
 export function CodingExecutionPanel({
@@ -43,6 +53,8 @@ export function CodingExecutionPanel({
   mode,
   result,
   supportsCustomInput,
+  graded,
+  onRetry,
   collapsed,
   onCollapsedChange,
 }: {
@@ -50,6 +62,9 @@ export function CodingExecutionPanel({
   mode: "run" | "submit" | null;
   result: ExecutionResult | null;
   supportsCustomInput: boolean;
+  /** False when this deployment cannot score against hidden tests. */
+  graded: boolean;
+  onRetry?: () => void;
   /** Driven by the parent panel, so the drawer and the splitter never disagree. */
   collapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
@@ -65,10 +80,17 @@ export function CodingExecutionPanel({
       <div className="flex h-10 shrink-0 items-center gap-3 border-b border-surface-line bg-surface-chrome px-4">
         <span className="flex items-center gap-1.5 text-sm text-foreground/70">
           Test Case
-          <ChevronRight aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight
+            aria-hidden="true"
+            className="h-4 w-4 text-muted-foreground"
+          />
         </span>
 
-        <div role="tablist" aria-label="Result scope" className="flex items-center gap-3">
+        <div
+          role="tablist"
+          aria-label="Result scope"
+          className="flex items-center gap-3"
+        >
           {(["sample", "hidden"] as const).map((id, index) => (
             <span key={id} className="flex items-center gap-3">
               {index > 0 ? (
@@ -124,9 +146,11 @@ export function CodingExecutionPanel({
                 Hidden tests are never shown
               </p>
               <p className="max-w-md text-xs text-muted-foreground">
-                The hidden test inputs and expected outputs stay on the server so
-                they cannot be read out of the page. Submit the question to be
-                graded against them.
+                The hidden test inputs and expected outputs stay on the server
+                so they cannot be read out of the page.{" "}
+                {graded
+                  ? "Submit the question to be graded against them."
+                  : "This deployment does not grade submissions, so they are not evaluated here."}
               </p>
             </div>
           ) : (
@@ -135,6 +159,8 @@ export function CodingExecutionPanel({
               mode={mode}
               result={result}
               supportsCustomInput={supportsCustomInput}
+              graded={graded}
+              onRetry={onRetry}
             />
           )}
         </div>
@@ -148,11 +174,15 @@ function SampleResults({
   mode,
   result,
   supportsCustomInput,
+  graded,
+  onRetry,
 }: {
   busy: boolean;
   mode: "run" | "submit" | null;
   result: ExecutionResult | null;
   supportsCustomInput: boolean;
+  graded: boolean;
+  onRetry?: () => void;
 }) {
   if (busy && !result) {
     return (
@@ -162,7 +192,9 @@ function SampleResults({
           <span className="text-xs font-medium text-foreground">
             {mode === "run"
               ? "Compiling and executing against sample tests…"
-              : "Evaluating solution against hidden test suite…"}
+              : graded
+                ? "Evaluating solution against hidden test suite…"
+                : "Compiling and executing against the visible sample tests…"}
           </span>
         </div>
         <div className="h-2 w-full animate-pulse rounded-full bg-muted" />
@@ -175,11 +207,16 @@ function SampleResults({
   if (!result) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1 p-6 text-center">
-        <Terminal aria-hidden="true" className="mb-2 h-7 w-7 text-muted-foreground/40" />
+        <Terminal
+          aria-hidden="true"
+          className="mb-2 h-7 w-7 text-muted-foreground/40"
+        />
         <p className="text-sm font-medium text-foreground/80">Ready to test</p>
         <p className="mt-1 max-w-md text-xs text-muted-foreground">
-          Run your code against the visible sample tests, or submit the question
-          to have it graded against the hidden test set.
+          Run your code to compile it and check the visible sample tests
+          {graded
+            ? ", or submit the question to have it graded against the hidden test set."
+            : ". This deployment runs the samples only; submissions are not scored."}
           {!supportsCustomInput
             ? " Typing your own input is not available in this contest."
             : ""}
@@ -225,18 +262,51 @@ function SampleResults({
         ) : null}
       </div>
 
-      {result.mode === "development" ? (
+      {result.mode === "practice" && result.verdict !== "unavailable" ? (
         <p className="flex items-start gap-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-900 dark:text-amber-300">
           <AlertTriangle
             aria-hidden="true"
             className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
           />
           <span>
-            Development execution adapter: your code was <strong>not</strong>{" "}
-            run, and the hidden test set was not evaluated. Nothing on this
-            panel reflects a graded result.
+            Practice run: your code was compiled and executed against the{" "}
+            <strong>visible sample tests only</strong>. Hidden tests were not
+            evaluated, so this is <strong>not</strong> a graded submission and
+            no score is recorded.
           </span>
         </p>
+      ) : null}
+
+      {result.verdict === "unavailable" ? (
+        <div className="rounded-lg border border-border bg-muted/30 p-3.5">
+          <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-foreground">
+            <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5" />
+            Execution unavailable
+          </h4>
+          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+            {result.stderr ||
+              "The code runner could not be reached, so your code was not executed and nothing was scored."}
+          </p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-3">
+            {onRetry ? (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-panel px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-surface-raised"
+              >
+                <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
+                Retry
+              </button>
+            ) : null}
+            <Link
+              to="/playground"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary underline-offset-2 hover:underline"
+            >
+              Open the playground
+              <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
       ) : null}
 
       {result.compileDiagnostics.length ? (
@@ -303,7 +373,9 @@ function SampleResults({
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-medium">Sample {index + 1}</span>
+                  <span className="font-mono font-medium">
+                    Sample {index + 1}
+                  </span>
                   <span
                     className={cn(
                       "rounded-md border px-1.5 py-0.5 font-medium",
@@ -312,12 +384,23 @@ function SampleResults({
                         : "border-border text-muted-foreground",
                     )}
                   >
-                    {outcome.passed ? "Passed" : "Not evaluated"}
+                    {outcome.passed ? "Passed" : "Failed"}
                   </span>
                 </div>
                 {outcome.expectedOutput ? (
                   <p className="mt-1.5 font-mono text-xs text-muted-foreground">
-                    Expected: <span className="text-foreground">{outcome.expectedOutput}</span>
+                    Expected:{" "}
+                    <span className="text-foreground">
+                      {outcome.expectedOutput}
+                    </span>
+                  </p>
+                ) : null}
+                {!outcome.passed && outcome.actualOutput ? (
+                  <p className="mt-1 whitespace-pre-wrap font-mono text-xs text-muted-foreground">
+                    Your output:{" "}
+                    <span className="text-rose-600 dark:text-rose-400">
+                      {outcome.actualOutput}
+                    </span>
                   </p>
                 ) : null}
               </li>

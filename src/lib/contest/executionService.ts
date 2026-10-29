@@ -9,7 +9,7 @@ import type { CompilerDiagnostic } from "@/lib/playground/compilerDiagnostics";
  * `contest-execute` edge function documented in
  * `docs/coding-contest-backend.md`; it does not exist yet.
  *
- * Only a development adapter is wired up here. See
+ * Only the practice runner is wired up here. See
  * `docs/coding-contest-backend.md` for the isolation guarantees a real
  * implementation must provide (process isolation, CPU/memory/wall-clock caps,
  * output-size caps, no network egress, read-only filesystem, rate limiting,
@@ -19,6 +19,8 @@ import type { CompilerDiagnostic } from "@/lib/playground/compilerDiagnostics";
 export interface ExecutionRequest {
   sessionId: string;
   problemId: string;
+  /** Public slug. Remote sessions hand out UUID ids, so the slug is the join key. */
+  problemSlug?: string;
   language: "java";
   code: string;
   mode: "run" | "submit";
@@ -61,12 +63,21 @@ export interface ExecutionResult {
    * a run with `hiddenEvaluated: false` can never justify a score.
    */
   hiddenEvaluated: boolean;
-  mode: "development" | "production";
+  /**
+   * `practice` is a real compile-and-run against the PUBLIC visible cases only
+   * (in-browser, ungraded). `production` is the server-side judge.
+   */
+  mode: "practice" | "production";
 }
 
 export interface CodeExecutionService {
   /** Feature detection for optional UI such as the custom-input box. */
   readonly supportsCustomInput: boolean;
+  /**
+   * True only when submissions are scored against hidden tests by the
+   * application backend. A practice runner is explicitly not graded.
+   */
+  readonly graded: boolean;
   run(request: ExecutionRequest): Promise<ExecutionResult>;
   submit(request: ExecutionRequest): Promise<ExecutionResult>;
 }
@@ -86,9 +97,7 @@ export const EXECUTION_VERDICT_LABELS: Record<ExecutionVerdict, string> = {
  * Signals that no execution backend is configured. The workspace turns this
  * into an actionable message rather than an empty console.
  */
-export function executionUnavailableResult(
-  detail: string,
-): ExecutionResult {
+export function executionUnavailableResult(detail: string): ExecutionResult {
   return {
     verdict: "unavailable",
     stdout: "",
