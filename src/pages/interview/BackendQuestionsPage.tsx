@@ -207,7 +207,7 @@ const QuestionCard = memo(function QuestionCard({
               transition={{ duration: 0.22 }}
               className="overflow-hidden"
             >
-              <div className="cjq-reading mt-4 border-t border-border/40 pt-4 pl-0 sm:pl-9">
+              <div className="mt-4 border-t border-border/40 pt-4 pl-0 sm:pl-9">
                 {view === "answer" ? (
                   <>
                     <BackendAnswer answer={question.answer} />

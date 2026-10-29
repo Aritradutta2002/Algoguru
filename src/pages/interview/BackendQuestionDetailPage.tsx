@@ -120,14 +120,14 @@ export default function BackendQuestionDetailPage() {
           <span className="font-medium text-foreground">Q{number}</span>
         </nav>
 
-        <div className="cjd-grid lg:flex lg:gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:gap-8">
           {/* Main column */}
           <article className="cjd-article min-w-0 flex-1">
             <motion.header
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="cjd-surface rounded-2xl border border-border/50 bg-card/70 p-5 sm:p-6"
+              className="rounded-2xl border border-border/50 bg-card/70 p-5 sm:p-6"
             >
               <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px]">
                 <span className="font-mono font-semibold text-primary">
@@ -207,10 +207,8 @@ export default function BackendQuestionDetailPage() {
                 </span>
                 Quick Answer
               </h2>
-              <div className="cjd-mental-model mt-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
-                <div className="cjq-reading">
-                  <BackendAnswer answer={quickAnswer} />
-                </div>
+              <div className="mt-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+                <BackendAnswer answer={quickAnswer} />
               </div>
             </section>
 
@@ -223,7 +221,7 @@ export default function BackendQuestionDetailPage() {
                   </span>
                   Full Explanation
                 </h2>
-                <div className="cjd-surface cjq-reading mt-3 rounded-2xl border border-border/50 bg-card/70 p-5 sm:p-6">
+                <div className="mt-3 rounded-2xl border border-border/50 bg-card/70 p-5 sm:p-6">
                   <BackendAnswer answer={detailed} />
                 </div>
               </section>

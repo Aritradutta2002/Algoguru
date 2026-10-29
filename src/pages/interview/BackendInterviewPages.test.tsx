@@ -123,6 +123,33 @@ describe("Backend question detail", () => {
     const stored = window.localStorage.getItem("algoguru:backend-interview:studied");
     expect(stored).toContain(entry.question.id);
   });
+
+  it("uses responsive flex layout without cjd-grid so the article does not get squashed", () => {
+    const { container } = renderAt(`/interview/java/spring-boot/questions/${entry.slug}`);
+    const article = container.querySelector("article");
+    expect(article).not.toBeNull();
+    const parent = article?.parentElement;
+    expect(parent).not.toBeNull();
+    expect(parent?.className).toContain("flex");
+    expect(parent?.className).not.toContain("cjd-grid");
+    expect(article?.className).toContain("flex-1");
+  });
+
+  it("renders questions from different topics cleanly without errors", () => {
+    const sampleSlugs = [
+      backendQuestionIndex[0]?.slug,
+      backendQuestionIndex[15]?.slug,
+      backendQuestionIndex[30]?.slug,
+      backendQuestionIndex[50]?.slug,
+    ].filter(Boolean);
+
+    for (const slug of sampleSlugs) {
+      const { unmount } = renderAt(`/interview/java/spring-boot/questions/${slug}`);
+      expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 2, name: /Quick Answer/ })).toBeInTheDocument();
+      unmount();
+    }
+  });
 });
 
 describe("Annotation reference", () => {
