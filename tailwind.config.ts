@@ -12,42 +12,27 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ["JetBrains Mono", "SFMono-Regular", "ui-monospace", "monospace"],
-        sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
-        /* Display is the UI face tightened — one family, two roles, so the
-           product does not look like a template pairing. */
-        display: ["Inter", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
-        /* Editorial italic, used sparingly for emphasis in marketing copy. */
-        editorial: ["Instrument Serif", "Iowan Old Style", "Georgia", "serif"],
-        /* Long-form reading */
-        reading: ["Inter", "system-ui", "sans-serif"],
-        /* Documentation-grade code face */
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        /* Long-form reading: humanist, high x-height, tuned for prose. */
+        reading: ["Source Sans 3", "Inter", "system-ui", "sans-serif"],
+        /* Documentation-grade code face for the Q&A reader. */
         code: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
-        /* Legacy category accents, folded into the Forge palette so no
-           surface can drift back to a rainbow. */
         category: {
-          dsa: "hsl(var(--primary))",
-          interview: "hsl(var(--success))",
-          core: "hsl(var(--accent))",
-          system: "hsl(var(--info))",
-          playlist: "hsl(var(--primary))",
+          dsa: "#93C5FD",
+          interview: "#9BE2C3",
+          core: "#A8A4F5",
+          system: "#99C2F8",
+          playlist: "#60A5FA",
         },
         accentLine: {
-          system: "hsl(var(--success))",
-          playlist: "hsl(var(--difficulty-hard))",
-          core: "hsl(var(--accent))",
+          system: "#10B981",
+          playlist: "#F87171",
+          core: "#A855F7",
         },
-        brand: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-          soft: "hsl(var(--primary) / 0.12)",
-        },
-        panel: "hsl(var(--surface-panel))",
-        raised: "hsl(var(--surface-raised))",
-        chrome: "hsl(var(--surface-chrome))",
-        line: "hsl(var(--surface-line))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -134,37 +119,9 @@ export default {
         },
       },
       borderRadius: {
-        xs: "var(--radius-xs)",
-        sm: "var(--radius-sm)",
-        md: "var(--radius-md)",
-        lg: "var(--radius-lg)",
-        xl: "var(--radius-xl)",
-        DEFAULT: "var(--radius)",
-      },
-      zIndex: {
-        raised: "var(--z-raised)",
-        sticky: "var(--z-sticky)",
-        nav: "var(--z-nav)",
-        overlay: "var(--z-overlay)",
-        modal: "var(--z-modal)",
-        toast: "var(--z-toast)",
-        tooltip: "var(--z-tooltip)",
-        command: "var(--z-command)",
-      },
-      spacing: {
-        header: "var(--header-height)",
-        sidebar: "var(--sidebar-width)",
-      },
-      maxWidth: {
-        content: "var(--content-max)",
-        reading: "var(--reading-max)",
-      },
-      transitionDuration: {
-        1: "var(--dur-1)",
-        2: "var(--dur-2)",
-        3: "var(--dur-3)",
-        4: "var(--dur-4)",
-        5: "var(--dur-5)",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
         /* Restrained elevation ladder, driven by theme tokens */
@@ -176,7 +133,6 @@ export default {
       },
       transitionTimingFunction: {
         premium: "cubic-bezier(0.22, 1, 0.36, 1)",
-        standard: "cubic-bezier(0.2, 0, 0, 1)",
       },
       keyframes: {
         "accordion-down": {
@@ -188,16 +144,8 @@ export default {
           to: { height: "0" },
         },
         "glow-pulse": {
-          "0%, 100%": { opacity: "0.55" },
-          "50%": { opacity: "1" },
-        },
-        "caret-blink": {
-          "0%, 45%": { opacity: "1" },
-          "55%, 100%": { opacity: "0" },
-        },
-        "sweep-x": {
-          from: { transform: "translateX(-100%)" },
-          to: { transform: "translateX(100%)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.15)" },
+          "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.3)" },
         },
         /* Guru mascot: antenna orb breathes, eyelids blink, halo drifts.
            All transform/opacity only so the loop stays on the compositor. */
@@ -241,7 +189,6 @@ export default {
         "guru-shimmer": "guru-shimmer 1.8s ease-in-out infinite",
         "slide-in": "slide-in 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
         "fade-in": "fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
-        "caret-blink": "caret-blink 1.1s steps(1, end) infinite",
       },
       backgroundImage: {
         "gradient-primary": "none",

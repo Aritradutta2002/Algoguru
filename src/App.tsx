@@ -12,15 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AppTooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useNavigate,
-  Navigate,
-  useLocation,
-  Link,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation, Link } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import {
@@ -41,6 +33,7 @@ import { UserMenu } from "@/components/UserMenu";
 import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
 import { GuruAvatar } from "@/components/brand/GuruMark";
 import { SupportModal } from "@/components/SupportModal";
+import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import {
   contestAppRoutes,
@@ -49,26 +42,14 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import { GlobalSearchLauncher } from "@/components/layout/GlobalSearchLauncher";
-import {
-  AppLoadingScreen,
-  PageSkeleton,
-} from "@/components/layout/RouteFallback";
+import { AppLoadingScreen, PageSkeleton } from "@/components/layout/RouteFallback";
 import { MobileNav } from "@/components/layout/MobileNav";
-import {
-  PrimaryNavigation,
-  MobileNavigationMenu,
-  isNavActive,
-} from "@/components/layout/PrimaryNavigation";
+import { PrimaryNavigation, MobileNavigationMenu, isNavActive } from "@/components/layout/PrimaryNavigation";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { NotificationCenter } from "@/components/layout/NotificationCenter";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { AiCommandLauncher } from "@/components/layout/AiCommandLauncher";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 
 // Route-level code splitting keeps the initial shell small. Auth stays eager:
 // it is the first screen for signed-out visitors and gate for everything else.
@@ -77,7 +58,6 @@ const AppSidebar = lazy(() =>
     default: module.AppSidebar,
   })),
 );
-const Landing = lazy(() => import("./pages/Landing"));
 const Index = lazy(() => import("./pages/Index"));
 const TopicPage = lazy(() => import("./pages/TopicPage"));
 const Playground = lazy(() => import("./pages/Playground"));
@@ -161,6 +141,7 @@ const MAIN_PANEL_MIN_SIZE = 100 - GURU_PANEL_MAX_SIZE;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
+
 
 function ScrollToTopOnRouteChange() {
   const { pathname, search } = useLocation();
@@ -246,14 +227,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // its fold/unfold handle). It only becomes visible when the user clicks the
   // "Choose where to focus next." heading, which toggles `homeSidebarOpen`.
   const [homeSidebarOpen, setHomeSidebarOpen] = useState(false);
-  const isHomeRoute = location.pathname === "/home";
+  const isHomeRoute = location.pathname === "/";
   // The contest landing page is a focused entry surface: no sidebar panel and
   // no resize slider, while the header keeps search / account / Guru access.
   const isContestLandingRoute = location.pathname === "/contest";
   // Sidebar panel should only mount on routes that want it: non-home,
   // non-contest-landing, or when the home visitor explicitly opens it via
   // the heading.
-  const showSidebarPanel = !isMobile && !isContestLandingRoute;
+  const showSidebarPanel =
+    !isMobile && ((!isHomeRoute && !isContestLandingRoute) || homeSidebarOpen);
   useEffect(() => {
     // The panel unmounts on the home route; reset its state before it remounts.
     if (!showSidebarPanel) setIsSidebarCollapsed(false);
@@ -287,14 +269,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleSidebarShortcut = (event: KeyboardEvent) => {
-      if (
-        !showSidebarPanel ||
-        !event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.key.toLowerCase() !== "b"
-      )
-        return;
+      if (!showSidebarPanel || !event.altKey || event.ctrlKey || event.metaKey || event.key.toLowerCase() !== "b") return;
       event.preventDefault();
       if (isSidebarCollapsed) unfoldSidebar();
       else foldSidebar();
@@ -337,32 +312,27 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     setMobileLibraryOpen(false);
   }, [location.pathname]);
 
-  const handleContentScroll = useCallback(
-    (event: React.UIEvent<HTMLElement>) => {
-      const target = event.currentTarget;
-      const scrolled = target.scrollTop > 8 || window.scrollY > 8;
-      setHeaderScrolled((prev) => (prev === scrolled ? prev : scrolled));
+  const handleContentScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
+    const target = event.currentTarget;
+    const scrolled = target.scrollTop > 8 || window.scrollY > 8;
+    setHeaderScrolled((prev) => (prev === scrolled ? prev : scrolled));
 
-      if (scrollProgressFrame.current !== null) {
-        cancelAnimationFrame(scrollProgressFrame.current);
+    if (scrollProgressFrame.current !== null) {
+      cancelAnimationFrame(scrollProgressFrame.current);
+    }
+    scrollProgressFrame.current = requestAnimationFrame(() => {
+      const maxScroll = target.scrollHeight - target.clientHeight;
+      const progress = maxScroll > 0 ? Math.min(1, target.scrollTop / maxScroll) : 0;
+      if (scrollProgressRef.current) {
+        scrollProgressRef.current.style.transform = `scaleX(${progress})`;
       }
-      scrollProgressFrame.current = requestAnimationFrame(() => {
-        const maxScroll = target.scrollHeight - target.clientHeight;
-        const progress =
-          maxScroll > 0 ? Math.min(1, target.scrollTop / maxScroll) : 0;
-        if (scrollProgressRef.current) {
-          scrollProgressRef.current.style.transform = `scaleX(${progress})`;
-        }
-      });
-    },
-    [],
-  );
+    });
+  }, []);
 
   useEffect(() => {
     const mainEl = contentScrollRef.current;
     const onScroll = () => {
-      const scrolled =
-        window.scrollY > 8 || (mainEl ? mainEl.scrollTop > 8 : false);
+      const scrolled = window.scrollY > 8 || (mainEl ? mainEl.scrollTop > 8 : false);
       setHeaderScrolled((prev) => (prev === scrolled ? prev : scrolled));
     };
 
@@ -412,25 +382,24 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const showMobileNav = isMobile && !guruOpen && !isImmersiveRoute;
   const mobileMoreActive =
     !isImmersiveRoute &&
-    !["/home", "/practice", "/playground", "/interview"].some((path) =>
+    !["/", "/practice", "/playground", "/interview"].some((path) =>
       isNavActive(location.pathname, path),
     );
 
   const contentBottomPaddingClass =
-    location.pathname === "/" ||
-    isPlaygroundRoute ||
-    isProblemSolverRoute ||
-    isRoadmapRoute
+    location.pathname === "/" || isPlaygroundRoute || isProblemSolverRoute || isRoadmapRoute
       ? "pb-0"
       : "pb-10";
-  const contentSurfaceClass =
-    isPlaygroundRoute || isProblemSolverRoute || isRoadmapRoute
-      ? "h-full min-h-0 pb-0"
-      : `min-h-full ${contentBottomPaddingClass}`;
+  const contentSurfaceClass = isPlaygroundRoute || isProblemSolverRoute || isRoadmapRoute
+    ? "h-full min-h-0 pb-0"
+    : `min-h-full ${contentBottomPaddingClass}`;
 
   const pageContent = (
     <>
       <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+      {location.pathname === "/" && (
+        <Footer onSupportClick={() => setSupportOpen(true)} />
+      )}
       {showMobileNav && <div aria-hidden="true" className="h-24 lg:hidden" />}
     </>
   );
@@ -480,8 +449,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     };
 
     const handleGuruShortcut = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey)
-        return;
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
       if (event.key.toLowerCase() !== "j") return;
       if (isProblemSolverRoute || isTypingTarget(event.target)) return;
       event.preventDefault();
@@ -493,447 +461,405 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   }, [isProblemSolverRoute, isMobile, guruOpen]);
 
   return (
-    <SidebarProvider
-      defaultWidth={340}
-      widthStorageKey="algoguru-sidebar-width"
-    >
+    <SidebarProvider defaultWidth={340} widthStorageKey="algoguru-sidebar-width">
       <HomeSidebarContext.Provider value={homeSidebarValue}>
-        <a href="#main-content" className="skip-link">
-          Skip to content
-        </a>
-        <div
-          className="flex h-[100dvh] w-full overflow-hidden"
-          style={{ background: "hsl(var(--background))" }}
-        >
-          {/* ── Sidebar + Content split ── */}
-          <PanelGroup direction="horizontal" className="h-full w-full">
-            {/* Sidebar panel — hidden entirely on the home page until the
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <div
+        className="flex h-[100dvh] w-full overflow-hidden"
+        style={{ background: "hsl(var(--background))" }}
+      >
+        {/* ── Sidebar + Content split ── */}
+        <PanelGroup direction="horizontal" className="h-full w-full">
+          {/* Sidebar panel — hidden entirely on the home page until the
               visitor clicks "Choose where to focus next.", and on the contest
               landing page so it reads as a focused surface. */}
-            {showSidebarPanel && (
-              <Panel
-                id="app-sidebar-panel"
-                order={1}
-                ref={sidebarRef}
-                defaultSize={20}
-                minSize={14}
-                maxSize={28}
-                collapsible={true}
-                collapsedSize={0}
-                onCollapse={() => setIsSidebarCollapsed(true)}
-                onExpand={() => setIsSidebarCollapsed(false)}
-                onResize={(size) => {
-                  if (size > 0) sidebarSizeRef.current = size;
-                }}
-                className={cn(
-                  "relative flex flex-col h-full overflow-visible",
-                  !isResizingSidebar &&
-                    "transition-[flex-grow] duration-300 ease-in-out",
-                )}
-                style={{ maxWidth: 360 }}
-              >
-                {/* Sidebar content — fades on collapse */}
-                <div
-                  className={cn(
-                    "h-full w-full overflow-hidden transition-opacity duration-250 ease-out",
-                    isSidebarCollapsed
-                      ? "invisible opacity-0 pointer-events-none"
-                      : "opacity-100",
-                  )}
-                  aria-hidden={isSidebarCollapsed}
-                >
-                  <Suspense fallback={<SidebarSkeleton />}>
-                    <AppSidebar onCollapse={foldSidebar} />
-                  </Suspense>
-                </div>
-              </Panel>
+          {showSidebarPanel && (
+          <Panel
+            id="app-sidebar-panel"
+            order={1}
+            ref={sidebarRef}
+            defaultSize={20}
+            minSize={14}
+            maxSize={28}
+            collapsible={true}
+            collapsedSize={0}
+            onCollapse={() => setIsSidebarCollapsed(true)}
+            onExpand={() => setIsSidebarCollapsed(false)}
+            onResize={(size) => {
+              if (size > 0) sidebarSizeRef.current = size;
+            }}
+            className={cn(
+              "relative flex flex-col h-full overflow-visible",
+              !isResizingSidebar && "transition-[flex-grow] duration-300 ease-in-out"
             )}
-
-            {/* Drag zone for resizing the sidebar. */}
-            {showSidebarPanel && (
-              <PanelResizeHandle
-                onDragging={setIsResizingSidebar}
-                className="group relative flex-shrink-0 w-[16px] cursor-col-resize select-none"
-                style={{ touchAction: "none" }}
-              >
-                {/* Visual rail — faint at rest, bright on hover/drag */}
-                <div
-                  className={cn(
-                    "absolute inset-y-0 left-1/2 -translate-x-1/2 rounded-full transition-all duration-150",
-                    isResizingSidebar
-                      ? "w-[2px] bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)]"
-                      : "w-[1px] bg-border/50 group-hover:w-[2px] group-hover:bg-primary/40",
-                  )}
-                />
-              </PanelResizeHandle>
-            )}
-
-            <Panel
-              id="app-main-panel"
-              order={2}
-              defaultSize={showSidebarPanel ? 80 : 100}
-              minSize={50}
-              className="flex flex-col min-h-0"
+            style={{ maxWidth: 360 }}
+          >
+            {/* Sidebar content — fades on collapse */}
+            <div
+              className={cn(
+                "h-full w-full overflow-hidden transition-opacity duration-250 ease-out",
+                isSidebarCollapsed ? "invisible opacity-0 pointer-events-none" : "opacity-100"
+              )}
+              aria-hidden={isSidebarCollapsed}
             >
-              <header
-                data-scrolled={headerScrolled ? "true" : undefined}
-                data-route={isHomeRoute ? "home" : undefined}
-                className={cn(
-                  "app-header sticky top-0 z-nav flex h-[var(--header-height)] shrink-0 items-stretch border-b border-line bg-[hsl(var(--surface-chrome)/0.86)] backdrop-blur-md transition-[background-color,border-color] duration-2",
-                  headerScrolled && "border-[hsl(var(--surface-line-strong))] bg-[hsl(var(--surface-chrome))]",
-                )}
-              >
-                <div
-                  ref={headerContainerRef}
-                  className="flex h-full w-full items-center justify-between gap-2 px-2 sm:gap-4 sm:px-3"
-                >
-                  {/* ── 1. Logo / Workspace Block ───── */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <AnimatePresence initial={false}>
-                      {showSidebarPanel && isSidebarCollapsed && (
-                        <motion.div
-                          key="unfold-beside-logo"
-                          initial={{ width: 0, opacity: 0 }}
-                          animate={{ width: "auto", opacity: 1 }}
-                          exit={{ width: 0, opacity: 0 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="flex items-center overflow-hidden flex-shrink-0"
-                        >
-                          <AppTooltip content="Expand sidebar (Alt+B)">
-                            <button
-                              type="button"
-                              onClick={unfoldSidebar}
-                              aria-label="Expand sidebar"
-                              aria-keyshortcuts="Alt+B"
-                              className="group relative inline-flex h-8 w-8 shrink-0 touch-manipulation items-center justify-center rounded-sm border-0 bg-transparent text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-1 hover:bg-raised hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                              <NavIcon icon={PanelLeft} />
-                            </button>
-                          </AppTooltip>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+              <Suspense fallback={<SidebarSkeleton />}>
+                <AppSidebar onCollapse={foldSidebar} />
+              </Suspense>
+            </div>
+          </Panel>
+          )}
 
-                    <WorkspaceSwitcher compact={isHeaderCompact} />
-                  </div>
+          {/* Drag zone for resizing the sidebar. */}
+          {showSidebarPanel && (
+          <PanelResizeHandle
+            onDragging={setIsResizingSidebar}
+            className="group relative flex-shrink-0 w-[16px] cursor-col-resize select-none"
+            style={{ touchAction: "none" }}
+          >
+            {/* Visual rail — faint at rest, bright on hover/drag */}
+            <div
+              className={cn(
+                "absolute inset-y-0 left-1/2 -translate-x-1/2 rounded-full transition-all duration-150",
+                isResizingSidebar
+                  ? "w-[2px] bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)]"
+                  : "w-[1px] bg-border/50 group-hover:w-[2px] group-hover:bg-primary/40"
+              )}
+            />
+          </PanelResizeHandle>
+          )}
 
-                  {/* ── 2. Primary Navigation (Dynamic responsive with More dropdown) ───── */}
-                  {!isHeaderNarrow && (
-                    <div className="flex h-full items-center justify-center min-w-0 flex-1 px-1 sm:px-2">
-                      <PrimaryNavigation pathname={location.pathname} />
-                    </div>
-                  )}
 
-                  {/* ── 3. Right Side Controls ───── */}
-                  <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2">
-                    <GlobalSearchLauncher
-                      compact={isHeaderCompact || !isHeaderWide}
-                    />
-
-                    {!isHeaderNarrow && (
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <AiCommandLauncher
-                          open={guruOpen}
-                          embedded={isProblemSolverRoute}
-                          compact={isHeaderCompact}
-                          onClick={toggleGuruPanel}
-                        />
-                        <NotificationCenter />
-                        <ThemeToggle />
-                        <UserMenu
-                          onOpenLibrary={() => setMobileLibraryOpen(true)}
-                        />
-                      </div>
-                    )}
-
-                    {/* ── 4. Mobile / Compact Menu Toggle (When header is narrow or mobile) ───── */}
-                    {isHeaderNarrow && (
-                      <AppTooltip
-                        content={mobileMenuOpen ? "Close menu" : "Open menu"}
-                      >
+          <Panel
+            id="app-main-panel"
+            order={2}
+            defaultSize={showSidebarPanel ? 80 : 100}
+            minSize={50}
+            className="flex flex-col min-h-0"
+          >
+          <header
+            data-scrolled={headerScrolled ? "true" : undefined}
+            data-route={location.pathname === "/" ? "home" : undefined}
+            className={cn(
+              "app-header sticky top-0 z-50 h-16 shrink-0 border-b border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md transition-shadow duration-200",
+              headerScrolled &&
+                "shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.45)]",
+            )}
+          >
+            <div
+              ref={headerContainerRef}
+              className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6"
+            >
+              {/* ── 1. Logo / Workspace Block ───── */}
+              <div className="flex items-center gap-2 shrink-0">
+                <AnimatePresence initial={false}>
+                  {showSidebarPanel && isSidebarCollapsed && (
+                    <motion.div
+                      key="unfold-beside-logo"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: "auto", opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="flex items-center overflow-hidden flex-shrink-0"
+                    >
+                      <AppTooltip content="Expand sidebar (Alt+B)">
                         <button
                           type="button"
-                          onClick={() => setMobileMenuOpen((open) => !open)}
-                          id="header-navigation-toggle"
-                          aria-label="Toggle navigation menu"
-                          aria-controls={
-                            mobileMenuOpen
-                              ? "header-navigation-menu"
-                              : undefined
-                          }
-                          aria-expanded={mobileMenuOpen}
-                          className="header-menu-btn inline-flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-sm border-0 bg-transparent text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-1 hover:bg-raised hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          onClick={unfoldSidebar}
+                          aria-label="Expand sidebar"
+                          aria-keyshortcuts="Alt+B"
+                          className="group relative touch-manipulation inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                         >
-                          <NavIcon icon={mobileMenuOpen ? X : Menu} />
+                          <NavIcon icon={PanelLeft} />
                         </button>
                       </AppTooltip>
-                    )}
-                  </div>
-                </div>
-
-                {/* ── Mobile Full-Height Drawer (< 1024px) ──────────────────────── */}
-                <AnimatePresence>
-                  {mobileMenuOpen && (
-                    <MobileNavigationMenu
-                      pathname={location.pathname}
-                      onClose={closeMobileMenu}
-                      onOpenLibrary={() => setMobileLibraryOpen(true)}
-                      onToggleGuru={toggleGuruPanel}
-                    />
+                    </motion.div>
                   )}
                 </AnimatePresence>
 
-                {/* Reading progress — transform-only, updated outside React. */}
-                <div
-                  aria-hidden="true"
-                  className="route-progress-track pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden"
-                >
-                  <div
-                    ref={scrollProgressRef}
-                    className="route-progress h-full w-full bg-primary"
-                    style={{ transform: "scaleX(0)" }}
-                  />
+                <WorkspaceSwitcher compact={isHeaderCompact} />
+              </div>
+
+              {/* ── 2. Primary Navigation (Dynamic responsive with More dropdown) ───── */}
+              {!isHeaderNarrow && (
+                <div className="flex h-full items-center justify-center min-w-0 flex-1 px-1 sm:px-2">
+                  <PrimaryNavigation pathname={location.pathname} />
                 </div>
-              </header>
+              )}
 
-              {guruOpen ? (
-                isMobile ? (
-                  /* ── Mobile: Full-screen overlay ── */
-                  <>
-                    {/* Main content hidden on mobile when GuruBot is open */}
-                    <main
-                      id="main-content"
-                      tabIndex={-1}
-                      ref={contentScrollRef}
-                      className="hidden"
-                    >
-                      <div className={contentSurfaceClass}>{pageContent}</div>
-                    </main>
-                    {/* GuruBot full-screen overlay */}
-                    <Suspense
-                      fallback={<AppLoadingScreen label="Opening Guru AI" />}
-                    >
-                      <GuruBot
-                        open={guruOpen}
-                        onClose={() => setGuruOpen(false)}
-                      />
-                    </Suspense>
-                  </>
-                ) : (
-                  /* ── Desktop: Resizable split with collapsible Guru panel ── */
-                  <ResizablePanelGroup
-                    direction="horizontal"
-                    className="h-full"
-                    autoSaveId="app-content-guru-layout"
-                    onLayout={(sizes) => {
-                      const nextMainSize = sizes[0] ?? MAIN_PANEL_DEFAULT_SIZE;
-                      const nextGuruSize = sizes[1] ?? GURU_PANEL_DEFAULT_SIZE;
+              {/* ── 3. Right Side Controls ───── */}
+              <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2">
+                <GlobalSearchLauncher compact={isHeaderCompact || !isHeaderWide} />
 
-                      setSplitPct(nextMainSize);
-
-                      if (
-                        guruCollapsed &&
-                        nextGuruSize > GURU_PANEL_EXPAND_TRIGGER_SIZE
-                      ) {
-                        expandGuruPanel();
-                        return;
-                      }
-
-                      if (nextGuruSize > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
-                        guruPanelSizeRef.current = clamp(
-                          nextGuruSize,
-                          GURU_PANEL_MIN_SIZE,
-                          GURU_PANEL_MAX_SIZE,
-                        );
-                      }
-
-                      const nextCollapsed =
-                        nextGuruSize <= GURU_PANEL_EXPAND_TRIGGER_SIZE;
-                      if (nextCollapsed !== guruCollapsed) {
-                        setGuruCollapsed(nextCollapsed);
-                      }
-                    }}
-                  >
-                    <ResizablePanel
-                      id="content-main-panel"
-                      order={1}
-                      defaultSize={splitPct}
-                      minSize={MAIN_PANEL_MIN_SIZE}
-                    >
-                      <main
-                        id="main-content"
-                        tabIndex={-1}
-                        ref={contentScrollRef}
-                        onScroll={handleContentScroll}
-                        className="h-full overflow-y-auto"
-                        style={{ overscrollBehavior: "contain" }}
-                      >
-                        <div className={contentSurfaceClass}>{pageContent}</div>
-                      </main>
-                    </ResizablePanel>
-
-                    <ResizableHandle
-                      withHandle
-                      className="w-[3px] bg-border/20"
+                {!isHeaderNarrow && (
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <AiCommandLauncher
+                      open={guruOpen}
+                      embedded={isProblemSolverRoute}
+                      compact={isHeaderCompact}
+                      onClick={toggleGuruPanel}
                     />
+                    <NotificationCenter />
+                    <ThemeToggle />
+                    <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
+                  </div>
+                )}
 
-                    <ResizablePanel
-                      id="content-guru-panel"
-                      order={2}
-                      ref={guruPanelRef}
-                      defaultSize={clamp(
-                        100 - splitPct,
-                        GURU_PANEL_MIN_SIZE,
-                        GURU_PANEL_MAX_SIZE,
-                      )}
-                      minSize={GURU_PANEL_MIN_SIZE}
-                      maxSize={GURU_PANEL_MAX_SIZE}
-                      collapsible
-                      collapsedSize={GURU_PANEL_COLLAPSED_SIZE}
-                      onResize={(size) => {
-                        if (
-                          guruCollapsed &&
-                          size > GURU_PANEL_EXPAND_TRIGGER_SIZE
-                        ) {
-                          expandGuruPanel();
-                          return;
-                        }
-
-                        if (size > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
-                          guruPanelSizeRef.current = clamp(
-                            size,
-                            GURU_PANEL_MIN_SIZE,
-                            GURU_PANEL_MAX_SIZE,
-                          );
-                        }
-
-                        const nextCollapsed =
-                          size <= GURU_PANEL_EXPAND_TRIGGER_SIZE;
-                        if (nextCollapsed !== guruCollapsed) {
-                          setGuruCollapsed(nextCollapsed);
-                        }
-                      }}
-                      onCollapse={() => {
-                        if (!guruCollapsed) {
-                          setGuruCollapsed(true);
-                        }
-                      }}
-                      onExpand={() => {
-                        if (guruCollapsed) {
-                          setGuruCollapsed(false);
-                        }
-                      }}
+                {/* ── 4. Mobile / Compact Menu Toggle (When header is narrow or mobile) ───── */}
+                {isHeaderNarrow && (
+                  <AppTooltip content={mobileMenuOpen ? "Close menu" : "Open menu"}>
+                    <button
+                      type="button"
+                      onClick={() => setMobileMenuOpen((open) => !open)}
+                      id="header-navigation-toggle"
+                      aria-label="Toggle navigation menu"
+                      aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
+                      aria-expanded={mobileMenuOpen}
+                      className="header-menu-btn touch-manipulation inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     >
-                      {guruCollapsed ? (
-                        <AppTooltip content="Expand Guru AI" side="left">
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => expandGuruPanel()}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                expandGuruPanel();
-                              }
-                            }}
-                            aria-label="Expand Guru AI"
-                            className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-border bg-muted px-0 py-4 transition-colors hover:bg-muted/70"
-                          >
-                            <GuruAvatar size={20} title={null} />
-                            <span className="[writing-mode:vertical-rl] rotate-180 text-xs font-medium text-foreground">
-                              Guru AI
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setGuruOpen(false);
-                              }}
-                              aria-label="Close Guru"
-                              className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-                            >
-                              <X size={11} />
-                            </button>
-                          </div>
-                        </AppTooltip>
-                      ) : (
-                        <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border bg-background">
-                          <Suspense
-                            fallback={
-                              <div className="flex h-full flex-col items-center justify-center gap-4 bg-card">
-                                <GuruAvatar
-                                  size={52}
-                                  ring
-                                  mood="thinking"
-                                  glow
-                                  title={null}
-                                />
-                                <div className="skeleton-shimmer h-1 w-24 rounded-full" />
-                                <span className="sr-only">Loading Guru AI</span>
-                              </div>
-                            }
-                          >
-                            <GuruBot
-                              open={guruOpen}
-                              onClose={() => setGuruOpen(false)}
-                              embedded
-                              showGuruTitle
-                              onToggleFullscreen={() => {
-                                const cur = guruPanelSizeRef.current;
-                                if (cur >= GURU_PANEL_MAX_SIZE - 1)
-                                  expandGuruPanel(GURU_PANEL_DEFAULT_SIZE);
-                                else expandGuruPanel(GURU_PANEL_MAX_SIZE);
-                              }}
-                              isFullscreen={
-                                guruPanelSizeRef.current >=
-                                GURU_PANEL_MAX_SIZE - 1
-                              }
-                            />
-                          </Suspense>
-                        </div>
-                      )}
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
-                )
-              ) : (
-                <main
-                  id="main-content"
-                  tabIndex={-1}
-                  ref={contentScrollRef}
-                  onScroll={handleContentScroll}
-                  className="flex-1 overflow-y-auto"
-                  style={{ overscrollBehavior: "contain" }}
-                >
+                      <NavIcon icon={mobileMenuOpen ? X : Menu} />
+                    </button>
+                  </AppTooltip>
+                )}
+              </div>
+            </div>
+
+            {/* ── Mobile Full-Height Drawer (< 1024px) ──────────────────────── */}
+            <AnimatePresence>
+              {mobileMenuOpen && (
+                <MobileNavigationMenu
+                  pathname={location.pathname}
+                  onClose={closeMobileMenu}
+                  onOpenLibrary={() => setMobileLibraryOpen(true)}
+                  onToggleGuru={toggleGuruPanel}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Reading progress — transform-only, updated outside React. */}
+            <div
+              aria-hidden="true"
+              className="route-progress-track pointer-events-none absolute inset-x-0 bottom-0 h-px overflow-hidden"
+            >
+              <div
+                ref={scrollProgressRef}
+                className="route-progress h-full w-full bg-gradient-to-r from-primary via-sky-400 to-accent"
+                style={{ transform: "scaleX(0)" }}
+              />
+            </div>
+          </header>
+
+          {guruOpen ? (
+            isMobile ? (
+              /* ── Mobile: Full-screen overlay ── */
+              <>
+                {/* Main content hidden on mobile when GuruBot is open */}
+                <main id="main-content" tabIndex={-1} ref={contentScrollRef} className="hidden">
                   <div className={contentSurfaceClass}>{pageContent}</div>
                 </main>
-              )}
-            </Panel>
-          </PanelGroup>
+                {/* GuruBot full-screen overlay */}
+                <Suspense fallback={<AppLoadingScreen label="Opening Guru AI" />}>
+                  <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+                </Suspense>
+              </>
+            ) : (
+              /* ── Desktop: Resizable split with collapsible Guru panel ── */
+              <ResizablePanelGroup
+                direction="horizontal"
+                className="h-full"
+                autoSaveId="app-content-guru-layout"
+                onLayout={(sizes) => {
+                  const nextMainSize = sizes[0] ?? MAIN_PANEL_DEFAULT_SIZE;
+                  const nextGuruSize = sizes[1] ?? GURU_PANEL_DEFAULT_SIZE;
 
-          <AnimatePresence>
-            {showMobileNav && (
-              <MobileNav
-                onMore={() => setMobileMenuOpen(true)}
-                moreActive={mobileMoreActive}
-              />
-            )}
-          </AnimatePresence>
-          <Sheet open={mobileLibraryOpen} onOpenChange={setMobileLibraryOpen}>
-            <SheetContent
-              side="left"
-              className="w-[88vw] max-w-sm border-r border-border p-0 [&>button]:hidden"
+                  setSplitPct(nextMainSize);
+
+                  if (guruCollapsed && nextGuruSize > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                    expandGuruPanel();
+                    return;
+                  }
+
+                  if (nextGuruSize > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                    guruPanelSizeRef.current = clamp(
+                      nextGuruSize,
+                      GURU_PANEL_MIN_SIZE,
+                      GURU_PANEL_MAX_SIZE,
+                    );
+                  }
+
+                  const nextCollapsed = nextGuruSize <= GURU_PANEL_EXPAND_TRIGGER_SIZE;
+                  if (nextCollapsed !== guruCollapsed) {
+                    setGuruCollapsed(nextCollapsed);
+                  }
+                }}
+              >
+                <ResizablePanel
+                  id="content-main-panel"
+                  order={1}
+                  defaultSize={splitPct}
+                  minSize={MAIN_PANEL_MIN_SIZE}
+                >
+                  <main
+                    id="main-content"
+                    tabIndex={-1}
+                    ref={contentScrollRef}
+                    onScroll={handleContentScroll}
+                    className="h-full overflow-y-auto"
+                    style={{ overscrollBehavior: "contain" }}
+                  >
+                    <div className={contentSurfaceClass}>{pageContent}</div>
+                  </main>
+                </ResizablePanel>
+
+                <ResizableHandle
+                  withHandle
+                  className="w-[3px] bg-border/20"
+                />
+
+                <ResizablePanel
+                  id="content-guru-panel"
+                  order={2}
+                  ref={guruPanelRef}
+                  defaultSize={clamp(
+                    100 - splitPct,
+                    GURU_PANEL_MIN_SIZE,
+                    GURU_PANEL_MAX_SIZE,
+                  )}
+                  minSize={GURU_PANEL_MIN_SIZE}
+                  maxSize={GURU_PANEL_MAX_SIZE}
+                  collapsible
+                  collapsedSize={GURU_PANEL_COLLAPSED_SIZE}
+                  onResize={(size) => {
+                    if (guruCollapsed && size > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                      expandGuruPanel();
+                      return;
+                    }
+
+                    if (size > GURU_PANEL_EXPAND_TRIGGER_SIZE) {
+                      guruPanelSizeRef.current = clamp(
+                        size,
+                        GURU_PANEL_MIN_SIZE,
+                        GURU_PANEL_MAX_SIZE,
+                      );
+                    }
+
+                    const nextCollapsed = size <= GURU_PANEL_EXPAND_TRIGGER_SIZE;
+                    if (nextCollapsed !== guruCollapsed) {
+                      setGuruCollapsed(nextCollapsed);
+                    }
+                  }}
+                  onCollapse={() => {
+                    if (!guruCollapsed) {
+                      setGuruCollapsed(true);
+                    }
+                  }}
+                  onExpand={() => {
+                    if (guruCollapsed) {
+                      setGuruCollapsed(false);
+                    }
+                  }}
+                >
+                  {guruCollapsed ? (
+                    <AppTooltip content="Expand Guru AI" side="left">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => expandGuruPanel()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            expandGuruPanel();
+                          }
+                        }}
+                        aria-label="Expand Guru AI"
+                        className="group h-full w-full cursor-pointer select-none flex flex-col items-center justify-center gap-3 overflow-hidden border-l border-border bg-muted px-0 py-4 transition-colors hover:bg-muted/70"
+                      >
+                        <GuruAvatar size={20} title={null} />
+                        <span className="[writing-mode:vertical-rl] rotate-180 text-xs font-medium text-foreground">
+                          Guru AI
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setGuruOpen(false);
+                          }}
+                          aria-label="Close Guru"
+                          className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                        >
+                          <X size={11} />
+                        </button>
+                      </div>
+                    </AppTooltip>
+                  ) : (
+                    <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border bg-background">
+                      <Suspense
+                        fallback={
+                          <div className="flex h-full flex-col items-center justify-center gap-4 bg-card">
+                            <GuruAvatar size={52} ring mood="thinking" glow title={null} />
+                            <div className="skeleton-shimmer h-1 w-24 rounded-full" />
+                            <span className="sr-only">Loading Guru AI</span>
+                          </div>
+                        }
+                      >
+                        <GuruBot
+                          open={guruOpen}
+                          onClose={() => setGuruOpen(false)}
+                          embedded
+                          showGuruTitle
+                          onToggleFullscreen={() => {
+                            const cur = guruPanelSizeRef.current;
+                            if (cur >= GURU_PANEL_MAX_SIZE - 1) expandGuruPanel(GURU_PANEL_DEFAULT_SIZE);
+                            else expandGuruPanel(GURU_PANEL_MAX_SIZE);
+                          }}
+                          isFullscreen={guruPanelSizeRef.current >= GURU_PANEL_MAX_SIZE - 1}
+                        />
+                      </Suspense>
+                    </div>
+                  )}
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            )
+          ) : (
+            <main
+              id="main-content"
+              tabIndex={-1}
+              ref={contentScrollRef}
+              onScroll={handleContentScroll}
+              className="flex-1 overflow-y-auto"
+              style={{ overscrollBehavior: "contain" }}
             >
-              <SheetTitle className="sr-only">Content library</SheetTitle>
-              <SheetDescription className="sr-only">
-                Browse topics, problems, and interview guides.
-              </SheetDescription>
-              <Suspense fallback={<SidebarSkeleton />}>
-                <AppSidebar onCollapse={() => setMobileLibraryOpen(false)} />
-              </Suspense>
-            </SheetContent>
-          </Sheet>
-        </div>
-        {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
+              <div className={contentSurfaceClass}>{pageContent}</div>
+            </main>
+          )}
+          </Panel>
+        </PanelGroup>
+
+        <AnimatePresence>
+          {showMobileNav && (
+            <MobileNav
+              onMore={() => setMobileMenuOpen(true)}
+              moreActive={mobileMoreActive}
+            />
+          )}
+        </AnimatePresence>
+        <Sheet open={mobileLibraryOpen} onOpenChange={setMobileLibraryOpen}>
+          <SheetContent
+            side="left"
+            className="w-[88vw] max-w-sm border-r border-border p-0 [&>button]:hidden"
+          >
+            <SheetTitle className="sr-only">Content library</SheetTitle>
+            <SheetDescription className="sr-only">
+              Browse topics, problems, and interview guides.
+            </SheetDescription>
+            <Suspense fallback={<SidebarSkeleton />}>
+              <AppSidebar onCollapse={() => setMobileLibraryOpen(false)} />
+            </Suspense>
+          </SheetContent>
+        </Sheet>
+      </div>
+      {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
       </HomeSidebarContext.Provider>
     </SidebarProvider>
   );
@@ -944,163 +870,72 @@ const App = () => (
     <TooltipProvider>
       <SettingsProvider>
         <MotionConfig reducedMotion="user">
-          <ModeProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter
-              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-            >
-              <ScrollToTopOnRouteChange />
-              <AuthProvider>
-                <Suspense fallback={<AppLoadingScreen />}>
-                  <Routes>
-                    <Route path="/auth" element={<Auth />} />
-                {/* Public marketing page. Signed-in visitors are forwarded to
-                    their workspace at /home by the page itself. */}
-                <Route path="/" element={<Landing />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    {/* Contest exam screens are chrome-free, like the old /quiz. */}
-                    {contestStandaloneRoutes()}
-                    {/* Chrome-free fullscreen roadmap routes — no AppLayout, no
+        <ModeProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <ScrollToTopOnRouteChange />
+            <AuthProvider>
+              <Suspense fallback={<AppLoadingScreen />}>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                {/* Contest exam screens are chrome-free, like the old /quiz. */}
+                {contestStandaloneRoutes()}
+                {/* Chrome-free fullscreen roadmap routes — no AppLayout, no
                     sidebar, no header, no footer. Just the roadmaps. */}
-                    <Route
-                      path="/roadmap"
-                      element={
-                        <ProtectedRoute>
-                          <RoadmapFullscreenRoute />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/roadmap/:roadmapId"
-                      element={
-                        <ProtectedRoute>
-                          <RoadmapFullscreenRoute />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/java-roadmap"
-                      element={<Navigate to="/roadmap/java" replace />}
-                    />
-                    <Route
-                      path="/*"
-                      element={
-                        <ProtectedRoute>
-                          <AppLayout>
-                            <Routes>
-                              <Route path="/home" element={<Index />} />
-                              <Route
-                                path="/buy-me-a-coffee"
-                                element={<BuyMeACoffee />}
-                              />
-                              <Route
-                                path="/support"
-                                element={<BuyMeACoffee />}
-                              />
-                              <Route
-                                path="/playground"
-                                element={<Playground />}
-                              />
-                              <Route path="/practice" element={<Practice />} />
-                              <Route
-                                path="/problem-solver"
-                                element={<ProblemSolver />}
-                              />
-                              {/* Contest landing / instructions / result. Declared
+                <Route path="/roadmap" element={
+                  <ProtectedRoute><RoadmapFullscreenRoute /></ProtectedRoute>
+                } />
+                <Route path="/roadmap/:roadmapId" element={
+                  <ProtectedRoute><RoadmapFullscreenRoute /></ProtectedRoute>
+                } />
+                <Route path="/java-roadmap" element={<Navigate to="/roadmap/java" replace />} />
+                <Route path="/*" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/buy-me-a-coffee" element={<BuyMeACoffee />} />
+                        <Route path="/support" element={<BuyMeACoffee />} />
+                        <Route path="/playground" element={<Playground />} />
+                        <Route path="/practice" element={<Practice />} />
+                        <Route path="/problem-solver" element={<ProblemSolver />} />
+                        {/* Contest landing / instructions / result. Declared
                             above the `/:topicId` catch-all below, which would
                             otherwise match `/contest`. */}
-                              {contestAppRoutes()}
-                              <Route
-                                path="/interview"
-                                element={<Interview />}
-                              />
-                              <Route
-                                path="/interview/:language"
-                                element={<Interview />}
-                              />
-                              <Route
-                                path="/interview/:language/data-structure"
-                                element={<InterviewDataStructurePage />}
-                              />
-                              <Route
-                                path="/interview/:language/language-questions"
-                                element={<InterviewLanguageQuestionsPage />}
-                              />
-                              <Route
-                                path="/interview/:language/language-questions/:questionSlug"
-                                element={
-                                  <InterviewLanguageQuestionDetailPage />
-                                }
-                              />
-                              <Route
-                                path="/interview/:language/core-java-qa"
-                                element={<InterviewCoreJavaQuestionsPage />}
-                              />
-                              <Route
-                                path="/interview/:language/core-java-qa/:questionSlug"
-                                element={
-                                  <InterviewCoreJavaQuestionDetailPage />
-                                }
-                              />
-                              <Route
-                                path="/interview/:language/spring-boot"
-                                element={<BackendInterviewHubPage />}
-                              />
-                              <Route
-                                path="/interview/:language/spring-boot/questions"
-                                element={<BackendQuestionsPage />}
-                              />
-                              <Route
-                                path="/interview/:language/spring-boot/questions/:questionSlug"
-                                element={<BackendQuestionDetailPage />}
-                              />
-                              <Route
-                                path="/interview/:language/spring-boot/annotations"
-                                element={<BackendAnnotationsPage />}
-                              />
-                              <Route
-                                path="/interview/:language/spring-boot/practice"
-                                element={<BackendPracticePage />}
-                              />
-                              <Route
-                                path="/interview/:language/spring-boot/practice/:problemId"
-                                element={<BackendPracticeDetailPage />}
-                              />
-                              <Route
-                                path="/interview/:language/system-design"
-                                element={<InterviewSystemDesignPage />}
-                              />
-                              <Route
-                                path="/interview/:language/sql-structure"
-                                element={<InterviewSqlStructurePage />}
-                              />
-                              <Route
-                                path="/practice/solution/:problemId"
-                                element={<PracticeSolution />}
-                              />
-                              <Route
-                                path="/practice/solution/:problemId/:problemSlug"
-                                element={<PracticeSolution />}
-                              />
-                              <Route path="/profile" element={<Profile />} />
-                              <Route
-                                path="/notes"
-                                element={<NotesDashboard />}
-                              />
-                              <Route path="/admin" element={<Admin />} />
-                              <Route path="/:topicId" element={<TopicPage />} />
-                              <Route path="*" element={<NotFound />} />
-                            </Routes>
-                          </AppLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
-                </Suspense>
-              </AuthProvider>
-            </BrowserRouter>
-          </ModeProvider>
+                        {contestAppRoutes()}
+                        <Route path="/interview" element={<Interview />} />
+                        <Route path="/interview/:language" element={<Interview />} />
+                        <Route path="/interview/:language/data-structure" element={<InterviewDataStructurePage />} />
+                        <Route path="/interview/:language/language-questions" element={<InterviewLanguageQuestionsPage />} />
+                        <Route path="/interview/:language/language-questions/:questionSlug" element={<InterviewLanguageQuestionDetailPage />} />
+                        <Route path="/interview/:language/core-java-qa" element={<InterviewCoreJavaQuestionsPage />} />
+                        <Route path="/interview/:language/core-java-qa/:questionSlug" element={<InterviewCoreJavaQuestionDetailPage />} />
+                        <Route path="/interview/:language/spring-boot" element={<BackendInterviewHubPage />} />
+                        <Route path="/interview/:language/spring-boot/questions" element={<BackendQuestionsPage />} />
+                        <Route path="/interview/:language/spring-boot/questions/:questionSlug" element={<BackendQuestionDetailPage />} />
+                        <Route path="/interview/:language/spring-boot/annotations" element={<BackendAnnotationsPage />} />
+                        <Route path="/interview/:language/spring-boot/practice" element={<BackendPracticePage />} />
+                        <Route path="/interview/:language/spring-boot/practice/:problemId" element={<BackendPracticeDetailPage />} />
+                        <Route path="/interview/:language/system-design" element={<InterviewSystemDesignPage />} />
+                        <Route path="/interview/:language/sql-structure" element={<InterviewSqlStructurePage />} />
+                        <Route path="/practice/solution/:problemId" element={<PracticeSolution />} />
+                        <Route path="/practice/solution/:problemId/:problemSlug" element={<PracticeSolution />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/notes" element={<NotesDashboard />} />
+                        <Route path="/admin" element={<Admin />} />
+                        <Route path="/:topicId" element={<TopicPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+              </Suspense>
+            </AuthProvider>
+          </BrowserRouter>
+        </ModeProvider>
         </MotionConfig>
       </SettingsProvider>
     </TooltipProvider>

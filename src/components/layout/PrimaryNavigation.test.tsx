@@ -1,17 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import {
-  MobileNavigationMenu,
-  PrimaryNavigation,
-  isNavActive,
-} from "./PrimaryNavigation";
+import { MobileNavigationMenu, PrimaryNavigation, isNavActive } from "./PrimaryNavigation";
 
 afterEach(() => {
   cleanup();
@@ -35,17 +25,9 @@ describe("Primary navigation", () => {
       </MemoryRouter>,
     );
     expect(screen.getAllByRole("link")).toHaveLength(6);
-    expect(screen.getByRole("link", { name: "Interview" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute(
-      "aria-current",
-    );
-    expect(screen.getByRole("link", { name: "Roadmap" })).toHaveAttribute(
-      "href",
-      "/roadmap",
-    );
+    expect(screen.getByRole("link", { name: "Interview" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Roadmap" })).toHaveAttribute("href", "/roadmap");
   });
 
   it("hides contest live dot by default and shows it only when a contest is running", () => {
@@ -75,23 +57,17 @@ describe("Primary navigation", () => {
     const practiceLink = screen.getByRole("link", { name: "Practice" });
     fireEvent.mouseEnter(practiceLink.parentElement!);
 
-    expect(
-      screen.queryByRole("region", { name: /practice quick links/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /practice quick links/i })).not.toBeInTheDocument();
 
     act(() => {
       vi.advanceTimersByTime(200);
     });
 
-    expect(
-      screen.getByRole("region", { name: /practice quick links/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /practice quick links/i })).toBeInTheDocument();
     expect(screen.getByText("DSA Problem Sheets")).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: "Escape" });
-    expect(
-      screen.queryByRole("region", { name: /practice quick links/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /practice quick links/i })).not.toBeInTheDocument();
   });
 
   function renderMenu(pathname = "/practice") {
@@ -100,11 +76,7 @@ describe("Primary navigation", () => {
     render(
       <MemoryRouter>
         <button id="header-navigation-toggle">Menu</button>
-        <MobileNavigationMenu
-          pathname={pathname}
-          onClose={onClose}
-          onOpenLibrary={onOpenLibrary}
-        />
+        <MobileNavigationMenu pathname={pathname} onClose={onClose} onOpenLibrary={onOpenLibrary} />
       </MemoryRouter>,
     );
     return { onClose, onOpenLibrary };
@@ -136,9 +108,7 @@ describe("Primary navigation", () => {
     const { onClose, onOpenLibrary } = renderMenu();
     fireEvent.click(screen.getByRole("link", { name: "Playground" }));
     expect(onClose).toHaveBeenCalledOnce();
-    fireEvent.click(
-      screen.getByRole("button", { name: /browse learning library/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /browse learning library/i }));
     expect(onOpenLibrary).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledTimes(2);
   });
@@ -195,17 +165,11 @@ describe("Primary navigation", () => {
     expect(screen.getByRole("link", { name: "Interview" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Roadmap" })).toBeInTheDocument();
     // Overflow items should not be direct links in the nav
-    expect(
-      screen.queryByRole("link", { name: "Playground" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Contest" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Playground" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Contest" })).not.toBeInTheDocument();
 
     // "More" button is present
-    const moreButton = screen.getByRole("button", {
-      name: /more navigation options/i,
-    });
+    const moreButton = screen.getByRole("button", { name: /more navigation options/i });
     expect(moreButton).toBeInTheDocument();
 
     // Open dropdown via Radix pointer/keyboard interaction
@@ -213,12 +177,8 @@ describe("Primary navigation", () => {
     if (moreButton.getAttribute("aria-expanded") !== "true") {
       fireEvent.keyDown(moreButton, { key: "Enter" });
     }
-    expect(
-      screen.getByRole("menuitem", { name: /playground/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("menuitem", { name: /contest/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /playground/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /contest/i })).toBeInTheDocument();
   });
 
   it("activates 'More' button when active route is an overflow destination", () => {
@@ -228,28 +188,18 @@ describe("Primary navigation", () => {
       </MemoryRouter>,
     );
 
-    const moreButton = screen.getByRole("button", {
-      name: /more navigation options/i,
-    });
-    expect(moreButton).toHaveClass("text-foreground");
+    const moreButton = screen.getByRole("button", { name: /more navigation options/i });
+    expect(moreButton).toHaveClass("text-slate-900");
   });
 
   it("shows contest live dot on 'More' button when contest is live in overflow", () => {
     render(
       <MemoryRouter>
-        <PrimaryNavigation
-          pathname="/"
-          contestLive={true}
-          maxVisibleItems={4}
-        />
+        <PrimaryNavigation pathname="/" contestLive={true} maxVisibleItems={4} />
       </MemoryRouter>,
     );
 
-    const moreButton = screen.getByRole("button", {
-      name: /more navigation options/i,
-    });
-    expect(
-      moreButton.querySelector('[aria-label="Contest live"]'),
-    ).toBeInTheDocument();
+    const moreButton = screen.getByRole("button", { name: /more navigation options/i });
+    expect(moreButton.querySelector('[aria-label="Contest live"]')).toBeInTheDocument();
   });
 });

@@ -22,314 +22,284 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   AlgoGuru design tokens — "Forge" system
-
-   Graphite surfaces, one ember signal, gold for emphasis. Every colour,
-   shadow, radius and duration in the product resolves through these
-   variables so no component invents its own values.
-
-   Light = paper & ink. Dark = obsidian workspace (the primary target).
-   ───────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    color-scheme: light;
-
-    /* ── Surfaces: page < chrome < panel < raised ── */
-    --surface-page: 40 22% 97%;
-    --surface-chrome: 0 0% 100%;
-    --surface-panel: 0 0% 100%;
-    --surface-raised: 40 16% 95%;
-    --surface-line: 220 12% 88%;
-    --surface-line-strong: 220 12% 80%;
-
-    --background: 40 22% 97%;
-    --foreground: 220 16% 11%;
+    /* ── Day Mode: warm paper, ink typography, cobalt signal ── */
+    --background: 40 18% 98%;
+    --foreground: 222 30% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 16% 11%;
+    --card-foreground: 222 30% 10%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 220 16% 11%;
+    --popover-foreground: 222 30% 10%;
 
-    /* ── The one signal colour: ember ── */
-    --primary: 14 84% 43%;
-    --primary-foreground: 30 100% 97%;
-    --ring: 14 84% 43%;
+    --primary: 217 91% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 12% 93%;
-    --secondary-foreground: 220 16% 16%;
-    --muted: 220 12% 95%;
-    --muted-foreground: 220 8% 40%;
+    --secondary: 214 40% 92%;
+    --secondary-foreground: 221 45% 18%;
 
-    /* Gold — reserved for emphasis marks, never for large fills */
-    --accent: 36 88% 40%;
-    --accent-foreground: 40 100% 97%;
+    --muted: 220 16% 96%;
+    --muted-foreground: 220 10% 44%;
 
-    --destructive: 0 66% 45%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 25 40% 12%;
+
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 12% 87%;
-    --input: 220 12% 94%;
+    --border: 220 14% 89%;
+    --input: 220 16% 96%;
+    --ring: 217 91% 55%;
 
-    /* ── Semantic states ── */
-    --success: 158 62% 30%;
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 25% 10%;
+    --sidebar-primary: 217 91% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 25% 10%;
+    --sidebar-border: 220 13% 90%;
+    --sidebar-ring: 217 91% 57%;
+
+    --success: 145 55% 40%;
     --success-foreground: 0 0% 100%;
-    --warning: 32 88% 38%;
-    --warning-foreground: 40 100% 97%;
-    --info: 210 78% 42%;
-    --heap: 300 52% 42%;
 
-    /* ── Problem difficulty (never colour-only — always paired with text) ── */
-    --difficulty-easy: 158 58% 30%;
-    --difficulty-medium: 32 88% 36%;
-    --difficulty-hard: 356 70% 44%;
-    --difficulty-expert: 300 48% 40%;
+    --warning: 35 90% 52%;
+    --warning-foreground: 25 40% 12%;
+    --info: 210 80% 52%;
+    --heap: 320 65% 52%;
 
-    /* ── Sidebar / workspace chrome ── */
-    --sidebar-background: 40 18% 99%;
-    --sidebar-foreground: 220 14% 14%;
-    --sidebar-primary: 14 84% 43%;
-    --sidebar-primary-foreground: 30 100% 97%;
-    --sidebar-accent: 40 14% 94%;
-    --sidebar-accent-foreground: 220 14% 14%;
-    --sidebar-border: 220 12% 89%;
-    --sidebar-ring: 14 84% 43%;
+    --code-bg: 210 20% 96%;
+    --code-border: 210 20% 88%;
+    --code-header: 210 20% 92%;
 
-    /* ── Code surfaces ── */
-    --code-bg: 220 14% 96%;
-    --code-border: 220 12% 88%;
-    --code-header: 220 14% 93%;
-    --code-inline-bg: 220 14% 93%;
-    --code-inline-text: 220 30% 18%;
-    --code-inline-border: 220 12% 85%;
-
-    /* ── Reading surfaces ── */
-    --reading-surface: 0 0% 100%;
-    --reading-foreground: 220 20% 14%;
-    --reading-heading: 220 30% 10%;
-    --reading-body: 220 16% 22%;
-    --reading-highlight: 220 30% 10%;
-    --reading-muted: 220 8% 40%;
-    --reading-border: 220 12% 89%;
-
-    --reader-page: 0 0% 100%;
-    --reader-surface: 0 0% 100%;
-    --reader-surface-alt: 220 30% 97.5%;
-    --reader-body: 220 15% 22%;
-    --reader-heading: 220 30% 10%;
-    --reader-note: 220 10% 40%;
-    --reader-accent: 14 84% 40%;
-    --reader-link: 14 84% 40%;
-    --reader-rule: 220 12% 78%;
-    --reader-border: 220 12% 87%;
-    --reader-quote: 220 14% 96%;
-
-    /* ── Guru AI keeps its own cool identity inside the warm system ── */
-    --guru-bg: 250 24% 99%;
+    /* ── Guru AI, day mode ────────────────────────────────────────────
+       A quiet porcelain surface with enough violet to retain Guru's own
+       identity. Night values live in `.dark`; every assistant surface and
+       control resolves through these shared tokens. */
+    --guru-bg: 250 33% 99%;
     --guru-surface: 0 0% 100%;
-    --guru-raised: 246 24% 96%;
-    --guru-line: 244 16% 88%;
-    --guru-text: 237 25% 16%;
+    --guru-raised: 246 28% 96%;
+    --guru-line: 244 18% 88%;
+    --guru-text: 237 27% 16%;
     --guru-muted: 233 10% 42%;
-    --guru-accent: 246 68% 54%;
-    --guru-accent-2: 268 66% 56%;
-    --guru-success: 152 62% 30%;
-    --guru-danger: 0 62% 45%;
-    --guru-code: 246 24% 97%;
+    --guru-accent: 246 70% 55%;
+    --guru-accent-2: 268 68% 56%;
+    --guru-success: 152 62% 32%;
+    --guru-danger: 0 62% 47%;
+    --guru-code: 246 25% 97%;
     --guru-on-accent: 0 0% 100%;
 
-    /* ── Radius scale (deliberately varied, not one pill everywhere) ── */
-    --radius: 0.625rem;   /* 10px — panels, cards */
-    --radius-xs: 3px;     /* code chips, kbd */
-    --radius-sm: 5px;     /* inputs, small controls */
-    --radius-md: 8px;
-    --radius-lg: 12px;    /* windows, dialogs */
-    --radius-xl: 16px;
-    --radius-pill: 999px;
-
-    /* ── Elevation: hairlines first, shadow second ── */
-    --shadow-card: 0 1px 2px 0 hsl(220 30% 12% / 0.05);
-    --shadow-soft: 0 1px 1px 0 hsl(220 30% 12% / 0.04);
-    --shadow-accent: 0 14px 34px -18px hsl(220 30% 12% / 0.28);
-    --shadow-overlay: 0 28px 70px -24px hsl(220 30% 12% / 0.32), 0 2px 8px -4px hsl(220 30% 12% / 0.16);
-    --shadow-inset-line: inset 0 1px 0 hsl(0 0% 100% / 0.7);
-
-    /* ── Motion: one rhythm. Feedback fast, entrances slow. ── */
-    --dur-1: 120ms;
-    --dur-2: 180ms;
-    --dur-3: 240ms;
-    --dur-4: 320ms;
-    --dur-5: 520ms;
-    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-    --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
-
-    /* ── Layout ── */
-    --header-height: 52px;
-    --sidebar-width: 268px;
-    --sidebar-width-compact: 56px;
-    --content-max: 1180px;
-    --reading-max: 68ch;
-    --inspector-width: 352px;
-    --workspace-gutter: 1px;
-
-    /* ── Layers ── */
-    --z-base: 0;
-    --z-raised: 10;
-    --z-sticky: 20;
-    --z-nav: 40;
-    --z-overlay: 60;
-    --z-modal: 70;
-    --z-toast: 80;
-    --z-tooltip: 90;
-    --z-command: 100;
-
-    /* ── Atmosphere ── */
-    --hairline: hsl(220 12% 80% / 0.7);
-    --surface-glow: hsl(14 84% 43% / 0.08);
-    --glow-primary: 0 0 0 1px hsl(14 84% 43% / 0.18), 0 18px 44px -22px hsl(14 84% 43% / 0.4);
-    --glow-amber: 0 0 0 1px hsl(36 88% 40% / 0.16), 0 18px 44px -22px hsl(36 88% 40% / 0.32);
-    --grid-line: hsl(220 12% 40% / 0.07);
-    --noise-opacity: 0.035;
-    --gradient-primary: hsl(14 84% 43%);
-    --gradient-accent: hsl(36 88% 40%);
+    --gradient-primary: hsl(217 91% 57%);
+    --gradient-accent: hsl(217 91% 57%);
     --gradient-hero: transparent;
     --gradient-card: hsl(0 0% 100%);
-    --gradient-sidebar: hsl(40 18% 99%);
+    --gradient-sidebar: hsl(210 20% 96%);
 
-    /* ── Type ── */
-    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-display: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-editorial: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-    --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
-    --font-reading: "Inter", system-ui, sans-serif;
-    --reader-font: var(--font-reading);
-    --reader-code-font: var(--font-mono);
+    --reading-surface: 40 33% 98.5%;
+    --reading-foreground: 222 35% 14%;
+    --reading-heading: 222 47% 11%;
+    --reading-body: 222 20% 24%;
+    --reading-highlight: 222 47% 11%;
+    --reading-muted: 220 10% 40%;
+    --reading-border: 220 13% 89%;
+    --code-inline-bg: 220 14% 94%;
+    --code-inline-text: 222 47% 18%;
+    --code-inline-border: 220 13% 86%;
 
-    /* Fluid display sizes — used by the landing page compositions */
-    --text-display-1: clamp(2.6rem, 1.4rem + 4.6vw, 4.6rem);
-    --text-display-2: clamp(2rem, 1.2rem + 2.6vw, 3rem);
-    --tracking-display: -0.035em;
+    /* ── Long-form Q&A reader (document reading surface) ──────────────
+       Tuned for sustained prose reading: near-black body text on pure
+       white paper, a single restrained accent, and dotted rules in the
+       spirit of a documentation page rather than a dashboard card. */
+    --reader-font: 'Source Sans 3', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --reader-code-font: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --reader-page: 0 0% 100%;
+    --reader-surface: 0 0% 100%;
+    --reader-surface-alt: 214 45% 97.5%;
+    --reader-body: 220 15% 22%;
+    --reader-heading: 222 47% 10%;
+    --reader-note: 220 11% 40%;
+    --reader-accent: 217 91% 42%;
+    --reader-link: 217 91% 42%;
+    --reader-rule: 220 14% 78%;
+    --reader-border: 220 14% 87%;
+    --reader-quote: 220 14% 96%;
+
+    --shadow-glow: none;
+    --shadow-glow-strong: none;
+    /* Restrained, layered elevation — no offset/hard shadows */
+    --shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+    --shadow-accent: 0 10px 30px -12px rgba(15, 23, 42, 0.18), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
+    --shadow-soft: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-overlay: 0 24px 60px -18px rgba(15, 23, 42, 0.28), 0 4px 14px -4px rgba(15, 23, 42, 0.1);
+
+    --difficulty-easy: 145 55% 40%;
+    --difficulty-medium: 35 90% 52%;
+    --difficulty-hard: 4 82% 55%;
+    --difficulty-expert: 320 65% 52%;
+
+    /* ── Coding-contest workspace surfaces ──────────────────────────────
+       Three stacked levels — page, chrome bars, pane surfaces — so the
+       exam reads as separate rounded panels divided by real gutters
+       instead of one full-bleed sheet. Day mode keeps the usual
+       white-on-grey card ladder. */
+    --surface-page: 220 20% 94%;
+    --surface-chrome: 0 0% 100%;
+    --surface-panel: 0 0% 100%;
+    --surface-line: 220 13% 88%;
+    --surface-raised: 220 14% 96%;
+
+    /* ── Motion system ─────────────────────────────────────────────
+       One shared rhythm for every interaction. Entrances are slower than
+       feedback, and springs are reserved for direct manipulation. */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-fast: 120ms;
+    --duration-base: 220ms;
+    --duration-slow: 420ms;
+
+    /* ── Brand atmosphere ─────────────────────────────────────────── */
+    --gradient-brand: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 58%));
+    --gradient-amber: linear-gradient(135deg, hsl(43 96% 58%), hsl(30 94% 52%));
+    --gradient-cta: linear-gradient(135deg, hsl(217 91% 56%) 0%, hsl(199 89% 52%) 100%);
+    --glow-primary: 0 0 0 1px hsl(217 91% 55% / 0.16), 0 18px 50px -20px hsl(217 91% 55% / 0.55);
+    --glow-amber: 0 0 0 1px hsl(38 92% 50% / 0.16), 0 18px 50px -20px hsl(38 92% 50% / 0.45);
+    --hairline: hsl(220 14% 80% / 0.55);
+    --surface-glow: hsl(217 91% 55% / 0.08);
+
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    --font-reading: 'Source Sans 3', 'Inter', system-ui, sans-serif;
   }
 
+  /* ===== Premium dark mode ===== */
   .dark {
-    color-scheme: dark;
+    /* Background: obsidian with a cool blue undertone */
+    --background: 222 24% 4.5%;
+    --foreground: 210 20% 96%;
 
-    /* ── Obsidian surfaces ── */
-    --surface-page: 220 11% 5%;
-    --surface-chrome: 220 10% 7%;
-    --surface-panel: 220 9% 8.5%;
-    --surface-raised: 220 8% 12%;
-    --surface-line: 220 8% 16%;
-    --surface-line-strong: 220 8% 24%;
+    --card: 220 17% 8.5%;
+    --card-foreground: 210 20% 96%;
 
-    --background: 220 11% 5%;
-    --foreground: 34 14% 92%;
+    --popover: 220 17% 9.5%;
+    --popover-foreground: 210 20% 96%;
 
-    --card: 220 9% 8.5%;
-    --card-foreground: 34 14% 92%;
-    --popover: 220 9% 10%;
-    --popover-foreground: 34 14% 92%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Ember signal — bright enough to read on graphite, never neon */
-    --primary: 16 90% 60%;
-    --primary-foreground: 22 60% 6%;
-    --ring: 16 90% 62%;
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
 
-    --secondary: 220 8% 13%;
-    --secondary-foreground: 34 14% 92%;
-    --muted: 220 8% 11%;
-    --muted-foreground: 34 8% 62%;
+    --muted: 222 16% 13.5%;
+    --muted-foreground: 215 18% 66%;
 
-    --accent: 38 92% 62%;
-    --accent-foreground: 40 60% 8%;
+    --accent: 43 95% 57%;
+    --accent-foreground: 0 0% 7%;
 
-    --destructive: 0 74% 64%;
-    --destructive-foreground: 0 60% 8%;
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 8% 16%;
-    --input: 220 8% 12%;
+    --border: 222 15% 18%;
+    --input: 222 16% 13.5%;
+    --ring: 217 91% 60%;
 
-    --success: 155 52% 58%;
-    --success-foreground: 155 60% 8%;
-    --warning: 38 90% 62%;
-    --warning-foreground: 40 60% 8%;
-    --info: 205 84% 68%;
-    --heap: 300 52% 68%;
-
-    --difficulty-easy: 155 46% 60%;
-    --difficulty-medium: 38 92% 63%;
-    --difficulty-hard: 356 76% 68%;
-    --difficulty-expert: 300 48% 70%;
-
-    --sidebar-background: 220 11% 6.5%;
-    --sidebar-foreground: 34 12% 90%;
-    --sidebar-primary: 16 90% 60%;
-    --sidebar-primary-foreground: 22 60% 6%;
-    --sidebar-accent: 220 8% 12%;
-    --sidebar-accent-foreground: 34 12% 94%;
-    --sidebar-border: 220 8% 15%;
-    --sidebar-ring: 16 90% 62%;
-
-    --code-bg: 220 10% 7.5%;
-    --code-border: 220 8% 17%;
-    --code-header: 220 10% 7%;
-    --code-inline-bg: 220 8% 15%;
-    --code-inline-text: 34 18% 90%;
-    --code-inline-border: 220 8% 22%;
-
-    --reading-surface: 220 10% 7%;
-    --reading-foreground: 34 14% 92%;
-    --reading-heading: 34 20% 96%;
-    --reading-body: 34 10% 84%;
-    --reading-highlight: 0 0% 100%;
-    --reading-muted: 34 8% 62%;
-    --reading-border: 220 8% 16%;
-
-    --reader-page: 220 11% 6%;
-    --reader-surface: 220 10% 7.5%;
-    --reader-surface-alt: 220 9% 11%;
-    --reader-body: 34 12% 84%;
-    --reader-heading: 34 20% 96%;
-    --reader-note: 34 8% 64%;
-    --reader-accent: 16 90% 66%;
-    --reader-link: 16 90% 66%;
-    --reader-rule: 220 8% 26%;
-    --reader-border: 220 8% 18%;
-    --reader-quote: 220 9% 11%;
-
-    --guru-bg: 220 12% 5.5%;
-    --guru-surface: 220 10% 9%;
-    --guru-raised: 220 9% 13%;
-    --guru-line: 220 8% 19%;
-    --guru-text: 34 14% 94%;
-    --guru-muted: 34 8% 64%;
-    --guru-accent: 245 76% 66%;
-    --guru-accent-2: 268 80% 70%;
-    --guru-success: 155 52% 62%;
+    /* ── Guru AI, night mode ────────────────────────────────────────── */
+    --guru-bg: 222 26% 5.5%;
+    --guru-surface: 222 20% 9%;
+    --guru-raised: 222 17% 13%;
+    --guru-line: 222 15% 19%;
+    --guru-text: 210 22% 96%;
+    --guru-muted: 215 16% 65%;
+    --guru-accent: 245 78% 64%;
+    --guru-accent-2: 268 84% 68%;
+    --guru-success: 152 62% 62%;
     --guru-danger: 0 72% 68%;
-    --guru-code: 220 12% 8%;
+    --guru-code: 220 18% 8%;
     --guru-on-accent: 0 0% 100%;
 
-    --shadow-card: 0 1px 0 0 hsl(0 0% 100% / 0.03), 0 1px 2px 0 hsl(0 0% 0% / 0.5);
-    --shadow-soft: 0 1px 0 0 hsl(0 0% 100% / 0.03);
-    --shadow-accent: 0 18px 44px -22px hsl(0 0% 0% / 0.85);
-    --shadow-overlay: 0 30px 80px -28px hsl(0 0% 0% / 0.9), 0 0 0 1px hsl(0 0% 100% / 0.04);
-    --shadow-inset-line: inset 0 1px 0 hsl(0 0% 100% / 0.04);
+    --sidebar-background: 222 25% 7%;
+    --sidebar-foreground: 210 20% 96%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 18% 14%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 222 16% 18%;
+    --sidebar-ring: 217 91% 60%;
 
-    --hairline: hsl(220 8% 24% / 0.8);
-    --surface-glow: hsl(16 90% 60% / 0.1);
-    --glow-primary: 0 0 0 1px hsl(16 90% 60% / 0.22), 0 20px 54px -26px hsl(16 90% 60% / 0.5);
-    --glow-amber: 0 0 0 1px hsl(38 92% 62% / 0.2), 0 20px 54px -26px hsl(38 92% 62% / 0.36);
-    --grid-line: hsl(0 0% 100% / 0.045);
-    --noise-opacity: 0.05;
-    --gradient-primary: hsl(16 90% 60%);
-    --gradient-accent: hsl(38 92% 62%);
-    --gradient-card: hsl(220 9% 8.5%);
-    --gradient-sidebar: hsl(220 11% 6.5%);
+    --gradient-primary: hsl(217 91% 60%);
+    --gradient-accent: hsl(217 91% 60%);
+    --gradient-card: hsl(220 18% 9%);
+    --gradient-sidebar: hsl(220 18% 7%);
+
+    --reading-surface: 222 24% 9.5%;
+    --reading-foreground: 210 20% 98%;
+    --reading-heading: 0 0% 98%;
+    --reading-body: 214 20% 91%;
+    --reading-highlight: 0 0% 100%;
+    --reading-muted: 215 16% 65%;
+    --reading-border: 222 16% 18%;
+    --code-inline-bg: 222 20% 15%;
+    --code-inline-text: 210 30% 94%;
+    --code-inline-border: 222 16% 25%;
+
+    /* ── Long-form Q&A reader, night mode ─────────────────────────────
+       Same structure as day mode, one step off pure black so the page
+       does not glare, and body text lifted to keep a 7:1+ ratio. */
+    --reader-font: 'Source Sans 3', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --reader-code-font: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+    --reader-page: 222 24% 7%;
+    --reader-surface: 222 22% 10.5%;
+    --reader-surface-alt: 222 20% 14%;
+    --reader-body: 214 22% 87%;
+    --reader-heading: 0 0% 98%;
+    --reader-note: 215 16% 68%;
+    --reader-accent: 213 94% 72%;
+    --reader-link: 213 94% 72%;
+    --reader-rule: 217 20% 30%;
+    --reader-border: 222 16% 22%;
+    --reader-quote: 222 20% 15%;
+
+    /* Code Blocks: One Dark style */
+    --code-bg: 220 13% 18%;
+    --code-border: 0 0% 25%;
+    --code-header: 220 13% 15%;
+
+    /* Difficulty chips need their own night ramp — the day values are
+       tuned for white and go muddy on a dark surface. */
+    --difficulty-easy: 145 55% 55%;
+    --difficulty-medium: 38 92% 62%;
+    --difficulty-hard: 4 85% 66%;
+    --difficulty-expert: 320 70% 68%;
+
+    /* Sampled from the contest workspace reference: page #070709,
+       chrome #0F0F10, panes #131316, hairlines #24272E. */
+    --surface-page: 240 12% 3%;
+    --surface-chrome: 240 3% 6%;
+    --surface-panel: 240 7% 8%;
+    --surface-line: 222 12% 16%;
+    --surface-raised: 240 6% 15%;
+
+    --gradient-brand: linear-gradient(135deg, hsl(217 91% 62%), hsl(199 89% 60%));
+    --gradient-amber: linear-gradient(135deg, hsl(43 96% 60%), hsl(30 94% 56%));
+    --gradient-cta: linear-gradient(135deg, hsl(217 91% 58%) 0%, hsl(199 89% 54%) 100%);
+    --glow-primary: 0 0 0 1px hsl(217 91% 60% / 0.22), 0 20px 60px -22px hsl(217 91% 60% / 0.55);
+    --glow-amber: 0 0 0 1px hsl(43 95% 57% / 0.2), 0 20px 60px -22px hsl(43 95% 57% / 0.4);
+    --hairline: hsl(222 15% 26% / 0.7);
+    --surface-glow: hsl(217 91% 60% / 0.12);
+
+    /* Restrained, layered elevation for dark surfaces */
+    --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-accent: 0 16px 40px -16px rgba(0, 0, 0, 0.7), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
+    --shadow-soft: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-overlay: 0 28px 70px -20px rgba(0, 0, 0, 0.8), 0 4px 14px -4px rgba(0, 0, 0, 0.6);
   }
 }
+
 @layer base {
   * {
     @apply border-border;
@@ -351,11 +321,8 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
-    font-size: 0.9375rem;
-    line-height: 1.55;
-    letter-spacing: -0.011em;
+    letter-spacing: -0.006em;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    text-rendering: optimizeLegibility;
   }
 
   code, pre, .font-mono {
@@ -364,18 +331,9 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.028em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     text-wrap: balance;
-  }
-
-  h1 { letter-spacing: -0.034em; }
-
-  /* Numerals and code always tabular so counters, timers and complexity
-     readouts do not jitter as values change. */
-  code, pre, .font-mono, [data-numeric] {
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "zero" 0;
   }
 
   ::-webkit-scrollbar {
@@ -397,19 +355,8 @@
   }
 
   :focus-visible {
-    outline: 2px solid hsl(var(--ring) / 0.9);
-    outline-offset: 2px;
-    border-radius: 3px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
+    outline: 2px solid hsl(var(--ring) / 0.8);
+    outline-offset: 3px;
   }
 }
 
@@ -2946,356 +2893,4 @@
   .premium-card-hover:hover {
     transform: none !important;
   }
-}
-
-/* ─── Workspace primitives (see docs/REDESIGN-AUDIT.md) ─────────── */
-@layer components {
-
-    /* ── Type roles ─────────────────────────────────────────────── */
-
-    /* Small monospace label used for section numbering, metadata, file
-       names, complexity readouts. Never for body copy. */
-    .ws-eyebrow {
-      font-family: var(--font-mono);
-      font-size: 10.5px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: hsl(var(--muted-foreground));
-      font-variant-numeric: tabular-nums;
-    }
-
-    .ws-editorial {
-      font-family: var(--font-editorial);
-      font-weight: 400;
-      font-style: italic;
-      letter-spacing: -0.01em;
-    }
-
-    .ws-display-1 {
-      font-size: var(--text-display-1);
-      line-height: 0.98;
-      letter-spacing: var(--tracking-display);
-      font-weight: 600;
-    }
-
-    .ws-display-2 {
-      font-size: var(--text-display-2);
-      line-height: 1.06;
-      letter-spacing: -0.03em;
-      font-weight: 600;
-    }
-
-    .ws-meta {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.02em;
-      color: hsl(var(--muted-foreground));
-      font-variant-numeric: tabular-nums;
-    }
-
-    .ws-prose {
-      max-width: var(--reading-max);
-      color: hsl(var(--reading-body));
-      font-size: 15px;
-      line-height: 1.75;
-    }
-
-    .ws-prose > * + * {
-      margin-top: 1em;
-    }
-
-    /* ── Surfaces ───────────────────────────────────────────────── */
-
-    .ws-surface {
-      background: hsl(var(--surface-panel));
-      border: 1px solid hsl(var(--surface-line));
-    }
-
-    .ws-panel {
-      background: hsl(var(--surface-panel));
-      border: 1px solid hsl(var(--surface-line));
-      border-radius: var(--radius-lg);
-    }
-
-    .ws-panel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      min-height: 40px;
-      padding: 0 0.875rem;
-      border-bottom: 1px solid hsl(var(--surface-line));
-    }
-
-    /* The window chrome used by the landing preview and the workspace
-       shell: one hairline frame, a title bar, and a content well. */
-    .ws-window {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: hsl(var(--surface-page));
-      border: 1px solid hsl(var(--surface-line-strong));
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-overlay);
-      contain: paint;
-    }
-
-    .ws-window-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      height: 36px;
-      padding: 0 0.75rem;
-      border-bottom: 1px solid hsl(var(--surface-line));
-      background: hsl(var(--surface-chrome));
-    }
-
-    .ws-traffic {
-      display: inline-flex;
-      gap: 5px;
-    }
-
-    .ws-traffic > span {
-      width: 7px;
-      height: 7px;
-      border-radius: var(--radius-pill);
-      background: hsl(var(--muted-foreground) / 0.28);
-    }
-
-    /* ── Rows and rails ─────────────────────────────────────────── */
-
-    .ws-row {
-      display: flex;
-      align-items: center;
-      gap: 0.625rem;
-      min-height: 36px;
-      padding: 0.25rem 0.625rem;
-      border-radius: var(--radius-sm);
-      color: hsl(var(--muted-foreground));
-      transition:
-        background-color var(--dur-1) var(--ease-standard),
-        color var(--dur-1) var(--ease-standard);
-    }
-
-    .ws-row:hover {
-      background: hsl(var(--surface-raised));
-      color: hsl(var(--foreground));
-    }
-
-    .ws-row[data-active="true"] {
-      background: hsl(var(--primary) / 0.1);
-      color: hsl(var(--foreground));
-      box-shadow: inset 2px 0 0 hsl(var(--primary));
-    }
-
-    /* Vertical active indicator for navigation rails */
-    .ws-rail-item {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      height: 32px;
-      padding: 0 0.625rem;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-weight: 500;
-      color: hsl(var(--muted-foreground));
-      transition:
-        color var(--dur-1) var(--ease-standard),
-        background-color var(--dur-1) var(--ease-standard);
-    }
-
-    .ws-rail-item:hover {
-      background: hsl(var(--surface-raised) / 0.7);
-      color: hsl(var(--foreground));
-    }
-
-    .ws-rail-item[aria-current="page"],
-    .ws-rail-item[data-active="true"] {
-      background: hsl(var(--surface-raised));
-      color: hsl(var(--foreground));
-    }
-
-    .ws-rail-item[aria-current="page"]::before,
-    .ws-rail-item[data-active="true"]::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 50%;
-      height: 14px;
-      width: 2px;
-      translate: 0 -50%;
-      border-radius: var(--radius-pill);
-      background: hsl(var(--primary));
-    }
-
-    /* ── Chips / badges ─────────────────────────────────────────── */
-
-    .ws-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3125rem;
-      height: 20px;
-      padding: 0 0.4375rem;
-      border: 1px solid hsl(var(--surface-line));
-      border-radius: var(--radius-xs);
-      background: hsl(var(--surface-raised) / 0.6);
-      font-family: var(--font-mono);
-      font-size: 10.5px;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      color: hsl(var(--muted-foreground));
-      white-space: nowrap;
-    }
-
-    .ws-chip::before {
-      content: "";
-      width: 5px;
-      height: 5px;
-      border-radius: var(--radius-pill);
-      background: currentColor;
-      opacity: 0.85;
-    }
-
-    .ws-chip[data-level="easy"] {
-      color: hsl(var(--difficulty-easy));
-      border-color: hsl(var(--difficulty-easy) / 0.3);
-      background: hsl(var(--difficulty-easy) / 0.1);
-    }
-
-    .ws-chip[data-level="medium"] {
-      color: hsl(var(--difficulty-medium));
-      border-color: hsl(var(--difficulty-medium) / 0.3);
-      background: hsl(var(--difficulty-medium) / 0.1);
-    }
-
-    .ws-chip[data-level="hard"] {
-      color: hsl(var(--difficulty-hard));
-      border-color: hsl(var(--difficulty-hard) / 0.3);
-      background: hsl(var(--difficulty-hard) / 0.1);
-    }
-
-    .ws-chip[data-level="expert"] {
-      color: hsl(var(--difficulty-expert));
-      border-color: hsl(var(--difficulty-expert) / 0.3);
-      background: hsl(var(--difficulty-expert) / 0.1);
-    }
-
-    .ws-chip[data-tone="plain"]::before {
-      display: none;
-    }
-
-    .ws-kbd {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 4px;
-      border: 1px solid hsl(var(--surface-line-strong));
-      border-bottom-width: 2px;
-      border-radius: var(--radius-xs);
-      background: hsl(var(--surface-raised));
-      font-family: var(--font-mono);
-      font-size: 10px;
-      line-height: 1;
-      color: hsl(var(--muted-foreground));
-    }
-
-    /* ── Progress ───────────────────────────────────────────────── */
-
-    .ws-meter {
-      position: relative;
-      height: 3px;
-      width: 100%;
-      overflow: hidden;
-      border-radius: var(--radius-pill);
-      background: hsl(var(--surface-line-strong) / 0.7);
-    }
-
-    .ws-meter > span {
-      display: block;
-      height: 100%;
-      border-radius: inherit;
-      background: hsl(var(--primary));
-      transition: width var(--dur-4) var(--ease-out);
-    }
-
-    /* Session bars (study activity) */
-    .ws-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 32px;
-    }
-
-    .ws-bars > span {
-      flex: 1;
-      min-width: 3px;
-      border-radius: 2px;
-      background: hsl(var(--primary) / 0.32);
-    }
-
-    .ws-bars > span[data-strong="true"] {
-      background: hsl(var(--primary) / 0.75);
-    }
-
-    /* ── Textures ───────────────────────────────────────────────── */
-
-    .ws-grid-texture {
-      background-image:
-        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-      background-size: 56px 56px;
-      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 20%, transparent 78%);
-    }
-
-    .ws-hairline-x {
-      height: 1px;
-      width: 100%;
-      background: hsl(var(--surface-line));
-    }
-
-    /* Grain: a single inline SVG, painted once. It is the only texture the
-       product uses, and it never animates. */
-    .ws-grain::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: var(--noise-opacity);
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-      mix-blend-mode: overlay;
-    }
-
-    /* ── Focus / active emphasis ────────────────────────────────── */
-
-    .ws-glow-focus {
-      box-shadow:
-        0 0 0 1px hsl(var(--primary) / 0.4),
-        0 0 0 5px hsl(var(--primary) / 0.08);
-    }
-
-    .ws-inset-line {
-      box-shadow: var(--shadow-inset-line);
-    }
-
-    /* ── Command palette / dialog surface ───────────────────────── */
-
-    .ws-overlay-surface {
-      background: hsl(var(--popover));
-      border: 1px solid hsl(var(--surface-line-strong));
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-overlay);
-    }
-
-    /* ── Scrollbars inside workspace panes ──────────────────────── */
-
-    .ws-scroll {
-      scrollbar-width: thin;
-      scrollbar-color: hsl(var(--muted-foreground) / 0.28) transparent;
-      overscroll-behavior: contain;
-    }
 }

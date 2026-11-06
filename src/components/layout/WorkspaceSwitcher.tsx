@@ -69,10 +69,7 @@ interface WorkspaceSwitcherProps {
   compact?: boolean;
 }
 
-export function WorkspaceSwitcher({
-  className,
-  compact = false,
-}: WorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitcherProps) {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(() => {
     try {
       return localStorage.getItem("algoguru_active_workspace") || "personal";
@@ -99,13 +96,13 @@ export function WorkspaceSwitcher({
       <Link
         to="/"
         aria-label="AlgoGuru Home"
-        className="group inline-flex h-9 items-center gap-2.5 rounded-lg px-1.5 text-foreground  transition-colors duration-150 hover:text-foreground dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 select-none"
+        className="group inline-flex h-9 items-center gap-2.5 rounded-lg px-1.5 text-slate-900 dark:text-slate-100 transition-colors duration-150 hover:text-slate-950 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 select-none"
       >
         <span className="relative inline-flex shrink-0 items-center justify-center">
           {/* Bloom only on hover — the header stays quiet at rest. */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -inset-2 rounded-full bg-primary blur-md transition-colors duration-300 group-hover:bg-primary"
+            className="pointer-events-none absolute -inset-2 rounded-full bg-blue-500/0 blur-md transition-colors duration-300 group-hover:bg-blue-500/25"
           />
           <AlgoGuruMark
             size={26}
@@ -114,8 +111,8 @@ export function WorkspaceSwitcher({
           />
         </span>
         <span className="flex items-baseline font-display text-[15.5px] font-semibold leading-none tracking-[-0.02em]">
-          <span className="text-foreground ">Algo</span>
-          <span className="bg-gradient-to-br from-primary to-info bg-clip-text text-transparent  ">
+          <span className="text-slate-900 dark:text-slate-50">Algo</span>
+          <span className="bg-gradient-to-br from-blue-600 to-sky-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-sky-300">
             Guru
           </span>
         </span>
@@ -125,7 +122,7 @@ export function WorkspaceSwitcher({
       {!compact && (
         <span
           aria-hidden="true"
-          className="text-muted-foreground  text-sm font-normal select-none"
+          className="text-slate-300 dark:text-slate-700 text-sm font-normal select-none"
         >
           /
         </span>
@@ -139,10 +136,10 @@ export function WorkspaceSwitcher({
             data-workspace-switcher="true"
             aria-label={`Current workspace: AlgoGuru ${activeWorkspace.name}. Click to switch workspace`}
             className={cn(
-              "group inline-flex h-8 items-center gap-1.5 rounded-lg border border-line  bg-[hsl(var(--surface-raised))]  px-2.5 text-xs font-medium text-foreground  [&_svg]:text-muted-foreground dark:[&_svg]:text-muted-foreground",
+              "group inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 px-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400",
               "transition-colors duration-150 ease-out",
-              "hover:bg-[hsl(var(--surface-raised))]  hover:text-foreground  hover:[&_svg]:text-foreground dark:hover:[&_svg]:text-muted-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
               "touch-manipulation select-none",
             )}
           >
@@ -162,10 +159,10 @@ export function WorkspaceSwitcher({
         <DropdownMenuContent
           align="start"
           sideOffset={8}
-          className="w-64 rounded-xl border border-line  bg-white/95  p-1.5 shadow-xl backdrop-blur-md"
+          className="w-64 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 p-1.5 shadow-xl backdrop-blur-md"
         >
           <div className="px-2.5 py-1.5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground ">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
               Workspaces
             </p>
           </div>
@@ -183,8 +180,8 @@ export function WorkspaceSwitcher({
                   className={cn(
                     "flex items-center justify-between gap-2.5 rounded-lg px-2.5 py-2 cursor-pointer transition-colors",
                     isSelected
-                      ? "bg-[hsl(var(--surface-raised))]  text-foreground  [&_svg]:text-primary dark:[&_svg]:text-primary"
-                      : "text-foreground  [&_svg]:text-muted-foreground dark:[&_svg]:text-muted-foreground hover:bg-[hsl(var(--surface-raised))]  hover:text-foreground ",
+                      ? "bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
+                      : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:bg-slate-100/70 dark:hover:bg-slate-900/70 hover:text-slate-900 dark:hover:text-slate-100",
                   )}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -192,17 +189,17 @@ export function WorkspaceSwitcher({
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border",
                         isSelected
-                          ? "border-primary/40 bg-primary/10  text-primary "
-                          : "border-line  bg-[hsl(var(--surface-raised))]  text-muted-foreground ",
+                          ? "border-blue-500/30 bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400",
                       )}
                     >
                       <NavIcon icon={ItemIcon} chip />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium text-foreground  truncate">
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
                         {workspace.name}
                       </span>
-                      <span className="text-xs text-muted-foreground  truncate">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
                         {workspace.plan}
                       </span>
                     </div>
@@ -214,11 +211,11 @@ export function WorkspaceSwitcher({
             })}
           </div>
 
-          <DropdownMenuSeparator className="my-1.5 bg-[hsl(var(--surface-raised))] " />
+          <DropdownMenuSeparator className="my-1.5 bg-slate-200 dark:bg-slate-800" />
 
           <DropdownMenuItem
             onClick={() => undefined}
-            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground  [&_svg]:text-muted-foreground dark:[&_svg]:text-muted-foreground hover:text-foreground  cursor-pointer transition-colors"
+            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer transition-colors"
           >
             <NavIcon icon={Plus} chip />
             <span>Create new workspace</span>
@@ -226,7 +223,7 @@ export function WorkspaceSwitcher({
 
           <DropdownMenuItem
             onClick={() => undefined}
-            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground  [&_svg]:text-muted-foreground dark:[&_svg]:text-muted-foreground hover:text-foreground  cursor-pointer transition-colors"
+            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer transition-colors"
           >
             <NavIcon icon={Settings} chip />
             <span>Workspace settings</span>

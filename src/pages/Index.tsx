@@ -1,25 +1,31 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
+import { MotionConfig } from "framer-motion";
+import "@/styles/landing.css";
 import {
   ArrowRight,
   ArrowUpRight,
-  BookOpen,
+  BrainCircuit,
   CalendarDays,
+  ChevronRight,
   Code2,
   Coffee,
+  Layers,
   Map as MapIcon,
-  Play,
-  Route,
-  StickyNote,
+  MousePointerClick,
+  PanelLeft,
+  Sparkles,
   Target,
   Trophy,
+  Zap,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { practiceData } from "@/data/practiceData";
-import { topics } from "@/data/topics";
-import { javaTopics } from "@/data/javaTopics";
+import { QuizSection } from "@/components/quiz/QuizSection";
+import { MagneticButton } from "@/components/motion/MagneticButton";
+import { Reveal } from "@/components/motion/Reveal";
+import { SpotlightCard } from "@/components/motion/SpotlightCard";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
+import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
 import { cn } from "@/lib/utils";
 
 const RoadmapFullscreenOverlay = lazy(() =>
@@ -28,551 +34,420 @@ const RoadmapFullscreenOverlay = lazy(() =>
   })),
 );
 
-/**
- * Signed-in home. Replaces the marketing landing page that used to sit behind
- * the auth wall: the workspace opens on the learner's own numbers and the next
- * thing to do, not on a pitch they have already accepted.
- *
- * Everything numeric is read from the user's own rows in
- * `practice_problem_user_state`; there is no invented progress.
- */
-
-interface PracticeRow {
-  problem_id: string;
-  is_completed: boolean;
-  is_saved_for_revision: boolean;
-  notes: string;
-  updated_at: string;
-}
-
-const DAY_MS = 86_400_000;
-
-/** Practice sheets are two levels deep: topic → subtopic → problems. */
-const PRACTICE_PROBLEMS = practiceData.flatMap((topic) =>
-  topic.subtopics.flatMap((subtopic) => subtopic.problems),
-);
-const PROBLEM_COUNT = PRACTICE_PROBLEMS.length;
-
-function useHomeStats() {
-  const { user } = useAuth();
-  const [rows, setRows] = useState<PracticeRow[]>([]);
-  const [interviewCount, setInterviewCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) {
-      setRows([]);
-      setInterviewCount(null);
-      setLoading(false);
-      return;
-    }
-    let active = true;
-    (async () => {
-      setLoading(true);
-      const [{ data: practiceRows }, { data: javaRows }] = await Promise.all([
-        supabase
-          .from("practice_problem_user_state")
-          .select(
-            "problem_id, is_completed, is_saved_for_revision, notes, updated_at",
-          )
-          .eq("user_id", user.id),
-        supabase
-          .from("core_java_user_state")
-          .select("question_id, is_completed")
-          .eq("user_id", user.id),
-      ]);
-      if (!active) return;
-      setRows((practiceRows ?? []) as PracticeRow[]);
-      setInterviewCount(
-        (javaRows ?? []).filter(
-          (row: { is_completed: boolean }) => row.is_completed,
-        ).length,
-      );
-      setLoading(false);
-    })();
-    return () => {
-      active = false;
-    };
-  }, [user]);
-
-  return { rows, interviewCount, loading };
-}
-
-function StatCell({
-  label,
-  value,
-  suffix,
-  hint,
-}: {
-  label: string;
-  value: number | string;
-  suffix?: string;
-  hint: string;
-}) {
-  return (
-    <div className="px-4 py-4 first:pl-0">
-      <p className="ws-eyebrow">{label}</p>
-      <p className="mt-2 font-display text-[26px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-        {value}
-        {suffix && (
-          <span className="ml-0.5 font-mono text-[12px] font-normal text-muted-foreground">
-            {suffix}
-          </span>
-        )}
-      </p>
-      <p className="mt-2 text-[11.5px] leading-4 text-muted-foreground">
-        {hint}
-      </p>
-    </div>
-  );
-}
-
-const QUICK_ACTIONS = [
+const SECTIONS = [
   {
-    to: "/practice",
-    icon: Code2,
-    label: "Practice problems",
-    hint: `${PROBLEM_COUNT} curated problems`,
-  },
-  {
-    to: "/playground",
-    icon: Play,
-    label: "Playground",
-    hint: "Run Java, Python or C++ instantly",
-  },
-  {
-    to: "/roadmap",
-    icon: Route,
-    label: "Roadmaps",
-    hint: "Visual prerequisite graphs",
-  },
-  {
-    to: "/interview",
+    id: "advanced-java",
+    title: "Advanced Java",
+    subtitle: "Master the deep end",
+    desc: "Reflection, JVM internals, garbage collection, design patterns, and modern Java 17+ features — the theory interviewers actually ask about.",
     icon: Coffee,
-    label: "Interview prep",
-    hint: "Core Java, Spring Boot, system design",
+    tone: "cobalt",
+    tag: "Java Theory",
+    route: "/java-advanced",
+    stats: "9 Deep Topics",
+  },
+  {
+    id: "interview",
+    title: "DSA Sheets",
+    subtitle: "Land FAANG roles",
+    desc: "Curated top-company DSA questions, system design patterns, and behavioral frameworks to crush technical interviews.",
+    icon: Target,
+    tone: "cyan",
+    tag: "DSA Sheets",
+    route: "/practice",
+    stats: "500+ Questions",
+  },
+  {
+    id: "codechef",
+    title: "Data Structures",
+    subtitle: "Pattern-based mastery",
+    desc: "A curated collection of essential coding interview problems categorized by sub-patterns and topics.",
+    icon: Code2,
+    tone: "cyan",
+    tag: "Playlist",
+    route: "/arrays",
+    stats: "Pattern Wise Problems",
+  },
+  {
+    id: "leetcode",
+    title: "System Design",
+    subtitle: "Scale to millions",
+    desc: "Learn system design patterns to build scalable architectures and crush your interviews.",
+    icon: BrainCircuit,
+    tone: "cobalt",
+    tag: "System Design",
+    route: "/interview/java/system-design",
+    stats: "4 Learning Paths",
+  },
+  {
+    id: "interview-prep",
+    title: "Interview",
+    subtitle: "Guided preparation",
+    desc: "Real insights from candidates who recently interviewed at top tech companies. Learn what to expect.",
+    icon: Trophy,
+    tone: "cyan",
+    tag: "Experiences",
+    route: "/interview",
+    stats: "Real Stories",
+  },
+  {
+    id: "daily-challenge",
+    title: "Daily Challenge",
+    subtitle: "Solve today's problem",
+    desc: "A fresh LeetCode problem every day, with a built-in Java editor to craft and test your solution.",
+    icon: CalendarDays,
+    tone: "amber",
+    tag: "Today",
+    route: "/problem-solver",
+    stats: "Updated Daily",
+  },
+] as const;
+
+const CARD_TONES = {
+  cobalt: {
+    tile: "border-primary/25 bg-primary/10 text-primary",
+    dot: "bg-primary",
+  },
+  cyan: {
+    tile: "border-cyan-500/25 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
+    dot: "bg-cyan-500",
+  },
+  amber: {
+    tile: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    dot: "bg-amber-500",
+  },
+} as const;
+
+const HOW_IT_WORKS = [
+  {
+    icon: <MousePointerClick size={20} />,
+    title: "Pick a path",
+    desc: "Choose a structured track — DSA, System Design, Java, or Interview prep.",
+  },
+  {
+    icon: <Layers size={20} />,
+    title: "Learn by pattern",
+    desc: "Master concepts grouped by the patterns interviews actually test.",
+  },
+  {
+    icon: <Zap size={20} />,
+    title: "Practice & ship",
+    desc: "Solve in the built-in editor and walk in ready to perform.",
+  },
+] as const;
+
+const PROOF_POINTS = [
+  {
+    icon: Code2,
+    label: "Practice in your browser",
+    detail: "No setup, no installs",
+  },
+  {
+    icon: Layers,
+    label: "Learn patterns, not answers",
+    detail: "Deeper intuition, faster recall",
+  },
+  {
+    icon: MapIcon,
+    label: "Follow a clear roadmap",
+    detail: "Always know what comes next",
   },
 ] as const;
 
 export default function Index() {
-  const { profile, user } = useAuth();
-  const reduceMotion = useReducedMotion();
-  const { rows, interviewCount, loading } = useHomeStats();
   const [roadmapOpen, setRoadmapOpen] = useState(false);
+  const openRoadmap = () => setRoadmapOpen(true);
+  const { homeSidebarOpen, toggleHomeSidebar } = useHomeSidebar();
 
-  const firstName =
-    (profile?.display_name || user?.email || "there")
-      .toString()
-      .split(/[@\s]/)[0] ?? "there";
-
-  const { solved, bookmarked, notes, activity, lastTouched } = useMemo(() => {
-    const solvedSet = new Set(
-      rows.filter((row) => row.is_completed).map((row) => row.problem_id),
-    );
-    const noteRows = rows.filter(
-      (row) => row.notes && row.notes.trim().length > 0,
-    );
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const buckets = Array.from({ length: 14 }, () => 0);
-    for (const row of rows) {
-      if (!row.updated_at) continue;
-      const day = Math.floor(
-        (today.getTime() - new Date(row.updated_at).setHours(0, 0, 0, 0)) /
-          DAY_MS,
-      );
-      if (day >= 0 && day < 14) buckets[13 - day] += 1;
-    }
-    const recent = [...rows]
-      .filter((row) => row.updated_at)
-      .sort(
-        (a, b) =>
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-      )[0];
-    return {
-      solved: solvedSet,
-      bookmarked: rows.filter((row) => row.is_saved_for_revision).length,
-      notes: noteRows.length,
-      activity: buckets,
-      lastTouched: recent?.problem_id ?? null,
-    };
-  }, [rows]);
-
-  const allProblems = useMemo(() => PRACTICE_PROBLEMS, []);
-
-  const nextProblems = useMemo(
-    () =>
-      allProblems
-        .filter((problem) => !solved.has(problem.id))
-        .sort((a, b) => {
-          const rank = { Easy: 0, Medium: 1, Hard: 2 };
-          return rank[a.difficulty] - rank[b.difficulty];
-        })
-        .slice(0, 4),
-    [allProblems, solved],
-  );
-
-  const resumeProblem = lastTouched
-    ? allProblems.find((problem) => problem.id === lastTouched)
-    : null;
-
-  const peak = Math.max(1, ...activity);
-  const todayLabel = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const scrollToSection = (id: string) => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+  };
 
   return (
-    <>
-      <div className="mx-auto w-full max-w-content px-5 pb-16 pt-8 sm:px-8">
-        {/* ── Header ─────────────────────────────────────────────── */}
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
-          <div>
-            <p className="ws-eyebrow">Workspace · home</p>
-            <h1 className="mt-2 font-display text-[26px] font-semibold leading-tight tracking-[-0.03em] sm:text-[30px]">
-              Welcome back, {firstName}.
-            </h1>
-            <p className="mt-1.5 flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
-              <CalendarDays size={12} aria-hidden="true" />
-              {todayLabel}
+    <MotionConfig reducedMotion="user">
+      <main className="landing-page relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
+        <HeroSection
+          onExplore={() => scrollToSection("modules")}
+          onQuiz={() => scrollToSection("quiz")}
+          onOpenRoadmap={openRoadmap}
+        />
+
+        <Reveal className="relative border-b border-border/60">
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_140%_at_50%_0%,hsl(var(--primary)/0.09),transparent_74%)]"
+            aria-hidden="true"
+          />
+          <div className="relative mx-auto flex max-w-[1440px] flex-col gap-6 px-6 py-7 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 lg:px-16">
+            <p className="flex items-center gap-2.5 font-display text-[13.5px] font-semibold tracking-[-0.01em] text-foreground">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.6)]" aria-hidden="true" />
+              Less tab switching. More progress.
             </p>
+            <div className="grid gap-5 sm:grid-cols-3 sm:gap-0">
+              {PROOF_POINTS.map(({ icon: Icon, label, detail }, index) => (
+                <div
+                  key={label}
+                  className={cn(
+                    "group flex items-start gap-3",
+                    index > 0 && "sm:border-l sm:border-border/70 sm:pl-6",
+                    index < PROOF_POINTS.length - 1 && "sm:pr-6",
+                  )}
+                >
+                  <span className="icon-tile h-9 w-9 shrink-0 text-primary transition-all duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:border-primary/35">
+                    <Icon size={16} aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[12.5px] font-semibold leading-5 text-foreground/90">{label}</p>
+                    <p className="mt-0.5 text-[11.5px] leading-5 text-muted-foreground">{detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+        </Reveal>
+
+        {/* ── LEARNING PATHS ───────────────────────────────────────────── */}
+        <section
+          id="modules"
+          aria-labelledby="modules-heading"
+          className="relative mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28 lg:px-16"
+        >
+          <Reveal className="mb-12 flex flex-col justify-between gap-6 md:mb-14 md:flex-row md:items-end">
+            <div className="max-w-2xl">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+                Learning paths
+              </p>
+              <h2
+                id="modules-heading"
+                className="mt-3 font-display text-4xl font-bold leading-[1.05] tracking-[-0.04em] md:text-[3.3rem]"
+              >
+                Choose where to focus next.
+              </h2>
+              <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground">
+                Concise, practical material built around the skills that matter in
+                real interviews — no fluff, just momentum.
+              </p>
+            </div>
             <button
               type="button"
-              onClick={() => setRoadmapOpen(true)}
-              className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-line bg-[hsl(var(--surface-chrome))] px-3 text-[12.5px] font-medium text-foreground transition-colors duration-1 hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={toggleHomeSidebar}
+              aria-expanded={homeSidebarOpen}
+              className="group hidden w-fit items-center gap-2 rounded-xl border border-border/80 bg-card/70 px-4 py-2.5 text-[12.5px] font-semibold text-muted-foreground shadow-soft transition-all duration-200 hover:border-primary/30 hover:bg-card hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:inline-flex"
             >
-              <MapIcon
-                size={13}
-                className="text-muted-foreground"
-                aria-hidden="true"
+              <PanelLeft
+                size={14}
+                className="transition-transform duration-200 group-hover:-translate-x-0.5"
               />
-              Open roadmap
+              {homeSidebarOpen ? "Hide library panel" : "Open library panel"}
             </button>
-            <Link
-              to={
-                resumeProblem
-                  ? `/practice/solution/${resumeProblem.id}`
-                  : "/practice"
-              }
-              className="group inline-flex h-9 items-center gap-1.5 rounded-sm bg-primary px-3 text-[12.5px] font-semibold text-primary-foreground transition-[background-color,transform] duration-1 hover:bg-primary/90 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--surface-page))]"
-            >
-              {resumeProblem ? "Resume last problem" : "Start practising"}
-              <ArrowRight
-                size={13}
-                className="transition-transform duration-2 group-hover:translate-x-0.5"
-                aria-hidden="true"
-              />
-            </Link>
-          </div>
-        </header>
+          </Reveal>
 
-        {/* ── Numbers ────────────────────────────────────────────── */}
-        <section
-          aria-labelledby="stats-heading"
-          className="border-b border-line"
-        >
-          <h2 id="stats-heading" className="sr-only">
-            Your progress
-          </h2>
-          <div className="grid grid-cols-2 divide-x divide-line/70 md:grid-cols-4">
-            <StatCell
-              label="Problems solved"
-              value={loading ? "—" : solved.size}
-              suffix={loading ? undefined : `/ ${allProblems.length}`}
-              hint="Marked complete in the practice list"
-            />
-            <StatCell
-              label="Bookmarked"
-              value={loading ? "—" : bookmarked}
-              hint="Saved for revision"
-            />
-            <StatCell
-              label="Notes"
-              value={loading ? "—" : notes}
-              hint="Written on a problem"
-            />
-            <StatCell
-              label="Interview Qs"
-              value={loading ? "—" : (interviewCount ?? 0)}
-              hint="Core Java questions completed"
-            />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {SECTIONS.map((section, index) => {
+              const Icon = section.icon;
+              const tone = CARD_TONES[section.tone];
+              return (
+                <Reveal key={section.id} delay={index * 0.055} from="bottom">
+                  <SpotlightCard
+                    interactive
+                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
+                  >
+                    <Link
+                      to={section.route}
+                      className="relative flex h-full min-h-[290px] flex-col rounded-3xl p-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      <div className="mb-7 flex items-start justify-between">
+                        <div
+                          className={cn(
+                            "flex h-[52px] w-[52px] items-center justify-center rounded-2xl border shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-105",
+                            tone.tile,
+                          )}
+                        >
+                          <Icon size={23} />
+                        </div>
+                        <span className="rounded-full border border-border/70 bg-muted/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                          {section.tag}
+                        </span>
+                      </div>
+
+                      <div className="flex-1">
+                        <p className="mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground/80">
+                          {section.subtitle}
+                        </p>
+                        <h3 className="font-display text-[1.45rem] font-bold leading-tight tracking-[-0.025em]">
+                          {section.title}
+                        </h3>
+                        <p className="mt-3 text-[13.5px] leading-6 text-muted-foreground">
+                          {section.desc}
+                        </p>
+                      </div>
+
+                      <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-5">
+                        <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-muted-foreground">
+                          <span className="font-mono text-[10px] tracking-[0.08em] text-muted-foreground/55">
+                            0{index + 1}
+                          </span>
+                          <span className="h-3 w-px bg-border" aria-hidden="true" />
+                          <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
+                          {section.stats}
+                        </span>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 ease-premium group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                          <ArrowUpRight
+                            size={15}
+                            className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:rotate-45"
+                          />
+                        </span>
+                      </div>
+                    </Link>
+                  </SpotlightCard>
+                </Reveal>
+              );
+            })}
           </div>
         </section>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10">
-          {/* ── Next up ─────────────────────────────────────────── */}
-          <section aria-labelledby="next-heading">
-            <div className="flex items-center justify-between border-b border-line pb-2.5">
-              <h2
-                id="next-heading"
-                className="font-display text-[15px] font-medium"
-              >
-                Next up
-              </h2>
-              <Link
-                to="/practice"
-                className="inline-flex items-center gap-1 rounded-xs font-mono text-[10.5px] text-muted-foreground transition-colors duration-1 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                All problems
-                <ArrowRight size={10} aria-hidden="true" />
-              </Link>
-            </div>
+        {/* ── INTERACTIVE WORKSPACE DEMO ───────────────────────────────── */}
+        <WorkspaceDemoSection />
 
-            {loading ? (
-              <ul className="divide-y divide-line/60" aria-hidden="true">
-                {[0, 1, 2, 3].map((index) => (
-                  <li key={index} className="py-3.5">
-                    <div className="skeleton-shimmer h-4 w-2/3 rounded-xs" />
-                  </li>
-                ))}
-              </ul>
-            ) : nextProblems.length === 0 ? (
-              <div className="py-8">
-                <Trophy size={18} className="text-accent" aria-hidden="true" />
-                <p className="mt-3 text-[13.5px] text-foreground">
-                  Every problem is marked complete.
-                </p>
-                <p className="mt-1 text-[12.5px] text-muted-foreground">
-                  Revisit the ones you bookmarked for revision.
-                </p>
-                <Link
-                  to="/practice"
-                  className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-sm border border-line px-2.5 text-[12px] font-medium transition-colors duration-1 hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  Open practice list
-                  <ArrowRight size={12} aria-hidden="true" />
-                </Link>
-              </div>
-            ) : (
-              <ul className="divide-y divide-line/60">
-                {nextProblems.map((problem) => (
-                  <li key={problem.id}>
-                    <Link
-                      to={`/practice/solution/${problem.id}`}
-                      className="group flex items-center gap-3 py-3.5 focus-visible:outline-none"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          "h-1.5 w-1.5 shrink-0 rounded-pill",
-                          problem.difficulty === "Easy"
-                            ? "bg-[hsl(var(--difficulty-easy))]"
-                            : problem.difficulty === "Medium"
-                              ? "bg-[hsl(var(--difficulty-medium))]"
-                              : "bg-[hsl(var(--difficulty-hard))]",
-                        )}
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[13.5px] text-foreground transition-colors duration-1 group-hover:text-primary">
-                          {problem.title}
-                        </span>
-                        <span className="mt-0.5 flex items-center gap-2 font-mono text-[10.5px] text-muted-foreground">
-                          {problem.difficulty}
-                          <span
-                            aria-hidden="true"
-                            className="text-muted-foreground/40"
-                          >
-                            ·
-                          </span>
-                          {problem.source.label}
-                        </span>
-                      </span>
-                      <ArrowUpRight
-                        size={13}
-                        className="shrink-0 text-muted-foreground/80 transition-transform duration-2 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
-                        aria-hidden="true"
-                      />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+        {/* ── QUIZ ─────────────────────────────────────────────────────── */}
+        <QuizSection />
 
-          {/* ── Activity + quick actions ────────────────────────── */}
-          <div className="space-y-8">
-            <section aria-labelledby="activity-heading">
-              <div className="flex items-center justify-between border-b border-line pb-2.5">
-                <h2
-                  id="activity-heading"
-                  className="font-display text-[15px] font-medium"
-                >
-                  Last 14 days
-                </h2>
-                <span className="font-mono text-[10.5px] text-muted-foreground">
-                  {activity.reduce((sum, value) => sum + value, 0)} updates
-                </span>
-              </div>
-              <div
-                className="mt-4 flex h-16 items-end gap-1"
-                role="img"
-                aria-label="Problems updated per day over the last 14 days"
-              >
-                {activity.map((value, index) => (
-                  <motion.span
-                    key={index}
-                    initial={
-                      reduceMotion ? false : { scaleY: 0.2, opacity: 0.4 }
-                    }
-                    animate={{ scaleY: 1, opacity: 1 }}
-                    transition={{
-                      duration: 0.32,
-                      delay: reduceMotion ? 0 : index * 0.018,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                    style={{
-                      height: `${Math.max(6, (value / peak) * 100)}%`,
-                      transformOrigin: "bottom",
-                    }}
-                    className={cn(
-                      "flex-1 rounded-xs",
-                      value === 0
-                        ? "bg-[hsl(var(--surface-line-strong))]"
-                        : "bg-primary/60",
-                    )}
-                  />
-                ))}
-              </div>
-              <p className="mt-3 text-[11.5px] leading-4 text-muted-foreground">
-                {rows.length === 0
-                  ? "No practice history yet — completing a problem starts the chart."
-                  : "Each bar counts problems you completed, bookmarked or noted that day."}
+        {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
+        <section className="relative border-y border-border/60 bg-muted/25">
+          <div className="pointer-events-none absolute inset-0 bg-dots opacity-[0.18]" aria-hidden="true" />
+          <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24 lg:px-16">
+            <Reveal className="mb-12 text-center">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+                How it works
               </p>
-            </section>
-
-            <section aria-labelledby="actions-heading">
-              <h2
-                id="actions-heading"
-                className="border-b border-line pb-2.5 font-display text-[15px] font-medium"
-              >
-                Jump back in
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] md:text-4xl">
+                From first click to offer letter.
               </h2>
-              <ul className="divide-y divide-line/60">
-                {QUICK_ACTIONS.map((action) => (
-                  <li key={action.to}>
-                    <Link
-                      to={action.to}
-                      className="group flex items-center gap-3 py-3 focus-visible:outline-none"
-                    >
-                      <action.icon
-                        size={14}
-                        className="shrink-0 text-muted-foreground transition-colors duration-1 group-hover:text-primary"
-                        aria-hidden="true"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[13px] text-foreground transition-colors duration-1 group-hover:text-primary">
-                          {action.label}
-                        </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                          {action.hint}
-                        </span>
-                      </span>
-                      <ArrowRight
-                        size={12}
-                        className="shrink-0 text-muted-foreground/80 transition-transform duration-2 group-hover:translate-x-0.5"
-                        aria-hidden="true"
-                      />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
-        </div>
+            </Reveal>
 
-        {/* ── Tracks ─────────────────────────────────────────────── */}
-        <section aria-labelledby="tracks-heading" className="mt-12">
-          <div className="flex items-end justify-between border-b border-line pb-2.5">
-            <div>
-              <h2
-                id="tracks-heading"
-                className="font-display text-[15px] font-medium"
-              >
-                All tracks
-              </h2>
-              <p className="mt-1 text-[11.5px] text-muted-foreground">
-                {topics.length} DSA tracks · {javaTopics.length} Java topics ·
-                practice sheets
-              </p>
-            </div>
-            <BookOpen
-              size={14}
-              className="text-muted-foreground"
-              aria-hidden="true"
-            />
-          </div>
-          <ul className="mt-1 grid sm:grid-cols-2 lg:grid-cols-3">
-            {topics.map((topic) => (
-              <li key={topic.id} className="border-b border-line/60">
-                <Link
-                  to={`/${topic.id}`}
-                  className="group flex items-center justify-between gap-3 py-3 pr-2 focus-visible:outline-none"
-                >
-                  <span className="flex min-w-0 items-center gap-2.5">
+            <div className="relative grid gap-6 md:grid-cols-3">
+              {HOW_IT_WORKS.map((step, index) => (
+                <Reveal key={step.title} delay={index * 0.08} className="relative">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-border/80 bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-primary/30 hover:shadow-overlay">
                     <span
                       aria-hidden="true"
-                      className="w-4 shrink-0 text-center font-mono text-[11px] text-muted-foreground/80"
-                    >
-                      {topic.icon}
-                    </span>
-                    <span className="truncate text-[13px] text-foreground transition-colors duration-1 group-hover:text-primary">
-                      {topic.title}
-                    </span>
-                  </span>
-                  <span className="shrink-0 font-mono text-[10.5px] text-muted-foreground/80">
-                    {topic.subtopics.length}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
-            <Link
-              to="/practice"
-              className="inline-flex items-center gap-1.5 rounded-xs text-muted-foreground underline-offset-4 transition-colors duration-1 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Target size={12} aria-hidden="true" />
-              Practice sheets
-            </Link>
-            <Link
-              to="/contest"
-              className="inline-flex items-center gap-1.5 rounded-xs text-muted-foreground underline-offset-4 transition-colors duration-1 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <StickyNote size={12} aria-hidden="true" />
-              Contest practice
-            </Link>
-            <Link
-              to="/notes"
-              className="inline-flex items-center gap-1.5 rounded-xs text-muted-foreground underline-offset-4 transition-colors duration-1 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <BookOpen size={12} aria-hidden="true" />
-              My notes
-            </Link>
+                      className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.45),transparent)]"
+                    />
+                    <div className="mb-5 flex items-start justify-between">
+                      <div className="inline-flex rounded-2xl border border-primary/20 bg-primary/[0.08] p-3.5 text-primary shadow-soft">
+                        {step.icon}
+                      </div>
+                      <span
+                        aria-hidden="true"
+                        className="font-display text-[2.6rem] font-bold leading-none tracking-[-0.06em] text-foreground/[0.05] transition-colors duration-300 group-hover:text-primary/[0.09]"
+                      >
+                        0{index + 1}
+                      </span>
+                    </div>
+                    <h3 className="font-display text-lg font-bold tracking-tight">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-[14px] leading-6 text-muted-foreground">
+                      {step.desc}
+                    </p>
+                  </div>
+                </Reveal>
+              ))}
+
+              {[0, 1].map((index) => (
+                <span
+                  key={index}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 hidden h-7 w-7 items-center justify-center rounded-full border border-primary/25 bg-card text-primary/80 shadow-soft md:flex"
+                  style={{
+                    left: `${((index + 1) * 100) / 3}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  <ChevronRight size={14} />
+                </span>
+              ))}
+            </div>
           </div>
         </section>
-      </div>
 
-      {roadmapOpen && (
-        <Suspense
-          fallback={
-            <div
-              role="status"
-              aria-live="polite"
-              className="fixed bottom-6 left-1/2 z-modal -translate-x-1/2 rounded-sm border border-line bg-[hsl(var(--surface-panel))] px-4 py-2 text-[12.5px] shadow-overlay"
-            >
-              Loading your roadmap…
-            </div>
-          }
-        >
-          <RoadmapFullscreenOverlay
-            open={roadmapOpen}
-            onClose={() => setRoadmapOpen(false)}
-          />
-        </Suspense>
-      )}
-    </>
+        {/* ── FINAL CTA ────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.18),transparent_52%)]" />
+          <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28 lg:px-16">
+            <Reveal>
+              <SpotlightCard
+                interactive
+                className="cta-card relative overflow-hidden px-6 py-16 text-center backdrop-blur-xl md:px-12 md:py-20"
+              >
+                <div
+                  className="pointer-events-none !absolute inset-0 overflow-hidden rounded-[inherit]"
+                  aria-hidden="true"
+                >
+                  <div className="absolute inset-0 bg-grid opacity-30" />
+                  <div className="absolute inset-x-10 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.55),rgb(103_232_249/0.25),transparent)]" />
+                  <div className="aurora-blob absolute left-[12%] top-[-20%] h-64 w-64 bg-primary/10" />
+                  <div
+                    className="aurora-blob absolute right-[8%] bottom-[-30%] h-64 w-64 bg-accent/10"
+                    style={{ animationDelay: "-9s" }}
+                  />
+                  <div
+                    className="aurora-blob absolute left-[46%] bottom-[-24%] h-56 w-56 bg-cyan-400/[0.07]"
+                    style={{ animationDelay: "-15s", animationDuration: "30s" }}
+                  />
+                </div>
+
+                <div className="relative">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                    <Sparkles size={12} /> Free forever
+                  </span>
+                  <h2 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl">
+                    Make your next session{" "}
+                    <span className="landing-gradient">count.</span>
+                  </h2>
+                  <p className="mx-auto mt-5 max-w-xl text-[16px] leading-7 text-muted-foreground">
+                    Stop scrolling tutorials. Start a structured path and build
+                    real, interview-ready skill today.
+                  </p>
+                  <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
+                    <MagneticButton
+                      onClick={() => scrollToSection("modules")}
+                      className="landing-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-8 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      Start learning free
+                      <ArrowRight
+                        size={17}
+                        className="transition-transform duration-300 group-hover:translate-x-1"
+                      />
+                    </MagneticButton>
+                    <button
+                      onClick={openRoadmap}
+                      className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card/80 px-8 py-4 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      <MapIcon size={16} className="text-primary" />
+                      View roadmap
+                    </button>
+                  </div>
+                  <p className="mt-6 text-[11.5px] font-medium text-muted-foreground/80">
+                    No credit card. No paywall. Cancel nothing.
+                  </p>
+                </div>
+              </SpotlightCard>
+            </Reveal>
+          </div>
+        </section>
+
+        {roadmapOpen && (
+          <Suspense fallback={<div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-border bg-card px-5 py-3 text-sm shadow-overlay">Loading your roadmap…</div>}>
+            <RoadmapFullscreenOverlay
+              open={roadmapOpen}
+              onClose={() => setRoadmapOpen(false)}
+            />
+          </Suspense>
+        )}
+      </main>
+    </MotionConfig>
   );
 }

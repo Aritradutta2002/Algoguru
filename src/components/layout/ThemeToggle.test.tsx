@@ -11,7 +11,7 @@ describe("ThemeToggle", () => {
         <SettingsProvider>
           <ThemeToggle />
         </SettingsProvider>
-      </TooltipProvider>,
+      </TooltipProvider>
     );
 
     const button = screen.getByRole("button", { name: /switch to/i });

@@ -27,12 +27,10 @@ describe("NotificationCenter", () => {
     render(
       <TooltipProvider>
         <NotificationCenter />
-      </TooltipProvider>,
+      </TooltipProvider>
     );
 
-    const trigger = screen.getByRole("button", {
-      name: /notifications \(2 unread\)/i,
-    });
+    const trigger = screen.getByRole("button", { name: /notifications \(2 unread\)/i });
     expect(trigger).toBeInTheDocument();
   });
 
@@ -40,7 +38,7 @@ describe("NotificationCenter", () => {
     render(
       <TooltipProvider>
         <NotificationCenter />
-      </TooltipProvider>,
+      </TooltipProvider>
     );
 
     const trigger = screen.getByRole("button", { name: /notifications/i });
@@ -61,7 +59,7 @@ describe("NotificationCenter", () => {
     render(
       <TooltipProvider>
         <NotificationCenter />
-      </TooltipProvider>,
+      </TooltipProvider>
     );
 
     const trigger = screen.getByRole("button", { name: /notifications/i });
@@ -73,16 +71,14 @@ describe("NotificationCenter", () => {
     expect(screen.getByText("Guru AI Coach")).toBeInTheDocument();
     expect(screen.getByText("New System Design Track")).toBeInTheDocument();
     // Read item should not be in unread list
-    expect(
-      screen.queryByText("Weekly Engineering Contest"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Weekly Engineering Contest")).not.toBeInTheDocument();
   });
 
   it("marks individual notification as read when clicked", () => {
     render(
       <TooltipProvider>
         <NotificationCenter />
-      </TooltipProvider>,
+      </TooltipProvider>
     );
 
     const trigger = screen.getByRole("button", { name: /notifications/i });
@@ -95,19 +91,14 @@ describe("NotificationCenter", () => {
     expect(screen.getByText("1 new")).toBeInTheDocument();
     // Trigger button aria-label should also update to 1 unread
     expect(trigger).toHaveAttribute("aria-label", "Notifications (1 unread)");
-    expect(
-      screen.getByRole("button", {
-        name: /notifications \(1 unread\)/i,
-        hidden: true,
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /notifications \(1 unread\)/i, hidden: true })).toBeInTheDocument();
   });
 
   it("switches filter tabs between All and Unread and displays empty state when all read", () => {
     render(
       <TooltipProvider>
         <NotificationCenter />
-      </TooltipProvider>,
+      </TooltipProvider>
     );
 
     const trigger = screen.getByRole("button", { name: /notifications/i });
@@ -122,9 +113,7 @@ describe("NotificationCenter", () => {
     fireEvent.click(unreadTab);
 
     // Empty state should appear
-    expect(
-      screen.getByText("All caught up! No unread notifications."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("All caught up! No unread notifications.")).toBeInTheDocument();
 
     // Switch back to All filter
     const allTab = screen.getByRole("button", { name: /^all$/i });
@@ -139,7 +128,7 @@ describe("NotificationCenter", () => {
     render(
       <TooltipProvider>
         <NotificationCenter />
-      </TooltipProvider>,
+      </TooltipProvider>
     );
 
     const trigger = screen.getByRole("button", { name: /notifications/i });
@@ -152,3 +141,4 @@ describe("NotificationCenter", () => {
     expect(screen.queryByText("Notifications")).not.toBeInTheDocument();
   });
 });
+

@@ -31,14 +31,10 @@ describe("WorkspaceSwitcher", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect(
-      screen.getByRole("button", {
-        name: /current workspace: algoguru personal/i,
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /current workspace: algoguru personal/i })).toBeInTheDocument();
     expect(screen.getByText("Algo")).toBeInTheDocument();
     expect(screen.getByText("Guru")).toBeInTheDocument();
     expect(screen.getByText("Personal")).toBeInTheDocument();
@@ -48,7 +44,7 @@ describe("WorkspaceSwitcher", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
@@ -64,7 +60,7 @@ describe("WorkspaceSwitcher", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
@@ -74,16 +70,14 @@ describe("WorkspaceSwitcher", () => {
     fireEvent.click(teamOption);
 
     expect(localStorage.getItem("algoguru_active_workspace")).toBe("team");
-    expect(
-      screen.getByRole("button", { name: /current workspace: algoguru team/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /current workspace: algoguru team/i })).toBeInTheDocument();
   });
 
   it("switches workspace to Enterprise when clicked", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
@@ -92,14 +86,8 @@ describe("WorkspaceSwitcher", () => {
     const enterpriseOption = screen.getByText("Enterprise");
     fireEvent.click(enterpriseOption);
 
-    expect(localStorage.getItem("algoguru_active_workspace")).toBe(
-      "enterprise",
-    );
-    expect(
-      screen.getByRole("button", {
-        name: /current workspace: algoguru enterprise/i,
-      }),
-    ).toBeInTheDocument();
+    expect(localStorage.getItem("algoguru_active_workspace")).toBe("enterprise");
+    expect(screen.getByRole("button", { name: /current workspace: algoguru enterprise/i })).toBeInTheDocument();
   });
 
   it("initializes active workspace from localStorage if present", () => {
@@ -108,26 +96,20 @@ describe("WorkspaceSwitcher", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect(
-      screen.getByRole("button", { name: /current workspace: algoguru team/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /current workspace: algoguru team/i })).toBeInTheDocument();
   });
 
   it("renders compact mode without workspace subtext", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher compact />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect(
-      screen.getByRole("button", {
-        name: /current workspace: algoguru personal/i,
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /current workspace: algoguru personal/i })).toBeInTheDocument();
     expect(screen.queryByText("Personal")).not.toBeInTheDocument();
   });
 
@@ -135,7 +117,7 @@ describe("WorkspaceSwitcher", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
@@ -150,20 +132,17 @@ describe("WorkspaceSwitcher", () => {
     render(
       <MemoryRouter>
         <WorkspaceSwitcher />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
     openDropdown(trigger);
 
-    const teamOption =
-      screen.getByText("Team").closest("[role='menuitem']") ||
-      screen.getByText("Team");
+    const teamOption = screen.getByText("Team").closest("[role='menuitem']") || screen.getByText("Team");
     fireEvent.keyDown(teamOption, { key: "Enter" });
 
     expect(localStorage.getItem("algoguru_active_workspace")).toBe("team");
-    expect(
-      screen.getByRole("button", { name: /current workspace: algoguru team/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /current workspace: algoguru team/i })).toBeInTheDocument();
   });
 });
+

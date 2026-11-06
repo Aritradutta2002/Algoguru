@@ -26,10 +26,7 @@ PageContainer.displayName = "PageContainer";
 
 /* ─── Page header ─────────────────────────────────────────────────── */
 
-interface PageHeaderProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "title"
-> {
+interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** Small uppercase label above the title. */
   eyebrow?: React.ReactNode;
   title: React.ReactNode;
@@ -91,9 +88,7 @@ export function PageHeader({
           )}
         </div>
         {actions && (
-          <div className="flex shrink-0 flex-wrap items-center gap-3">
-            {actions}
-          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-3">{actions}</div>
         )}
       </PageContainer>
     </div>
@@ -102,10 +97,7 @@ export function PageHeader({
 
 /* ─── Section ─────────────────────────────────────────────────────── */
 
-interface SectionProps extends Omit<
-  React.HTMLAttributes<HTMLElement>,
-  "title"
-> {
+interface SectionProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   title?: React.ReactNode;
   description?: React.ReactNode;
   actions?: React.ReactNode;
@@ -145,9 +137,7 @@ export function Section({
               </p>
             )}
           </div>
-          {actions && (
-            <div className="flex shrink-0 items-center gap-2">{actions}</div>
-          )}
+          {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
         </div>
       )}
       {children}
@@ -206,9 +196,7 @@ export function StatCard({
       {...props}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-muted-foreground">
-          {label}
-        </span>
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
         {icon && (
           <span
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
@@ -232,10 +220,7 @@ export function StatCard({
 
 /* ─── Empty state ─────────────────────────────────────────────────── */
 
-interface EmptyStateProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  "title"
-> {
+interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   icon?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;

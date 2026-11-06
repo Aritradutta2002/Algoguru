@@ -6,11 +6,7 @@ import { cn } from "@/lib/utils";
  * The branded wheel replaces the old static mark + shimmer bar so the first
  * paint of the app already looks like the product.
  */
-export function AppLoadingScreen({
-  label = "Loading your workspace",
-}: {
-  label?: string;
-}) {
+export function AppLoadingScreen({ label = "Loading your workspace" }: { label?: string }) {
   return (
     <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-background">
       <div
@@ -21,12 +17,7 @@ export function AppLoadingScreen({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,hsl(var(--border)/0.6)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.6)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(circle_at_50%_42%,#000_18%,transparent_70%)]"
       />
-      <BrandLoader
-        variant="screen"
-        size="lg"
-        label={label}
-        className="relative z-10"
-      />
+      <BrandLoader variant="screen" size="lg" label={label} className="relative z-10" />
     </div>
   );
 }
@@ -38,10 +29,7 @@ export function AppLoadingScreen({
 export function PageSkeleton({ className }: { className?: string }) {
   return (
     <div
-      className={cn(
-        "mx-auto w-full max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16",
-        className,
-      )}
+      className={cn("mx-auto w-full max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16", className)}
       aria-busy="true"
       aria-label="Loading page"
     >
