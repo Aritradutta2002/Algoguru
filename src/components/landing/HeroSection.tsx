@@ -6,9 +6,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Play, Shuffle } from "lucide-react";
-import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
-import { MagneticButton } from "@/components/motion/MagneticButton";
-import { HERO_TIMELINE } from "@/lib/motion";
+import { CandyButton } from "@/components/ui/vengeance/CandyButton";
+import { InteractiveHoverButton } from "@/components/ui/vengeance/InteractiveHoverButton";
+import { MorphText } from "@/components/ui/vengeance/MorphText";
+import { StatsCounter } from "@/components/ui/vengeance/StatsCounter";
 import { HeroWorkspacePreview } from "./HeroWorkspacePreview";
 import { useHeroChoreography } from "./useHeroChoreography";
 
@@ -98,15 +99,15 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
         <div className="hero-copy min-w-0">
           <motion.div
             {...rise(0.02)}
-            className="hero-eyebrow inline-flex items-center gap-2.5 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold text-muted-foreground"
+            className="hero-eyebrow inline-flex items-center gap-2.5 rounded-full border border-border/80 bg-card/60 px-3.5 py-1.5 text-[11.5px] font-semibold text-muted-foreground backdrop-blur-md"
           >
             <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
             </span>
             The focused workspace for engineers
             <span className="hero-eyebrow-divider hidden h-3 w-px bg-border/80 sm:block" aria-hidden="true" />
-            <span className="hero-eyebrow-tag hidden text-[10px] font-bold uppercase tracking-[0.12em] text-primary sm:inline">
+            <span className="hero-eyebrow-tag hidden font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-primary sm:inline">
               Free forever
             </span>
           </motion.div>
@@ -119,7 +120,11 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
             <span className="hero-headline-line">Build skills.</span>
             <span className="hero-headline-line">Solve smarter.</span>
             <span className="hero-headline-line">
-              <span className="hero-gradient-text">Interview ready.</span>
+              <MorphText
+                defaultWord="Interview ready."
+                words={["Interview ready.", "DSA patterns.", "System design.", "Java internals."]}
+                className="hero-gradient-text"
+              />
             </span>
           </motion.h1>
 
@@ -133,9 +138,9 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
           </motion.p>
 
           <motion.div {...rise(0.2)} className="hero-cta-row mt-8 flex flex-wrap items-center gap-3.5">
-            <MagneticButton
+            <CandyButton
               onClick={onExplore}
-              className="landing-primary hero-cta-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
+              className="landing-primary hero-cta-primary"
             >
               Explore learning paths
               <ArrowRight
@@ -143,16 +148,13 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
                 className="transition-transform duration-300 group-hover:translate-x-1"
                 aria-hidden="true"
               />
-            </MagneticButton>
-            <button
+            </CandyButton>
+            <InteractiveHoverButton
               onClick={() => navigate("/playground")}
-              className="hero-cta-secondary group inline-flex items-center gap-2.5 rounded-xl px-5 py-4 text-[15px] font-semibold text-foreground transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
+              className="hero-cta-secondary"
             >
-              <span className="hero-play-tile flex h-7 w-7 items-center justify-center rounded-lg">
-                <Play size={13} fill="currentColor" aria-hidden="true" />
-              </span>
               Open playground
-            </button>
+            </InteractiveHoverButton>
           </motion.div>
 
           <motion.p
@@ -195,10 +197,9 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
             {HERO_STATS.map((stat) => (
               <div key={stat.label} className="hero-stat">
                 <p className="hero-stat-value font-display font-bold tracking-tight text-foreground">
-                  <AnimatedCounter
+                  <StatsCounter
                     value={stat.value}
                     suffix={stat.suffix}
-                    delay={HERO_TIMELINE.pass}
                   />
                 </p>
                 <p className="hero-stat-label mt-1.5 text-[11.5px] font-medium leading-snug text-muted-foreground">
