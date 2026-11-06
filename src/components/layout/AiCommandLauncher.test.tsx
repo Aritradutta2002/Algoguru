@@ -12,7 +12,9 @@ describe("AiCommandLauncher", () => {
       </TooltipProvider>,
     );
 
-    const button = screen.getByRole("button", { name: /open guru ai command center/i });
+    const button = screen.getByRole("button", {
+      name: /open guru ai command center/i,
+    });
     expect(button).toBeInTheDocument();
     expect(button).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByText("Ask Guru")).toBeInTheDocument();
@@ -29,7 +31,9 @@ describe("AiCommandLauncher", () => {
       </TooltipProvider>,
     );
 
-    const button = screen.getByRole("button", { name: /close guru ai command center/i });
+    const button = screen.getByRole("button", {
+      name: /close guru ai command center/i,
+    });
     expect(button).toHaveAttribute("aria-pressed", "true");
   });
 

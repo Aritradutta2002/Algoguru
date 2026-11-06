@@ -169,9 +169,11 @@ const useNoteDocs = (userId: string | undefined) => {
 
 const DIFFICULTY_STYLES: Record<string, string> = {
   Easy: "text-[hsl(var(--success))] border-[hsl(var(--success))]/30 bg-[hsl(var(--success))]/10",
-  Medium: "text-[hsl(var(--warning))] border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/10",
+  Medium:
+    "text-[hsl(var(--warning))] border-[hsl(var(--warning))]/30 bg-[hsl(var(--warning))]/10",
   Hard: "text-destructive border-destructive/30 bg-destructive/10",
-  Expert: "text-[hsl(var(--info))] border-[hsl(var(--info))]/30 bg-[hsl(var(--info))]/10",
+  Expert:
+    "text-[hsl(var(--info))] border-[hsl(var(--info))]/30 bg-[hsl(var(--info))]/10",
 };
 
 /** Highlights every whitespace-separated term of the query inside `text`. */
@@ -211,7 +213,7 @@ const ShortcutKey = ({ children }: { children: ReactNode }) => (
 );
 
 const SectionLabel = ({ children }: { children: ReactNode }) => (
-  <div className="px-2 pb-2 pt-4 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">
+  <div className="px-2 pb-2 pt-4 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/80">
     {children}
   </div>
 );
@@ -230,7 +232,15 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
  * solid fill — a full-bleed fill drowns out the title, the subtitle and the
  * difficulty badge, and `--accent` here is a saturated amber brand colour.
  */
-const ResultRow = ({ doc, query, onSelect }: { doc: ScoredDoc; query: string; onSelect: () => void }) => (
+const ResultRow = ({
+  doc,
+  query,
+  onSelect,
+}: {
+  doc: ScoredDoc;
+  query: string;
+  onSelect: () => void;
+}) => (
   <CommandItem
     value={`${doc.category} ${doc.id} ${doc.title} ${doc.subtitle}`}
     onSelect={onSelect}
@@ -260,7 +270,7 @@ const ResultRow = ({ doc, query, onSelect }: { doc: ScoredDoc; query: string; on
           </span>
         ))}
         {doc.companies.length > 2 && (
-          <span className="text-[9.5px] text-muted-foreground/60">
+          <span className="text-[9.5px] text-muted-foreground/80">
             +{doc.companies.length - 2}
           </span>
         )}
@@ -272,7 +282,10 @@ const ResultRow = ({ doc, query, onSelect }: { doc: ScoredDoc; query: string; on
         className={cn(
           "shrink-0 rounded-md border px-1.5 py-px text-[10px] font-semibold leading-tight capitalize",
           DIFFICULTY_STYLES[doc.difficulty] ??
-            DIFFICULTY_STYLES[doc.difficulty.charAt(0).toUpperCase() + doc.difficulty.slice(1).toLowerCase()] ??
+            DIFFICULTY_STYLES[
+              doc.difficulty.charAt(0).toUpperCase() +
+                doc.difficulty.slice(1).toLowerCase()
+            ] ??
             "border-border bg-muted text-muted-foreground",
         )}
       >
@@ -293,7 +306,13 @@ const ResultRow = ({ doc, query, onSelect }: { doc: ScoredDoc; query: string; on
 /* Quick access                                                                */
 /* -------------------------------------------------------------------------- */
 
-const QuickAccessChip = ({ doc, onSelect }: { doc: SearchDoc; onSelect: () => void }) => (
+const QuickAccessChip = ({
+  doc,
+  onSelect,
+}: {
+  doc: SearchDoc;
+  onSelect: () => void;
+}) => (
   <CommandItem
     value={`quick ${doc.id} ${doc.title}`}
     onSelect={onSelect}
@@ -357,7 +376,10 @@ export function GlobalSearch({
   const showEmptyState = trimmed.length < MIN_QUERY_LENGTH;
 
   const allDocs = useMemo(
-    () => (noteDocs.length ? [...STATIC_SEARCH_DOCS, ...noteDocs] : STATIC_SEARCH_DOCS),
+    () =>
+      noteDocs.length
+        ? [...STATIC_SEARCH_DOCS, ...noteDocs]
+        : STATIC_SEARCH_DOCS,
     [noteDocs],
   );
 
@@ -369,7 +391,10 @@ export function GlobalSearch({
   const groups = useMemo(() => groupByCategory(results), [results]);
 
   const quickAccess = useMemo<SearchDoc[]>(
-    () => (recents.length === 0 ? DEFAULT_QUICK_ACCESS : recents.map((entry) => ({ ...entry, haystack: "" }))),
+    () =>
+      recents.length === 0
+        ? DEFAULT_QUICK_ACCESS
+        : recents.map((entry) => ({ ...entry, haystack: "" })),
     [recents],
   );
 
@@ -383,7 +408,10 @@ export function GlobalSearch({
         icon: doc.icon,
         category: doc.category,
       };
-      const next = [entry, ...previous.filter((item) => item.id !== entry.id)].slice(0, MAX_RECENTS);
+      const next = [
+        entry,
+        ...previous.filter((item) => item.id !== entry.id),
+      ].slice(0, MAX_RECENTS);
       writeRecents(next);
       return next;
     });
@@ -442,10 +470,10 @@ export function GlobalSearch({
               size={20}
               className="transition-transform duration-300 group-hover:scale-110"
             />
-            <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/65 transition-colors group-hover:text-muted-foreground sm:inline">
+            <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/80 transition-colors group-hover:text-muted-foreground sm:inline">
               Search topics, problems…
             </span>
-            <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/55 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
+            <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/80 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
               <span>⌘</span>K
             </kbd>
           </button>
@@ -467,7 +495,7 @@ export function GlobalSearch({
           >
             {/* Vignette: a radial wash instead of a flat scrim, so the
                 spotlight falls on the palette rather than the whole page. */}
-            <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,hsl(var(--primary)/0.10),transparent_60%)] bg-slate-950/55 backdrop-blur-[6px] dark:bg-slate-950/70" />
+            <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,hsl(var(--primary)/0.10),transparent_60%)] bg-[hsl(var(--surface-raised))] backdrop-blur-[6px] " />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.97, y: -10 }}
@@ -492,7 +520,7 @@ export function GlobalSearch({
                     onValueChange={setQuery}
                     placeholder="Search anything on AlgoGuru..."
                     wrapperClassName="min-w-0 flex-1 border-b-0 p-0"
-                    className="h-auto bg-transparent py-0 text-[16px] font-normal tracking-[-0.01em] placeholder:font-normal placeholder:tracking-normal placeholder:text-muted-foreground/55"
+                    className="h-auto bg-transparent py-0 text-[16px] font-normal tracking-[-0.01em] placeholder:font-normal placeholder:tracking-normal placeholder:text-muted-foreground/80"
                   />
 
                   {trimmed && (
@@ -523,7 +551,7 @@ export function GlobalSearch({
                     type="button"
                     onClick={() => setOpen(false)}
                     aria-label="Close search"
-                    className="flex h-7 w-7 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-transparent text-muted-foreground/70 transition-all hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
+                    className="flex h-7 w-7 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-transparent text-muted-foreground/80 transition-all hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
                   >
                     <X size={15} />
                   </button>
@@ -540,14 +568,20 @@ export function GlobalSearch({
                           onClick={() => setTab(entry.id)}
                           className={cn(
                             "relative shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors",
-                            active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                            active
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-foreground",
                           )}
                         >
                           {active && (
                             <motion.span
                               layoutId="global-search-tab"
                               className="absolute inset-0 rounded-full bg-primary/10 ring-1 ring-inset ring-primary/20"
-                              transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 420,
+                                damping: 34,
+                              }}
                             />
                           )}
                           <span className="relative">{entry.label}</span>
@@ -565,7 +599,9 @@ export function GlobalSearch({
                     <>
                       <div className="flex items-center justify-between px-2 pt-2 pb-0">
                         <SectionLabel>
-                          {recents.length === 0 ? "Quick Access" : "Recent Searches"}
+                          {recents.length === 0
+                            ? "Quick Access"
+                            : "Recent Searches"}
                         </SectionLabel>
                         {recents.length > 0 && (
                           <button
@@ -574,7 +610,7 @@ export function GlobalSearch({
                               writeRecents([]);
                               setRecents([]);
                             }}
-                            className="text-[11px] font-medium text-muted-foreground/60 hover:text-primary transition-colors cursor-pointer mr-1"
+                            className="text-[11px] font-medium text-muted-foreground/80 hover:text-primary transition-colors cursor-pointer mr-1"
                           >
                             Clear recent
                           </button>
@@ -582,7 +618,11 @@ export function GlobalSearch({
                       </div>
                       <div className="flex flex-wrap gap-1.5 px-2 pb-2">
                         {quickAccess.map((doc) => (
-                          <QuickAccessChip key={doc.id} doc={doc} onSelect={() => go(doc)} />
+                          <QuickAccessChip
+                            key={doc.id}
+                            doc={doc}
+                            onSelect={() => go(doc)}
+                          />
                         ))}
                       </div>
 
@@ -593,7 +633,8 @@ export function GlobalSearch({
                             Search anything
                           </div>
                           <div className="mt-0.5 text-[13px] text-muted-foreground">
-                            Type at least {MIN_QUERY_LENGTH} characters to begin search
+                            Type at least {MIN_QUERY_LENGTH} characters to begin
+                            search
                           </div>
                         </div>
                       </div>
@@ -601,62 +642,67 @@ export function GlobalSearch({
                   ) : (
                     <>
                       <CommandEmpty>
-                      <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-                        <SearchMark size={28} className="opacity-70" />
-                        <div>
-                          <div className="text-[15px] font-medium text-foreground">
-                            No results for “{trimmed}”
-                          </div>
-                          <div className="mt-1 text-[13px] text-muted-foreground">
-                            Try “two sum”, “backtracking” or “@Transactional”
+                        <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+                          <SearchMark size={28} className="opacity-70" />
+                          <div>
+                            <div className="text-[15px] font-medium text-foreground">
+                              No results for “{trimmed}”
+                            </div>
+                            <div className="mt-1 text-[13px] text-muted-foreground">
+                              Try “two sum”, “backtracking” or “@Transactional”
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CommandEmpty>
+                      </CommandEmpty>
 
-                    {groups.map((group) => (
-                      <CommandGroup
-                        key={group.category}
-                        heading={CATEGORY_LABELS[group.category]}
-                        className="p-0 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:pt-3.5 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.08em] [&_[cmdk-group-heading]]:text-muted-foreground/60"
-                      >
-                        {group.docs.map((doc) => (
-                          <ResultRow key={doc.id} doc={doc} query={trimmed} onSelect={() => go(doc)} />
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </>
-                )}
-              </CommandList>
+                      {groups.map((group) => (
+                        <CommandGroup
+                          key={group.category}
+                          heading={CATEGORY_LABELS[group.category]}
+                          className="p-0 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:pt-3.5 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.08em] [&_[cmdk-group-heading]]:text-muted-foreground/80"
+                        >
+                          {group.docs.map((doc) => (
+                            <ResultRow
+                              key={doc.id}
+                              doc={doc}
+                              query={trimmed}
+                              onSelect={() => go(doc)}
+                            />
+                          ))}
+                        </CommandGroup>
+                      ))}
+                    </>
+                  )}
+                </CommandList>
 
-              {/* Footer ----------------------------------------------------- */}
-              <div className="flex shrink-0 items-center gap-4 border-t border-border/60 bg-muted/25 px-4 py-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground/70">
-                <span className="inline-flex items-center gap-1.5">
-                  <ShortcutKey>
-                    <ArrowUp size={10} />
-                    <ArrowDown size={10} />
-                  </ShortcutKey>
-                  Move
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <ShortcutKey>
-                    <CornerDownLeft size={10} />
-                  </ShortcutKey>
-                  Select
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <ShortcutKey>Esc</ShortcutKey>
-                  Quit
-                </span>
-                <span className="ml-auto hidden font-mono normal-case tracking-normal text-muted-foreground/45 sm:inline">
-                  {allDocs.length.toLocaleString()} items indexed
-                </span>
-              </div>
-            </Command>
-          </motion.div>
-        </motion.div>,
-        document.body,
-      )}
+                {/* Footer ----------------------------------------------------- */}
+                <div className="flex shrink-0 items-center gap-4 border-t border-border/60 bg-muted/25 px-4 py-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShortcutKey>
+                      <ArrowUp size={10} />
+                      <ArrowDown size={10} />
+                    </ShortcutKey>
+                    Move
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShortcutKey>
+                      <CornerDownLeft size={10} />
+                    </ShortcutKey>
+                    Select
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShortcutKey>Esc</ShortcutKey>
+                    Quit
+                  </span>
+                  <span className="ml-auto hidden font-mono normal-case tracking-normal text-muted-foreground/80 sm:inline">
+                    {allDocs.length.toLocaleString()} items indexed
+                  </span>
+                </div>
+              </Command>
+            </motion.div>
+          </motion.div>,
+          document.body,
+        )}
     </>
   );
 }
