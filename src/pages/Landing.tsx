@@ -1,70 +1,66 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowDown, ArrowRight, CircleDot } from "lucide-react";
+import { ArrowDown, ArrowRight, CornerDownRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLoadingScreen } from "@/components/layout/RouteFallback";
-import { FlipTerm } from "@/components/motion/FlipTerm";
 import { LandingNav } from "@/components/marketing/LandingNav";
 import { LandingFooter } from "@/components/marketing/LandingFooter";
-import { WorkspacePreview } from "@/components/marketing/WorkspacePreview";
-import { SessionWalkthrough } from "@/components/marketing/SessionWalkthrough";
+import { HeroStage } from "@/components/marketing/HeroStage";
+import { ProofMarquee } from "@/components/marketing/ProofMarquee";
+import { ScrollStory } from "@/components/marketing/ScrollStory";
 import { PathExplorer } from "@/components/marketing/PathExplorer";
 import { CapabilityField } from "@/components/marketing/CapabilityField";
+import { SectionHead } from "@/components/marketing/SectionHead";
+import { Counter } from "@/components/marketing/Counter";
 import { PRODUCT_FACTS } from "@/components/marketing/content";
 import "@/styles/landing.css";
 
 /**
  * Public landing page — the front door of AlgoGuru.
  *
- * Previously `/` was gated behind authentication, so the marketing page was
- * only ever seen by people who had already signed up. `/` is now public and
- * signed-in visitors are routed straight to their workspace at `/home`.
+ * `/` is public; a signed-in visitor is redirected to their workspace at
+ * `/home`. Composition: a two-column hero with a 3D product stage, then a
+ * sticky scroll narrative, the capability bento, the prerequisite path, a
+ * typographic count band, and an asymmetric closing CTA.
+ *
+ * Every figure on this page is counted from the shipped content files
+ * (see components/marketing/content.ts) — no invented logos, users or ratings.
  */
 
-const ROTATING_PROBLEMS = [
-  "Two Sum",
-  "Trapping Rain Water",
-  "Merge K Sorted Lists",
-  "Longest Palindromic Substring",
+const HERO_FACTS: { term: string; value: string }[] = [
+  {
+    term: "Practice problems",
+    value: `${PRODUCT_FACTS.problems} with difficulty labels`,
+  },
+  {
+    term: "DSA lessons",
+    value: `${PRODUCT_FACTS.lessons} across ${PRODUCT_FACTS.tracks} tracks`,
+  },
+  { term: "Playground", value: PRODUCT_FACTS.playgroundLanguages.join(" · ") },
 ];
 
-function SectionHead({
-  index,
-  eyebrow,
-  title,
-  description,
-  aside,
-  id,
-}: {
-  index: string;
-  eyebrow: string;
-  title: React.ReactNode;
-  description: string;
-  aside?: React.ReactNode;
-  id?: string;
-}) {
-  return (
-    <div
-      id={id}
-      className="grid scroll-mt-24 gap-6 border-t border-line pt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] md:gap-14"
-    >
-      <div>
-        <p className="ws-eyebrow">
-          {index} — {eyebrow}
-        </p>
-        <h2 className="ws-display-2 mt-3 max-w-[24ch] text-foreground">
-          {title}
-        </h2>
-      </div>
-      <div className="flex flex-col justify-end gap-4">
-        <p className="max-w-[46ch] text-[13.5px] leading-6 text-muted-foreground">
-          {description}
-        </p>
-        {aside}
-      </div>
-    </div>
-  );
-}
+const STATS = [
+  {
+    value: PRODUCT_FACTS.problems,
+    label: "Practice problems",
+    note: `${PRODUCT_FACTS.easy} easy · ${PRODUCT_FACTS.medium} medium · ${PRODUCT_FACTS.hard} hard`,
+  },
+  {
+    value: PRODUCT_FACTS.lessons,
+    label: "DSA lessons",
+    note: `Across ${PRODUCT_FACTS.tracks} prerequisite-ordered tracks`,
+  },
+  {
+    value: 22,
+    label: "Core Java topics",
+    note: "Plus Spring Boot and system design sets",
+  },
+  {
+    value: PRODUCT_FACTS.playgroundLanguages.length,
+    label: "Languages in the sandbox",
+    note: PRODUCT_FACTS.playgroundLanguages.join(", "),
+  },
+];
 
 export default function Landing() {
   const { session, loading } = useAuth();
@@ -90,290 +86,307 @@ export default function Landing() {
   };
 
   return (
-    <div className="landing-root min-h-[100dvh] bg-[hsl(var(--surface-page))] text-foreground">
+    <div className="lp landing-root relative min-h-[100dvh] bg-[hsl(var(--surface-page))] text-foreground">
       <a href="#landing-main" className="skip-link">
         Skip to content
       </a>
+      <div className="lp-noise" aria-hidden="true" />
+      <div className="lp-vignette" aria-hidden="true" />
       <LandingNav />
 
-      <main id="landing-main">
-        {/* ── Hero ───────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="ws-grid-texture absolute inset-x-0 top-0 h-[520px]"
-          />
-          <div className="relative mx-auto w-full max-w-content px-5 pb-14 pt-28 sm:px-8 sm:pt-32">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_296px] lg:gap-16">
-              <div>
-                <div className="flex flex-wrap items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
-                  <CircleDot
-                    size={10}
-                    aria-hidden="true"
-                    className="text-primary"
-                  />
-                  <span>Now in the workspace</span>
-                  <span aria-hidden="true" className="text-muted-foreground/40">
+      <main id="landing-main" className="relative">
+        {/* ── Hero ─────────────────────────────────────────────────── */}
+        <section className="lp-hero">
+          <div className="lp-hero-grid" aria-hidden="true" />
+          <div className="lp-hero-bloom" aria-hidden="true" />
+
+          <div className="lp-shell relative pb-14 pt-[calc(var(--header-height)+3.25rem)] sm:pb-16 sm:pt-[calc(var(--header-height)+4.5rem)]">
+            <div className="grid gap-y-10 lg:grid-cols-12 lg:gap-x-12">
+              {/* Headline — spans the wide column; the display size is tuned to
+                  the column, not to the viewport, so no line can clip. */}
+              <div className="lg:col-span-12 xl:col-span-8">
+                <p className="lp-up inline-flex items-center gap-2 border border-line bg-[hsl(var(--surface-chrome))] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground [--lp-delay:60ms]">
+                  <span aria-hidden="true" className="h-1 w-1 bg-primary" />
+                  The algorithm workspace
+                  <span aria-hidden="true" className="text-muted-foreground">
                     /
                   </span>
-                  <FlipTerm
-                    terms={ROTATING_PROBLEMS}
-                    className="max-w-[26ch] font-mono text-[10.5px] uppercase tracking-[0.14em] text-foreground/80"
-                  />
-                </div>
-
-                <h1 className="mt-5 max-w-[19ch] text-balance font-display text-[clamp(2.5rem,1.15rem+4.2vw,4.35rem)] font-semibold leading-[0.98] tracking-[-0.038em]">
-                  Learn algorithms in a workspace built for{" "}
-                  <span className="ws-editorial text-[1.04em] text-primary">
-                    deep work.
-                  </span>
-                </h1>
-
-                <p className="mt-6 max-w-[52ch] text-[15px] leading-7 text-muted-foreground">
-                  AlgoGuru is a focused study environment for data structures
-                  and algorithms: a prerequisite-ordered path, concept pages you
-                  can revise, and a real code editor with test runs. Read,
-                  solve, review, track — in one place.
+                  <span className="text-foreground/70">Free</span>
                 </p>
 
-                <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <Link
-                    to="/auth?mode=signup"
-                    className="group inline-flex h-11 items-center gap-2 rounded-sm bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-[background-color,transform] duration-1 hover:bg-primary/90 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--surface-page))]"
+                <h1 className="lp-display mt-6 text-[clamp(2.5rem,1.15rem+3.7vw,4.85rem)] text-foreground">
+                  <span
+                    className="lp-mask"
+                    style={{ "--lp-delay": "140ms" } as React.CSSProperties}
                   >
-                    Create a free account
-                    <ArrowRight
-                      size={15}
-                      className="transition-transform duration-2 group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    />
+                    <span>Read the idea.</span>
+                  </span>
+                  <span
+                    className="lp-mask"
+                    style={{ "--lp-delay": "250ms" } as React.CSSProperties}
+                  >
+                    <span>Write the code.</span>
+                  </span>
+                  <span
+                    className="lp-mask"
+                    style={{ "--lp-delay": "360ms" } as React.CSSProperties}
+                  >
+                    <span className="lp-serif text-[hsl(var(--accent))]">
+                      Keep the skill.
+                    </span>
+                  </span>
+                </h1>
+              </div>
+
+              {/* Contents — an editorial index, and a real shortcut into the page. */}
+              <nav
+                aria-label="On this page"
+                className="hidden flex-col justify-end gap-1 pb-1 xl:col-span-4 xl:flex"
+              >
+                <p className="lp-index border-b border-line pb-2 text-right uppercase tracking-[0.16em]">
+                  Contents
+                </p>
+                {[
+                  { id: "session", label: "A session, end to end" },
+                  { id: "workspace", label: "Inside the workspace" },
+                  { id: "path", label: "The path" },
+                  { id: "numbers", label: "By the numbers" },
+                ].map((item, index) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => scrollTo(item.id)}
+                    className="group flex items-center justify-end gap-3 py-1.5 text-right text-[12.5px] text-muted-foreground transition-colors duration-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="h-px w-0 bg-primary transition-[width] duration-2 group-hover:w-4" />
+                    {item.label}
+                    <span className="lp-index w-4 text-right tabular-nums">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </button>
+                ))}
+              </nav>
+
+              {/* Body copy, actions, facts */}
+              <div className="lg:col-span-5">
+                <p className="lp-up max-w-[42ch] text-[14px] leading-[1.75] text-muted-foreground [--lp-delay:470ms]">
+                  One window for data structures, algorithms and Java
+                  interviews: prerequisite-ordered lessons, a real editor with
+                  test runs, complexity written next to the code, and progress
+                  stored against your account.
+                </p>
+
+                <div className="lp-up mt-7 flex flex-wrap items-center gap-2.5 [--lp-delay:560ms]">
+                  <Link to="/auth?mode=signup" className="lp-cta group">
+                    Create your workspace
+                    <ArrowRight size={15} data-arrow aria-hidden="true" />
                   </Link>
                   <button
                     type="button"
-                    onClick={() => scrollTo("workspace")}
-                    className="inline-flex h-11 items-center gap-2 rounded-sm border border-line bg-[hsl(var(--surface-chrome))] px-4 text-[14px] font-medium text-foreground transition-colors duration-1 hover:border-[hsl(var(--surface-line-strong))] hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => scrollTo("session")}
+                    className="lp-ghost group"
                   >
-                    See the workspace
                     <ArrowDown
                       size={14}
-                      className="text-muted-foreground"
+                      className="text-muted-foreground transition-transform duration-2 group-hover:translate-y-0.5"
                       aria-hidden="true"
                     />
+                    See a session
                   </button>
                 </div>
 
-                <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground/80">
-                  Free · no credit card · Google sign-in or email
-                </p>
+                <dl className="lp-up mt-9 max-w-[24rem] border-t border-line [--lp-delay:660ms]">
+                  {HERO_FACTS.map((fact) => (
+                    <div
+                      key={fact.term}
+                      className="flex items-baseline justify-between gap-4 border-b border-line/70 py-2"
+                    >
+                      <dt className="font-mono text-[9.5px] uppercase tracking-[0.13em] text-muted-foreground">
+                        {fact.term}
+                      </dt>
+                      <dd className="text-right text-[11.5px] leading-[1.4] text-foreground/85">
+                        {fact.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
 
-              {/* Truthful product facts, drawn from the shipped data files. */}
-              <aside
-                aria-label="What is inside"
-                className="lg:border-l lg:border-line lg:pl-8"
-              >
-                <p className="ws-eyebrow">Inside</p>
-                <dl className="mt-3 divide-y divide-line/70">
-                  <div className="py-3 first:pt-0">
-                    <dd className="font-display text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-                      {PRODUCT_FACTS.problems}
-                    </dd>
-                    <dt className="mt-1.5 text-[12px] leading-5 text-muted-foreground">
-                      curated practice problems, linked to LeetCode and
-                      GeeksforGeeks
-                    </dt>
-                  </div>
-                  <div className="py-3">
-                    <dd className="font-display text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-                      {PRODUCT_FACTS.lessons}
-                    </dd>
-                    <dt className="mt-1.5 text-[12px] leading-5 text-muted-foreground">
-                      lessons across {PRODUCT_FACTS.tracks} DSA tracks, in
-                      prerequisite order
-                    </dt>
-                  </div>
-                  <div className="py-3 pb-0">
-                    <dd className="font-display text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-                      22
-                    </dd>
-                    <dt className="mt-1.5 text-[12px] leading-5 text-muted-foreground">
-                      Java theory topics, plus a Spring Boot interview track
-                    </dt>
-                  </div>
-                </dl>
+              <div className="lg:col-span-7">
+                <HeroStage />
+              </div>
+            </div>
 
-                <div className="mt-5 border-t border-line pt-3">
-                  <p className="ws-eyebrow">Problem set by difficulty</p>
-                  <div
-                    className="mt-2 flex h-1.5 overflow-hidden rounded-pill"
-                    role="img"
-                    aria-label={`${PRODUCT_FACTS.easy} easy, ${PRODUCT_FACTS.medium} medium and ${PRODUCT_FACTS.hard} hard problems`}
-                  >
-                    <span
-                      className="h-full bg-success"
-                      style={{
-                        width: `${(PRODUCT_FACTS.easy / PRODUCT_FACTS.problems) * 100}%`,
-                      }}
-                    />
-                    <span
-                      className="h-full bg-warning"
-                      style={{
-                        width: `${(PRODUCT_FACTS.medium / PRODUCT_FACTS.problems) * 100}%`,
-                      }}
-                    />
-                    <span
-                      className="h-full bg-destructive"
-                      style={{
-                        width: `${(PRODUCT_FACTS.hard / PRODUCT_FACTS.problems) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10.5px] text-muted-foreground">
-                    <li className="flex items-center gap-1.5">
-                      <span
-                        aria-hidden="true"
-                        className="h-1 w-1 rounded-pill bg-success"
-                      />
-                      {PRODUCT_FACTS.easy} easy
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span
-                        aria-hidden="true"
-                        className="h-1 w-1 rounded-pill bg-warning"
-                      />
-                      {PRODUCT_FACTS.medium} medium
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span
-                        aria-hidden="true"
-                        className="h-1 w-1 rounded-pill bg-destructive"
-                      />
-                      {PRODUCT_FACTS.hard} hard
-                    </li>
-                  </ul>
-                </div>
-              </aside>
+            <div className="mt-12 flex items-center justify-between gap-6 sm:mt-16">
+              <div className="flex items-center gap-3">
+                <span aria-hidden="true" className="h-px w-8 bg-line" />
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Built on shipped content, not a pitch deck
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => scrollTo("session")}
+                className="hidden items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground transition-colors duration-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex"
+              >
+                Scroll
+                <CornerDownRight size={11} aria-hidden="true" />
+              </button>
             </div>
           </div>
         </section>
 
-        {/* ── Product window ─────────────────────────────────────── */}
-        <section id="workspace" className="scroll-mt-20">
-          <div className="mx-auto w-full max-w-content px-5 sm:px-8">
-            <WorkspacePreview />
-            <div className="mt-4 flex flex-col gap-2 border-t border-line pt-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="font-mono text-[10.5px] text-muted-foreground">
-                Product preview · Arrays → Two Sum · sample data, not your
-                progress
-              </p>
-              <Link
-                to="/auth"
-                className="inline-flex w-fit items-center gap-1.5 rounded-xs font-mono text-[10.5px] text-foreground/80 transition-colors duration-1 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Open the real workspace
-                <ArrowRight size={11} aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
-        </section>
+        <ProofMarquee />
 
-        {/* ── A session ──────────────────────────────────────────── */}
-        <section className="mx-auto w-full max-w-content px-5 py-20 sm:px-8 sm:py-24">
+        {/* ── 01 · A session ───────────────────────────────────────── */}
+        <section className="lp-shell py-16 sm:py-20">
           <SectionHead
+            id="session"
             index="01"
-            eyebrow="A session"
+            kicker="A session, end to end"
             title={
               <>
-                Five moves, and the workspace keeps{" "}
-                <span className="ws-editorial text-primary">all of them</span>{" "}
-                in place.
+                Four moves,{" "}
+                <span className="lp-serif text-[hsl(var(--accent))]">
+                  in order.
+                </span>
               </>
             }
-            description="Most learners lose more time switching between a tutorial, an editor and a notes app than they do solving. AlgoGuru keeps the loop inside one window — one lesson tree on the left, one document in the middle."
+            description="Understanding, solving and reviewing are three different kinds of work. AlgoGuru keeps them on one surface so you are never hunting for the tab where you left the thread."
+            aside={
+              <p className="border-l border-primary/50 pl-3 font-mono text-[10.5px] leading-[1.7] text-muted-foreground">
+                Discover → understand → solve → complexity → progress. The same
+                loop for all {PRODUCT_FACTS.tracks} tracks.
+              </p>
+            }
           />
-          <div className="mt-10">
-            <SessionWalkthrough />
+          <div className="mt-8 sm:mt-10">
+            <ScrollStory />
           </div>
         </section>
 
-        {/* ── The path ───────────────────────────────────────────── */}
-        <section className="border-y border-line bg-[hsl(var(--surface-chrome))]">
-          <div className="mx-auto w-full max-w-content px-5 py-20 sm:px-8 sm:py-24">
-            <SectionHead
-              index="02"
-              eyebrow="The path"
-              title={
-                <>
-                  A prerequisite chain, not an{" "}
-                  <span className="ws-editorial text-primary">
-                    infinite feed.
-                  </span>
-                </>
-              }
-              description="Every track is ordered so nothing assumes a pattern you have not met yet. Completed lessons, the one in progress and the next unlock are visible at a glance — select any node to see what it contains."
-            />
-            <div className="mt-10">
-              <PathExplorer />
-            </div>
-          </div>
-        </section>
-
-        {/* ── Capabilities ───────────────────────────────────────── */}
-        <section className="mx-auto w-full max-w-content px-5 py-20 sm:px-8 sm:py-24">
+        {/* ── 02 · Inside the workspace ────────────────────────────── */}
+        <section className="lp-shell py-16 sm:py-20">
           <SectionHead
-            index="03"
-            eyebrow="Capabilities"
-            id="capabilities"
+            id="workspace"
+            index="02"
+            kicker="Inside the workspace"
             title={
               <>
-                The parts that matter when you are actually{" "}
-                <span className="ws-editorial text-primary">solving.</span>
+                The tools{" "}
+                <span className="lp-serif text-[hsl(var(--accent))]">are</span>{" "}
+                the lesson.
               </>
             }
-            description="No dashboards for the sake of dashboards. These are the four surfaces the product is built around, each shown exactly as it appears inside the app."
+            description="Four pieces of interface you will use on every problem. No dashboards, no streaks to protect — just the things a working engineer needs to go from statement to defensible solution."
+            align="split"
           />
           <div className="mt-10">
             <CapabilityField />
           </div>
         </section>
 
-        {/* ── Closing ────────────────────────────────────────────── */}
-        <section className="border-t border-line">
-          <div className="mx-auto w-full max-w-content px-5 py-20 sm:px-8 sm:py-24">
-            <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        {/* ── 03 · The path ────────────────────────────────────────── */}
+        <section className="lp-shell py-16 sm:py-20">
+          <SectionHead
+            id="path"
+            index="03"
+            kicker="The path"
+            title={
+              <>
+                Nothing unlocks{" "}
+                <span className="lp-serif text-[hsl(var(--accent))]">
+                  early.
+                </span>
+              </>
+            }
+            description="The DSA path is ordered by prerequisite, not by popularity. Pick a node to see what it contains and what it assumes you already know."
+          />
+          <div className="mt-10">
+            <PathExplorer />
+          </div>
+        </section>
+
+        {/* ── 04 · By the numbers ──────────────────────────────────── */}
+        <section
+          id="numbers"
+          className="scroll-mt-24 border-y border-line bg-[hsl(var(--surface-chrome)/0.55)]"
+        >
+          <div className="lp-shell py-14 sm:py-16">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <p className="lp-kicker">04 / By the numbers</p>
+              <p className="font-mono text-[10px] text-muted-foreground">
+                Counted from the content files in the repository
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4 md:gap-x-0">
+              {STATS.map((stat, index) => (
+                <div
+                  key={stat.label}
+                  className={
+                    index === 0
+                      ? "md:pr-6"
+                      : "md:border-l md:border-line md:px-6 md:last:pr-0"
+                  }
+                >
+                  <p className="lp-stat text-foreground">
+                    <Counter value={stat.value} />
+                  </p>
+                  <p className="mt-3 border-t border-line pt-2.5 text-[12px] font-medium text-foreground/85">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-[1.5] text-muted-foreground">
+                    {stat.note}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Closing CTA ──────────────────────────────────────────── */}
+        <section className="lp-final">
+          <div className="lp-final-grid" aria-hidden="true" />
+          <div className="lp-final-bloom" aria-hidden="true" />
+          <div className="lp-shell relative py-20 sm:py-28">
+            <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-16">
               <div>
-                <p className="ws-eyebrow">Start here</p>
-                <h2 className="ws-display-1 mt-4 max-w-[16ch] text-foreground">
-                  Open the workspace and finish{" "}
-                  <span className="ws-editorial text-primary">
-                    one problem.
+                <p className="lp-kicker">Start here</p>
+                <h2 className="lp-display mt-5 max-w-[17ch] text-[clamp(2.1rem,1.1rem+3.3vw,3.85rem)] text-foreground">
+                  Pick a track.
+                  <br />
+                  Finish one lesson.
+                  <br />
+                  <span className="lp-serif text-[hsl(var(--accent))]">
+                    Then decide.
                   </span>
                 </h2>
-                <p className="mt-5 max-w-[46ch] text-[14px] leading-7 text-muted-foreground">
-                  Create an account and your progress, bookmarks and notes are
-                  stored against it. Nothing else is required to begin.
-                </p>
               </div>
-              <div className="flex flex-col items-start gap-3 md:items-end">
-                <Link
-                  to="/auth?mode=signup"
-                  className="group inline-flex h-11 items-center gap-2 rounded-sm bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-[background-color,transform] duration-1 hover:bg-primary/90 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--surface-page))]"
-                >
-                  Create a free account
-                  <ArrowRight
-                    size={15}
-                    className="transition-transform duration-2 group-hover:translate-x-0.5"
-                    aria-hidden="true"
-                  />
-                </Link>
-                <Link
-                  to="/auth"
-                  className="inline-flex h-9 items-center rounded-sm px-1 text-[13px] font-medium text-muted-foreground underline-offset-4 transition-colors duration-1 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  I already have an account
-                </Link>
-                <p className="font-mono text-[10.5px] text-muted-foreground/70">
-                  free forever · no card required
+
+              <div className="lg:pb-2">
+                <p className="max-w-[40ch] text-[13.5px] leading-[1.8] text-muted-foreground">
+                  Create an account and the first lesson of your chosen track is
+                  already open: concept page, worked example, then a problem in
+                  the editor. Nothing to install and no card.
+                </p>
+
+                <div className="mt-7 flex flex-wrap items-center gap-3">
+                  <Link to="/auth?mode=signup" className="lp-cta group">
+                    Create your workspace
+                    <ArrowRight size={15} data-arrow aria-hidden="true" />
+                  </Link>
+                  <Link to="/auth" className="lp-ghost group">
+                    Sign in
+                    <span className="lp-kbd ml-1">
+                      <CornerDownRight size={8} aria-hidden="true" />
+                    </span>
+                  </Link>
+                </div>
+
+                <p className="mt-5 font-mono text-[10px] leading-[1.7] text-muted-foreground">
+                  Free to start · progress and notes are stored against your own
+                  account · sign-in with email or Google.
                 </p>
               </div>
             </div>

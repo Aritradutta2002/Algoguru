@@ -90,7 +90,7 @@ export function LandingFooter() {
           <p className="font-mono text-[10.5px] text-muted-foreground">
             © {new Date().getFullYear()} AlgoGuru
           </p>
-          <p className="font-mono text-[10.5px] text-muted-foreground/70">
+          <p className="font-mono text-[10.5px] text-muted-foreground">
             Built for engineers who want depth, not a highlight reel.
           </p>
         </div>

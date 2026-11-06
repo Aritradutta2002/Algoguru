@@ -95,7 +95,7 @@ function Field({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-error` : undefined}
           className={cn(
-            "h-10 w-full rounded-sm border bg-[hsl(var(--surface-panel))] px-3 pr-10 text-[13.5px] text-foreground outline-none transition-[border-color,box-shadow] duration-2 placeholder:text-muted-foreground/55",
+            "h-10 w-full rounded-sm border bg-[hsl(var(--surface-panel))] px-3 pr-10 text-[13.5px] text-foreground outline-none transition-[border-color,box-shadow] duration-2 placeholder:text-muted-foreground/80",
             error
               ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
               : "border-line hover:border-[hsl(var(--surface-line-strong))] focus:border-primary/70 focus:ring-2 focus:ring-ring/25",
@@ -494,7 +494,7 @@ export default function Auth() {
 
             <div className="my-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-line" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70">
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground/80">
                 or
               </span>
               <div className="h-px flex-1 bg-line" />
@@ -523,7 +523,7 @@ export default function Auth() {
           </motion.div>
         </div>
 
-        <p className="mx-auto w-full max-w-[364px] pb-2 font-mono text-[10px] leading-4 text-muted-foreground/70">
+        <p className="mx-auto w-full max-w-[364px] pb-2 font-mono text-[10px] leading-4 text-muted-foreground/80">
           Credentials are handled by Supabase Auth. AlgoGuru never stores your
           password.
         </p>
@@ -600,7 +600,7 @@ export default function Auth() {
             </div>
           </div>
 
-          <p className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground/70">
+          <p className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground/80">
             401 problems · 184 lessons · Java, Python &amp; C++ playground
           </p>
         </div>

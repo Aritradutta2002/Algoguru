@@ -118,7 +118,12 @@ export const PREVIEW_CODE: { indent: number; tokens: [string, string][] }[] = [
       ["n", "seen"],
       ["p", "."],
       ["f", "containsKey"],
-      ["p", "(need)) "],
+      ["p", "(need)) {"],
+    ],
+  },
+  {
+    indent: 4,
+    tokens: [
       ["k", "return"],
       ["p", " "],
       ["k", "new"],
@@ -127,8 +132,10 @@ export const PREVIEW_CODE: { indent: number; tokens: [string, string][] }[] = [
       ["p", "[] { seen."],
       ["f", "get"],
       ["p", "(need), i }"],
+      ["p", ";"],
     ],
   },
+  { indent: 3, tokens: [["p", "}"]] },
   {
     indent: 3,
     tokens: [
@@ -139,7 +146,17 @@ export const PREVIEW_CODE: { indent: number; tokens: [string, string][] }[] = [
     ],
   },
   { indent: 2, tokens: [["p", "}"]] },
-  { indent: 2, tokens: [["k", "return"], ["p", " "], ["k", "new"], ["p", " "], ["k", "int"], ["p", "[0];"]] },
+  {
+    indent: 2,
+    tokens: [
+      ["k", "return"],
+      ["p", " "],
+      ["k", "new"],
+      ["p", " "],
+      ["k", "int"],
+      ["p", "[0];"],
+    ],
+  },
   { indent: 1, tokens: [["p", "}"]] },
   { indent: 0, tokens: [["p", "}"]] },
 ];

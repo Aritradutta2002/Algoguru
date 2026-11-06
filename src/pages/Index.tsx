@@ -72,7 +72,9 @@ function useHomeStats() {
       const [{ data: practiceRows }, { data: javaRows }] = await Promise.all([
         supabase
           .from("practice_problem_user_state")
-          .select("problem_id, is_completed, is_saved_for_revision, notes, updated_at")
+          .select(
+            "problem_id, is_completed, is_saved_for_revision, notes, updated_at",
+          )
           .eq("user_id", user.id),
         supabase
           .from("core_java_user_state")
@@ -82,7 +84,9 @@ function useHomeStats() {
       if (!active) return;
       setRows((practiceRows ?? []) as PracticeRow[]);
       setInterviewCount(
-        (javaRows ?? []).filter((row: { is_completed: boolean }) => row.is_completed).length,
+        (javaRows ?? []).filter(
+          (row: { is_completed: boolean }) => row.is_completed,
+        ).length,
       );
       setLoading(false);
     })();
@@ -116,7 +120,9 @@ function StatCell({
           </span>
         )}
       </p>
-      <p className="mt-2 text-[11.5px] leading-4 text-muted-foreground">{hint}</p>
+      <p className="mt-2 text-[11.5px] leading-4 text-muted-foreground">
+        {hint}
+      </p>
     </div>
   );
 }
@@ -155,22 +161,34 @@ export default function Index() {
   const [roadmapOpen, setRoadmapOpen] = useState(false);
 
   const firstName =
-    (profile?.display_name || user?.email || "there").toString().split(/[@\s]/)[0] ?? "there";
+    (profile?.display_name || user?.email || "there")
+      .toString()
+      .split(/[@\s]/)[0] ?? "there";
 
   const { solved, bookmarked, notes, activity, lastTouched } = useMemo(() => {
-    const solvedSet = new Set(rows.filter((row) => row.is_completed).map((row) => row.problem_id));
-    const noteRows = rows.filter((row) => row.notes && row.notes.trim().length > 0);
+    const solvedSet = new Set(
+      rows.filter((row) => row.is_completed).map((row) => row.problem_id),
+    );
+    const noteRows = rows.filter(
+      (row) => row.notes && row.notes.trim().length > 0,
+    );
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const buckets = Array.from({ length: 14 }, () => 0);
     for (const row of rows) {
       if (!row.updated_at) continue;
-      const day = Math.floor((today.getTime() - new Date(row.updated_at).setHours(0, 0, 0, 0)) / DAY_MS);
+      const day = Math.floor(
+        (today.getTime() - new Date(row.updated_at).setHours(0, 0, 0, 0)) /
+          DAY_MS,
+      );
       if (day >= 0 && day < 14) buckets[13 - day] += 1;
     }
     const recent = [...rows]
       .filter((row) => row.updated_at)
-      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
+      .sort(
+        (a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+      )[0];
     return {
       solved: solvedSet,
       bookmarked: rows.filter((row) => row.is_saved_for_revision).length,
@@ -226,11 +244,19 @@ export default function Index() {
               onClick={() => setRoadmapOpen(true)}
               className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-line bg-[hsl(var(--surface-chrome))] px-3 text-[12.5px] font-medium text-foreground transition-colors duration-1 hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <MapIcon size={13} className="text-muted-foreground" aria-hidden="true" />
+              <MapIcon
+                size={13}
+                className="text-muted-foreground"
+                aria-hidden="true"
+              />
               Open roadmap
             </button>
             <Link
-              to={resumeProblem ? `/practice/solution/${resumeProblem.id}` : "/practice"}
+              to={
+                resumeProblem
+                  ? `/practice/solution/${resumeProblem.id}`
+                  : "/practice"
+              }
               className="group inline-flex h-9 items-center gap-1.5 rounded-sm bg-primary px-3 text-[12.5px] font-semibold text-primary-foreground transition-[background-color,transform] duration-1 hover:bg-primary/90 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--surface-page))]"
             >
               {resumeProblem ? "Resume last problem" : "Start practising"}
@@ -244,7 +270,10 @@ export default function Index() {
         </header>
 
         {/* ── Numbers ────────────────────────────────────────────── */}
-        <section aria-labelledby="stats-heading" className="border-b border-line">
+        <section
+          aria-labelledby="stats-heading"
+          className="border-b border-line"
+        >
           <h2 id="stats-heading" className="sr-only">
             Your progress
           </h2>
@@ -260,7 +289,11 @@ export default function Index() {
               value={loading ? "—" : bookmarked}
               hint="Saved for revision"
             />
-            <StatCell label="Notes" value={loading ? "—" : notes} hint="Written on a problem" />
+            <StatCell
+              label="Notes"
+              value={loading ? "—" : notes}
+              hint="Written on a problem"
+            />
             <StatCell
               label="Interview Qs"
               value={loading ? "—" : (interviewCount ?? 0)}
@@ -273,7 +306,10 @@ export default function Index() {
           {/* ── Next up ─────────────────────────────────────────── */}
           <section aria-labelledby="next-heading">
             <div className="flex items-center justify-between border-b border-line pb-2.5">
-              <h2 id="next-heading" className="font-display text-[15px] font-medium">
+              <h2
+                id="next-heading"
+                className="font-display text-[15px] font-medium"
+              >
                 Next up
               </h2>
               <Link
@@ -296,7 +332,9 @@ export default function Index() {
             ) : nextProblems.length === 0 ? (
               <div className="py-8">
                 <Trophy size={18} className="text-accent" aria-hidden="true" />
-                <p className="mt-3 text-[13.5px] text-foreground">Every problem is marked complete.</p>
+                <p className="mt-3 text-[13.5px] text-foreground">
+                  Every problem is marked complete.
+                </p>
                 <p className="mt-1 text-[12.5px] text-muted-foreground">
                   Revisit the ones you bookmarked for revision.
                 </p>
@@ -333,7 +371,10 @@ export default function Index() {
                         </span>
                         <span className="mt-0.5 flex items-center gap-2 font-mono text-[10.5px] text-muted-foreground">
                           {problem.difficulty}
-                          <span aria-hidden="true" className="text-muted-foreground/40">
+                          <span
+                            aria-hidden="true"
+                            className="text-muted-foreground/40"
+                          >
                             ·
                           </span>
                           {problem.source.label}
@@ -341,7 +382,7 @@ export default function Index() {
                       </span>
                       <ArrowUpRight
                         size={13}
-                        className="shrink-0 text-muted-foreground/70 transition-transform duration-2 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                        className="shrink-0 text-muted-foreground/80 transition-transform duration-2 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
                         aria-hidden="true"
                       />
                     </Link>
@@ -355,18 +396,27 @@ export default function Index() {
           <div className="space-y-8">
             <section aria-labelledby="activity-heading">
               <div className="flex items-center justify-between border-b border-line pb-2.5">
-                <h2 id="activity-heading" className="font-display text-[15px] font-medium">
+                <h2
+                  id="activity-heading"
+                  className="font-display text-[15px] font-medium"
+                >
                   Last 14 days
                 </h2>
                 <span className="font-mono text-[10.5px] text-muted-foreground">
                   {activity.reduce((sum, value) => sum + value, 0)} updates
                 </span>
               </div>
-              <div className="mt-4 flex h-16 items-end gap-1" role="img" aria-label="Problems updated per day over the last 14 days">
+              <div
+                className="mt-4 flex h-16 items-end gap-1"
+                role="img"
+                aria-label="Problems updated per day over the last 14 days"
+              >
                 {activity.map((value, index) => (
                   <motion.span
                     key={index}
-                    initial={reduceMotion ? false : { scaleY: 0.2, opacity: 0.4 }}
+                    initial={
+                      reduceMotion ? false : { scaleY: 0.2, opacity: 0.4 }
+                    }
                     animate={{ scaleY: 1, opacity: 1 }}
                     transition={{
                       duration: 0.32,
@@ -379,7 +429,9 @@ export default function Index() {
                     }}
                     className={cn(
                       "flex-1 rounded-xs",
-                      value === 0 ? "bg-[hsl(var(--surface-line-strong))]" : "bg-primary/60",
+                      value === 0
+                        ? "bg-[hsl(var(--surface-line-strong))]"
+                        : "bg-primary/60",
                     )}
                   />
                 ))}
@@ -420,7 +472,7 @@ export default function Index() {
                       </span>
                       <ArrowRight
                         size={12}
-                        className="shrink-0 text-muted-foreground/50 transition-transform duration-2 group-hover:translate-x-0.5"
+                        className="shrink-0 text-muted-foreground/80 transition-transform duration-2 group-hover:translate-x-0.5"
                         aria-hidden="true"
                       />
                     </Link>
@@ -435,14 +487,22 @@ export default function Index() {
         <section aria-labelledby="tracks-heading" className="mt-12">
           <div className="flex items-end justify-between border-b border-line pb-2.5">
             <div>
-              <h2 id="tracks-heading" className="font-display text-[15px] font-medium">
+              <h2
+                id="tracks-heading"
+                className="font-display text-[15px] font-medium"
+              >
                 All tracks
               </h2>
               <p className="mt-1 text-[11.5px] text-muted-foreground">
-                {topics.length} DSA tracks · {javaTopics.length} Java topics · practice sheets
+                {topics.length} DSA tracks · {javaTopics.length} Java topics ·
+                practice sheets
               </p>
             </div>
-            <BookOpen size={14} className="text-muted-foreground" aria-hidden="true" />
+            <BookOpen
+              size={14}
+              className="text-muted-foreground"
+              aria-hidden="true"
+            />
           </div>
           <ul className="mt-1 grid sm:grid-cols-2 lg:grid-cols-3">
             {topics.map((topic) => (
@@ -454,7 +514,7 @@ export default function Index() {
                   <span className="flex min-w-0 items-center gap-2.5">
                     <span
                       aria-hidden="true"
-                      className="w-4 shrink-0 text-center font-mono text-[11px] text-muted-foreground/60"
+                      className="w-4 shrink-0 text-center font-mono text-[11px] text-muted-foreground/80"
                     >
                       {topic.icon}
                     </span>
@@ -462,7 +522,7 @@ export default function Index() {
                       {topic.title}
                     </span>
                   </span>
-                  <span className="shrink-0 font-mono text-[10.5px] text-muted-foreground/70">
+                  <span className="shrink-0 font-mono text-[10.5px] text-muted-foreground/80">
                     {topic.subtopics.length}
                   </span>
                 </Link>
@@ -507,7 +567,10 @@ export default function Index() {
             </div>
           }
         >
-          <RoadmapFullscreenOverlay open={roadmapOpen} onClose={() => setRoadmapOpen(false)} />
+          <RoadmapFullscreenOverlay
+            open={roadmapOpen}
+            onClose={() => setRoadmapOpen(false)}
+          />
         </Suspense>
       )}
     </>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Check, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,96 +6,134 @@ import { cn } from "@/lib/utils";
 import { PATH_NODES } from "./content";
 
 /**
- * Learning-path explorer. A vertical prerequisite chain on the left, the
- * selected node's detail on the right — the spatial pattern of a file tree
- * beside a note, rather than a folder of cards.
- *
- * Statuses are honest: "done" / "in progress" / "next" / "locked" describe what
- * the app already tracks per lesson.
+ * Learning-path explorer, drawn as a prerequisite timeline: one vertical rail,
+ * a progress stroke that fills to the node you select, and the node's detail
+ * beside it. Keyboard operable — every node is a real button.
  */
 
 const STATE_LABEL: Record<(typeof PATH_NODES)[number]["state"], string> = {
   done: "Completed",
   active: "In progress",
   next: "Up next",
-  locked: "Unlocks after the previous lesson",
+  locked: "Locked",
 };
 
 export function PathExplorer() {
   const reduceMotion = useReducedMotion();
   const [selectedId, setSelectedId] = useState<string>("sliding-window");
-  const selected =
-    PATH_NODES.find((node) => node.id === selectedId) ?? PATH_NODES[2];
+  const selectedIndex = Math.max(
+    0,
+    PATH_NODES.findIndex((node) => node.id === selectedId),
+  );
+  const selected = useMemo(
+    () => PATH_NODES.find((node) => node.id === selectedId) ?? PATH_NODES[2],
+    [selectedId],
+  );
+  const progress = (selectedIndex / (PATH_NODES.length - 1)) * 100;
+  const completed = PATH_NODES.filter((node) => node.state === "done").length;
 
   return (
-    <div className="grid gap-0 border-y border-line lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-      <div className="lg:border-r lg:border-line">
-        <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
-          <p className="ws-eyebrow">DSA path · prerequisite order</p>
-          <p className="font-mono text-[10.5px] text-muted-foreground">
-            {PATH_NODES.filter((node) => node.state === "done").length} /{" "}
-            {PATH_NODES.length} complete
+    <motion.div
+      initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      className="grid gap-8 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:gap-0"
+    >
+      {/* Rail */}
+      <div className="lg:border-r lg:border-line lg:pr-10">
+        <div className="flex items-center justify-between border-b border-line pb-2.5">
+          <p className="lp-kicker">DSA path · prerequisite order</p>
+          <p className="font-mono text-[10px] tabular-nums text-muted-foreground">
+            {completed} / {PATH_NODES.length} complete
           </p>
         </div>
-        <ul>
+
+        <ol className="relative mt-4 pl-[22px]">
+          <span
+            aria-hidden="true"
+            className="absolute left-[6px] top-2 h-[calc(100%-16px)] w-px bg-line"
+          />
+          <motion.span
+            aria-hidden="true"
+            className="absolute left-[6px] top-2 h-[calc(100%-16px)] w-px origin-top bg-primary"
+            initial={false}
+            animate={{ scaleY: progress / 100 }}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+            }
+          />
+
           {PATH_NODES.map((node, index) => {
             const isSelected = node.id === selected.id;
             return (
-              <li key={node.id}>
+              <li key={node.id} className="relative">
                 <button
                   type="button"
                   onClick={() => setSelectedId(node.id)}
                   aria-pressed={isSelected}
                   className={cn(
-                    "group relative flex w-full items-center gap-3 border-b border-line/60 px-4 py-3 text-left transition-colors duration-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-                    isSelected ? "bg-raised" : "hover:bg-raised/60",
+                    "group relative flex w-full items-start gap-3 rounded-sm py-2.5 pl-1 pr-2 text-left transition-colors duration-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    isSelected
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "absolute inset-y-0 left-0 w-px",
-                      isSelected ? "bg-primary" : "bg-transparent",
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-pill border font-mono text-[9.5px]",
+                      "absolute -left-[22px] top-[15px] flex h-[13px] w-[13px] items-center justify-center rounded-full border transition-all duration-2",
                       node.state === "done"
-                        ? "border-success/40 bg-success/10 text-success"
+                        ? "border-success/50 bg-success/15"
                         : node.state === "active"
-                          ? "border-primary/50 bg-primary/10 text-primary"
-                          : node.state === "next"
-                            ? "border-line text-muted-foreground"
-                            : "border-line/70 text-muted-foreground/50",
+                          ? "border-primary bg-primary/20"
+                          : isSelected
+                            ? "border-primary/60 bg-primary/15"
+                            : "border-line bg-[hsl(var(--surface-page))]",
                     )}
                   >
                     {node.state === "done" ? (
-                      <Check size={10} strokeWidth={3} aria-hidden="true" />
-                    ) : node.state === "locked" ? (
-                      <Lock size={9} aria-hidden="true" />
+                      <Check
+                        size={7}
+                        strokeWidth={4}
+                        className="text-success"
+                      />
                     ) : (
-                      index + 1
-                    )}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2">
                       <span
                         className={cn(
-                          "truncate text-[13.5px]",
-                          node.state === "locked"
-                            ? "text-muted-foreground/70"
-                            : "text-foreground",
+                          "h-[3px] w-[3px] rounded-full",
+                          node.state === "active" || isSelected
+                            ? "bg-primary"
+                            : "bg-muted-foreground/40",
+                        )}
+                      />
+                    )}
+                  </span>
+
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline gap-2">
+                      <span
+                        className={cn(
+                          "truncate text-[14px] tracking-[-0.01em]",
+                          node.state === "locked" && "text-muted-foreground",
                         )}
                       >
                         {node.label}
                       </span>
+                      {isSelected && (
+                        <span
+                          aria-hidden="true"
+                          className="h-1 w-1 shrink-0 rounded-full bg-primary"
+                        />
+                      )}
                     </span>
-                    <span className="mt-0.5 flex items-center gap-2 font-mono text-[10.5px] text-muted-foreground">
-                      {node.meta}
+                    <span className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted-foreground">
+                      <span>{node.meta}</span>
                       <span
                         aria-hidden="true"
-                        className="text-muted-foreground/40"
+                        className="text-muted-foreground"
                       >
                         ·
                       </span>
@@ -105,55 +143,68 @@ export function PathExplorer() {
                           node.state === "active" && "text-primary",
                         )}
                       >
-                        {node.state === "done"
-                          ? "Completed"
-                          : node.state === "active"
-                            ? "In progress"
-                            : node.state === "next"
-                              ? "Up next"
-                              : "Locked"}
+                        {STATE_LABEL[node.state]}
                       </span>
+                      {node.state === "locked" && (
+                        <Lock
+                          size={9}
+                          aria-hidden="true"
+                          className="text-muted-foreground"
+                        />
+                      )}
                     </span>
+                  </span>
+
+                  <span className="mt-0.5 font-mono text-[10px] tabular-nums text-muted-foreground">
+                    {String(index + 1).padStart(2, "0")}
                   </span>
                 </button>
               </li>
             );
           })}
-        </ul>
+        </ol>
       </div>
 
-      <div className="relative bg-[hsl(var(--surface-chrome))] px-5 py-6 sm:px-7">
+      {/* Detail */}
+      <div className="relative lg:pl-10">
         <motion.div
           key={selected.id}
-          initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="ws-eyebrow">Selected lesson track</p>
-          <h3 className="mt-2 font-display text-[22px] font-medium tracking-[-0.025em]">
+          <div className="flex items-start justify-between gap-4">
+            <p className="lp-kicker">Selected node</p>
+            <p className="font-mono text-[32px] font-medium leading-none tracking-[-0.04em] text-muted-foreground tabular-nums">
+              {String(selectedIndex + 1).padStart(2, "0")}
+            </p>
+          </div>
+
+          <h3 className="mt-3 font-display text-[clamp(1.4rem,1.1rem+0.9vw,1.9rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
             {selected.label}
           </h3>
-          <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+          <p className="mt-1.5 font-mono text-[10.5px] text-muted-foreground">
             {selected.meta} · {STATE_LABEL[selected.state]}
           </p>
-          <p className="mt-4 max-w-[44ch] text-[13.5px] leading-6 text-muted-foreground">
+
+          <p className="mt-5 max-w-[46ch] text-[13.5px] leading-[1.8] text-muted-foreground">
             {selected.note}
           </p>
 
-          <dl className="mt-6 divide-y divide-line/70 border-t border-line">
+          <dl className="mt-7 border-t border-line">
             {[
               ["Format", "Concept page · worked examples · practice problems"],
-              ["Prerequisite", "The previous lesson in this path"],
+              ["Unlocks", "The previous lesson in this path"],
               ["Language", "Java — editor, tests and solutions"],
             ].map(([term, value]) => (
               <div
                 key={term}
-                className="grid grid-cols-[100px_1fr] gap-3 py-2.5"
+                className="grid grid-cols-[74px_1fr] gap-3 border-b border-line/70 py-2.5"
               >
-                <dt className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground">
+                <dt className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-muted-foreground">
                   {term}
                 </dt>
-                <dd className="text-[12.5px] leading-5 text-foreground/85">
+                <dd className="text-[12.5px] leading-[1.6] text-foreground/85">
                   {value}
                 </dd>
               </div>
@@ -162,7 +213,7 @@ export function PathExplorer() {
 
           <Link
             to="/auth?mode=signup"
-            className="group mt-6 inline-flex h-9 items-center gap-1.5 rounded-sm border border-line bg-raised px-3 text-[12.5px] font-medium text-foreground transition-colors duration-1 hover:border-primary/40 hover:bg-raised/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="lp-ghost group mt-6 !h-10 !text-[12.5px]"
           >
             Open this path
             <ArrowUpRight
@@ -173,6 +224,6 @@ export function PathExplorer() {
           </Link>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

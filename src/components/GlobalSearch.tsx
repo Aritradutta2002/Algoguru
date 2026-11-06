@@ -213,7 +213,7 @@ const ShortcutKey = ({ children }: { children: ReactNode }) => (
 );
 
 const SectionLabel = ({ children }: { children: ReactNode }) => (
-  <div className="px-2 pb-2 pt-4 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">
+  <div className="px-2 pb-2 pt-4 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/80">
     {children}
   </div>
 );
@@ -270,7 +270,7 @@ const ResultRow = ({
           </span>
         ))}
         {doc.companies.length > 2 && (
-          <span className="text-[9.5px] text-muted-foreground/60">
+          <span className="text-[9.5px] text-muted-foreground/80">
             +{doc.companies.length - 2}
           </span>
         )}
@@ -470,10 +470,10 @@ export function GlobalSearch({
               size={20}
               className="transition-transform duration-300 group-hover:scale-110"
             />
-            <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/65 transition-colors group-hover:text-muted-foreground sm:inline">
+            <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/80 transition-colors group-hover:text-muted-foreground sm:inline">
               Search topics, problems…
             </span>
-            <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/55 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
+            <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/80 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
               <span>⌘</span>K
             </kbd>
           </button>
@@ -520,7 +520,7 @@ export function GlobalSearch({
                     onValueChange={setQuery}
                     placeholder="Search anything on AlgoGuru..."
                     wrapperClassName="min-w-0 flex-1 border-b-0 p-0"
-                    className="h-auto bg-transparent py-0 text-[16px] font-normal tracking-[-0.01em] placeholder:font-normal placeholder:tracking-normal placeholder:text-muted-foreground/55"
+                    className="h-auto bg-transparent py-0 text-[16px] font-normal tracking-[-0.01em] placeholder:font-normal placeholder:tracking-normal placeholder:text-muted-foreground/80"
                   />
 
                   {trimmed && (
@@ -551,7 +551,7 @@ export function GlobalSearch({
                     type="button"
                     onClick={() => setOpen(false)}
                     aria-label="Close search"
-                    className="flex h-7 w-7 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-transparent text-muted-foreground/70 transition-all hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
+                    className="flex h-7 w-7 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-transparent text-muted-foreground/80 transition-all hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
                   >
                     <X size={15} />
                   </button>
@@ -610,7 +610,7 @@ export function GlobalSearch({
                               writeRecents([]);
                               setRecents([]);
                             }}
-                            className="text-[11px] font-medium text-muted-foreground/60 hover:text-primary transition-colors cursor-pointer mr-1"
+                            className="text-[11px] font-medium text-muted-foreground/80 hover:text-primary transition-colors cursor-pointer mr-1"
                           >
                             Clear recent
                           </button>
@@ -659,7 +659,7 @@ export function GlobalSearch({
                         <CommandGroup
                           key={group.category}
                           heading={CATEGORY_LABELS[group.category]}
-                          className="p-0 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:pt-3.5 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.08em] [&_[cmdk-group-heading]]:text-muted-foreground/60"
+                          className="p-0 pb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:pt-3.5 [&_[cmdk-group-heading]]:text-[10.5px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.08em] [&_[cmdk-group-heading]]:text-muted-foreground/80"
                         >
                           {group.docs.map((doc) => (
                             <ResultRow
@@ -676,7 +676,7 @@ export function GlobalSearch({
                 </CommandList>
 
                 {/* Footer ----------------------------------------------------- */}
-                <div className="flex shrink-0 items-center gap-4 border-t border-border/60 bg-muted/25 px-4 py-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                <div className="flex shrink-0 items-center gap-4 border-t border-border/60 bg-muted/25 px-4 py-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground/80">
                   <span className="inline-flex items-center gap-1.5">
                     <ShortcutKey>
                       <ArrowUp size={10} />
@@ -694,7 +694,7 @@ export function GlobalSearch({
                     <ShortcutKey>Esc</ShortcutKey>
                     Quit
                   </span>
-                  <span className="ml-auto hidden font-mono normal-case tracking-normal text-muted-foreground/45 sm:inline">
+                  <span className="ml-auto hidden font-mono normal-case tracking-normal text-muted-foreground/80 sm:inline">
                     {allDocs.length.toLocaleString()} items indexed
                   </span>
                 </div>

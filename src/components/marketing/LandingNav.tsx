@@ -25,26 +25,46 @@ import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
  *   • compacts (shorter, blurred, hairline only) once the page scrolls.
  */
 
+// Ordered exactly as they appear on the page; the numbers mirror the section
+// indices used in the copy so the indicator can never disagree with the layout.
 const SECTIONS = [
-  { id: "workspace", label: "Workspace" },
-  { id: "session", label: "A session" },
-  { id: "path", label: "The path" },
-  { id: "capabilities", label: "Capabilities" },
+  { id: "session", label: "A session", index: "01" },
+  { id: "workspace", label: "Workspace", index: "02" },
+  { id: "path", label: "The path", index: "03" },
+  { id: "numbers", label: "By the numbers", index: "04" },
 ] as const;
 
 export function LandingNav() {
   const reduceMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
-  const [activeId, setActiveId] = useState<string>("workspace");
+  const [activeId, setActiveId] = useState<string>("");
+  const progressRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
 
+  // Scroll state + reading progress in one passive listener, written straight to
+  // a CSS variable so the header never re-renders while the page moves.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 24);
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio =
+          max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        progressRef.current?.style.setProperty("--progress", String(ratio));
+      });
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -119,6 +139,14 @@ export function LandingNav() {
           : "border-b border-transparent bg-transparent",
       )}
     >
+      {/* reading progress — a single hairline, transform only */}
+      <div
+        ref={progressRef}
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-px origin-left bg-primary/70"
+        style={{ transform: "scaleX(var(--progress, 0))" }}
+      />
+
       <div
         className={cn(
           "mx-auto flex w-full max-w-content items-center justify-between gap-4 px-5 transition-[height] duration-2 sm:px-8",
@@ -163,12 +191,21 @@ export function LandingNav() {
                     }}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "relative flex h-8 items-center rounded-sm px-3 text-[13px] font-medium transition-colors duration-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "group relative flex h-8 items-center gap-1.5 rounded-sm px-3 text-[13px] font-medium transition-colors duration-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       isActive
                         ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "font-mono text-[9px] tabular-nums transition-colors duration-1",
+                        isActive ? "text-primary" : "text-muted-foreground",
+                      )}
+                    >
+                      {section.index}
+                    </span>
                     {section.label}
                     {isActive && (
                       <motion.span

@@ -305,7 +305,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             placeholder="Search lessons…"
             aria-label="Search lessons"
             className={cn(
-              "h-8 w-full rounded-sm border bg-[hsl(var(--surface-panel))] pl-7 pr-7 text-[12px] text-foreground outline-none transition-colors duration-1 placeholder:text-muted-foreground/60",
+              "h-8 w-full rounded-sm border bg-[hsl(var(--surface-panel))] pl-7 pr-7 text-[12px] text-foreground outline-none transition-colors duration-1 placeholder:text-muted-foreground/80",
               searchFocused
                 ? "border-primary/50"
                 : "border-line hover:border-[hsl(var(--surface-line-strong))]",
@@ -333,7 +333,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                 <p className="text-[12px] text-muted-foreground">
                   No lesson matches “{searchQuery}”.
                 </p>
-                <p className="mt-1 font-mono text-[10.5px] text-muted-foreground/70">
+                <p className="mt-1 font-mono text-[10.5px] text-muted-foreground/80">
                   Try a pattern name, e.g. “window” or “graph”.
                 </p>
               </div>
@@ -400,7 +400,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
       {/* ── Library tree ─────────────────────────────────────── */}
       <div className="mt-3 flex shrink-0 items-baseline justify-between px-3">
         <h2 className="ws-eyebrow">{modeLabel}</h2>
-        <span className="font-mono text-[10px] tabular-nums text-muted-foreground/60">
+        <span className="font-mono text-[10px] tabular-nums text-muted-foreground/80">
           {activeTopics.length}
         </span>
       </div>
@@ -428,21 +428,21 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                   <span className="flex min-w-0 items-center gap-2">
                     <span
                       aria-hidden="true"
-                      className="w-3.5 shrink-0 text-center font-mono text-[10px] text-muted-foreground/60"
+                      className="w-3.5 shrink-0 text-center font-mono text-[10px] text-muted-foreground/80"
                     >
                       {topic.icon}
                     </span>
                     <span className="truncate">{topic.title}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-1.5">
-                    <span className="font-mono text-[10px] tabular-nums text-muted-foreground/50">
+                    <span className="font-mono text-[10px] tabular-nums text-muted-foreground/80">
                       {topic.subtopics.length}
                     </span>
                     <ChevronDown
                       size={11}
                       aria-hidden="true"
                       className={cn(
-                        "text-muted-foreground/60 transition-transform duration-2",
+                        "text-muted-foreground/80 transition-transform duration-2",
                         isOpen && "rotate-180",
                       )}
                     />

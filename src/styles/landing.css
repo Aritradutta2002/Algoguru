@@ -1,48 +1,688 @@
 /* ─────────────────────────────────────────────────────────────────────
-   Public landing page layout.
+   AlgoGuru landing page — "The Forge"
 
-   Everything structural lives in Tailwind utilities and the shared
-   `ws-*` primitives. This file only holds the handful of rules that need
-   to be expressed outside the utility layer: page-level scroll offsets,
-   selection colour, and the hero's top texture mask.
+   Plain CSS by design: this file is imported directly by the page (not
+   through the Tailwind entry), so no @layer / @apply. Everything is scoped
+   under `.lp` except keyframes, and every animation only touches transform,
+   opacity or clip-path so it stays on the compositor.
    ───────────────────────────────────────────────────────────────────── */
 
-.landing-root {
-  scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
+.lp {
+  --lp-ember: hsl(var(--primary));
+  --lp-gold: hsl(var(--accent));
+  --lp-ink: hsl(var(--foreground));
+  --lp-dim: hsl(var(--muted-foreground));
+  --lp-rule: hsl(var(--surface-line));
+  --lp-panel: hsl(var(--surface-panel));
+  --lp-chrome: hsl(var(--surface-chrome));
+  --lp-page: hsl(var(--surface-page));
+  --lp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --lp-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  background: var(--lp-page);
+  color: var(--lp-ink);
+  position: relative;
+  isolation: isolate;
 }
 
-.landing-root ::selection {
-  background: hsl(var(--primary) / 0.24);
-  color: hsl(var(--foreground));
+.lp ::selection {
+  background: hsl(var(--primary) / 0.26);
+  color: var(--lp-ink);
 }
 
-/* The hero grid fades before it can compete with the headline. */
-.landing-root .ws-grid-texture {
-  opacity: 0.9;
+/* Film grain: one SVG, painted once, never animated. */
+.lp-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
 }
 
-/* Focus mode on the marketing page keeps the same ring everywhere. */
-.landing-root :focus-visible {
-  outline-offset: 2px;
+.lp-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    130% 90% at 50% 4%,
+    transparent 54%,
+    hsl(var(--surface-page) / 0.34) 100%
+  );
 }
 
-/* Long headline words should not overflow narrow phones. */
-.landing-root h1,
-.landing-root h2 {
-  overflow-wrap: break-word;
-  hyphens: none;
+/* ── Section furniture ─────────────────────────────────────────────── */
+
+.lp-shell {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 4rem);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .landing-root {
-    scroll-behavior: auto;
+.lp-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--surface-line-strong)) 12%,
+    hsl(var(--surface-line-strong)) 88%,
+    transparent
+  );
+}
+
+.lp-kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lp-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lp-kicker::before {
+  content: "";
+  width: 16px;
+  height: 1px;
+  background: var(--lp-ember);
+  opacity: 0.6;
+}
+
+.lp-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.036em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.lp-serif {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Index gutter used beside section headings (editor-style line numbers). */
+.lp-index {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground) / 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Headline reveal: text rises out of a clipping mask ───────────── */
+
+.lp-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+
+.lp-mask > span {
+  display: block;
+  transform: translate3d(0, 110%, 0);
+  animation: lp-rise 0.95s var(--lp-ease) forwards;
+  animation-delay: var(--lp-delay, 0ms);
+  will-change: transform;
+}
+
+@keyframes lp-rise {
+  to {
+    transform: translate3d(0, 0, 0);
   }
 }
 
-@media print {
-  .landing-root nav,
-  .landing-root footer {
+/* Generic fade-up used by section content. */
+.lp-up {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  animation: lp-up 0.7s var(--lp-ease) forwards;
+  animation-delay: var(--lp-delay, 0ms);
+}
+
+@keyframes lp-up {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────── */
+
+.lp-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 46px;
+  padding: 0 1.35rem;
+  border-radius: 4px;
+  border: 1px solid hsl(var(--primary) / 0.7);
+  background: var(--lp-ember);
+  color: hsl(var(--primary-foreground));
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  transition:
+    transform 200ms var(--lp-ease),
+    box-shadow 240ms var(--lp-ease),
+    background-color 200ms var(--lp-ease);
+  box-shadow:
+    0 1px 0 hsl(var(--primary-foreground) / 0.18) inset,
+    0 12px 30px -14px hsl(var(--primary) / 0.7);
+}
+
+.lp-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    hsl(var(--primary-foreground) / 0.28) 45%,
+    transparent 62%
+  );
+  transform: translateX(-120%);
+  transition: transform 700ms var(--lp-ease);
+  pointer-events: none;
+}
+
+.lp-cta:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 hsl(var(--primary-foreground) / 0.22) inset,
+    0 18px 40px -16px hsl(var(--primary) / 0.8);
+}
+
+.lp-cta:hover::after {
+  transform: translateX(120%);
+}
+
+.lp-cta:active {
+  transform: translateY(0) scale(0.995);
+}
+
+.lp-cta svg {
+  transition: transform 220ms var(--lp-ease);
+}
+
+.lp-cta:hover svg[data-arrow] {
+  transform: translateX(3px);
+}
+
+.lp-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  height: 46px;
+  padding: 0 1.1rem 0 0.9rem;
+  border-radius: 4px;
+  border: 1px solid var(--lp-rule);
+  background: hsl(var(--surface-chrome) / 0.9);
+  color: var(--lp-ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition:
+    border-color 200ms var(--lp-ease),
+    background-color 200ms var(--lp-ease),
+    transform 200ms var(--lp-ease);
+}
+
+.lp-ghost:hover {
+  border-color: hsl(var(--surface-line-strong));
+  background: hsl(var(--surface-raised));
+  transform: translateY(-1px);
+}
+
+.lp-ghost:active {
+  transform: translateY(0);
+}
+
+.lp-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--lp-rule);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--lp-dim);
+  background: hsl(var(--surface-raised));
+}
+
+/* ── Hero atmosphere ──────────────────────────────────────────────── */
+
+.lp-hero {
+  position: relative;
+  overflow: clip;
+}
+
+.lp-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 62% at 62% 34%,
+    #000 5%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 62% at 62% 34%,
+    #000 5%,
+    transparent 72%
+  );
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.lp-hero-bloom {
+  position: absolute;
+  right: -6%;
+  top: 4%;
+  width: min(760px, 68vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    hsl(var(--primary) / 0.2) 0%,
+    hsl(var(--primary) / 0.08) 38%,
+    transparent 68%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── The product stage ────────────────────────────────────────────── */
+
+.lp-stage {
+  position: relative;
+  perspective: 1800px;
+  perspective-origin: 62% 40%;
+}
+
+.lp-stage-glow {
+  position: absolute;
+  inset: 6% -4% -8% 4%;
+  border-radius: 24px;
+  background: radial-gradient(
+    ellipse at 60% 40%,
+    hsl(var(--primary) / 0.22),
+    transparent 62%
+  );
+  filter: blur(34px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.lp-window {
+  position: relative;
+  transform-style: preserve-3d;
+  border-radius: 10px;
+  border: 1px solid hsl(var(--surface-line-strong));
+  background: var(--lp-page);
+  box-shadow:
+    0 0 0 1px hsl(0 0% 0% / 0.4),
+    0 2px 4px hsl(0 0% 0% / 0.4),
+    0 30px 80px -30px hsl(0 0% 0% / 0.85),
+    0 60px 140px -60px hsl(var(--primary) / 0.35);
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* Single light sweep along the top edge, played once on load. */
+.lp-window::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary) / 0.9),
+    hsl(var(--accent) / 0.7),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: lp-beam 1.8s var(--lp-ease) 0.5s forwards;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@keyframes lp-beam {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.lp-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 34px;
+  padding: 0 0.7rem;
+  border-bottom: 1px solid var(--lp-rule);
+  background: var(--lp-chrome);
+}
+
+.lp-traffic {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.lp-traffic span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
+.lp-code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.72;
+  font-variant-ligatures: none;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--surface-line-strong)) transparent;
+}
+
+.lp-code .tok-k {
+  color: var(--lp-ember);
+}
+.lp-code .tok-t {
+  color: var(--lp-gold);
+}
+.lp-code .tok-f {
+  color: hsl(var(--foreground));
+}
+.lp-code .tok-n {
+  color: hsl(var(--info));
+}
+.lp-code .tok-p {
+  color: hsl(var(--muted-foreground));
+}
+
+.lp-caret {
+  display: inline-block;
+  width: 6px;
+  height: 1.05em;
+  vertical-align: text-bottom;
+  background: var(--lp-ember);
+  animation: lp-caret 1.05s steps(1, end) infinite;
+}
+
+@keyframes lp-caret {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Floating status cards beside the window */
+.lp-float-card {
+  position: absolute;
+  z-index: 3;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--surface-line-strong));
+  background: hsl(var(--surface-panel) / 0.94);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.05) inset,
+    0 18px 40px -22px hsl(0 0% 0% / 0.9);
+  animation: lp-drift 7s var(--lp-ease-in-out) infinite;
+}
+
+@keyframes lp-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+.lp-pass-pulse {
+  animation: lp-pass 900ms var(--lp-ease) 1;
+}
+
+@keyframes lp-pass {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ── Marquee ──────────────────────────────────────────────────────── */
+
+.lp-marquee {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.lp-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 0;
+  animation: lp-marquee 46s linear infinite;
+}
+
+.lp-marquee:hover .lp-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes lp-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* ── Bento cell spotlight ─────────────────────────────────────────── */
+
+.lp-cell {
+  position: relative;
+  background: var(--lp-panel);
+  overflow: hidden;
+  transition: background-color 260ms var(--lp-ease);
+}
+
+.lp-cell::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 0%),
+    hsl(var(--primary) / 0.12),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 260ms var(--lp-ease);
+  pointer-events: none;
+}
+
+.lp-cell:hover::before {
+  opacity: 1;
+}
+
+.lp-cell:hover {
+  background: hsl(var(--surface-raised) / 0.55);
+}
+
+/* ── Sticky story ─────────────────────────────────────────────────── */
+
+.lp-chapter {
+  border-top: 1px solid var(--lp-rule);
+  transition:
+    color 240ms var(--lp-ease),
+    background-color 240ms var(--lp-ease);
+}
+
+.lp-chapter[data-active="true"] .lp-chapter-index {
+  color: var(--lp-ember);
+}
+
+.lp-chapter[data-active="true"] .lp-chapter-rule {
+  transform: scaleX(1);
+}
+
+.lp-chapter-rule {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 1px;
+  width: 100%;
+  background: var(--lp-ember);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 500ms var(--lp-ease);
+}
+
+/* ── Counter band ─────────────────────────────────────────────────── */
+
+.lp-stat {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.6rem, 1.4rem + 3.4vw, 4.4rem);
+  line-height: 1;
+}
+
+/* ── Final call to action ─────────────────────────────────────────── */
+
+.lp-final {
+  position: relative;
+  overflow: clip;
+  border-top: 1px solid var(--lp-rule);
+}
+
+.lp-final-bloom {
+  position: absolute;
+  left: 50%;
+  bottom: -55%;
+  width: min(1100px, 120vw);
+  aspect-ratio: 1 / 0.7;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    hsl(var(--primary) / 0.22),
+    hsl(var(--primary) / 0.06) 45%,
+    transparent 70%
+  );
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.lp-final-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 60% 70% at 50% 100%,
+    #000,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    ellipse 60% 70% at 50% 100%,
+    #000,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .lp *,
+  .lp *::before,
+  .lp *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .lp-mask > span,
+  .lp-up {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .lp-window::before {
     display: none;
+  }
+}
+
+/* ── Print / animations-disabled safety ───────────────────────────────
+   The page reveals content with entrance animations; if animations never
+   run (printing, some embedded browsers), the content must still be
+   visible instead of stuck at opacity 0. */
+@media print {
+  .lp-mask > span,
+  .lp-up {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .lp-marquee-track,
+  .lp-float-card,
+  .lp-caret {
+    animation: none !important;
+  }
+
+  .lp-window::before,
+  .lp-noise,
+  .lp-vignette,
+  .lp-hero-bloom,
+  .lp-final-bloom,
+  .lp-stage-glow {
+    display: none !important;
   }
 }
