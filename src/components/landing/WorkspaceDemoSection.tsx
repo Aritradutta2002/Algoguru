@@ -2,7 +2,6 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { Check, Code2, FileText, FlaskConical, Terminal } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
-import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 import { EASE_OUT, springSoft } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { CodeLine } from "./codeSnippet";
@@ -94,8 +93,7 @@ export function WorkspaceDemoSection() {
         </Reveal>
 
         <Reveal delay={0.06} from="bottom">
-          <div className="demo-shell relative overflow-hidden">
-            <BorderBeam size={340} duration={16} colorFrom="#3b82f6" colorTo="#67e8f9" />
+          <div className="demo-shell">
             <div className="demo-window-bar flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-4 py-3 sm:px-5">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="hero-traffic-dot bg-rose-400/80" aria-hidden="true" />

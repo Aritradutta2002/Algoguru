@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
 import { usePointerTilt } from "@/components/motion/usePointerTilt";
-import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 import { useElementScrollProgress } from "@/hooks/useElementScrollProgress";
 import { PARALLAX_SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -73,8 +72,7 @@ export function HeroWorkspacePreview({
 
         <motion.div ref={tiltRef} style={{ rotateX, rotateY }} className="hero-tilt">
           <div className="hero-preview-frame">
-            <SpotlightCard className="hero-preview-card landing-preview relative rounded-[1.75rem] p-0 overflow-hidden">
-              <BorderBeam size={280} duration={14} colorFrom="#3b82f6" colorTo="#67e8f9" />
+            <SpotlightCard className="hero-preview-card landing-preview relative rounded-[1.75rem] p-0">
               <div className="relative">
                 {/* window chrome */}
                 <div className="hero-window-bar flex flex-wrap items-center justify-between gap-2.5 border-b border-border/60 px-4 py-3 sm:px-5">

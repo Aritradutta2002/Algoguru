@@ -7,23 +7,24 @@ import {
   ArrowUpRight,
   BrainCircuit,
   CalendarDays,
+  ChevronRight,
   Code2,
   Coffee,
   Layers,
   Map as MapIcon,
+  MousePointerClick,
   PanelLeft,
   Sparkles,
   Target,
   Trophy,
+  Zap,
 } from "lucide-react";
 import { QuizSection } from "@/components/quiz/QuizSection";
+import { MagneticButton } from "@/components/motion/MagneticButton";
 import { Reveal } from "@/components/motion/Reveal";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
-import { EngineeredBentoGrid } from "@/components/landing/EngineeredBentoGrid";
-import { SpotlightNavbar } from "@/components/ui/vengeance/SpotlightNavbar";
-import { CandyButton } from "@/components/ui/vengeance/CandyButton";
 import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
 import { cn } from "@/lib/utils";
 
@@ -117,11 +118,29 @@ const CARD_TONES = {
   },
 } as const;
 
+const HOW_IT_WORKS = [
+  {
+    icon: <MousePointerClick size={20} />,
+    title: "Pick a path",
+    desc: "Choose a structured track — DSA, System Design, Java, or Interview prep.",
+  },
+  {
+    icon: <Layers size={20} />,
+    title: "Learn by pattern",
+    desc: "Master concepts grouped by the patterns interviews actually test.",
+  },
+  {
+    icon: <Zap size={20} />,
+    title: "Practice & ship",
+    desc: "Solve in the built-in editor and walk in ready to perform.",
+  },
+] as const;
+
 const PROOF_POINTS = [
   {
     icon: Code2,
     label: "Practice in your browser",
-    detail: "Zero setup, real Java 21 runtime",
+    detail: "No setup, no installs",
   },
   {
     icon: Layers,
@@ -156,10 +175,6 @@ export default function Index() {
           onOpenRoadmap={openRoadmap}
         />
 
-        {/* ── In-Page Section Jump Rail (SpotlightNavbar) ────────────────── */}
-        <SpotlightNavbar />
-
-        {/* ── HIGH-IMPACT PROOF STRIP ────────────────────────────────────── */}
         <Reveal className="relative border-b border-border/60">
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_140%_at_50%_0%,hsl(var(--primary)/0.09),transparent_74%)]"
@@ -201,7 +216,7 @@ export default function Index() {
         >
           <Reveal className="mb-12 flex flex-col justify-between gap-6 md:mb-14 md:flex-row md:items-end">
             <div className="max-w-2xl">
-              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
                 Learning paths
               </p>
               <h2
@@ -237,7 +252,7 @@ export default function Index() {
                 <Reveal key={section.id} delay={index * 0.055} from="bottom">
                   <SpotlightCard
                     interactive
-                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl border border-border/70 bg-card/75 backdrop-blur-md transition-all duration-300 hover:border-primary/40 focus-within:border-primary/40"
+                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
                   >
                     <Link
                       to={section.route}
@@ -252,13 +267,13 @@ export default function Index() {
                         >
                           <Icon size={23} />
                         </div>
-                        <span className="rounded-full border border-border/70 bg-muted/40 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                        <span className="rounded-full border border-border/70 bg-muted/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
                           {section.tag}
                         </span>
                       </div>
 
                       <div className="flex-1">
-                        <p className="mb-1.5 font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground/80">
+                        <p className="mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground/80">
                           {section.subtitle}
                         </p>
                         <h3 className="font-display text-[1.45rem] font-bold leading-tight tracking-[-0.025em]">
@@ -296,11 +311,67 @@ export default function Index() {
         {/* ── INTERACTIVE WORKSPACE DEMO ───────────────────────────────── */}
         <WorkspaceDemoSection />
 
-        {/* ── 4-PHASE PROGRESSION BENTO GRID ──────────────────────────── */}
-        <EngineeredBentoGrid />
-
         {/* ── QUIZ ─────────────────────────────────────────────────────── */}
         <QuizSection />
+
+        {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
+        <section className="relative border-y border-border/60 bg-muted/25">
+          <div className="pointer-events-none absolute inset-0 bg-dots opacity-[0.18]" aria-hidden="true" />
+          <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24 lg:px-16">
+            <Reveal className="mb-12 text-center">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+                How it works
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] md:text-4xl">
+                From first click to offer letter.
+              </h2>
+            </Reveal>
+
+            <div className="relative grid gap-6 md:grid-cols-3">
+              {HOW_IT_WORKS.map((step, index) => (
+                <Reveal key={step.title} delay={index * 0.08} className="relative">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-border/80 bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-primary/30 hover:shadow-overlay">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.45),transparent)]"
+                    />
+                    <div className="mb-5 flex items-start justify-between">
+                      <div className="inline-flex rounded-2xl border border-primary/20 bg-primary/[0.08] p-3.5 text-primary shadow-soft">
+                        {step.icon}
+                      </div>
+                      <span
+                        aria-hidden="true"
+                        className="font-display text-[2.6rem] font-bold leading-none tracking-[-0.06em] text-foreground/[0.05] transition-colors duration-300 group-hover:text-primary/[0.09]"
+                      >
+                        0{index + 1}
+                      </span>
+                    </div>
+                    <h3 className="font-display text-lg font-bold tracking-tight">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-[14px] leading-6 text-muted-foreground">
+                      {step.desc}
+                    </p>
+                  </div>
+                </Reveal>
+              ))}
+
+              {[0, 1].map((index) => (
+                <span
+                  key={index}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 hidden h-7 w-7 items-center justify-center rounded-full border border-primary/25 bg-card text-primary/80 shadow-soft md:flex"
+                  style={{
+                    left: `${((index + 1) * 100) / 3}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  <ChevronRight size={14} />
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden">
@@ -341,19 +412,19 @@ export default function Index() {
                     real, interview-ready skill today.
                   </p>
                   <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-                    <CandyButton
+                    <MagneticButton
                       onClick={() => scrollToSection("modules")}
-                      className="landing-primary group"
+                      className="landing-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-8 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       Start learning free
                       <ArrowRight
                         size={17}
                         className="transition-transform duration-300 group-hover:translate-x-1"
                       />
-                    </CandyButton>
+                    </MagneticButton>
                     <button
                       onClick={openRoadmap}
-                      className="inline-flex min-h-[46px] items-center gap-2.5 rounded-xl border border-border bg-card/80 px-8 py-3.5 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card/80 px-8 py-4 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       <MapIcon size={16} className="text-primary" />
                       View roadmap
