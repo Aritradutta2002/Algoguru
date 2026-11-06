@@ -62,7 +62,10 @@ const NotFound = () => {
         </div>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11.5px] text-muted-foreground">
-          <Link to="/roadmap" className="inline-flex items-center gap-1.5 rounded-md hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Link
+            to="/roadmap"
+            className="inline-flex items-center gap-1.5 rounded-md hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             <LifeBuoy size={12} />
             Open roadmap
           </Link>

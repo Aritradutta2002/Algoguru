@@ -1,6 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BriefcaseBusiness, Code2, House, Menu, SquareTerminal } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  Code2,
+  House,
+  Menu,
+  SquareTerminal,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavIcon } from "./NavIcon";
 
@@ -12,7 +18,9 @@ const ITEMS = [
 ] as const;
 
 const isActive = (pathname: string, path: string) =>
-  path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`);
+  path === "/"
+    ? pathname === "/"
+    : pathname === path || pathname.startsWith(`${path}/`);
 
 interface MobileNavProps {
   onMore: () => void;
@@ -44,16 +52,16 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
             to={item.path}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+              "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               active
-                ? "text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
-                : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
+                ? "text-foreground  [&_svg]:text-primary dark:[&_svg]:text-primary"
+                : "text-foreground  [&_svg]:text-muted-foreground dark:[&_svg]:text-muted-foreground hover:text-foreground ",
             )}
           >
             {active && (
               <motion.span
                 layoutId="mobile-nav-pill"
-                className="absolute inset-0 rounded-xl border border-blue-500/20 bg-blue-500/10"
+                className="absolute inset-0 rounded-xl border border-primary/40 bg-primary"
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             )}
@@ -68,16 +76,16 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
         onClick={onMore}
         aria-label="Open more navigation"
         className={cn(
-          "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+          "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           moreActive
-            ? "text-slate-900 dark:text-slate-50 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400"
-            : "text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
+            ? "text-foreground  [&_svg]:text-primary dark:[&_svg]:text-primary"
+            : "text-foreground  [&_svg]:text-muted-foreground dark:[&_svg]:text-muted-foreground hover:text-foreground ",
         )}
       >
         {moreActive && (
           <motion.span
             layoutId="mobile-nav-pill"
-            className="absolute inset-0 rounded-xl border border-blue-500/20 bg-blue-500/10"
+            className="absolute inset-0 rounded-xl border border-primary/40 bg-primary"
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
           />
         )}

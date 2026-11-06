@@ -4,17 +4,12 @@ import { motion } from "framer-motion";
 import {
   AlertCircle,
   ArrowLeft,
-  BrainCircuit,
   Check,
-  Code2,
   Eye,
   EyeOff,
   Loader2,
   Moon,
-  ShieldCheck,
-  Sparkles,
   Sun,
-  Target,
 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +20,14 @@ import { cn } from "@/lib/utils";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
 
+/**
+ * Authentication.
+ *
+ * The layout is the first honest look at the product: form on the left, a
+ * quiet proof panel on the right built from the real workspace vocabulary
+ * (lesson rows, a code line, a passing test). No decorative gradient mesh.
+ */
+
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -33,7 +36,11 @@ const loginSchema = z.object({
 const signupSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required").max(100),
-    email: z.string().trim().email("Please enter a valid email address").max(255),
+    email: z
+      .string()
+      .trim()
+      .email("Please enter a valid email address")
+      .max(255),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -73,7 +80,7 @@ function Field({
     <div className="w-full">
       <label
         htmlFor={id}
-        className="mb-1.5 block text-[12px] font-semibold text-foreground/80"
+        className="mb-1.5 block font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground"
       >
         {label}
       </label>
@@ -88,14 +95,16 @@ function Field({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-error` : undefined}
           className={cn(
-            "h-11 w-full rounded-xl border bg-background/50 px-3.5 pr-11 text-sm shadow-[inset_0_1px_0_hsl(var(--foreground)/0.025)] outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-muted-foreground/60 focus:bg-background",
+            "h-10 w-full rounded-sm border bg-[hsl(var(--surface-panel))] px-3 pr-10 text-[13.5px] text-foreground outline-none transition-[border-color,box-shadow] duration-2 placeholder:text-muted-foreground/55",
             error
-              ? "border-destructive/60 focus:border-destructive focus:ring-2 focus:ring-destructive/15"
-              : "border-border hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-ring/15",
+              ? "border-destructive/70 focus:border-destructive focus:ring-2 focus:ring-destructive/20"
+              : "border-line hover:border-[hsl(var(--surface-line-strong))] focus:border-primary/70 focus:ring-2 focus:ring-ring/25",
           )}
         />
         {rightSlot && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2">{rightSlot}</span>
+          <span className="absolute right-2 top-1/2 -translate-y-1/2">
+            {rightSlot}
+          </span>
         )}
       </div>
       {error && (
@@ -103,7 +112,7 @@ function Field({
           id={`${id}-error`}
           className="mt-1.5 flex items-center gap-1 text-[11.5px] text-destructive"
         >
-          <AlertCircle size={11} />
+          <AlertCircle size={11} aria-hidden="true" />
           {error}
         </p>
       )}
@@ -114,7 +123,7 @@ function Field({
 /* ── Google mark ───────────────────────────────────────────────── */
 function GoogleIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z"
         fill="#4285F4"
@@ -137,19 +146,19 @@ function GoogleIcon() {
 
 const VALUE_POINTS = [
   {
-    icon: Target,
-    title: "A path, not a pile of links",
-    body: "Structured DSA, Java and system-design tracks that tell you what to do next.",
+    index: "01",
+    title: "A prerequisite-ordered path",
+    body: "184 lessons across 14 DSA tracks, plus Java theory and Spring Boot interview material.",
   },
   {
-    icon: Code2,
-    title: "Solve without setup",
-    body: "A full in-browser editor with tests, so the only thing between you and practice is a click.",
+    index: "02",
+    title: "Solve without leaving the window",
+    body: "A Monaco editor with test runs sits beside the problem statement, not in another tab.",
   },
   {
-    icon: BrainCircuit,
-    title: "Guru AI when you're stuck",
-    body: "Hints and explanations that help you reason through the problem — not just copy an answer.",
+    index: "03",
+    title: "Your progress is stored",
+    body: "Completion, bookmarks, notes and practice history are kept against your account.",
   },
 ] as const;
 
@@ -173,7 +182,7 @@ export default function Auth() {
   const { theme, toggleTheme } = useSettings();
 
   useEffect(() => {
-    if (session) navigate("/", { replace: true });
+    if (session) navigate("/home", { replace: true });
   }, [session, navigate]);
 
   useEffect(() => {
@@ -266,331 +275,336 @@ export default function Auth() {
   const isDisabled = loading || cooldown;
 
   return (
-    <main className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-background p-4 text-foreground md:p-8">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,hsl(var(--primary)/0.13),transparent_42%),radial-gradient(circle_at_85%_100%,hsl(var(--accent)/0.08),transparent_38%)]" />
-        <div className="absolute inset-0 bg-grid opacity-30" />
-        <div className="aurora-blob left-[12%] top-[16%] h-64 w-64 bg-primary/10" />
-        <div
-          className="aurora-blob bottom-[6%] right-[10%] h-64 w-64 bg-sky-400/10"
-          style={{ animationDelay: "-8s" }}
-        />
-        <div className="bg-noise absolute inset-0" />
-      </div>
+    <main className="grid min-h-[100dvh] grid-cols-1 bg-[hsl(var(--surface-page))] text-foreground lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)]">
+      <a href="#auth-form" className="skip-link">
+        Skip to the form
+      </a>
 
-      {/* top bar */}
-      <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between p-4 md:p-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12.5px] font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ArrowLeft size={14} />
-          Back to home
-        </Link>
-        <AppTooltip content={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
-          <button
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-card/70 text-muted-foreground shadow-soft backdrop-blur-sm transition-all duration-200 hover:bg-card hover:text-foreground active:scale-[0.94]"
-          >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </AppTooltip>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.985 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 mt-12 grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-border/80 bg-card/90 shadow-overlay backdrop-blur-xl md:mt-0 md:grid-cols-[1.06fr_.94fr]"
-      >
-        {/* ── Form ── */}
-        <div className="relative flex flex-col justify-center p-6 sm:p-9 md:p-12">
+      {/* ── Form column ─────────────────────────────────────────── */}
+      <div className="flex min-h-[100dvh] flex-col px-5 py-5 sm:px-10 lg:px-14">
+        <header className="flex items-center justify-between">
           <Link
             to="/"
-            className="mb-8 inline-flex w-fit items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center gap-2.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="AlgoGuru home"
           >
-            <AlgoGuruMark size={34} />
-            <span className="font-display text-[16px] font-bold tracking-tight">
+            <AlgoGuruMark size={26} />
+            <span className="font-display text-[15px] font-semibold tracking-[-0.02em]">
               Algo<span className="text-primary">Guru</span>
             </span>
           </Link>
-
-          <div className="mb-7">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-1 text-[10.5px] font-semibold text-muted-foreground">
-              <ShieldCheck size={11} className="text-primary" />
-              {isLogin ? "Secure sign in" : "Start free"}
-            </span>
-            <h1 className="mt-4 font-display text-[2rem] font-bold leading-[1.08] tracking-[-0.045em] md:text-[2.35rem]">
-              {isLogin ? (
-                <>
-                  Welcome <span className="text-gradient-brand">back.</span>
-                </>
-              ) : (
-                <>
-                  Build your <span className="text-gradient-brand">edge.</span>
-                </>
-              )}
-            </h1>
-            <p className="mt-2.5 max-w-sm text-[13.5px] leading-6 text-muted-foreground">
-              {isLogin
-                ? "Sign in to continue your coding journey."
-                : "Create an account and pick up exactly where you left off."}
-            </p>
-          </div>
-
-          {/* mode switch */}
-          <div className="mb-6 flex rounded-xl border border-border/70 bg-muted/40 p-1">
-            {[
-              { label: "Sign in", value: true },
-              { label: "Create account", value: false },
-            ].map((mode) => (
+          <div className="flex items-center gap-1">
+            <Link
+              to="/"
+              className="hidden h-8 items-center gap-1.5 rounded-sm px-2 font-mono text-[10.5px] text-muted-foreground transition-colors duration-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:inline-flex"
+            >
+              <ArrowLeft size={11} aria-hidden="true" />
+              Home
+            </Link>
+            <AppTooltip
+              content={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
               <button
-                key={mode.label}
                 type="button"
-                onClick={() => switchMode(mode.value)}
-                aria-pressed={isLogin === mode.value}
-                className={cn(
-                  "relative flex-1 rounded-lg px-3 py-2 text-[12px] font-semibold transition-colors duration-200",
-                  isLogin === mode.value
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                onClick={toggleTheme}
+                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-1 hover:bg-raised hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {isLogin === mode.value && (
-                  <motion.span
-                    layoutId="auth-mode-pill"
-                    className="absolute inset-0 rounded-lg border border-border/80 bg-card shadow-soft"
-                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                  />
-                )}
-                <span className="relative">{mode.label}</span>
+                {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
               </button>
-            ))}
+            </AppTooltip>
           </div>
+        </header>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+        <div
+          id="auth-form"
+          className="mx-auto flex w-full max-w-[364px] flex-1 flex-col justify-center py-10"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p className="ws-eyebrow">
+              {isLogin ? "Secure sign in" : "New account"}
+            </p>
+            <h1 className="mt-2.5 font-display text-[27px] font-semibold leading-[1.12] tracking-[-0.03em]">
+              {isLogin ? "Sign in to your workspace" : "Create your workspace"}
+            </h1>
+            <p className="mt-2 text-[13px] leading-6 text-muted-foreground">
+              {isLogin
+                ? "Your lessons, notes and progress are exactly where you left them."
+                : "One account keeps your progress, bookmarks and notes in sync."}
+            </p>
+
+            {/* mode switch */}
+            <div
+              role="tablist"
+              aria-label="Authentication mode"
+              className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-line bg-line p-px"
+            >
+              {[
+                { label: "Sign in", value: true },
+                { label: "Create account", value: false },
+              ].map((mode) => {
+                const selected = isLogin === mode.value;
+                return (
+                  <button
+                    key={mode.label}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => switchMode(mode.value)}
+                    className={cn(
+                      "h-8 text-[12px] font-medium transition-colors duration-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                      selected
+                        ? "bg-raised text-foreground"
+                        : "bg-[hsl(var(--surface-panel))] text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
+              {!isLogin && (
+                <Field
+                  label="Name"
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={setName}
+                  error={fieldErrors.name}
+                  autoComplete="name"
+                />
+              )}
               <Field
-                label="Name"
-                type="text"
-                placeholder="Your name"
-                value={name}
-                onChange={setName}
-                error={fieldErrors.name}
-                autoComplete="name"
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={setEmail}
+                error={fieldErrors.email}
+                autoComplete="email"
               />
-            )}
-            <Field
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={setEmail}
-              error={fieldErrors.email}
-              autoComplete="email"
-            />
-            <Field
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              placeholder={isLogin ? "Your password" : "8+ chars, upper, lower, number"}
-              value={password}
-              onChange={setPassword}
-              error={fieldErrors.password}
-              autoComplete={isLogin ? "current-password" : "new-password"}
-              rightSlot={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              }
-            />
-
-            {!isLogin && (
               <Field
-                label="Confirm password"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Re-enter your password"
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                error={fieldErrors.confirmPassword}
-                autoComplete="new-password"
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                placeholder={
+                  isLogin ? "Your password" : "8+ chars, upper, lower, number"
+                }
+                value={password}
+                onChange={setPassword}
+                error={fieldErrors.password}
+                autoComplete={isLogin ? "current-password" : "new-password"}
                 rightSlot={
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-xs text-muted-foreground transition-colors duration-1 hover:bg-raised hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 }
               />
-            )}
 
-            {error && (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-[12px] leading-5 text-destructive"
+              {!isLogin && (
+                <Field
+                  label="Confirm password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Re-enter your password"
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  error={fieldErrors.confirmPassword}
+                  autoComplete="new-password"
+                  rightSlot={
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      aria-label={
+                        showConfirmPassword ? "Hide password" : "Show password"
+                      }
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-xs text-muted-foreground transition-colors duration-1 hover:bg-raised hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={15} />
+                      ) : (
+                        <Eye size={15} />
+                      )}
+                    </button>
+                  }
+                />
+              )}
+
+              {error && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2 rounded-sm border border-destructive/40 bg-destructive/10 px-3 py-2 text-[12px] leading-5 text-destructive"
+                >
+                  <AlertCircle
+                    size={13}
+                    className="mt-0.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {error}
+                </div>
+              )}
+              {message && (
+                <div
+                  role="status"
+                  className="flex items-start gap-2 rounded-sm border border-success/35 bg-success/10 px-3 py-2 text-[12px] leading-5 text-success"
+                >
+                  <Check
+                    size={13}
+                    className="mt-0.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {message}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isDisabled}
+                className="mt-1 inline-flex h-10 w-full items-center justify-center gap-2 rounded-sm bg-primary text-[13.5px] font-semibold text-primary-foreground transition-[background-color,transform] duration-1 hover:bg-primary/90 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--surface-page))]"
               >
-                <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                {error}
-              </div>
-            )}
-            {message && (
-              <div
-                role="status"
-                className="flex items-start gap-2 rounded-xl border border-success/30 bg-success/10 px-3.5 py-2.5 text-[12px] leading-5 text-success"
-              >
-                <Check size={14} className="mt-0.5 shrink-0" />
-                {message}
-              </div>
-            )}
+                {loading && (
+                  <Loader2
+                    size={15}
+                    className="animate-spin"
+                    aria-hidden="true"
+                  />
+                )}
+                {loading
+                  ? "Please wait…"
+                  : cooldown
+                    ? "Try again shortly…"
+                    : isLogin
+                      ? "Sign in"
+                      : "Create account"}
+              </button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={isDisabled}
-              className="button-shine mt-1 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--gradient-cta)] text-sm font-semibold text-white shadow-accent transition-all duration-200 ease-premium hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-            >
-              {loading && <Loader2 size={16} className="animate-spin" />}
-              {loading
-                ? "Please wait…"
-                : cooldown
-                  ? "Try again shortly…"
-                  : isLogin
-                    ? "Sign in"
-                    : "Create account"}
-            </button>
-          </form>
+            <div className="my-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-line" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70">
+                or
+              </span>
+              <div className="h-px flex-1 bg-line" />
+            </div>
 
-          <div className="my-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-border/70" />
-            <span className="text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
-              or
-            </span>
-            <div className="h-px flex-1 bg-border/70" />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isDisabled}
-            className="inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background/50 text-[13px] font-semibold text-foreground shadow-[inset_0_1px_0_hsl(var(--foreground)/0.025)] transition-all duration-200 hover:border-primary/30 hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
-
-          <p className="mt-6 text-center text-[12px] text-muted-foreground">
-            {isLogin ? "New to AlgoGuru? " : "Already have an account? "}
             <button
               type="button"
-              onClick={() => switchMode(!isLogin)}
-              className="font-semibold text-foreground underline decoration-primary/30 decoration-2 underline-offset-4 transition-colors hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={handleGoogleSignIn}
+              disabled={isDisabled}
+              className="inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-sm border border-line bg-[hsl(var(--surface-panel))] text-[13px] font-medium text-foreground transition-colors duration-1 hover:border-[hsl(var(--surface-line-strong))] hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              {isLogin ? "Create an account" : "Sign in"}
+              <GoogleIcon />
+              Continue with Google
             </button>
-          </p>
+
+            <p className="mt-6 text-[12px] text-muted-foreground">
+              {isLogin ? "New to AlgoGuru? " : "Already have an account? "}
+              <button
+                type="button"
+                onClick={() => switchMode(!isLogin)}
+                className="rounded-xs font-medium text-foreground underline decoration-primary/40 decoration-1 underline-offset-4 transition-colors duration-1 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {isLogin ? "Create an account" : "Sign in"}
+              </button>
+            </p>
+          </motion.div>
         </div>
 
-        {/* ── Value panel ── */}
-        <aside className="relative hidden overflow-hidden border-l border-border/70 bg-[linear-gradient(160deg,hsl(var(--primary)/0.13),hsl(var(--card))_42%,hsl(var(--accent)/0.08))] p-10 md:flex md:flex-col md:justify-center">
-          <div className="pointer-events-none absolute inset-0 bg-grid opacity-35" aria-hidden="true" />
-          <div
-            className="aurora-blob -right-10 top-10 h-56 w-56 bg-primary/20"
-            aria-hidden="true"
-          />
-          <div
-            className="aurora-blob -bottom-12 left-0 h-52 w-52 bg-accent/10"
-            style={{ animationDelay: "-7s" }}
-            aria-hidden="true"
-          />
+        <p className="mx-auto w-full max-w-[364px] pb-2 font-mono text-[10px] leading-4 text-muted-foreground/70">
+          Credentials are handled by Supabase Auth. AlgoGuru never stores your
+          password.
+        </p>
+      </div>
 
-          <div className="relative">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.14em] text-primary">
-              <Sparkles size={11} />
-              Why AlgoGuru
-            </span>
-            <h2 className="mt-5 font-display text-[2rem] font-bold leading-[1.1] tracking-[-0.04em]">
-              Learn deliberately.
-              <br />
-              <span className="text-gradient-brand">Interview confidently.</span>
-            </h2>
-            <p className="mt-3 max-w-sm text-[13px] leading-6 text-muted-foreground">
-              A focused workspace built around deliberate practice — not another
-              endless tutorial feed.
-            </p>
+      {/* ── Proof column ────────────────────────────────────────── */}
+      <aside className="relative hidden flex-col justify-center border-l border-line bg-[hsl(var(--surface-chrome))] px-14 py-16 lg:flex">
+        <div
+          aria-hidden="true"
+          className="ws-grid-texture pointer-events-none absolute inset-0 opacity-60"
+        />
+        <div className="relative max-w-[440px]">
+          <p className="ws-eyebrow">The algorithm workspace</p>
+          <h2 className="mt-3 font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.032em]">
+            Read, solve, review —{" "}
+            <span className="ws-editorial text-primary">one window.</span>
+          </h2>
 
-            <ul className="mt-8 space-y-5">
-              {VALUE_POINTS.map(({ icon: Icon, title, body }) => (
-                <li key={title} className="flex gap-3.5">
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-card/70 text-primary shadow-soft">
-                    <Icon size={16} />
-                  </span>
-                  <div>
-                    <p className="text-[12.5px] font-semibold text-foreground">{title}</p>
-                    <p className="mt-1 text-[11.5px] leading-5 text-muted-foreground">
-                      {body}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-9 overflow-hidden rounded-2xl border border-border/70 bg-card/70 shadow-card backdrop-blur-sm">
-              <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
-                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                  Today's session
+          <ul className="mt-8 divide-y divide-line">
+            {VALUE_POINTS.map((point) => (
+              <li key={point.index} className="flex gap-4 py-4 first:pt-0">
+                <span className="mt-0.5 font-mono text-[10.5px] tabular-nums text-primary">
+                  {point.index}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  On track
+                <div>
+                  <p className="text-[13px] font-medium text-foreground">
+                    {point.title}
+                  </p>
+                  <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
+                    {point.body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-8 overflow-hidden rounded-md border border-line bg-[hsl(var(--surface-page))]">
+            <div className="flex items-center justify-between border-b border-line px-3 py-1.5">
+              <span className="font-mono text-[10px] text-muted-foreground">
+                arrays · two-sum
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                Java
+              </span>
+            </div>
+            <pre className="overflow-x-auto px-3 py-2.5 font-mono text-[11px] leading-[1.7]">
+              <code>
+                <span className="text-primary">for</span>
+                <span className="text-muted-foreground"> (</span>
+                <span className="text-accent">int</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  i = 0; i &lt; nums.length; i++) {"{"}
                 </span>
-              </div>
-              <div className="space-y-3 px-4 py-4">
-                {[
-                  { label: "Warm up · Two Sum", done: true },
-                  { label: "Pattern · Sliding Window", done: false },
-                  { label: "Mock · 25 min timed set", done: false },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-2.5">
-                    <span
-                      className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
-                        item.done
-                          ? "border-primary/30 bg-primary text-primary-foreground"
-                          : "border-border bg-background text-muted-foreground",
-                      )}
-                    >
-                      {item.done ? (
-                        <Check size={10} strokeWidth={3} />
-                      ) : (
-                        <span className="h-1 w-1 rounded-full bg-current" />
-                      )}
-                    </span>
-                    <span
-                      className={cn(
-                        "text-[11.5px]",
-                        item.done ? "text-foreground/80" : "text-muted-foreground",
-                      )}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="h-1.5 bg-muted">
-                <div className="h-full w-1/3 rounded-r-full bg-gradient-to-r from-primary to-sky-400" />
-              </div>
+                {"\n  "}
+                <span className="text-accent">int</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  need = target - nums[i];
+                </span>
+                {"\n  "}
+                <span className="text-primary">if</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  (seen.containsKey(need)){" "}
+                </span>
+                <span className="text-primary">return</span>
+                <span className="text-muted-foreground"> ...</span>
+                {"\n}"}
+              </code>
+            </pre>
+            <div className="flex items-center gap-1.5 border-t border-line px-3 py-1.5 font-mono text-[10.5px] text-success">
+              <Check size={10} aria-hidden="true" />2 / 2 sample tests passed
             </div>
           </div>
-        </aside>
-      </motion.div>
+
+          <p className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground/70">
+            401 problems · 184 lessons · Java, Python &amp; C++ playground
+          </p>
+        </div>
+      </aside>
     </main>
   );
 }

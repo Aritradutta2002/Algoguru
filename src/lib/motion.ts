@@ -25,17 +25,6 @@ export const STAGGER = {
   row: 0.06,
 } as const;
 
-/**
- * The hero "session" runs once per mount. Values are milliseconds from mount:
- * code writes in, the suite runs, then results and progress settle.
- */
-export const HERO_TIMELINE = {
-  code: 450,
-  running: 1150,
-  pass: 1600,
-  done: 2600,
-} as const;
-
 export const TILT_SPRING: Transition = {
   type: "spring",
   stiffness: 220,
