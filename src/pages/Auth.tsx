@@ -24,6 +24,7 @@ import { getAuthRedirectUrl } from "@/lib/authUrl";
 import { cn } from "@/lib/utils";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
+import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
@@ -304,6 +305,7 @@ export default function Auth() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-10 mt-12 grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-border/80 bg-card/90 shadow-overlay backdrop-blur-xl md:mt-0 md:grid-cols-[1.06fr_.94fr]"
       >
+        <BorderBeam size={320} duration={15} colorFrom="#38bdf8" colorTo="#818cf8" />
         {/* ── Form ── */}
         <div className="relative flex flex-col justify-center p-6 sm:p-9 md:p-12">
           <Link

@@ -26,6 +26,7 @@ import { ChevronRight, ChevronLeft, List, X, Clock, ZoomIn, ZoomOut, Sun, Moon }
 import { motion, AnimatePresence } from "framer-motion";
 import { useMode } from "@/contexts/ModeContext";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 
 const dsContentMap: Record<string, ContentSection[]> = {
   arrays: arraysContent,
@@ -184,11 +185,20 @@ export default function TopicPage() {
     <div className="flex min-h-screen relative bg-background selection:bg-primary/25" ref={mainRef}>
       <div className="flex-1 min-w-0">
         <motion.div
-          className="relative overflow-hidden border-b border-border/60"
+          className="relative overflow-hidden border-b border-border/60 bg-gradient-to-b from-card/85 via-card/50 to-background/90 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div
+              className="absolute inset-0 opacity-20 dark:opacity-30"
+              style={{
+                background: `radial-gradient(ellipse 70% 50% at 50% -10%, ${color}35, transparent 70%)`,
+              }}
+            />
+          </div>
+          <BorderBeam size={280} duration={14} colorFrom={color} colorTo="#818cf8" />
           <div className="relative z-10 px-4 md:px-10 lg:px-16 py-12 md:py-20">
             <div className="flex items-center gap-2 mb-5 text-xs font-medium text-muted-foreground">
               <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/")}>
@@ -306,14 +316,14 @@ export default function TopicPage() {
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-16 pt-8 border-t border-border">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-16 pt-8 border-t border-border/70">
             {prevTopic ? (
               <motion.button
                 whileHover={{ x: -3 }}
                 onClick={() => navigate(`/${prevTopic.id}`)}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card text-left transition-colors hover:bg-muted"
+                className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border/70 bg-card/85 p-4 text-left shadow-card backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-overlay"
               >
-                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+                <div className="p-2 rounded-xl bg-muted/70 text-muted-foreground group-hover:text-foreground transition-colors">
                   <ChevronLeft size={16} />
                 </div>
                 <div>
@@ -327,13 +337,14 @@ export default function TopicPage() {
               <motion.button
                 whileHover={{ x: 3 }}
                 onClick={() => navigate(`/${nextTopic.id}`)}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card text-right transition-colors hover:bg-muted group"
+                className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border/70 bg-card/85 p-4 text-right shadow-card backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-overlay"
               >
+                <BorderBeam size={200} duration={12} colorFrom="#38bdf8" colorTo="#818cf8" />
                 <div className="flex-1">
-                  <div className="text-[10px] font-medium text-primary">Next</div>
+                  <div className="text-[10px] font-semibold text-primary">Next</div>
                   <div className="text-sm font-semibold text-foreground">{nextTopic.title}</div>
                 </div>
-                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200 shadow-soft">
                   <ChevronRight size={16} />
                 </div>
               </motion.button>
@@ -372,7 +383,7 @@ export default function TopicPage() {
       {/* Mobile TOC */}
       <motion.button
         onClick={() => setTocOpen(!tocOpen)}
-        className="xl:hidden fixed bottom-5 right-5 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-medium shadow-lg bg-card border border-border text-foreground"
+        className="xl:hidden fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold shadow-overlay bg-card/90 backdrop-blur-md border border-border/80 text-foreground hover:border-primary/40 transition-colors"
       >
         {tocOpen ? <X size={14} /> : <List size={14} />}
         {tocOpen ? "Close" : "Contents"}

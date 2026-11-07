@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MotionConfig } from "framer-motion";
 import "@/styles/landing.css";
 import {
@@ -20,13 +20,23 @@ import {
   Zap,
 } from "lucide-react";
 import { QuizSection } from "@/components/quiz/QuizSection";
-import { MagneticButton } from "@/components/motion/MagneticButton";
 import { Reveal } from "@/components/motion/Reveal";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
 import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
 import { cn } from "@/lib/utils";
+import {
+  SpotlightNavbar,
+  LogoSlider,
+  AnimatedTooltip,
+  StaggeredBentoGrid,
+  FolderPreview,
+  GlassDock,
+  CandyButton,
+  InteractiveHoverButton,
+  BorderBeam,
+} from "@/components/ui/vengeance";
 
 const RoadmapFullscreenOverlay = lazy(() =>
   import("@/components/roadmap/RoadmapFullscreenOverlay").then((module) => ({
@@ -154,7 +164,15 @@ const PROOF_POINTS = [
   },
 ] as const;
 
+const TOOLTIP_ENGINEERS = [
+  { id: 1, name: "Google", designation: "L4/L5 Alum" },
+  { id: 2, name: "Meta", designation: "E4/E5 Alum" },
+  { id: 3, name: "Amazon", designation: "SDE II Alum" },
+  { id: 4, name: "Microsoft", designation: "Senior SWE" },
+];
+
 export default function Index() {
+  const navigate = useNavigate();
   const [roadmapOpen, setRoadmapOpen] = useState(false);
   const openRoadmap = () => setRoadmapOpen(true);
   const { homeSidebarOpen, toggleHomeSidebar } = useHomeSidebar();
@@ -168,23 +186,50 @@ export default function Index() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="landing-page relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
+      <main className="landing-page relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25 pb-24">
+        {/* ── MANDATORY SIGNATURE HERO WITH PIXELATED IMAGE TRAIL & VENGEANCE UI ── */}
         <HeroSection
           onExplore={() => scrollToSection("modules")}
           onQuiz={() => scrollToSection("quiz")}
           onOpenRoadmap={openRoadmap}
         />
 
+        {/* ── OFFICIAL VENGEANCE UI SPOTLIGHT NAVBAR ── */}
+        <SpotlightNavbar
+          onSelect={(id) => scrollToSection(id)}
+          items={[
+            { id: "modules", label: "Learning Paths", count: "6" },
+            { id: "demo", label: "Workspace Demo", count: "Interactive" },
+            { id: "bento", label: "Curriculum Flow", count: "4 Phases" },
+            { id: "vault", label: "Curriculum Vault", count: "Cheatsheets" },
+            { id: "quiz", label: "Skill Quiz", count: "10 Qs" },
+          ]}
+        />
+
+        {/* ── OFFICIAL VENGEANCE UI LOGO / TECH STACK SLIDER ── */}
+        <div className="relative border-y border-border/60 bg-muted/20 py-2">
+          <LogoSlider />
+        </div>
+
+        {/* ── PROOF STRIP WITH ANIMATED TOOLTIP ── */}
         <Reveal className="relative border-b border-border/60">
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_140%_at_50%_0%,hsl(var(--primary)/0.09),transparent_74%)]"
             aria-hidden="true"
           />
           <div className="relative mx-auto flex max-w-[1440px] flex-col gap-6 px-6 py-7 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 lg:px-16">
-            <p className="flex items-center gap-2.5 font-display text-[13.5px] font-semibold tracking-[-0.01em] text-foreground">
+            <div className="flex items-center gap-3">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.6)]" aria-hidden="true" />
-              Less tab switching. More progress.
-            </p>
+              <p className="font-display text-[13.5px] font-semibold tracking-[-0.01em] text-foreground">
+                Less tab switching. More progress.
+              </p>
+              <span className="hidden sm:inline-block text-muted-foreground/40 font-mono">|</span>
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="text-[11px] font-mono text-muted-foreground">Targeted for:</span>
+                <AnimatedTooltip items={TOOLTIP_ENGINEERS} />
+              </div>
+            </div>
+
             <div className="grid gap-5 sm:grid-cols-3 sm:gap-0">
               {PROOF_POINTS.map(({ icon: Icon, label, detail }, index) => (
                 <div
@@ -252,8 +297,11 @@ export default function Index() {
                 <Reveal key={section.id} delay={index * 0.055} from="bottom">
                   <SpotlightCard
                     interactive
-                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
+                    className="landing-path-card path-card-sweep group relative h-full min-h-[290px] rounded-3xl focus-within:border-primary/40 overflow-hidden"
                   >
+                    {index === 0 && (
+                      <BorderBeam size={160} duration={12} colorFrom="#38bdf8" colorTo="#818cf8" />
+                    )}
                     <Link
                       to={section.route}
                       className="relative flex h-full min-h-[290px] flex-col rounded-3xl p-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -311,7 +359,41 @@ export default function Index() {
         {/* ── INTERACTIVE WORKSPACE DEMO ───────────────────────────────── */}
         <WorkspaceDemoSection />
 
-        {/* ── QUIZ ─────────────────────────────────────────────────────── */}
+        {/* ── OFFICIAL VENGEANCE UI STAGGERED BENTO GRID ──────────────── */}
+        <StaggeredBentoGrid />
+
+        {/* ── OFFICIAL VENGEANCE UI FOLDER PREVIEW // CURRICULUM VAULT ── */}
+        <section
+          id="vault"
+          aria-labelledby="vault-heading"
+          className="relative mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28 lg:px-16"
+        >
+          <Reveal className="mb-12 max-w-2xl">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+              Curriculum Vault
+            </p>
+            <h2
+              id="vault-heading"
+              className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] sm:text-4xl md:text-[2.75rem] md:leading-[1.1]"
+            >
+              Organized cheatsheets and pattern templates.
+            </h2>
+            <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
+              Deep-dive folder stacks containing high-yield invariant checklists, Java memory model guides, and system design patterns.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.08} from="bottom">
+            <FolderPreview
+              label="AlgoGuru Core Vault"
+              onFileSelect={(_, title) => {
+                navigate("/practice");
+              }}
+            />
+          </Reveal>
+        </section>
+
+        {/* ── QUIZ SECTION ─────────────────────────────────────────────── */}
         <QuizSection />
 
         {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
@@ -373,7 +455,7 @@ export default function Index() {
           </div>
         </section>
 
-        {/* ── FINAL CTA ────────────────────────────────────────────────── */}
+        {/* ── FINAL CTA WITH CANDY BUTTON & INTERACTIVE HOVER BUTTON ─── */}
         <section className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.18),transparent_52%)]" />
           <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28 lg:px-16">
@@ -412,23 +494,22 @@ export default function Index() {
                     real, interview-ready skill today.
                   </p>
                   <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-                    <MagneticButton
+                    <CandyButton
                       onClick={() => scrollToSection("modules")}
-                      className="landing-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-8 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="landing-primary min-w-[220px]"
                     >
                       Start learning free
                       <ArrowRight
                         size={17}
                         className="transition-transform duration-300 group-hover:translate-x-1"
                       />
-                    </MagneticButton>
-                    <button
+                    </CandyButton>
+                    <InteractiveHoverButton
                       onClick={openRoadmap}
-                      className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card/80 px-8 py-4 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      icon={<MapIcon size={16} className="text-primary" />}
                     >
-                      <MapIcon size={16} className="text-primary" />
                       View roadmap
-                    </button>
+                    </InteractiveHoverButton>
                   </div>
                   <p className="mt-6 text-[11.5px] font-medium text-muted-foreground/80">
                     No credit card. No paywall. Cancel nothing.
@@ -438,6 +519,16 @@ export default function Index() {
             </Reveal>
           </div>
         </section>
+
+        {/* ── OFFICIAL VENGEANCE UI LIQUID GLASS DOCK ─────────────────── */}
+        <GlassDock
+          className="hidden lg:flex"
+          onItemClick={(item) => {
+            if (item.title === "Roadmap") {
+              openRoadmap();
+            }
+          }}
+        />
 
         {roadmapOpen && (
           <Suspense fallback={<div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-border bg-card px-5 py-3 text-sm shadow-overlay">Loading your roadmap…</div>}>

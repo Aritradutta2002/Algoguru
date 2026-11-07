@@ -33,6 +33,7 @@ import { ResetProgressDialog } from "@/components/interview/ResetProgressDialog"
 import { useBackendInterviewProgress } from "@/hooks/useBackendInterviewProgress";
 import { scrollPageToTop } from "@/lib/scrollUtils";
 import { cn } from "@/lib/utils";
+import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 import "@/styles/core-java-interview.css";
 
 interface StudyWeek {
@@ -85,7 +86,7 @@ function StatTile({
   accent: string;
 }) {
   return (
-    <div className="cjh-stat-card rounded-2xl border border-border/50 bg-card/70 p-4 backdrop-blur">
+    <div className="cjh-stat-card relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 p-4 backdrop-blur-md shadow-soft transition-all duration-300 hover:border-primary/30 hover:shadow-card">
       <div className="flex items-center gap-3">
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -124,8 +125,9 @@ function PillarCard({
   return (
     <Link
       to={to}
-      className="cjh-path-card group relative flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/80 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+      className="cjh-path-card group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/85 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-overlay"
     >
+      <BorderBeam size={220} duration={14} colorFrom={accent} colorTo="#6366f1" />
       <span
         className="absolute inset-x-0 top-0 h-1"
         style={{ background: accent }}
@@ -211,8 +213,9 @@ export default function BackendInterviewHubPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="cjh-hero relative overflow-hidden rounded-3xl border border-border/50 bg-card/70 p-6 backdrop-blur sm:p-8"
+          className="cjh-hero relative overflow-hidden rounded-3xl border border-border/60 bg-card/80 p-6 backdrop-blur-md shadow-card sm:p-8"
         >
+          <BorderBeam size={280} duration={15} colorFrom="#38bdf8" colorTo="#818cf8" />
           <div className="relative">
             <span className="cjh-hero-badge inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
               <Sparkles className="h-3 w-3" />
@@ -386,10 +389,11 @@ export default function BackendInterviewHubPage() {
                   <Link
                     to={`${BACKEND_QUESTIONS_PATH}?topic=${stat.topic.id}`}
                     className={cn(
-                      "cjh-topic-card group flex h-full flex-col rounded-2xl border border-border/50 bg-card/70 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg",
+                      "cjh-topic-card group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/85 p-5 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-overlay",
                       complete && "cjh-topic-card--complete border-success/40",
                     )}
                   >
+                    <BorderBeam size={220} duration={16} colorFrom={stat.topic.accent || "#38bdf8"} colorTo="#818cf8" />
                     <div className="flex items-start gap-3">
                       <span className="cjh-topic-emoji text-2xl leading-none" aria-hidden="true">
                         {stat.topic.icon}

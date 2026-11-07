@@ -24,6 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import { DraggableNoteEditor } from "@/components/DraggableNoteEditor";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { ProgressRing } from "@/components/ui/progress-ring";
+import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 import { cn } from "@/lib/utils";
 
 type CelebrationParticle = { x: number; y: number; size: number; color: string; delay: number; duration: number; rotate: number };
@@ -284,7 +285,8 @@ export default function Practice() {
               )}
             </div>
 
-            <div className="premium-card w-full shrink-0 p-6 lg:w-[370px]">
+            <div className="premium-card relative overflow-hidden w-full shrink-0 p-6 lg:w-[370px]">
+              <BorderBeam size={220} duration={14} colorFrom="#38bdf8" colorTo="#818cf8" />
               <div className="flex items-center gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-[12px] font-semibold text-foreground">

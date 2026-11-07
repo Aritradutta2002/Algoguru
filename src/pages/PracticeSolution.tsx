@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronRight, ExternalLink, Copy, Check, Clock3, Database, L
 import { CodeBlock } from "@/components/CodeBlock";
 import { getPracticeSolutionDetail } from "@/lib/practiceSolutionUtils";
 import { getSolutionByProblemId } from "@/data/practiceSolutions";
+import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 
 function difficultyBadge(diff: string) {
   if (diff === "Easy") return "bg-success/10 text-success border-success/30";
@@ -59,7 +60,7 @@ export default function PracticeSolution() {
 
   return (
     <div ref={pageRef} className="min-h-screen bg-background text-foreground">
-      <div className="sticky top-0 z-20 backdrop-blur-md bg-background/90 border-b border-border">
+      <div className="sticky top-0 z-20 backdrop-blur-md bg-background/85 border-b border-border/70 shadow-soft">
         <div className="mx-auto max-w-7xl px-5 md:px-10 h-12 flex items-center justify-between gap-4">
           <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
             <Link to="/" className="hover:text-foreground">Home</Link>
@@ -69,10 +70,10 @@ export default function PracticeSolution() {
             <span className="text-foreground truncate">Solution</span>
           </nav>
           <div className="flex items-center gap-2 shrink-0">
-            <Link to="/practice" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border bg-card text-xs font-medium text-foreground hover:bg-muted">
+            <Link to="/practice" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl border border-border/70 bg-card/80 backdrop-blur-sm text-xs font-semibold text-foreground hover:bg-muted hover:border-primary/30 transition-all">
               <ArrowLeft size={13} /> Back
             </Link>
-            <a href={solution.leetcodeLink} target="_blank" rel="noreferrer" className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:brightness-95">
+            <a href={solution.leetcodeLink} target="_blank" rel="noreferrer" className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3.5 rounded-xl candy-btn-highlight text-white text-xs font-semibold hover:shadow-soft transition-all">
               LeetCode <ExternalLink size={12} />
             </a>
           </div>
@@ -82,7 +83,8 @@ export default function PracticeSolution() {
       <div className="mx-auto max-w-7xl px-5 py-6 md:px-10 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[560px_1fr] xl:grid-cols-[580px_1fr] 2xl:grid-cols-[620px_1fr] gap-6 items-start">
           <div className="space-y-4 min-w-0">
-            <div className="rounded-2xl bg-card border border-border overflow-hidden">
+            <div className="relative rounded-2xl bg-card/85 border border-border/70 backdrop-blur-md shadow-card overflow-hidden">
+              <BorderBeam size={260} duration={14} colorFrom="#38bdf8" colorTo="#818cf8" />
               <div className="p-6 md:p-8">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-semibold">
                   <BookOpen size={12} /> Editorial
@@ -118,7 +120,7 @@ export default function PracticeSolution() {
                 )}
               </div>
 
-              <div className="px-6 md:px-8 py-3 bg-muted/40 border-t border-border flex flex-wrap items-center justify-between gap-3">
+              <div className="px-6 md:px-8 py-3 bg-muted/40 border-t border-border/60 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Sparkles size={12} className="text-primary" /> 3 languages · Copy-ready · Interview grade
                 </div>
@@ -134,7 +136,7 @@ export default function PracticeSolution() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-card border border-border overflow-hidden">
+            <div className="relative rounded-2xl bg-card/85 border border-border/70 backdrop-blur-md shadow-card overflow-hidden">
               <div className="p-6 md:p-7">
                 <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
                   <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">

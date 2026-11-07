@@ -50,6 +50,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { GuruBot } from "@/components/GuruBot";
+import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -619,7 +620,7 @@ function PaneShell({ className, children, ...props }: React.HTMLAttributes<HTMLD
   return (
     <div
       className={cn(
-        "solver-pane flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground",
+        "solver-pane relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border/70 bg-card/85 text-card-foreground shadow-card backdrop-blur-md transition-all duration-200",
         className,
       )}
       {...props}
@@ -1338,10 +1339,16 @@ function CodeEditorPane({
               disabled={isRunning || !codeLoaded}
               aria-label={isRunning ? "Running code" : "Run code"}
               aria-keyshortcuts="Control+Enter Meta+Enter"
-              className="solver-run-button inline-flex h-8 items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className={cn(
+                "solver-run-button group relative inline-flex h-8 items-center justify-center gap-2 overflow-hidden rounded-lg px-4 text-xs font-display font-bold select-none transition-all duration-200",
+                isRunning
+                  ? "bg-warning text-warning-foreground"
+                  : "candy-btn-highlight text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(37,99,235,0.4)] active:translate-y-0 active:scale-[0.98]",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              )}
               title="Run code (Ctrl or ⌘ + Enter)"
             >
-              {isRunning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+              {isRunning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />}
               {isRunning ? "Running…" : "Run code"}
             </button>
           </div>
@@ -1369,6 +1376,7 @@ function CodeEditorPane({
         className="min-h-0"
       >
         <PaneShell className="p-0">
+          <BorderBeam size={240} duration={14} colorFrom="#38bdf8" colorTo="#818cf8" />
         {/* Header — LeetCode-style tabs (click strip to re-expand when collapsed) */}
         <div
           className={cn(
@@ -1736,23 +1744,24 @@ function CodeEditorPane({
             role="dialog"
             aria-modal="true"
             aria-labelledby="reset-confirm-title"
-            className="relative flex w-full max-w-[420px] items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-overlay sm:p-6"
+            className="relative flex w-full max-w-[420px] items-start gap-4 overflow-hidden rounded-2xl border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl sm:p-6"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-warning/25 bg-warning/10 text-warning">
+            <BorderBeam size={200} duration={10} colorFrom="#f59e0b" colorTo="#ef4444" />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-warning/25 bg-warning/10 text-warning shadow-soft">
               <AlertTriangle className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <h3 id="reset-confirm-title" className="text-[15px] font-semibold leading-tight text-foreground">
+              <h3 id="reset-confirm-title" className="text-[15px] font-display font-bold leading-tight text-foreground">
                 Reset this file?
               </h3>
               <p className="mt-1.5 text-[13px] leading-[1.45] text-muted-foreground">
                 Your changes to this file will be replaced with the starter template. This cannot be undone.
               </p>
               <div className="mt-5 flex items-center justify-end gap-2.5">
-                <Button variant="outline" size="sm" onClick={() => setShowResetConfirm(false)}>
+                <Button variant="outline" size="sm" onClick={() => setShowResetConfirm(false)} className="rounded-lg">
                   Cancel
                 </Button>
-                <Button size="sm" onClick={handleConfirmReset}>
+                <Button size="sm" onClick={handleConfirmReset} className="rounded-lg candy-btn-highlight text-white">
                   Reset code
                 </Button>
               </div>
@@ -2043,9 +2052,9 @@ const LEFT_TABS = [
 
 /** Token-driven difficulty treatment shared with the rest of the app. */
 const DIFFICULTY_STYLES: Record<string, string> = {
-  Easy: "solver-difficulty-easy",
-  Medium: "solver-difficulty-medium",
-  Hard: "solver-difficulty-hard",
+  Easy: "solver-difficulty-easy border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.15)]",
+  Medium: "solver-difficulty-medium border border-amber-500/30 bg-amber-500/10 text-amber-500 dark:text-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.15)]",
+  Hard: "solver-difficulty-hard border border-rose-500/30 bg-rose-500/10 text-rose-500 dark:text-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.15)]",
 };
 
 // `theme` is accepted for API symmetry with the editor pane (the panel itself
@@ -2152,7 +2161,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                   {/* Difficulty */}
                   <span
                     className={cn(
-                      "solver-difficulty inline-flex items-center gap-1.5 text-xs font-medium",
+                      "solver-difficulty inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold",
                       DIFFICULTY_STYLES[problem.difficulty] ?? "text-muted-foreground",
                     )}
                   >
@@ -2160,7 +2169,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                     {problem.difficulty}
                   </span>
                   {typeof problem.acRate === "number" && Number.isFinite(problem.acRate) && (
-                    <span className="ml-1 border-l border-border pl-3 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                       {problem.acRate.toFixed(1)}% acceptance
                     </span>
                   )}
@@ -2172,11 +2181,11 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                       aria-expanded={hintsOpen}
                       onClick={() => setHintsOpen(!hintsOpen)}
                       className={cn(
-                        "ml-auto inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors",
-                        hintsOpen ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        "ml-auto inline-flex h-7 items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-2.5 text-xs font-medium transition-colors hover:bg-muted hover:text-foreground",
+                        hintsOpen && "bg-muted text-foreground border-primary/30",
                       )}
                     >
-                      <Lightbulb className="h-3.5 w-3.5" /> Hints ({problem.hints.length})
+                      <Lightbulb className="h-3.5 w-3.5 text-amber-500" /> Hints ({problem.hints.length})
                       <ChevronDown className={cn("h-3 w-3 transition-transform", hintsOpen && "rotate-180")} />
                     </button>
                   )}
@@ -2192,7 +2201,7 @@ function ProblemDetails({ data, liveSync, onInsertCode }: { data: DailyChallenge
                 {problem.topicTags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5" aria-label="Problem topics">
                     {problem.topicTags.map((topic) => (
-                      <span key={topic.name} className="rounded bg-muted/70 px-2 py-1 text-[11px] text-muted-foreground">
+                      <span key={topic.name} className="rounded-md border border-border/60 bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground">
                         {topic.name}
                       </span>
                     ))}

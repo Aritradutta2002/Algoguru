@@ -23,6 +23,8 @@ import { AppTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { SearchMark } from "@/components/brand/SearchMark";
 import { useAuth } from "@/contexts/AuthContext";
+import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
+import { FlipText } from "@/components/ui/vengeance/FlipText";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CATEGORY_LABELS,
@@ -479,8 +481,9 @@ export function GlobalSearch({
               <Command
                 shouldFilter={false}
                 loop
-                className="flex h-[min(620px,80vh)] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-[0_32px_80px_-12px_hsl(var(--foreground)/0.35),0_0_0_1px_hsl(var(--foreground)/0.04)] backdrop-blur-xl"
+                className="relative flex h-[min(620px,80vh)] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-[0_32px_80px_-12px_hsl(var(--foreground)/0.35),0_0_0_1px_hsl(var(--foreground)/0.04)] backdrop-blur-xl"
               >
+                <BorderBeam size={280} duration={14} colorFrom="#38bdf8" colorTo="#818cf8" />
                 {/* Input ------------------------------------------------------ */}
                 <div className="flex shrink-0 items-center gap-3 px-4 pb-3.5 pt-4">
                   <SearchMark size={30} className="drop-shadow-sm" />
@@ -587,10 +590,10 @@ export function GlobalSearch({
                       </div>
 
                       <div className="flex flex-col items-center justify-center gap-3 px-6 pb-14 pt-10 text-center">
-                        <SearchMark size={30} className="opacity-90" />
+                        <SearchMark size={32} className="opacity-95 drop-shadow-[0_4px_12px_rgba(56,189,248,0.25)]" />
                         <div>
-                          <div className="text-[15px] font-medium text-foreground">
-                            Search anything
+                          <div className="text-[15px] font-semibold text-foreground tracking-tight">
+                            <FlipText duration={0.5} stagger={0.03}>Search anything</FlipText>
                           </div>
                           <div className="mt-0.5 text-[13px] text-muted-foreground">
                             Type at least {MIN_QUERY_LENGTH} characters to begin search
