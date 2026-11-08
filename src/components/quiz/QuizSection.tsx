@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom";
 import {
-  AlertTriangle,
   ArrowRight,
   CheckCircle2,
   Clock3,
-  Code2,
   Maximize2,
   Shield,
   Shuffle,
-  Sparkles,
 } from "lucide-react";
 import { MCQ_QUESTIONS } from "@/lib/mcqQuizBank";
 import { Reveal } from "@/components/motion/Reveal";
@@ -20,135 +17,113 @@ function openQuizFullscreen() {
   }
 }
 
-export function QuizSection() {
-  return (
-    <section
-      id="quiz"
-      className="relative overflow-hidden border-y border-obsidian-border bg-obsidian-pane/40"
-    >
-      {/* Background glow effects */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,hsl(var(--obsidian-accent)/0.14),transparent_50%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_90%,hsl(var(--obsidian-success)/0.08),transparent_40%)]" />
+const LANGUAGES = [
+  { id: "java", label: "Java" },
+  { id: "cpp", label: "C++" },
+  { id: "python", label: "Python" },
+] as const;
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 py-20 md:px-10 lg:grid-cols-[1.2fr_1fr] lg:px-16">
-        {/* ── Left: CTA ── */}
+export function QuizSection() {
+  const rules = [
+    {
+      icon: Shuffle,
+      title: "Random questions, real answers",
+      text: `${MCQ_QUESTIONS.length} curated questions with shuffled choices and automatic scoring.`,
+    },
+    {
+      icon: Clock3,
+      title: "Your pace or against the clock",
+      text: "Choose relaxed practice or a timed challenge with automatic submission.",
+    },
+    {
+      icon: Maximize2,
+      title: "Mandatory fullscreen lockdown",
+      text: "Exam-style fullscreen with tab-switch detection and focus monitoring.",
+    },
+    {
+      icon: Shield,
+      title: "Strict 3-warning policy",
+      text: "Leaving fullscreen, switching tabs or losing focus counts as a warning. The third one submits the quiz.",
+      highlight: true,
+    },
+    {
+      icon: CheckCircle2,
+      title: "Learn from every attempt",
+      text: "Review your score, the correct answers and explanations after each quiz.",
+    },
+  ];
+
+  return (
+    <section id="quiz" aria-labelledby="quiz-heading" className="lp-section">
+      <div className="lp-container lp-split lp-split--even">
         <Reveal>
-          <span className="inline-flex items-center gap-2 rounded-full border border-obsidian-accent/25 bg-obsidian-accent/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-obsidian-accent">
-            <Shuffle size={14} />
-            Contest · MCQ Quiz
-          </span>
-          <h2 className="mt-5 font-display text-4xl font-bold leading-tight tracking-[-0.04em] md:text-5xl">
-            Think fast.
-            <br />
-            <span className="landing-gradient">Know where you stand.</span>
+          <p className="lp-kicker">Contest · MCQ Quiz</p>
+          <h2 id="quiz-heading" className="lp-h2 mt-3">
+            Find out where you stand under exam conditions.
           </h2>
-          <p className="mt-5 max-w-xl text-lg leading-8 text-muted-foreground">
-            A fresh set of random MCQs in a strict, exam-grade environment.
-            Fullscreen lockdown, focus monitoring, and automatic scoring.
+          <p className="lp-lead mt-4 max-w-lg">
+            A fresh set of random multiple-choice questions in a strict exam
+            environment, with fullscreen lockdown, focus monitoring and automatic
+            scoring.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {[
-              { id: "java", label: "Java" },
-              { id: "cpp", label: "C++" },
-              { id: "python", label: "Python" },
-            ].map((item) => (
-              <Link
-                key={item.id}
-                to={`/contest/quiz?language=${item.id}`}
-                onClick={openQuizFullscreen}
-                className="hero-cta-secondary group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:text-obsidian-accent"
-              >
-                <Code2 size={14} />
-                {item.label}
-                <ArrowRight
-                  size={13}
-                  className="transition-transform duration-300 group-hover:translate-x-0.5"
-                />
-              </Link>
-            ))}
+
+          <div className="mt-8">
+            <p className="text-[13px] text-muted-foreground">Start a quiz in</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {LANGUAGES.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/contest/quiz?language=${item.id}`}
+                  onClick={openQuizFullscreen}
+                  className="lp-btn lp-btn-secondary min-h-9 px-3.5 text-[13px]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
+
           <Link
             to="/contest"
             onClick={openQuizFullscreen}
-            className="landing-primary button-shine group mt-8 inline-flex items-center gap-3 rounded-xl px-6 py-3.5 font-semibold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="lp-btn landing-primary group mt-8"
           >
             Open Contest
             <ArrowRight
-              size={18}
-              className="transition-transform duration-300 group-hover:translate-x-1"
+              size={16}
+              className="transition-transform duration-200 group-hover:translate-x-0.5"
+              aria-hidden="true"
             />
           </Link>
         </Reveal>
 
-        {/* ── Right: Feature card ── */}
-        <Reveal delay={0.08} className="premium-card overflow-hidden rounded-3xl">
-          <div className="flex items-center justify-between border-b border-obsidian-border bg-obsidian-accent/[0.045] px-6 py-4">
-            <span className="flex items-center gap-2 text-sm font-semibold">
-              <Sparkles size={16} className="text-obsidian-accent" />
-              Exam-Grade Challenge
-            </span>
-            <span className="rounded-full bg-obsidian-accent/10 px-2.5 py-1 text-xs font-medium text-obsidian-accent">
-              MCQ
-            </span>
-          </div>
-          <div className="p-6 sm:p-8">
-            <div className="space-y-6">
-              {[
-                {
-                  icon: Shuffle,
-                  title: "Random questions, real answers",
-                  text: `${MCQ_QUESTIONS.length} curated questions with shuffled choices and automatic scoring.`,
-                },
-                {
-                  icon: Clock3,
-                  title: "Your pace or against the clock",
-                  text: "Choose relaxed practice or a timed challenge with automatic submission.",
-                },
-                {
-                  icon: Maximize2,
-                  title: "Mandatory fullscreen lockdown",
-                  text: "Exam-style fullscreen with tab-switching detection and focus monitoring.",
-                },
-                {
-                  icon: Shield,
-                  title: "Strict 3-warning policy",
-                  text: "Exit fullscreen, switch tabs, or lose focus — 3 warnings, then auto-submit.",
-                  highlight: true,
-                },
-                {
-                  icon: CheckCircle2,
-                  title: "Learn from every attempt",
-                  text: "Review your score, correct answers, and explanations after each quiz.",
-                },
-              ].map((item) => (
-                <div key={item.title} className="flex items-start gap-4">
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+        <Reveal delay={0.06}>
+          <div className="overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane">
+            <div className="flex items-center justify-between border-b border-obsidian-border px-6 py-4">
+              <p className="text-[14px] font-medium text-foreground">Exam rules</p>
+              <span className="lp-chip">MCQ</span>
+            </div>
+            <ul className="lp-list">
+              {rules.map((item) => (
+                <li key={item.title} className="flex items-start gap-4 px-6 py-5">
+                  <item.icon
+                    size={17}
+                    aria-hidden="true"
+                    className={
                       item.highlight
-                        ? "bg-amber-500/10 text-amber-500"
-                        : "bg-obsidian-accent/10 text-obsidian-accent"
-                    }`}
-                  >
-                    <item.icon size={20} />
-                  </span>
+                        ? "mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        : "mt-0.5 shrink-0 text-muted-foreground"
+                    }
+                  />
                   <div>
-                    <h3 className="text-sm font-semibold">{item.title}</h3>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    <h3 className="text-[14.5px] text-foreground">{item.title}</h3>
+                    <p className="mt-1 text-[13.5px] leading-6 text-muted-foreground">
                       {item.text}
                     </p>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
-
-            {/* Exam rules mini-banner */}
-            <div className="mt-6 flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-              <AlertTriangle size={16} className="shrink-0 text-amber-500" />
-              <p className="text-xs leading-5 text-muted-foreground">
-                <span className="font-semibold text-foreground">Strict exam mode:</span>{" "}
-                3 warnings before auto-submission. Timer never pauses.
-              </p>
-            </div>
+            </ul>
           </div>
         </Reveal>
       </div>

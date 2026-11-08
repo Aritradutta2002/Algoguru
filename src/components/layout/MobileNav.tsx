@@ -44,16 +44,16 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
             to={item.path}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
+              "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               active
-                ? "text-foreground [&_svg]:text-obsidian-accent"
+                ? "text-foreground [&_svg]:text-foreground"
                 : "text-muted-foreground [&_svg]:text-muted-foreground hover:text-foreground",
             )}
           >
             {active && (
               <motion.span
                 layoutId="mobile-nav-pill"
-                className="absolute inset-0 rounded-xl border border-obsidian-accent/25 bg-obsidian-accent/10"
+                className="absolute inset-0 rounded-xl border border-obsidian-border bg-foreground/[0.06]"
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             )}
@@ -68,16 +68,16 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
         onClick={onMore}
         aria-label="Open more navigation"
         className={cn(
-          "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
+          "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
           moreActive
-            ? "text-foreground [&_svg]:text-obsidian-accent"
+            ? "text-foreground [&_svg]:text-foreground"
             : "text-muted-foreground [&_svg]:text-muted-foreground hover:text-foreground",
         )}
       >
         {moreActive && (
           <motion.span
             layoutId="mobile-nav-pill"
-            className="absolute inset-0 rounded-xl border border-obsidian-accent/25 bg-obsidian-accent/10"
+            className="absolute inset-0 rounded-xl border border-obsidian-border bg-foreground/[0.06]"
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
           />
         )}

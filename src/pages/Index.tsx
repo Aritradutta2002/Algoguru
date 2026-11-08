@@ -4,30 +4,20 @@ import { MotionConfig } from "framer-motion";
 import "@/styles/landing.css";
 import {
   ArrowRight,
-  ArrowUpRight,
   BrainCircuit,
   CalendarDays,
-  ChevronRight,
   Code2,
   Coffee,
-  Layers,
   Map as MapIcon,
-  MousePointerClick,
   PanelLeft,
-  Sparkles,
   Target,
   Trophy,
-  Zap,
 } from "lucide-react";
 import { QuizSection } from "@/components/quiz/QuizSection";
 import { Reveal } from "@/components/motion/Reveal";
-import { SpotlightCard } from "@/components/motion/SpotlightCard";
-import { ObsidianBentoCard } from "@/components/landing/ObsidianBentoCard";
-import { ObsidianGenerateButton } from "@/components/landing/ObsidianGenerateButton";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
 import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
-import { cn } from "@/lib/utils";
 
 const RoadmapFullscreenOverlay = lazy(() =>
   import("@/components/roadmap/RoadmapFullscreenOverlay").then((module) => ({
@@ -39,125 +29,71 @@ const SECTIONS = [
   {
     id: "advanced-java",
     title: "Advanced Java",
-    subtitle: "Master the deep end",
-    desc: "Reflection, JVM internals, garbage collection, design patterns, and modern Java 17+ features — the theory interviewers actually ask about.",
+    desc: "Reflection, JVM internals, garbage collection, design patterns and modern Java 17+ features, written around the questions interviewers ask.",
     icon: Coffee,
-    tone: "cobalt",
-    tag: "Java Theory",
+    tag: "Java theory",
     route: "/java-advanced",
-    stats: "9 Deep Topics",
+    stats: "9 deep topics",
   },
   {
     id: "interview",
     title: "DSA Sheets",
-    subtitle: "Land FAANG roles",
-    desc: "Curated top-company DSA questions, system design patterns, and behavioral frameworks to crush technical interviews.",
+    desc: "Curated questions asked at top companies, grouped by topic so you can see your coverage before an interview.",
     icon: Target,
-    tone: "cyan",
-    tag: "DSA Sheets",
+    tag: "Practice",
     route: "/practice",
-    stats: "500+ Questions",
+    stats: "500+ questions",
   },
   {
     id: "codechef",
     title: "Data Structures",
-    subtitle: "Pattern-based mastery",
-    desc: "A curated collection of essential coding interview problems categorized by sub-patterns and topics.",
+    desc: "Essential coding problems organized by pattern and sub-pattern, so each one teaches a technique you can reuse.",
     icon: Code2,
-    tone: "cyan",
     tag: "Playlist",
     route: "/arrays",
-    stats: "Pattern Wise Problems",
+    stats: "Pattern-wise problems",
   },
   {
     id: "leetcode",
     title: "System Design",
-    subtitle: "Scale to millions",
-    desc: "Learn system design patterns to build scalable architectures and crush your interviews.",
+    desc: "Caching, queues, sharding and the trade-offs behind them, presented as the building blocks of scalable services.",
     icon: BrainCircuit,
-    tone: "cobalt",
-    tag: "System Design",
+    tag: "Architecture",
     route: "/interview/java/system-design",
-    stats: "4 Learning Paths",
+    stats: "4 learning paths",
   },
   {
     id: "interview-prep",
     title: "Interview",
-    subtitle: "Guided preparation",
-    desc: "Real insights from candidates who recently interviewed at top tech companies. Learn what to expect.",
+    desc: "First-hand accounts from candidates who recently interviewed at top tech companies, so you know what each round looks like.",
     icon: Trophy,
-    tone: "cyan",
     tag: "Experiences",
     route: "/interview",
-    stats: "Real Stories",
+    stats: "Real interview stories",
   },
   {
     id: "daily-challenge",
     title: "Daily Challenge",
-    subtitle: "Solve today's problem",
-    desc: "A fresh LeetCode problem every day, with a built-in Java editor to craft and test your solution.",
+    desc: "A new LeetCode problem every day with a built-in Java editor to write and test your solution.",
     icon: CalendarDays,
-    tone: "amber",
     tag: "Today",
     route: "/problem-solver",
-    stats: "Updated Daily",
+    stats: "Updated daily",
   },
 ] as const;
-
-const CARD_TONES = {
-  cobalt: {
-    tile: "border-obsidian-accent/25 bg-obsidian-accent/10 text-obsidian-accent",
-    dot: "bg-obsidian-accent",
-  },
-  cyan: {
-    tile: "border-obsidian-success/25 bg-obsidian-success/10 text-obsidian-success",
-    dot: "bg-obsidian-success",
-  },
-  amber: {
-    tile: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    dot: "bg-amber-500",
-  },
-} as const;
-
-const BENTO_TONES = {
-  cobalt: "violet",
-  cyan: "emerald",
-  amber: "neutral",
-} as const;
 
 const HOW_IT_WORKS = [
   {
-    icon: <MousePointerClick size={20} />,
     title: "Pick a path",
-    desc: "Choose a structured track — DSA, System Design, Java, or Interview prep.",
+    desc: "Start with DSA, system design, Java or interview prep. Each path is ordered so you always know what comes next.",
   },
   {
-    icon: <Layers size={20} />,
     title: "Learn by pattern",
-    desc: "Master concepts grouped by the patterns interviews actually test.",
+    desc: "Topics are grouped by the patterns interviews test, so a technique learned on one problem carries over to the next.",
   },
   {
-    icon: <Zap size={20} />,
-    title: "Practice & ship",
-    desc: "Solve in the built-in editor and walk in ready to perform.",
-  },
-] as const;
-
-const PROOF_POINTS = [
-  {
-    icon: Code2,
-    label: "Practice in your browser",
-    detail: "No setup, no installs",
-  },
-  {
-    icon: Layers,
-    label: "Learn patterns, not answers",
-    detail: "Deeper intuition, faster recall",
-  },
-  {
-    icon: MapIcon,
-    label: "Follow a clear roadmap",
-    detail: "Always know what comes next",
+    title: "Practice and measure",
+    desc: "Solve in the built-in editor, then take a timed contest to see where you stand before the real interview.",
   },
 ] as const;
 
@@ -175,143 +111,77 @@ export default function Index() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="landing-page relative min-h-screen overflow-hidden bg-obsidian-void text-foreground selection:bg-obsidian-accent/25">
+      <main className="landing-page relative min-h-screen overflow-hidden text-foreground selection:bg-primary/20">
         <HeroSection
           onExplore={() => scrollToSection("modules")}
           onQuiz={() => scrollToSection("quiz")}
           onOpenRoadmap={openRoadmap}
         />
 
-        <Reveal className="relative border-b border-obsidian-border">
-          <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_140%_at_50%_0%,hsl(var(--primary)/0.09),transparent_74%)]"
-            aria-hidden="true"
-          />
-          <div className="relative mx-auto flex max-w-[1440px] flex-col gap-6 px-6 py-7 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 lg:px-16">
-            <p className="flex items-center gap-2.5 font-display text-[13.5px] font-semibold tracking-[-0.01em] text-foreground">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-obsidian-accent shadow-[0_0_10px_hsl(var(--obsidian-accent)/0.6)]" aria-hidden="true" />
-              Less tab switching. More progress.
-            </p>
-            <div className="grid gap-5 sm:grid-cols-3 sm:gap-0">
-              {PROOF_POINTS.map(({ icon: Icon, label, detail }, index) => (
-                <div
-                  key={label}
-                  className={cn(
-                    "group flex items-start gap-3",
-                    index > 0 && "sm:border-l sm:border-obsidian-border sm:pl-6",
-                    index < PROOF_POINTS.length - 1 && "sm:pr-6",
-                  )}
-                >
-                  <span className="icon-tile h-9 w-9 shrink-0 text-obsidian-accent transition-all duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:border-obsidian-accent/35">
-                    <Icon size={16} aria-hidden="true" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold leading-5 text-foreground/90">{label}</p>
-                    <p className="mt-0.5 text-[11.5px] leading-5 text-muted-foreground">{detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Reveal>
-
         {/* ── LEARNING PATHS ───────────────────────────────────────────── */}
-        <section
-          id="modules"
-          aria-labelledby="modules-heading"
-          className="relative mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28 lg:px-16"
-        >
-          <Reveal className="mb-12 flex flex-col justify-between gap-6 md:mb-14 md:flex-row md:items-end">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-obsidian-accent">
-                Learning paths
-              </p>
-              <h2
-                id="modules-heading"
-                className="mt-3 font-display text-4xl font-bold leading-[1.05] tracking-[-0.04em] md:text-[3.3rem]"
+        <section id="modules" aria-labelledby="modules-heading" className="lp-section">
+          <div className="lp-container">
+            <Reveal className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+              <div className="max-w-2xl">
+                <p className="lp-kicker">Learning paths</p>
+                <h2 id="modules-heading" className="lp-h2 mt-3">
+                  Choose where to focus next.
+                </h2>
+                <p className="lp-lead mt-4 max-w-xl">
+                  Concise, practical material built around the skills real interviews
+                  test. Pick one path or work across several.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleHomeSidebar}
+                aria-expanded={homeSidebarOpen}
+                className="lp-btn lp-btn-secondary hidden w-fit lg:inline-flex"
               >
-                Choose where to focus next.
-              </h2>
-              <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground">
-                Concise, practical material built around the skills that matter in
-                real interviews — no fluff, just momentum.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={toggleHomeSidebar}
-              aria-expanded={homeSidebarOpen}
-              className="group hidden w-fit items-center gap-2 rounded-xl border border-obsidian-border bg-obsidian-pane/70 px-4 py-2.5 text-[12.5px] font-semibold text-muted-foreground shadow-soft transition-all duration-200 hover:border-obsidian-accent/30 hover:bg-obsidian-pane hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:inline-flex"
-            >
-              <PanelLeft
-                size={14}
-                className="transition-transform duration-200 group-hover:-translate-x-0.5"
-              />
-              {homeSidebarOpen ? "Hide library panel" : "Open library panel"}
-            </button>
-          </Reveal>
+                <PanelLeft size={15} aria-hidden="true" />
+                {homeSidebarOpen ? "Hide library panel" : "Open library panel"}
+              </button>
+            </Reveal>
 
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {SECTIONS.map((section, index) => {
-              const Icon = section.icon;
-              const tone = CARD_TONES[section.tone];
-              return (
-                <Reveal key={section.id} delay={index * 0.055} from="bottom">
-                  <ObsidianBentoCard
-                    tone={BENTO_TONES[section.tone]}
-                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl focus-within:border-obsidian-accent/40"
-                  >
-                    <Link
-                      to={section.route}
-                      className="relative flex h-full min-h-[290px] flex-col rounded-3xl p-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    >
-                      <div className="mb-7 flex items-start justify-between">
-                        <div
-                          className={cn(
-                            "flex h-[52px] w-[52px] items-center justify-center rounded-2xl border shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-105",
-                            tone.tile,
-                          )}
-                        >
-                          <Icon size={23} />
+            <Reveal>
+              <ul className="lp-grid">
+                {SECTIONS.map((section) => {
+                  const Icon = section.icon;
+                  return (
+                    <li key={section.id} className="lp-cell">
+                      <Link
+                        to={section.route}
+                        className="group flex h-full flex-col p-6 focus-visible:-outline-offset-2 sm:p-7"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="lp-icon">
+                            <Icon size={17} aria-hidden="true" />
+                          </span>
+                          <span className="text-[12px] text-muted-foreground">{section.tag}</span>
                         </div>
-                        <span className="rounded-full border border-obsidian-border bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
-                          {section.tag}
-                        </span>
-                      </div>
-
-                      <div className="flex-1">
-                        <p className="mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground/80">
-                          {section.subtitle}
-                        </p>
-                        <h3 className="font-display text-[1.45rem] font-bold leading-tight tracking-[-0.025em]">
+                        <h3 className="mt-6 text-[17px] tracking-[-0.015em] text-foreground">
                           {section.title}
                         </h3>
-                        <p className="mt-3 text-[13.5px] leading-6 text-muted-foreground">
+                        <p className="mt-2 flex-1 text-[14px] leading-6 text-muted-foreground">
                           {section.desc}
                         </p>
-                      </div>
-
-                      <div className="mt-6 flex items-center justify-between border-t border-obsidian-border pt-5">
-                        <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-muted-foreground">
-                          <span className="font-mono text-[10px] tracking-[0.08em] text-muted-foreground/55">
-                            0{index + 1}
+                        <div className="mt-6 flex items-center justify-between text-[13px]">
+                          <span className="text-muted-foreground">{section.stats}</span>
+                          <span className="inline-flex items-center gap-1 font-medium text-foreground/80 transition-colors group-hover:text-foreground">
+                            Open
+                            <ArrowRight
+                              size={14}
+                              className="transition-transform duration-200 group-hover:translate-x-0.5"
+                              aria-hidden="true"
+                            />
                           </span>
-                          <span className="h-3 w-px bg-obsidian-border" aria-hidden="true" />
-                          <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
-                          {section.stats}
-                        </span>
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-obsidian-border bg-white/[0.04] text-muted-foreground transition-all duration-300 ease-premium group-hover:border-obsidian-accent group-hover:bg-obsidian-accent group-hover:text-white">
-                          <ArrowUpRight
-                            size={15}
-                            className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:rotate-45"
-                          />
-                        </span>
-                      </div>
-                    </Link>
-                  </ObsidianBentoCard>
-                </Reveal>
-              );
-            })}
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Reveal>
           </div>
         </section>
 
@@ -322,132 +192,88 @@ export default function Index() {
         <QuizSection />
 
         {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
-        <section className="relative border-y border-obsidian-border bg-obsidian-pane/40">
-          <div className="pointer-events-none absolute inset-0 bg-dots opacity-[0.18]" aria-hidden="true" />
-          <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24 lg:px-16">
-            <Reveal className="mb-12 text-center">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-obsidian-accent">
-                How it works
-              </p>
-              <h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] md:text-4xl">
-                From first click to offer letter.
+        <section aria-labelledby="how-heading" className="lp-section border-t border-obsidian-border">
+          <div className="lp-container">
+            <Reveal className="max-w-2xl">
+              <p className="lp-kicker">How it works</p>
+              <h2 id="how-heading" className="lp-h2 mt-3">
+                A clear plan for every session.
               </h2>
             </Reveal>
 
-            <div className="relative grid gap-6 md:grid-cols-3">
-              {HOW_IT_WORKS.map((step, index) => (
-                <Reveal key={step.title} delay={index * 0.08} className="relative">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border border-obsidian-border bg-obsidian-pane p-7 shadow-card transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-obsidian-accent/30 hover:shadow-overlay">
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.45),transparent)]"
-                    />
-                    <div className="mb-5 flex items-start justify-between">
-                      <div className="inline-flex rounded-2xl border border-obsidian-accent/20 bg-obsidian-accent/[0.08] p-3.5 text-obsidian-accent shadow-soft">
-                        {step.icon}
-                      </div>
-                      <span
-                        aria-hidden="true"
-                        className="font-display text-[2.6rem] font-bold leading-none tracking-[-0.06em] text-foreground/[0.05] transition-colors duration-300 group-hover:text-obsidian-accent/[0.09]"
-                      >
-                        0{index + 1}
-                      </span>
-                    </div>
-                    <h3 className="font-display text-lg font-bold tracking-tight">
+            <Reveal delay={0.05}>
+              <ol className="mt-12 grid gap-10 md:mt-14 md:grid-cols-3 md:gap-8">
+                {HOW_IT_WORKS.map((step, index) => (
+                  <li key={step.title} className="border-t border-obsidian-border pt-6">
+                    <span className="font-mono text-[12.5px] text-muted-foreground">
+                      0{index + 1}
+                    </span>
+                    <h3 className="mt-3 text-[17px] tracking-[-0.015em] text-foreground">
                       {step.title}
                     </h3>
-                    <p className="mt-2 text-[14px] leading-6 text-muted-foreground">
+                    <p className="mt-2 text-[14.5px] leading-6 text-muted-foreground">
                       {step.desc}
                     </p>
-                  </div>
-                </Reveal>
-              ))}
-
-              {[0, 1].map((index) => (
-                <span
-                  key={index}
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 hidden h-7 w-7 items-center justify-center rounded-full border border-obsidian-accent/25 bg-obsidian-pane text-obsidian-accent/80 shadow-soft md:flex"
-                  style={{
-                    left: `${((index + 1) * 100) / 3}%`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
-                  <ChevronRight size={14} />
-                </span>
-              ))}
-            </div>
+                  </li>
+                ))}
+              </ol>
+            </Reveal>
           </div>
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.18),transparent_52%)]" />
-          <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28 lg:px-16">
+        <section aria-labelledby="cta-heading" className="pb-24 md:pb-32">
+          <div className="lp-container">
             <Reveal>
-              <SpotlightCard
-                interactive
-                className="cta-card relative overflow-hidden rounded-3xl border border-obsidian-border bg-obsidian-pane/80 px-6 py-16 text-center shadow-specular backdrop-blur-xl md:px-12 md:py-20"
-              >
-                <div
-                  className="pointer-events-none !absolute inset-0 overflow-hidden rounded-[inherit]"
-                  aria-hidden="true"
-                >
-                  <div className="absolute inset-0 bg-grid opacity-30" />
-                  <div className="absolute inset-x-10 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.55),rgb(103_232_249/0.25),transparent)]" />
-                  <div className="aurora-blob absolute left-[12%] top-[-20%] h-64 w-64 bg-obsidian-accent/10" />
-                  <div
-                    className="aurora-blob absolute right-[8%] bottom-[-30%] h-64 w-64 bg-accent/10"
-                    style={{ animationDelay: "-9s" }}
-                  />
-                  <div
-                    className="aurora-blob absolute left-[46%] bottom-[-24%] h-56 w-56 bg-cyan-400/[0.07]"
-                    style={{ animationDelay: "-15s", animationDuration: "30s" }}
-                  />
-                </div>
-
-                <div className="relative">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-obsidian-accent/20 bg-obsidian-accent/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-obsidian-accent">
-                    <Sparkles size={12} /> Free forever
-                  </span>
-                  <h2 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl">
-                    Make your next session{" "}
-                    <span className="landing-gradient">count.</span>
+              <div className="flex flex-col gap-8 rounded-2xl border border-obsidian-border bg-obsidian-pane px-6 py-10 sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between lg:px-14">
+                <div className="max-w-xl">
+                  <h2 id="cta-heading" className="lp-h2">
+                    Make your next session count.
                   </h2>
-                  <p className="mx-auto mt-5 max-w-xl text-[16px] leading-7 text-muted-foreground">
-                    Stop scrolling tutorials. Start a structured path and build
-                    real, interview-ready skill today.
-                  </p>
-                  <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-                    <ObsidianGenerateButton
-                      onClick={() => scrollToSection("modules")}
-                      className="px-8"
-                    >
-                      Start learning free
-                      <ArrowRight
-                        size={17}
-                        className="transition-transform duration-300 group-hover:translate-x-1"
-                      />
-                    </ObsidianGenerateButton>
-                    <button
-                      onClick={openRoadmap}
-                      className="inline-flex items-center gap-2.5 rounded-xl border border-obsidian-border bg-obsidian-pane/80 px-8 py-4 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-obsidian-accent/40 hover:bg-obsidian-pane hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    >
-                      <MapIcon size={16} className="text-obsidian-accent" />
-                      View roadmap
-                    </button>
-                  </div>
-                  <p className="mt-6 text-[11.5px] font-medium text-muted-foreground/80">
-                    No credit card. No paywall. Cancel nothing.
+                  <p className="lp-lead mt-4">
+                    Pick a structured path and start building interview-ready skill
+                    today. Free to use, no credit card required.
                   </p>
                 </div>
-              </SpotlightCard>
+                <div className="lp-hero-actions flex shrink-0 flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection("modules")}
+                    className="lp-btn landing-primary group"
+                  >
+                    Start learning free
+                    <ArrowRight
+                      size={16}
+                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openRoadmap}
+                    className="lp-btn lp-btn-secondary"
+                  >
+                    <MapIcon size={15} aria-hidden="true" />
+                    View roadmap
+                  </button>
+                </div>
+              </div>
             </Reveal>
           </div>
         </section>
 
         {roadmapOpen && (
-          <Suspense fallback={<div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-obsidian-border bg-obsidian-pane px-5 py-3 text-sm shadow-overlay">Loading your roadmap…</div>}>
+          <Suspense
+            fallback={
+              <div
+                role="status"
+                aria-live="polite"
+                className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-obsidian-border bg-obsidian-pane px-5 py-3 text-sm shadow-overlay"
+              >
+                Loading your roadmap…
+              </div>
+            }
+          >
             <RoadmapFullscreenOverlay
               open={roadmapOpen}
               onClose={() => setRoadmapOpen(false)}

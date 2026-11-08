@@ -94,8 +94,8 @@ export function NotificationCenter() {
               "group relative inline-flex h-11 w-11 lg:h-9 lg:w-9 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent",
               "text-muted-foreground [&_svg]:text-muted-foreground",
               "transition-colors duration-150 ease-out",
-              "hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
+              "hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               "touch-manipulation select-none",
             )}
           >
@@ -103,7 +103,7 @@ export function NotificationCenter() {
             {unreadCount > 0 && (
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute top-2 right-2 h-2 w-2 rounded-full bg-obsidian-accent ring-2 ring-obsidian-elevated"
+                className="pointer-events-none absolute top-2 right-2 h-2 w-2 rounded-full bg-primary ring-2 ring-obsidian-void"
               />
             )}
           </button>
@@ -121,7 +121,7 @@ export function NotificationCenter() {
               Notifications
             </h3>
             {unreadCount > 0 && (
-              <span className="rounded-full bg-obsidian-accent/10 px-2 py-0.5 text-[11px] font-semibold text-obsidian-accent">
+              <span className="rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[11px] font-medium text-foreground">
                 {unreadCount} new
               </span>
             )}
@@ -130,7 +130,7 @@ export function NotificationCenter() {
             <button
               type="button"
               onClick={markAllAsRead}
-              className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-obsidian-accent transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <NavIcon icon={CheckCheck} chip />
               <span>Mark all read</span>
@@ -146,7 +146,7 @@ export function NotificationCenter() {
             className={cn(
               "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
               filter === "all"
-                ? "bg-obsidian-accent/10 text-foreground font-semibold"
+                ? "bg-foreground/[0.06] text-foreground font-semibold"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -158,7 +158,7 @@ export function NotificationCenter() {
             className={cn(
               "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
               filter === "unread"
-                ? "bg-obsidian-accent/10 text-foreground font-semibold"
+                ? "bg-foreground/[0.06] text-foreground font-semibold"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -191,11 +191,11 @@ export function NotificationCenter() {
                   className={cn(
                     "flex items-start gap-3 rounded-lg p-2.5 cursor-pointer transition-colors",
                     item.read
-                      ? "opacity-75 hover:opacity-100 hover:bg-white/[0.06]"
-                      : "bg-white/[0.04] hover:bg-white/[0.07]",
+                      ? "opacity-75 hover:opacity-100 hover:bg-foreground/[0.05]"
+                      : "bg-foreground/[0.03] hover:bg-foreground/[0.05]",
                   )}
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-obsidian-border bg-white/[0.04] text-muted-foreground mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-obsidian-border bg-foreground/[0.03] text-muted-foreground mt-0.5">
                     <NavIcon icon={Icon} chip />
                   </div>
                   <div className="flex flex-1 flex-col gap-0.5 min-w-0">
@@ -212,7 +212,7 @@ export function NotificationCenter() {
                     </p>
                   </div>
                   {!item.read && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-obsidian-accent shrink-0 self-center" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0 self-center" />
                   )}
                 </DropdownMenuItem>
               );

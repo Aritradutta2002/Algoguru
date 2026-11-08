@@ -543,9 +543,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             data-scrolled={headerScrolled ? "true" : undefined}
             data-route={location.pathname === "/" ? "home" : undefined}
             className={cn(
-              "app-header sticky top-0 z-50 h-16 shrink-0 border-b border-obsidian-border bg-obsidian-elevated/90 backdrop-blur-xl transition-shadow duration-200",
+              "app-header sticky top-0 z-50 h-16 shrink-0 border-b border-obsidian-border bg-obsidian-void/85 backdrop-blur-xl transition-shadow duration-200",
               headerScrolled &&
-                "shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]",
+                "shadow-[0_12px_32px_-24px_rgba(0,0,0,0.6)]",
             )}
           >
             <div
@@ -645,7 +645,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             >
               <div
                 ref={scrollProgressRef}
-                className="route-progress h-full w-full bg-gradient-to-r from-primary via-sky-400 to-accent"
+                className="route-progress h-full w-full bg-primary"
                 style={{ transform: "scaleX(0)" }}
               />
             </div>

@@ -2828,13 +2828,7 @@
   height: 1px;
   pointer-events: none;
   opacity: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    hsl(var(--primary) / 0.4) 22%,
-    hsl(var(--info) / 0.28) 62%,
-    transparent
-  );
+  background: hsl(var(--border));
   transition: opacity 200ms ease;
 }
 
@@ -2843,17 +2837,7 @@
 }
 
 .app-header[data-route="home"][data-scrolled="true"] {
-  box-shadow:
-    0 1px 0 hsl(var(--background)) inset,
-    0 16px 40px -20px hsl(var(--primary) / 0.3);
-}
-
-.app-header[data-route="home"][data-scrolled="true"] .route-progress-track {
-  height: 2px;
-}
-
-.app-header[data-route="home"] .route-progress {
-  box-shadow: 0 0 12px hsl(var(--primary) / 0.45);
+  box-shadow: 0 12px 32px -24px rgb(0 0 0 / 0.6);
 }
 
 .skeleton-shimmer {

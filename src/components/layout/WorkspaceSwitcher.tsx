@@ -96,25 +96,12 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
       <Link
         to="/"
         aria-label="AlgoGuru Home"
-        className="group inline-flex h-9 items-center gap-2.5 rounded-lg px-1.5 text-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian-void select-none"
+        className="group inline-flex h-9 items-center gap-2.5 rounded-lg px-1.5 text-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian-void select-none"
       >
-        <span className="relative inline-flex shrink-0 items-center justify-center">
-          {/* Bloom only on hover — the header stays quiet at rest. */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -inset-2 rounded-full bg-obsidian-accent/0 blur-md transition-colors duration-300 group-hover:bg-obsidian-accent/20"
-          />
-          <AlgoGuruMark
-            size={26}
-            title={null}
-            className="relative transition-transform duration-300 ease-out group-hover:-translate-y-px group-hover:scale-[1.05]"
-          />
-        </span>
-        <span className="flex items-baseline font-display text-[15.5px] font-semibold leading-none tracking-[-0.02em]">
-          <span className="text-foreground">Algo</span>
-          <span className="bg-gradient-to-br from-obsidian-accent to-violet-400 bg-clip-text text-transparent dark:from-violet-400 dark:to-fuchsia-300">
-            Guru
-          </span>
+        <AlgoGuruMark size={24} title={null} className="shrink-0" />
+        <span className="flex items-baseline text-[15px] font-semibold leading-none tracking-[-0.02em] text-foreground">
+          <span>Algo</span>
+          <span>Guru</span>
         </span>
       </Link>
 
@@ -122,7 +109,7 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
       {!compact && (
         <span
           aria-hidden="true"
-          className="text-obsidian-border text-sm font-normal select-none"
+          className="text-muted-foreground/40 text-base font-light select-none"
         >
           /
         </span>
@@ -136,10 +123,10 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
             data-workspace-switcher="true"
             aria-label={`Current workspace: AlgoGuru ${activeWorkspace.name}. Click to switch workspace`}
             className={cn(
-              "group inline-flex h-8 items-center gap-1.5 rounded-lg border border-obsidian-border bg-white/[0.04] px-2.5 text-xs font-medium text-foreground/80 [&_svg]:text-muted-foreground",
+              "group inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-muted-foreground [&_svg]:text-muted-foreground",
               "transition-colors duration-150 ease-out",
-              "hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
+              "hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               "touch-manipulation select-none",
             )}
           >
@@ -180,8 +167,8 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
                   className={cn(
                     "flex items-center justify-between gap-2.5 rounded-lg px-2.5 py-2 cursor-pointer transition-colors",
                     isSelected
-                      ? "bg-obsidian-accent/10 text-foreground [&_svg]:text-obsidian-accent"
-                      : "text-muted-foreground [&_svg]:text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+                      ? "bg-foreground/[0.06] text-foreground [&_svg]:text-foreground"
+                      : "text-muted-foreground [&_svg]:text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground",
                   )}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -189,8 +176,8 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border",
                         isSelected
-                          ? "border-obsidian-accent/30 bg-obsidian-accent/10 text-obsidian-accent"
-                          : "border-obsidian-border bg-white/[0.04] text-muted-foreground",
+                          ? "border-obsidian-border bg-foreground/[0.06] text-obsidian-accent"
+                          : "border-obsidian-border bg-foreground/[0.03] text-muted-foreground",
                       )}
                     >
                       <NavIcon icon={ItemIcon} chip />

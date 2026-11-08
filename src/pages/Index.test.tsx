@@ -44,7 +44,7 @@ describe("Home landing page", () => {
   it("renders a visible reduced-motion hero and clearly labels the sample workspace", () => {
     renderHome();
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Build skills.Solve smarter.Interview ready.");
+    expect(heading).toHaveTextContent("Prepare for coding interviews with a plan.");
     expect(heading.parentElement).not.toHaveStyle({ opacity: "0" });
     expect(screen.getByText("Workspace preview")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /explore learning paths/i })).toHaveClass("landing-primary");

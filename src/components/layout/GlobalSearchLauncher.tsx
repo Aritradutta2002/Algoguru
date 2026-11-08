@@ -46,7 +46,7 @@ export function SearchTrigger({
         aria-haspopup="dialog"
         data-search-trigger="true"
         className={cn(
-          "group relative inline-flex shrink-0 items-center rounded-lg border border-obsidian-border bg-white/[0.04] text-left text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 ease-out hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40 touch-manipulation select-none",
+          "group relative inline-flex shrink-0 items-center rounded-lg border border-obsidian-border bg-foreground/[0.03] text-left text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 touch-manipulation select-none",
           isCompact
             ? "h-9 w-9 justify-center px-0 gap-0"
             : isExplicitWide
@@ -68,7 +68,7 @@ export function SearchTrigger({
 
         <kbd
           className={cn(
-            "shrink-0 items-center gap-0.5 rounded border border-obsidian-border bg-white/[0.06] px-1.5 py-0.5 font-mono text-[11px] font-medium text-muted-foreground",
+            "shrink-0 items-center gap-0.5 rounded border border-obsidian-border bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[11px] font-medium text-muted-foreground",
             isCompact ? "hidden" : isExplicitWide ? "inline-flex" : "hidden xl:inline-flex",
           )}
         >

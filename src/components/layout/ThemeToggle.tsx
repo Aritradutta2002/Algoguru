@@ -24,8 +24,8 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
           "group relative inline-flex h-11 w-11 lg:h-9 lg:w-9 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent",
           "text-muted-foreground [&_svg]:text-muted-foreground",
           "transition-colors duration-150 ease-out",
-          "hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
+          "hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
           "touch-manipulation select-none",
           className,
         )}

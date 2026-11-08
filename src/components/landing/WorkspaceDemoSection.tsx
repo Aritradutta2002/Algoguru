@@ -1,21 +1,19 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
-import { Check, Code2, FileText, FlaskConical, Terminal } from "lucide-react";
+import { Check, Code2, FileText, FlaskConical } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
-import { ObsidianVaultTree } from "@/components/workspace/ObsidianVaultTree";
-import { ObsidianWindow } from "@/components/workspace/ObsidianWindow";
-import { EASE_OUT, springSoft } from "@/lib/motion";
+import { EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { CodeLine } from "./codeSnippet";
 import { DEMO_SESSION, DEMO_TABS, type DemoTabId } from "./demoSession";
 
-const PANE_TRANSITION = { duration: 0.22, ease: EASE_OUT };
-const ROW_TRANSITION = { duration: 0.3, ease: EASE_OUT };
+const PANE_TRANSITION = { duration: 0.2, ease: EASE_OUT };
+const ROW_TRANSITION = { duration: 0.25, ease: EASE_OUT };
 
 const PANE_VARIANTS: Variants = {
-  enter: (direction: number) => ({ opacity: 0, y: 8 * direction }),
-  center: { opacity: 1, y: 0 },
-  exit: (direction: number) => ({ opacity: 0, y: -8 * direction }),
+  enter: { opacity: 0 },
+  center: { opacity: 1 },
+  exit: { opacity: 0 },
 };
 
 const TAB_ICONS = {
@@ -24,18 +22,18 @@ const TAB_ICONS = {
   tests: FlaskConical,
 } as const;
 
+const TAB_NOTES: Record<DemoTabId, string> = {
+  problem: "Read the statement, worked examples and constraints.",
+  solution: "Study a reference solution with line-by-line notes.",
+  tests: "Run the suite and check every edge case.",
+};
+
 export function WorkspaceDemoSection() {
   const reduceMotion = useReducedMotion();
   const [active, setActive] = useState<DemoTabId>("problem");
-  const [direction, setDirection] = useState(1);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const activeIndex = DEMO_TABS.findIndex((tab) => tab.id === active);
-
-  const selectTab = (id: DemoTabId, index: number) => {
-    setDirection(index > activeIndex ? 1 : -1);
-    setActive(id);
-  };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     let next = activeIndex;
@@ -58,7 +56,7 @@ export function WorkspaceDemoSection() {
     }
 
     event.preventDefault();
-    selectTab(DEMO_TABS[next].id, next);
+    setActive(DEMO_TABS[next].id);
     tabRefs.current[next]?.focus();
   };
 
@@ -71,126 +69,132 @@ export function WorkspaceDemoSection() {
   );
 
   return (
-    <section
-      id="demo"
-      aria-labelledby="demo-heading"
-      className="relative border-y border-border/60 bg-muted/20"
-    >
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.14]" aria-hidden="true" />
-      <div className="relative mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-28 lg:px-16">
-        <Reveal className="mb-10 max-w-2xl md:mb-14">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
-            See it in action
-          </p>
-          <h2
-            id="demo-heading"
-            className="mt-3 font-display text-4xl font-bold leading-[1.05] tracking-[-0.04em] md:text-[3.3rem]"
-          >
+    <section id="demo" aria-labelledby="demo-heading" className="lp-band lp-section">
+      <div className="lp-container lp-split">
+        <Reveal className="lg:sticky lg:top-24">
+          <p className="lp-kicker">Workspace</p>
+          <h2 id="demo-heading" className="lp-h2 mt-3">
             The whole loop, in one window.
           </h2>
-          <p className="mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground">
-            Read the statement, study the annotated solution, then watch the suite
-            pass — without leaving the page.
+          <p className="lp-lead mt-4 max-w-md">
+            Read the problem, study the solution and run the tests without
+            switching tabs or setting up a local environment.
           </p>
-        </Reveal>
 
-        <Reveal delay={0.06} from="bottom">
-          <ObsidianWindow
-            activePane={active}
-            onPaneChange={(pane) => {
-              const index = DEMO_TABS.findIndex((tab) => tab.id === pane);
-              if (index >= 0) selectTab(pane, index);
-            }}
-            vault={
-              <ObsidianVaultTree
-                activePane={active}
-                onSelectPane={(pane) => {
-                  const index = DEMO_TABS.findIndex((tab) => tab.id === pane);
-                  if (index >= 0) selectTab(pane, index);
-                }}
-              />
-            }
-            title="algoguru / demo"
-            subtitle="Interactive workspace"
-          >
-            <div className="min-w-0">
-              <div
-                role="tablist"
-                aria-label="Workspace demo views"
-                onKeyDown={handleTabKeyDown}
-                className="demo-tabs flex items-center gap-1 border-b border-obsidian-border bg-white/[0.02] px-3 py-2.5 sm:px-4"
-              >
-                {DEMO_TABS.map((tab, index) => {
-                  const Icon = TAB_ICONS[tab.id];
-                  const selected = tab.id === active;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      ref={(node) => {
-                        tabRefs.current[index] = node;
-                      }}
-                      type="button"
-                      role="tab"
-                      id={`demo-tab-${tab.id}`}
-                      aria-selected={selected}
-                      aria-controls={`demo-panel-${tab.id}`}
-                      tabIndex={selected ? 0 : -1}
-                      onClick={() => selectTab(tab.id, index)}
+          <ul className="mt-10 max-w-md border-y border-obsidian-border lp-list">
+            {DEMO_TABS.map((tab, index) => {
+              const Icon = TAB_ICONS[tab.id];
+              const selected = tab.id === active;
+              return (
+                <li key={tab.id} className="flex items-start gap-4 py-4">
+                    <span
                       className={cn(
-                        "demo-tab relative inline-flex min-h-[38px] items-center gap-1.5 rounded-lg px-3 text-[12.5px] font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50",
-                        selected ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                        "mt-0.5 font-mono text-[12px] transition-colors",
+                        selected ? "text-foreground" : "text-muted-foreground/70",
                       )}
                     >
-                      {selected && (
-                        <motion.span
-                          layoutId="demo-tab-pill"
-                          className="demo-tab-pill"
-                          transition={springSoft}
-                          aria-hidden="true"
-                        />
-                      )}
-                      <Icon size={13} className="relative z-10" aria-hidden="true" />
-                      <span className="relative z-10">{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                      0{index + 1}
+                    </span>
+                    <span>
+                      <span
+                        className={cn(
+                          "flex items-center gap-2 text-[14.5px] font-medium transition-colors",
+                          selected ? "text-foreground" : "text-muted-foreground",
+                        )}
+                      >
+                        <Icon size={15} aria-hidden="true" />
+                        {tab.label}
+                      </span>
+                      <span className="mt-1 block text-[13.5px] leading-6 text-muted-foreground">
+                        {TAB_NOTES[tab.id]}
+                      </span>
+                    </span>
+                </li>
+              );
+            })}
+          </ul>
+        </Reveal>
 
-              <div className="p-4 sm:p-6">
-                {reduceMotion ? (
-                  <div
+        <Reveal delay={0.06}>
+          <div className="lp-frame">
+            <div className="lp-frame-bar">
+              <div className="flex items-center gap-1.5" aria-hidden="true">
+                <span className="lp-dot" />
+                <span className="lp-dot" />
+                <span className="lp-dot" />
+              </div>
+              <p className="ml-2 min-w-0 truncate text-[12.5px] text-muted-foreground">
+                Stack
+                <span className="mx-1.5 text-muted-foreground/50" aria-hidden="true">/</span>
+                <span className="text-foreground">{DEMO_SESSION.title}</span>
+              </p>
+              <span className="lp-chip ml-auto hidden shrink-0 sm:inline-flex">Interactive demo</span>
+            </div>
+
+            <div
+              role="tablist"
+              aria-label="Workspace demo views"
+              onKeyDown={handleTabKeyDown}
+              className="flex items-center gap-1 border-b border-obsidian-border px-2 sm:px-3"
+            >
+              {DEMO_TABS.map((tab, index) => {
+                const Icon = TAB_ICONS[tab.id];
+                const selected = tab.id === active;
+
+                return (
+                  <button
+                    key={tab.id}
+                    ref={(node) => {
+                      tabRefs.current[index] = node;
+                    }}
+                    type="button"
+                    role="tab"
+                    id={`demo-tab-${tab.id}`}
+                    aria-selected={selected}
+                    aria-controls={`demo-panel-${tab.id}`}
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => setActive(tab.id)}
+                    className="lp-tab focus-visible:-outline-offset-2"
+                  >
+                    <Icon size={14} aria-hidden="true" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="p-5 sm:p-7">
+              {reduceMotion ? (
+                <div
+                  role="tabpanel"
+                  id={`demo-panel-${active}`}
+                  aria-labelledby={`demo-tab-${active}`}
+                  tabIndex={0}
+                  className="demo-pane"
+                >
+                  {panel}
+                </div>
+              ) : (
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={active}
                     role="tabpanel"
                     id={`demo-panel-${active}`}
                     aria-labelledby={`demo-tab-${active}`}
                     tabIndex={0}
-                    className="demo-pane focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50"
+                    variants={PANE_VARIANTS}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={PANE_TRANSITION}
+                    className="demo-pane"
                   >
                     {panel}
-                  </div>
-                ) : (
-                  <AnimatePresence mode="wait" custom={direction} initial={false}>
-                    <motion.div
-                      key={active}
-                      role="tabpanel"
-                      id={`demo-panel-${active}`}
-                      aria-labelledby={`demo-tab-${active}`}
-                      tabIndex={0}
-                      custom={direction}
-                      variants={PANE_VARIANTS}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                      transition={PANE_TRANSITION}
-                      className="demo-pane focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50"
-                    >
-                      {panel}
-                    </motion.div>
-                  </AnimatePresence>
-                )}
-              </div>
+                  </motion.div>
+                </AnimatePresence>
+              )}
             </div>
-          </ObsidianWindow>
+          </div>
         </Reveal>
       </div>
     </section>
@@ -203,53 +207,48 @@ function ProblemPane() {
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="hero-difficulty inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em]">
-          <span className="h-1 w-1 rounded-full bg-emerald-500" aria-hidden="true" />
-          {session.difficulty}
-        </span>
+        <span className="lp-chip lp-chip-success">{session.difficulty}</span>
         {session.tags.map((tag) => (
-          <span key={tag} className="hero-tag rounded-md px-2 py-0.5 font-mono text-[10px]">
+          <span key={tag} className="lp-chip">
             {tag}
           </span>
         ))}
-        <span className="ml-auto font-mono text-[10px] text-muted-foreground">{session.index}</span>
+        <span className="ml-auto font-mono text-[11.5px] text-muted-foreground">{session.index}</span>
       </div>
 
       <div>
-        <h3 className="font-display text-2xl font-bold tracking-tight">{session.title}</h3>
-        <p className="mt-2 max-w-2xl text-[14px] leading-7 text-muted-foreground">
+        <h3 className="text-[1.375rem] tracking-[-0.02em] text-foreground">{session.title}</h3>
+        <p className="mt-2 max-w-2xl text-[14.5px] leading-7 text-muted-foreground">
           {session.statement}
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {session.examples.map((example) => (
-          <div key={example.input} className="demo-example">
-            <p className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Input
-            </p>
-            <p className="mt-1 font-mono text-[12px] text-foreground">{example.input}</p>
-            <p className="mt-2 text-[9.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Output
-            </p>
-            <p className="mt-1 font-mono text-[12px] text-emerald-600 dark:text-emerald-400">
-              {example.output}
+        {session.examples.map((example, index) => (
+          <div key={example.input} className="lp-well px-4 py-3.5">
+            <p className="text-[12px] font-medium text-muted-foreground">Example {index + 1}</p>
+            <p className="mt-2 font-mono text-[12.5px] text-foreground">{example.input}</p>
+            <p className="mt-1 font-mono text-[12.5px] text-muted-foreground">
+              Output: <span className="text-foreground">{example.output}</span>
             </p>
           </div>
         ))}
       </div>
 
-      <ul className="space-y-1.5">
-        {session.constraints.map((constraint) => (
-          <li
-            key={constraint}
-            className="flex items-start gap-2 text-[12.5px] leading-6 text-muted-foreground"
-          >
-            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary/60" aria-hidden="true" />
-            {constraint}
-          </li>
-        ))}
-      </ul>
+      <div>
+        <p className="text-[12.5px] font-medium text-foreground">Constraints</p>
+        <ul className="mt-2 space-y-1.5">
+          {session.constraints.map((constraint) => (
+            <li
+              key={constraint}
+              className="flex items-start gap-2.5 text-[13.5px] leading-6 text-muted-foreground"
+            >
+              <span className="mt-[0.7rem] h-1 w-1 shrink-0 rounded-full bg-muted-foreground/60" aria-hidden="true" />
+              {constraint}
+            </li>
+          ))}
+        </ul>
+      </div>
     </>
   );
 }
@@ -259,20 +258,15 @@ function SolutionPane({ reduceMotion }: { reduceMotion: boolean | null }) {
 
   return (
     <>
-      <div className="hero-code-shell overflow-hidden rounded-xl">
-        <div className="hero-code-bar flex items-center justify-between px-3 py-2">
-          <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            <Terminal size={10} aria-hidden="true" />
-            Solution.java
-          </span>
-          <span className="hero-code-lang rounded px-1.5 py-0.5 font-mono text-[8.5px] font-semibold uppercase tracking-[0.08em]">
-            Java
-          </span>
+      <div className="lp-well overflow-hidden">
+        <div className="flex items-center justify-between border-b border-obsidian-border px-4 py-2.5">
+          <span className="font-mono text-[12px] text-foreground">Solution.java</span>
+          <span className="text-[11.5px] text-muted-foreground">Java</span>
         </div>
         <pre
           tabIndex={0}
           aria-label="Annotated Java solution for Valid Parentheses"
-          className="landing-code hero-code overflow-x-auto px-3 pb-3 pt-2 font-mono"
+          className="landing-code"
         >
           <code>
             {session.code.map((line, index) => (
@@ -282,19 +276,17 @@ function SolutionPane({ reduceMotion }: { reduceMotion: boolean | null }) {
         </pre>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         {session.annotations.map((annotation, index) => (
           <motion.div
             key={annotation.line}
-            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...ROW_TRANSITION, delay: reduceMotion ? 0 : index * 0.06 }}
-            className="demo-annotation"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ ...ROW_TRANSITION, delay: reduceMotion ? 0 : index * 0.05 }}
+            className="border-l-2 border-obsidian-border pl-3"
           >
-            <span className="demo-annotation-index">L{annotation.line}</span>
-            <p className="mt-1.5 text-[11.5px] leading-5 text-muted-foreground">
-              {annotation.note}
-            </p>
+            <span className="font-mono text-[11.5px] text-muted-foreground">Line {annotation.line}</span>
+            <p className="mt-1 text-[13px] leading-5 text-foreground/85">{annotation.note}</p>
           </motion.div>
         ))}
       </div>
@@ -309,39 +301,39 @@ function TestsPane({ reduceMotion }: { reduceMotion: boolean | null }) {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold">Test suite</p>
-        <span className="hero-status-pill inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em]">
-          <span className="hero-status-dot" aria-hidden="true" />
+        <p className="text-[14px] font-medium text-foreground">Test suite</p>
+        <span className="lp-chip lp-chip-success">
+          <Check size={12} strokeWidth={2.75} aria-hidden="true" />
           {total} / {total} passed
         </span>
       </div>
 
-      <ul className="grid gap-2">
-        {session.tests.map((test, index) => (
-          <motion.li
-            key={test.input}
-            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...ROW_TRANSITION, delay: reduceMotion ? 0 : index * 0.06 }}
-            className="demo-test-row"
-          >
-            <span className="demo-test-check">
-              <Check size={10} strokeWidth={3} aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-foreground">
-              {test.input}
-            </span>
-            <span className="hidden font-mono text-[10px] text-muted-foreground sm:inline">
-              → {test.result}
-            </span>
-            <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
-              {test.runtime}
-            </span>
-          </motion.li>
-        ))}
-      </ul>
+      <div className="lp-well overflow-hidden">
+        <ul className="lp-list">
+          {session.tests.map((test, index) => (
+            <motion.li
+              key={test.input}
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ ...ROW_TRANSITION, delay: reduceMotion ? 0 : index * 0.04 }}
+              className="flex items-center gap-3 px-4 py-2.5"
+            >
+              <Check size={13} strokeWidth={2.75} className="lp-success shrink-0" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-foreground">
+                {test.input}
+              </span>
+              <span className="hidden font-mono text-[12px] text-muted-foreground sm:inline">
+                {test.result}
+              </span>
+              <span className="w-14 text-right font-mono text-[12px] tabular-nums text-muted-foreground">
+                {test.runtime}
+              </span>
+            </motion.li>
+          ))}
+        </ul>
+      </div>
 
-      <p role="status" className="text-[11.5px] font-medium text-muted-foreground">
+      <p role="status" className="text-[13px] text-muted-foreground">
         All {total} tests completed. Every bracket closes in the right order.
       </p>
     </>

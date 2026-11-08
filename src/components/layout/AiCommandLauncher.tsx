@@ -16,7 +16,7 @@ export interface AiCommandLauncherProps
 
 /**
  * Secondary button for GuruBot ("Ask Guru") in the top navigation bar.
- * - Uses shared <NavIcon icon={Sparkles} /> with a small green status dot on the icon
+ * - Uses shared <NavIcon icon={Sparkles} />
  * - Label: "Ask Guru" (no "READY" subtext, no purple gradient border)
  * - Shortcut hint (⌘J) in tooltip
  */
@@ -27,17 +27,13 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
         <AppTooltip content="Guru AI is embedded in the problem description panel">
           <span
             className={cn(
-              "inline-flex h-9 items-center rounded-lg border border-obsidian-border bg-white/[0.04] text-sm font-medium text-foreground/80 [&_svg]:text-obsidian-accent",
+              "inline-flex h-9 items-center rounded-lg border border-obsidian-border bg-foreground/[0.03] text-sm font-medium text-foreground/80 [&_svg]:text-foreground",
               compact ? "h-9 w-9 justify-center px-0 gap-0" : "px-3 gap-2",
               className,
             )}
           >
             <span className="relative inline-flex items-center justify-center">
               <NavIcon icon={Sparkles} />
-              <span
-                aria-hidden="true"
-                className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-obsidian-elevated"
-              />
             </span>
             {!compact && <span className="hidden sm:inline leading-none">Guru Active</span>}
           </span>
@@ -57,21 +53,17 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
           className={cn(
             "group relative inline-flex h-9 shrink-0 items-center rounded-lg border text-sm font-medium leading-none",
             "transition-colors duration-150 ease-out touch-manipulation select-none",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
             compact ? "w-9 justify-center px-0 gap-0" : "px-3 gap-2",
             open
-              ? "border-obsidian-accent/30 bg-obsidian-accent/10 text-foreground [&_svg]:text-obsidian-accent dark:border-obsidian-accent/40 dark:bg-obsidian-accent/10 dark:text-foreground dark:[&_svg]:text-obsidian-accent"
-              : "border-obsidian-border bg-white/[0.04] text-foreground/80 [&_svg]:text-muted-foreground hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground",
+              ? "border-obsidian-border bg-foreground/[0.06] text-foreground [&_svg]:text-foreground dark:border-obsidian-border dark:bg-foreground/[0.06] dark:text-foreground dark:[&_svg]:text-foreground"
+              : "border-obsidian-border bg-foreground/[0.03] text-foreground/80 [&_svg]:text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
             className,
           )}
           {...props}
         >
           <span className="relative inline-flex items-center justify-center">
             <NavIcon icon={Sparkles} />
-            <span
-              aria-hidden="true"
-              className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-obsidian-elevated"
-            />
           </span>
 
           {!compact && <span className="leading-none">Ask Guru</span>}
