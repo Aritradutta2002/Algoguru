@@ -39,9 +39,6 @@ import {
   fetchLeetcodeUserStats,
   LeetcodeUserNotFoundError,
 } from "@/lib/leetcodeUserStats";
-import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
-import { CandyButton } from "@/components/ui/vengeance/CandyButton";
-import { StatsCounter } from "@/components/ui/vengeance/StatsCounter";
 
 // Build a lookup of problem_id -> difficulty from the static practice sheet.
 const PROBLEM_DIFFICULTY_MAP: Record<string, "Easy" | "Medium" | "Hard"> =
@@ -168,7 +165,7 @@ function Card({
   return (
     <div
       className={cn(
-        "relative rounded-2xl border border-border/70 bg-card/85 text-card-foreground shadow-card backdrop-blur-md transition-all duration-300 hover:border-primary/25",
+        "rounded-2xl border border-border bg-card text-card-foreground shadow-card",
         className,
       )}
       {...rest}
@@ -962,16 +959,16 @@ export default function Profile() {
             >
               Cancel
             </button>
-            <CandyButton
+            <button
               onClick={saveLeetcodePrompt}
               disabled={isLeetcodeLoading || !promptUsername.trim()}
-              className="min-h-[40px] px-5 py-2 text-sm"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:brightness-95 disabled:opacity-50"
             >
               {isLeetcodeLoading && (
                 <Loader2 size={14} className="animate-spin" />
               )}
               Connect
-            </CandyButton>
+            </button>
           </div>
         </ModalShell>
       )}
@@ -1004,16 +1001,16 @@ export default function Profile() {
             >
               Cancel
             </button>
-            <CandyButton
+            <button
               onClick={saveCodechefPrompt}
               disabled={isCodechefLoading || !codechefPromptUsername.trim()}
-              className="min-h-[40px] px-5 py-2 text-sm"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:brightness-95 disabled:opacity-50"
             >
               {isCodechefLoading && (
                 <Loader2 size={14} className="animate-spin" />
               )}
               Connect
-            </CandyButton>
+            </button>
           </div>
         </ModalShell>
       )}
@@ -1328,10 +1325,10 @@ export default function Profile() {
                   >
                     Cancel
                   </button>
-                  <CandyButton
+                  <button
                     type="submit"
                     disabled={saving}
-                    className="min-h-[42px] px-6 py-2.5 text-sm"
+                    className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-50"
                   >
                     {saving ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1339,15 +1336,14 @@ export default function Profile() {
                       <Save className="h-4 w-4" />
                     )}
                     Save changes
-                  </CandyButton>
+                  </button>
                 </div>
               </Card>
             </form>
           ) : (
             <>
               {/* ── Hero ── */}
-              <Card className="relative overflow-hidden">
-                <BorderBeam size={260} duration={14} colorFrom="#38bdf8" colorTo="#818cf8" />
+              <Card className="overflow-hidden">
                 <div className="relative h-36 bg-gradient-to-br from-primary/30 via-primary/10 to-transparent">
                   <div
                     className="absolute inset-0 opacity-40"
@@ -1587,10 +1583,10 @@ export default function Profile() {
             <div className="mt-5 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-border/50 pt-4">
               <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
                 <div>
-                  <div className="text-xl font-bold tabular-nums tracking-tight text-foreground font-display">
-                    <StatsCounter value={consistencyStats.total} duration={1.2} />
+                  <div className="text-lg font-bold tabular-nums tracking-tight text-foreground">
+                    {consistencyStats.total}
                   </div>
-                  <div className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
                     Contributions ·{" "}
                     {consistencyRange === "Last 12 months"
                       ? "12 mos"
@@ -1598,18 +1594,18 @@ export default function Profile() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold tabular-nums tracking-tight text-foreground font-display">
-                    <StatsCounter value={consistencyStats.activeDays} duration={1.2} />
+                  <div className="text-lg font-bold tabular-nums tracking-tight text-foreground">
+                    {consistencyStats.activeDays}
                   </div>
-                  <div className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
                     Active days
                   </div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold tabular-nums tracking-tight text-foreground font-display">
-                    <StatsCounter value={consistencyStats.maxStreak} duration={1.2} />
+                  <div className="text-lg font-bold tabular-nums tracking-tight text-foreground">
+                    {consistencyStats.maxStreak}
                   </div>
-                  <div className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
                     Best streak
                   </div>
                 </div>
@@ -1638,9 +1634,8 @@ export default function Profile() {
           {/* ── DSA progress ── */}
           <div
             ref={dsaCardRef}
-            className="relative overflow-hidden rounded-2xl border border-border/70 bg-card/85 p-5 text-card-foreground shadow-card backdrop-blur-md sm:p-6"
+            className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-card sm:p-6"
           >
-            <BorderBeam size={280} duration={16} colorFrom="#818cf8" colorTo="#c084fc" />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <SectionHeading>DSA Progress</SectionHeading>
               {isNarrowDsa ? (
@@ -1722,17 +1717,17 @@ export default function Profile() {
                     heatmap.
                   </p>
                 </div>
-                <CandyButton
+                <button
                   onClick={() =>
                     dsaMode === "leetcode"
                       ? setShowLeetcodePrompt(true)
                       : setShowCodechefPrompt(true)
                   }
-                  className="mt-2 min-h-[40px] px-5 py-2 text-sm"
+                  className="mt-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:brightness-95"
                 >
                   Connect{" "}
                   {dsaMode === "leetcode" ? "LeetCode" : "CodeChef"}
-                </CandyButton>
+                </button>
               </div>
             ) : (isLeetcodeLoading && dsaMode === "leetcode") ||
               (isCodechefLoading && dsaMode === "codechef") ? (
@@ -2079,10 +2074,10 @@ function PlatformPill({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all duration-200",
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
         active
-          ? "border-primary/40 bg-primary/15 text-primary shadow-[0_0_12px_rgba(59,130,246,0.18)] ring-1 ring-primary/20"
-          : "border-border/70 bg-card/60 text-muted-foreground hover:border-primary/30 hover:bg-muted/50 hover:text-foreground",
+          ? "border-primary/30 bg-primary/10 text-primary"
+          : "border-border bg-transparent text-muted-foreground hover:border-primary/30 hover:text-foreground",
       )}
     >
       <Icon size={12} />

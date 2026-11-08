@@ -1,21 +1,14 @@
 import { BrandLoader } from "@/components/brand/BrandLoader";
 import { cn } from "@/lib/utils";
-import { AnimatedRays, KineticTextLoader } from "@/components/ui/vengeance";
 
 /**
  * Full-viewport loading state used while a top-level route chunk resolves.
- * Integrates official Vengeance UI KineticTextLoader and AnimatedRays
- * for a signature, high-polish application initialization experience.
+ * The branded wheel replaces the old static mark + shimmer bar so the first
+ * paint of the app already looks like the product.
  */
 export function AppLoadingScreen({ label = "Loading your workspace" }: { label?: string }) {
   return (
     <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-background">
-      <AnimatedRays
-        rayCount={5}
-        primaryColor="rgba(56, 189, 248, 0.12)"
-        secondaryColor="rgba(99, 102, 241, 0.08)"
-        opacity={0.65}
-      />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,hsl(var(--primary)/0.16),transparent_58%)]"
@@ -24,10 +17,7 @@ export function AppLoadingScreen({ label = "Loading your workspace" }: { label?:
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,hsl(var(--border)/0.6)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.6)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(circle_at_50%_42%,#000_18%,transparent_70%)]"
       />
-      <div className="relative z-10 flex flex-col items-center justify-center gap-4">
-        <BrandLoader variant="screen" size="lg" label="" className="relative z-10" />
-        <KineticTextLoader text="ALGOGURU" subtext={label} className="p-0" />
-      </div>
+      <BrandLoader variant="screen" size="lg" label={label} className="relative z-10" />
     </div>
   );
 }

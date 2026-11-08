@@ -48,7 +48,6 @@ import {
 } from "lucide-react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import { LeetCodeEditor } from "@/components/editor/LeetCodeEditor";
-import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 import * as prettier from "prettier/standalone";
 import * as prettierPluginJava from "prettier-plugin-java";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -2166,19 +2165,19 @@ export default function Playground() {
     }
   };
 
-  // Run button — Vengeance UI candy button style
+  // Run button — ProblemSolver rocket style
   const RunButton = ({ compact = false }: { compact?: boolean }) => (
     <AppTooltip content="Run (Ctrl+Enter)">
       <button
         onClick={() => runCode(false)}
         disabled={isRunning || !code.trim()}
         className={cn(
-          "group relative flex items-center justify-center gap-1.5 overflow-hidden rounded-lg font-display font-bold shadow-soft transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 select-none",
-          compact ? "h-7 w-7" : "h-7 px-3.5",
+          "flex items-center justify-center gap-1.5 rounded-md font-semibold shadow-soft transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50",
+          compact ? "h-7 w-7" : "h-7 px-3",
           isRunning
             ? "bg-warning text-warning-foreground"
-            : "candy-btn-highlight text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(37,99,235,0.4)] active:translate-y-0 active:scale-[0.98]",
-          compact ? "text-xs" : "text-[13px] tracking-[-0.01em]",
+            : "bg-primary text-primary-foreground hover:bg-primary/90",
+          compact ? "text-xs" : "text-[13px]",
         )}
         aria-label="Run code"
         aria-busy={isRunning}
@@ -2189,7 +2188,7 @@ export default function Playground() {
           <Play size={13} fill="currentColor" strokeWidth={0} />
         ) : (
           <>
-            <Play size={13} fill="currentColor" strokeWidth={0} className="transition-transform group-hover:scale-110" />
+            <Play size={13} fill="currentColor" strokeWidth={0} />
             Run
           </>
         )}
@@ -2197,7 +2196,7 @@ export default function Playground() {
     </AppTooltip>
   );
 
-  // Debug button — Vengeance UI glass interactive style
+  // Debug button — ProblemSolver style (outline with accent)
   const DebugButton = ({ compact = false }: { compact?: boolean }) => {
     const tooltip =
       breakpoints.size > 0
@@ -2210,15 +2209,15 @@ export default function Playground() {
           onClick={() => runCode(true)}
           disabled={isRunning || !code.trim() || breakpoints.size === 0}
           className={cn(
-            "group relative flex items-center justify-center gap-1.5 rounded-lg border font-display font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 select-none",
+            "flex items-center justify-center gap-1 rounded-md border font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40",
             compact ? "h-7 w-7" : "h-7 px-3 text-[12px]",
             breakpoints.size > 0
-              ? "border-purple-500/40 bg-purple-500/15 text-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.2)] hover:bg-purple-500/25"
-              : "border-border/80 bg-card/80 text-muted-foreground hover:border-primary/40 hover:bg-muted/70 hover:text-foreground hover:-translate-y-0.5 active:translate-y-0",
+              ? "border-purple-500/25 bg-purple-500/10 text-purple-500 dark:text-purple-400"
+              : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
           aria-label={tooltip}
         >
-          <Bug size={13} className="transition-transform group-hover:scale-110" />
+          <Bug size={13} />
           {!compact && <>Debug{breakpoints.size > 0 ? ` (${breakpoints.size})` : ""}</>}
         </button>
       </AppTooltip>
@@ -3054,7 +3053,7 @@ export default function Playground() {
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TOP BAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
         className={cn(
-          "relative flex h-11 flex-shrink-0 select-none items-center justify-between border-b border-border/80 bg-card/80 backdrop-blur-md px-3 shadow-soft",
+          "flex h-11 flex-shrink-0 select-none items-center justify-between border-b border-border bg-muted/40 px-3",
           zenMode && "hidden",
         )}
       >
@@ -4154,8 +4153,7 @@ export default function Playground() {
                     </button>
                   </AppTooltip>
                 ) : (
-                  <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/90 shadow-card backdrop-blur-md">
-                    <BorderBeam size={260} duration={14} colorFrom="#38bdf8" colorTo="#818cf8" />
+                  <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
                     {/* Console action bar: tabs + Run/Debug */}
                     <div className="flex h-11 flex-shrink-0 select-none items-center justify-between gap-3 border-b border-border bg-muted/40 px-4">
                       <div className="flex items-center">

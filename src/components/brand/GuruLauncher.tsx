@@ -31,7 +31,7 @@ export const GuruLauncher = forwardRef<HTMLButtonElement, GuruLauncherProps>(
         aria-keyshortcuts="Control+J Meta+J"
         className={cn(
           "group relative isolate flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-xl",
-          "transition-[background-color,box-shadow,transform] duration-200 ease-premium",
+          "transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
           "hover:-translate-y-px active:translate-y-0",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           open
@@ -48,7 +48,7 @@ export const GuruLauncher = forwardRef<HTMLButtonElement, GuruLauncherProps>(
           mood={open ? "happy" : "idle"}
           title={null}
           className={cn(
-            "transition-transform duration-300 ease-premium",
+            "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
             open ? "scale-95" : "group-hover:scale-105",
           )}
         />

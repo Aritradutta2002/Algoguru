@@ -28,7 +28,6 @@ import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown"
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppTooltip } from "@/components/ui/tooltip";
-import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 
 type NoteSource = "core-java" | "practice" | "system-design";
 
@@ -624,9 +623,8 @@ export default function NotesDashboard() {
   return (
     <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary/25">
 
-      <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-b from-card/80 via-card/50 to-background/90 backdrop-blur-sm">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_55%)]" />
-        <BorderBeam size={320} duration={16} colorFrom="#818cf8" colorTo="#c084fc" />
+      <section className="relative border-b border-border/60">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" />
         <div className="relative mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -699,7 +697,7 @@ export default function NotesDashboard() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-10 md:px-10 md:py-14 lg:px-16 space-y-6">
-        <div className="relative overflow-hidden flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3.5 rounded-2xl border border-border/70 bg-card/85 backdrop-blur-md shadow-card">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3 rounded-2xl border border-border bg-card">
           <div className="relative flex-1">
             <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input

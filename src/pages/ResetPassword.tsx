@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 
 const resetPasswordSchema = z.object({
   password: z
@@ -58,8 +57,7 @@ export default function ResetPassword() {
           <h1 className="text-2xl font-bold text-foreground">Reset password</h1>
           <p className="text-sm mt-1 text-muted-foreground">Enter your new password</p>
         </div>
-        <div className="relative overflow-hidden p-6 rounded-2xl bg-card border border-border shadow-soft">
-          <BorderBeam size={220} duration={14} colorFrom="#38bdf8" colorTo="#818cf8" />
+        <div className="p-6 rounded-2xl bg-card border border-border">
           {success ? (
             <div className="text-center text-sm py-4 text-success">Password updated! Redirecting…</div>
           ) : (

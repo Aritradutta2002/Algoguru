@@ -15,7 +15,6 @@ import {
 import JavaInterviewHub from "./interview/JavaInterviewHub";
 import CppInterviewHub from "./interview/CppInterviewHub";
 import PythonInterviewHub from "./interview/PythonInterviewHub";
-import { BorderBeam } from "@/components/ui/vengeance/BorderBeam";
 
 type InterviewLanguage = "java" | "cpp" | "python";
 
@@ -234,9 +233,8 @@ export default function Interview() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ y: -3 }}
-                className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-3xl border border-border/80 bg-card/90 p-7 shadow-card backdrop-blur-sm transition-all duration-300 ease-premium hover:border-primary/40 hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:border-primary/25 hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <BorderBeam size={220} duration={12 + index * 2} colorFrom={option.color} colorTo="#6366f1" />
                 <div
                   className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                   style={{ background: "radial-gradient(130% 100% at 50% 0%, " + option.color + "16, transparent 55%)" }}
@@ -304,9 +302,8 @@ export default function Interview() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                   whileHover={{ y: -3 }}
-                  className="group relative flex min-h-[260px] flex-col overflow-hidden rounded-3xl border border-border/80 bg-card/90 p-7 shadow-card backdrop-blur-sm transition-all duration-300 ease-premium hover:border-primary/40 hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="group relative flex min-h-[260px] flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:border-primary/25 hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <BorderBeam size={240} duration={14 + index * 2} colorFrom={path.color} colorTo="#818cf8" />
                   <div
                     className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                     style={{ background: "radial-gradient(130% 100% at 50% 0%, " + path.color + "16, transparent 55%)" }}

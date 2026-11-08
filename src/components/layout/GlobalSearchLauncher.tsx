@@ -46,7 +46,7 @@ export function SearchTrigger({
         aria-haspopup="dialog"
         data-search-trigger="true"
         className={cn(
-          "group relative inline-flex shrink-0 items-center rounded-xl border border-border/70 bg-card/75 backdrop-blur-md text-left text-muted-foreground [&_svg]:text-muted-foreground transition-all duration-200 ease-out hover:border-primary/40 hover:bg-card/90 hover:text-foreground hover:[&_svg]:text-foreground hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 touch-manipulation select-none",
+          "group relative inline-flex shrink-0 items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-left text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 ease-out hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 touch-manipulation select-none",
           isCompact
             ? "h-9 w-9 justify-center px-0 gap-0"
             : isExplicitWide
@@ -59,7 +59,7 @@ export function SearchTrigger({
 
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-sm font-normal text-muted-foreground transition-colors duration-150 group-hover:text-foreground",
+            "min-w-0 flex-1 truncate text-sm font-normal text-slate-500 dark:text-slate-400 transition-colors duration-150 group-hover:text-slate-700 dark:group-hover:text-slate-200",
             isCompact ? "hidden" : isExplicitWide ? "inline" : "hidden xl:inline",
           )}
         >
@@ -68,7 +68,7 @@ export function SearchTrigger({
 
         <kbd
           className={cn(
-            "shrink-0 items-center gap-0.5 rounded-md border border-border/70 bg-muted/60 px-1.5 py-0.5 font-mono text-[11px] font-medium text-muted-foreground group-hover:text-foreground group-hover:border-border transition-colors",
+            "shrink-0 items-center gap-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-500 dark:text-slate-400",
             isCompact ? "hidden" : isExplicitWide ? "inline-flex" : "hidden xl:inline-flex",
           )}
         >
