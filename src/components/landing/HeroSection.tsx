@@ -7,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Play, Shuffle } from "lucide-react";
 import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
-import { MagneticButton } from "@/components/motion/MagneticButton";
 import { HERO_TIMELINE } from "@/lib/motion";
+import { ObsidianGenerateButton } from "./ObsidianGenerateButton";
 import { HeroWorkspacePreview } from "./HeroWorkspacePreview";
 import { useHeroChoreography } from "./useHeroChoreography";
 
@@ -75,12 +75,12 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
       data-phase={phase}
       aria-labelledby="landing-heading"
       onPointerMove={handlePointerMove}
-      className="landing-hero hero-shell relative overflow-hidden border-b border-border/60"
+      className="landing-hero hero-shell relative overflow-hidden border-b border-obsidian-border"
     >
       <div className="hero-atmosphere pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="hero-mesh absolute inset-0" />
         <div className="hero-grid bg-grid absolute inset-0" />
-        <div className="aurora-blob left-[8%] top-[16%] h-72 w-72 bg-primary/10" />
+        <div className="aurora-blob left-[8%] top-[16%] h-72 w-72 bg-obsidian-accent/10" />
         <div
           className="aurora-blob right-[2%] top-0 h-96 w-96 bg-cyan-400/10"
           style={{ animationDelay: "-7s", animationDuration: "28s" }}
@@ -105,8 +105,8 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
             </span>
             The focused workspace for engineers
-            <span className="hero-eyebrow-divider hidden h-3 w-px bg-border/80 sm:block" aria-hidden="true" />
-            <span className="hero-eyebrow-tag hidden text-[10px] font-bold uppercase tracking-[0.12em] text-primary sm:inline">
+            <span className="hero-eyebrow-divider hidden h-3 w-px bg-obsidian-border sm:block" aria-hidden="true" />
+            <span className="hero-eyebrow-tag hidden text-[10px] font-bold uppercase tracking-[0.12em] text-obsidian-accent sm:inline">
               Free forever
             </span>
           </motion.div>
@@ -133,9 +133,9 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
           </motion.p>
 
           <motion.div {...rise(0.2)} className="hero-cta-row mt-8 flex flex-wrap items-center gap-3.5">
-            <MagneticButton
+            <ObsidianGenerateButton
               onClick={onExplore}
-              className="landing-primary hero-cta-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
+              className="hero-cta-primary"
             >
               Explore learning paths
               <ArrowRight
@@ -143,7 +143,7 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
                 className="transition-transform duration-300 group-hover:translate-x-1"
                 aria-hidden="true"
               />
-            </MagneticButton>
+            </ObsidianGenerateButton>
             <button
               onClick={() => navigate("/playground")}
               className="hero-cta-secondary group inline-flex items-center gap-2.5 rounded-xl px-5 py-4 text-[15px] font-semibold text-foreground transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.99]"
@@ -181,9 +181,9 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
             <button
               type="button"
               onClick={onQuiz}
-              className="hero-quiz-link group inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] font-semibold text-foreground transition-colors hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="hero-quiz-link group inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] font-semibold text-foreground transition-colors hover:text-obsidian-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Shuffle size={14} className="text-primary" aria-hidden="true" />
+              <Shuffle size={14} className="text-obsidian-accent" aria-hidden="true" />
               Or take a 10-question quiz
             </button>
           </motion.div>

@@ -63,7 +63,7 @@ export function HeroWorkspacePreview({
         <div className="hero-preview-aura pointer-events-none absolute" aria-hidden="true" />
 
         <div className="hero-preview-meta mb-4 flex items-center gap-2 px-1 text-xs font-medium text-muted-foreground">
-          <Terminal size={14} className="shrink-0 text-primary" aria-hidden="true" />
+          <Terminal size={14} className="shrink-0 text-obsidian-accent" aria-hidden="true" />
           <span className="truncate">Your next productive session</span>
           <span className="hero-preview-label shrink-0 rounded-full px-2.5 py-1 text-[10px]">
             Workspace preview
@@ -75,7 +75,7 @@ export function HeroWorkspacePreview({
             <SpotlightCard className="hero-preview-card landing-preview relative rounded-[1.75rem] p-0">
               <div className="relative">
                 {/* window chrome */}
-                <div className="hero-window-bar flex flex-wrap items-center justify-between gap-2.5 border-b border-border/60 px-4 py-3 sm:px-5">
+                <div className="hero-window-bar flex flex-wrap items-center justify-between gap-2.5 border-b border-obsidian-border px-4 py-3 sm:px-5">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="hero-traffic-dot bg-rose-400/80" aria-hidden="true" />
                     <span className="hero-traffic-dot bg-amber-400/80" aria-hidden="true" />
@@ -128,7 +128,7 @@ export function HeroWorkspacePreview({
 
                     <div className="hero-code-shell mt-4 overflow-hidden rounded-xl">
                       <div className="hero-code-bar flex items-center justify-between px-3 py-2">
-                        <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                           <Terminal size={10} aria-hidden="true" />
                           Solution.java
                         </span>
@@ -245,12 +245,12 @@ export function HeroWorkspacePreview({
                       className="hero-roadmap-btn group mt-4 flex items-center justify-between rounded-xl px-3 py-2.5 text-left text-[11.5px] font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <span className="flex items-center gap-2">
-                        <MapIcon size={13} className="text-primary" aria-hidden="true" />
+                        <MapIcon size={13} className="text-obsidian-accent" aria-hidden="true" />
                         Browse full roadmap
                       </span>
                       <ArrowRight
                         size={13}
-                        className="text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary"
+                        className="text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-obsidian-accent"
                         aria-hidden="true"
                       />
                     </button>

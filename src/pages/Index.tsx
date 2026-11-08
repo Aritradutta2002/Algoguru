@@ -20,9 +20,10 @@ import {
   Zap,
 } from "lucide-react";
 import { QuizSection } from "@/components/quiz/QuizSection";
-import { MagneticButton } from "@/components/motion/MagneticButton";
 import { Reveal } from "@/components/motion/Reveal";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
+import { ObsidianBentoCard } from "@/components/landing/ObsidianBentoCard";
+import { ObsidianGenerateButton } from "@/components/landing/ObsidianGenerateButton";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
 import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
@@ -105,17 +106,23 @@ const SECTIONS = [
 
 const CARD_TONES = {
   cobalt: {
-    tile: "border-primary/25 bg-primary/10 text-primary",
-    dot: "bg-primary",
+    tile: "border-obsidian-accent/25 bg-obsidian-accent/10 text-obsidian-accent",
+    dot: "bg-obsidian-accent",
   },
   cyan: {
-    tile: "border-cyan-500/25 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-    dot: "bg-cyan-500",
+    tile: "border-obsidian-success/25 bg-obsidian-success/10 text-obsidian-success",
+    dot: "bg-obsidian-success",
   },
   amber: {
     tile: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
     dot: "bg-amber-500",
   },
+} as const;
+
+const BENTO_TONES = {
+  cobalt: "violet",
+  cyan: "emerald",
+  amber: "neutral",
 } as const;
 
 const HOW_IT_WORKS = [
@@ -168,21 +175,21 @@ export default function Index() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="landing-page relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
+      <main className="landing-page relative min-h-screen overflow-hidden bg-obsidian-void text-foreground selection:bg-obsidian-accent/25">
         <HeroSection
           onExplore={() => scrollToSection("modules")}
           onQuiz={() => scrollToSection("quiz")}
           onOpenRoadmap={openRoadmap}
         />
 
-        <Reveal className="relative border-b border-border/60">
+        <Reveal className="relative border-b border-obsidian-border">
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_140%_at_50%_0%,hsl(var(--primary)/0.09),transparent_74%)]"
             aria-hidden="true"
           />
           <div className="relative mx-auto flex max-w-[1440px] flex-col gap-6 px-6 py-7 md:flex-row md:items-center md:justify-between md:gap-10 md:px-10 lg:px-16">
             <p className="flex items-center gap-2.5 font-display text-[13.5px] font-semibold tracking-[-0.01em] text-foreground">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.6)]" aria-hidden="true" />
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-obsidian-accent shadow-[0_0_10px_hsl(var(--obsidian-accent)/0.6)]" aria-hidden="true" />
               Less tab switching. More progress.
             </p>
             <div className="grid gap-5 sm:grid-cols-3 sm:gap-0">
@@ -191,11 +198,11 @@ export default function Index() {
                   key={label}
                   className={cn(
                     "group flex items-start gap-3",
-                    index > 0 && "sm:border-l sm:border-border/70 sm:pl-6",
+                    index > 0 && "sm:border-l sm:border-obsidian-border sm:pl-6",
                     index < PROOF_POINTS.length - 1 && "sm:pr-6",
                   )}
                 >
-                  <span className="icon-tile h-9 w-9 shrink-0 text-primary transition-all duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:border-primary/35">
+                  <span className="icon-tile h-9 w-9 shrink-0 text-obsidian-accent transition-all duration-300 ease-premium group-hover:-translate-y-0.5 group-hover:border-obsidian-accent/35">
                     <Icon size={16} aria-hidden="true" />
                   </span>
                   <div className="min-w-0">
@@ -216,7 +223,7 @@ export default function Index() {
         >
           <Reveal className="mb-12 flex flex-col justify-between gap-6 md:mb-14 md:flex-row md:items-end">
             <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-obsidian-accent">
                 Learning paths
               </p>
               <h2
@@ -234,7 +241,7 @@ export default function Index() {
               type="button"
               onClick={toggleHomeSidebar}
               aria-expanded={homeSidebarOpen}
-              className="group hidden w-fit items-center gap-2 rounded-xl border border-border/80 bg-card/70 px-4 py-2.5 text-[12.5px] font-semibold text-muted-foreground shadow-soft transition-all duration-200 hover:border-primary/30 hover:bg-card hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:inline-flex"
+              className="group hidden w-fit items-center gap-2 rounded-xl border border-obsidian-border bg-obsidian-pane/70 px-4 py-2.5 text-[12.5px] font-semibold text-muted-foreground shadow-soft transition-all duration-200 hover:border-obsidian-accent/30 hover:bg-obsidian-pane hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:inline-flex"
             >
               <PanelLeft
                 size={14}
@@ -250,9 +257,9 @@ export default function Index() {
               const tone = CARD_TONES[section.tone];
               return (
                 <Reveal key={section.id} delay={index * 0.055} from="bottom">
-                  <SpotlightCard
-                    interactive
-                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl focus-within:border-primary/40"
+                  <ObsidianBentoCard
+                    tone={BENTO_TONES[section.tone]}
+                    className="landing-path-card path-card-sweep group h-full min-h-[290px] rounded-3xl focus-within:border-obsidian-accent/40"
                   >
                     <Link
                       to={section.route}
@@ -267,7 +274,7 @@ export default function Index() {
                         >
                           <Icon size={23} />
                         </div>
-                        <span className="rounded-full border border-border/70 bg-muted/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                        <span className="rounded-full border border-obsidian-border bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
                           {section.tag}
                         </span>
                       </div>
@@ -284,16 +291,16 @@ export default function Index() {
                         </p>
                       </div>
 
-                      <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-5">
+                      <div className="mt-6 flex items-center justify-between border-t border-obsidian-border pt-5">
                         <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-muted-foreground">
                           <span className="font-mono text-[10px] tracking-[0.08em] text-muted-foreground/55">
                             0{index + 1}
                           </span>
-                          <span className="h-3 w-px bg-border" aria-hidden="true" />
+                          <span className="h-3 w-px bg-obsidian-border" aria-hidden="true" />
                           <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
                           {section.stats}
                         </span>
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 ease-premium group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-obsidian-border bg-white/[0.04] text-muted-foreground transition-all duration-300 ease-premium group-hover:border-obsidian-accent group-hover:bg-obsidian-accent group-hover:text-white">
                           <ArrowUpRight
                             size={15}
                             className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:rotate-45"
@@ -301,7 +308,7 @@ export default function Index() {
                         </span>
                       </div>
                     </Link>
-                  </SpotlightCard>
+                  </ObsidianBentoCard>
                 </Reveal>
               );
             })}
@@ -315,11 +322,11 @@ export default function Index() {
         <QuizSection />
 
         {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
-        <section className="relative border-y border-border/60 bg-muted/25">
+        <section className="relative border-y border-obsidian-border bg-obsidian-pane/40">
           <div className="pointer-events-none absolute inset-0 bg-dots opacity-[0.18]" aria-hidden="true" />
           <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24 lg:px-16">
             <Reveal className="mb-12 text-center">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-obsidian-accent">
                 How it works
               </p>
               <h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] md:text-4xl">
@@ -330,18 +337,18 @@ export default function Index() {
             <div className="relative grid gap-6 md:grid-cols-3">
               {HOW_IT_WORKS.map((step, index) => (
                 <Reveal key={step.title} delay={index * 0.08} className="relative">
-                  <div className="group relative h-full overflow-hidden rounded-2xl border border-border/80 bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-primary/30 hover:shadow-overlay">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-obsidian-border bg-obsidian-pane p-7 shadow-card transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-obsidian-accent/30 hover:shadow-overlay">
                     <span
                       aria-hidden="true"
                       className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.45),transparent)]"
                     />
                     <div className="mb-5 flex items-start justify-between">
-                      <div className="inline-flex rounded-2xl border border-primary/20 bg-primary/[0.08] p-3.5 text-primary shadow-soft">
+                      <div className="inline-flex rounded-2xl border border-obsidian-accent/20 bg-obsidian-accent/[0.08] p-3.5 text-obsidian-accent shadow-soft">
                         {step.icon}
                       </div>
                       <span
                         aria-hidden="true"
-                        className="font-display text-[2.6rem] font-bold leading-none tracking-[-0.06em] text-foreground/[0.05] transition-colors duration-300 group-hover:text-primary/[0.09]"
+                        className="font-display text-[2.6rem] font-bold leading-none tracking-[-0.06em] text-foreground/[0.05] transition-colors duration-300 group-hover:text-obsidian-accent/[0.09]"
                       >
                         0{index + 1}
                       </span>
@@ -360,7 +367,7 @@ export default function Index() {
                 <span
                   key={index}
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 hidden h-7 w-7 items-center justify-center rounded-full border border-primary/25 bg-card text-primary/80 shadow-soft md:flex"
+                  className="pointer-events-none absolute top-1/2 hidden h-7 w-7 items-center justify-center rounded-full border border-obsidian-accent/25 bg-obsidian-pane text-obsidian-accent/80 shadow-soft md:flex"
                   style={{
                     left: `${((index + 1) * 100) / 3}%`,
                     transform: "translate(-50%, -50%)",
@@ -380,7 +387,7 @@ export default function Index() {
             <Reveal>
               <SpotlightCard
                 interactive
-                className="cta-card relative overflow-hidden px-6 py-16 text-center backdrop-blur-xl md:px-12 md:py-20"
+                className="cta-card relative overflow-hidden rounded-3xl border border-obsidian-border bg-obsidian-pane/80 px-6 py-16 text-center shadow-specular backdrop-blur-xl md:px-12 md:py-20"
               >
                 <div
                   className="pointer-events-none !absolute inset-0 overflow-hidden rounded-[inherit]"
@@ -388,7 +395,7 @@ export default function Index() {
                 >
                   <div className="absolute inset-0 bg-grid opacity-30" />
                   <div className="absolute inset-x-10 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.55),rgb(103_232_249/0.25),transparent)]" />
-                  <div className="aurora-blob absolute left-[12%] top-[-20%] h-64 w-64 bg-primary/10" />
+                  <div className="aurora-blob absolute left-[12%] top-[-20%] h-64 w-64 bg-obsidian-accent/10" />
                   <div
                     className="aurora-blob absolute right-[8%] bottom-[-30%] h-64 w-64 bg-accent/10"
                     style={{ animationDelay: "-9s" }}
@@ -400,7 +407,7 @@ export default function Index() {
                 </div>
 
                 <div className="relative">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-obsidian-accent/20 bg-obsidian-accent/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-obsidian-accent">
                     <Sparkles size={12} /> Free forever
                   </span>
                   <h2 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl">
@@ -412,21 +419,21 @@ export default function Index() {
                     real, interview-ready skill today.
                   </p>
                   <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-                    <MagneticButton
+                    <ObsidianGenerateButton
                       onClick={() => scrollToSection("modules")}
-                      className="landing-primary button-shine group inline-flex items-center justify-center gap-2.5 rounded-xl px-8 py-4 text-[15px] font-bold text-white transition-all duration-300 ease-premium hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="px-8"
                     >
                       Start learning free
                       <ArrowRight
                         size={17}
                         className="transition-transform duration-300 group-hover:translate-x-1"
                       />
-                    </MagneticButton>
+                    </ObsidianGenerateButton>
                     <button
                       onClick={openRoadmap}
-                      className="inline-flex items-center gap-2.5 rounded-xl border border-border bg-card/80 px-8 py-4 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="inline-flex items-center gap-2.5 rounded-xl border border-obsidian-border bg-obsidian-pane/80 px-8 py-4 text-[15px] font-semibold shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-obsidian-accent/40 hover:bg-obsidian-pane hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
-                      <MapIcon size={16} className="text-primary" />
+                      <MapIcon size={16} className="text-obsidian-accent" />
                       View roadmap
                     </button>
                   </div>
@@ -440,7 +447,7 @@ export default function Index() {
         </section>
 
         {roadmapOpen && (
-          <Suspense fallback={<div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-border bg-card px-5 py-3 text-sm shadow-overlay">Loading your roadmap…</div>}>
+          <Suspense fallback={<div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-obsidian-border bg-obsidian-pane px-5 py-3 text-sm shadow-overlay">Loading your roadmap…</div>}>
             <RoadmapFullscreenOverlay
               open={roadmapOpen}
               onClose={() => setRoadmapOpen(false)}

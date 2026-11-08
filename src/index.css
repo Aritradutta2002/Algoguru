@@ -152,6 +152,17 @@
     --surface-line: 220 13% 88%;
     --surface-raised: 220 14% 96%;
 
+    /* ── Obsidian desktop surfaces ─────────────────────────────────────
+       Light mode keeps the existing paper palette. Dark mode swaps in the
+       enterprise Obsidian ramp used by the landing window and app chrome. */
+    --obsidian-void: 40 18% 98%;
+    --obsidian-pane: 0 0% 100%;
+    --obsidian-elevated: 0 0% 100%;
+    --obsidian-border: 220 14% 89%;
+    --obsidian-specular: 0 0% 100% / 0.8;
+    --obsidian-accent: 217 91% 55%;
+    --obsidian-success: 145 55% 40%;
+
     /* ── Motion system ─────────────────────────────────────────────
        One shared rhythm for every interaction. Entrances are slower than
        feedback, and springs are reserved for direct manipulation. */
@@ -283,6 +294,16 @@
     --surface-panel: 240 7% 8%;
     --surface-line: 222 12% 16%;
     --surface-raised: 240 6% 15%;
+
+    /* Exact Obsidian desktop ramp: void #070709, pane #0c0c10,
+       elevated #111117, with 1px rgba(255,255,255,0.08) hairlines. */
+    --obsidian-void: 240 12% 3.1%;
+    --obsidian-pane: 240 14% 5.5%;
+    --obsidian-elevated: 240 8% 7.8%;
+    --obsidian-border: 0 0% 100% / 0.08;
+    --obsidian-specular: 0 0% 100% / 0.12;
+    --obsidian-accent: 258 90% 66%;
+    --obsidian-success: 160 84% 39%;
 
     --gradient-brand: linear-gradient(135deg, hsl(217 91% 62%), hsl(199 89% 60%));
     --gradient-amber: linear-gradient(135deg, hsl(43 96% 60%), hsl(30 94% 56%));

@@ -2,6 +2,8 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { Check, Code2, FileText, FlaskConical, Terminal } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
+import { ObsidianVaultTree } from "@/components/workspace/ObsidianVaultTree";
+import { ObsidianWindow } from "@/components/workspace/ObsidianWindow";
 import { EASE_OUT, springSoft } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { CodeLine } from "./codeSnippet";
@@ -93,99 +95,102 @@ export function WorkspaceDemoSection() {
         </Reveal>
 
         <Reveal delay={0.06} from="bottom">
-          <div className="demo-shell">
-            <div className="demo-window-bar flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-4 py-3 sm:px-5">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="hero-traffic-dot bg-rose-400/80" aria-hidden="true" />
-                <span className="hero-traffic-dot bg-amber-400/80" aria-hidden="true" />
-                <span className="hero-traffic-dot bg-emerald-400/80" aria-hidden="true" />
-                <span className="ml-2.5 flex items-center gap-1.5 truncate font-mono text-[10.5px] tracking-tight text-muted-foreground">
-                  <Terminal size={11} aria-hidden="true" />
-                  algoguru / demo
-                </span>
+          <ObsidianWindow
+            activePane={active}
+            onPaneChange={(pane) => {
+              const index = DEMO_TABS.findIndex((tab) => tab.id === pane);
+              if (index >= 0) selectTab(pane, index);
+            }}
+            vault={
+              <ObsidianVaultTree
+                activePane={active}
+                onSelectPane={(pane) => {
+                  const index = DEMO_TABS.findIndex((tab) => tab.id === pane);
+                  if (index >= 0) selectTab(pane, index);
+                }}
+              />
+            }
+            title="algoguru / demo"
+            subtitle="Interactive workspace"
+          >
+            <div className="min-w-0">
+              <div
+                role="tablist"
+                aria-label="Workspace demo views"
+                onKeyDown={handleTabKeyDown}
+                className="demo-tabs flex items-center gap-1 border-b border-obsidian-border bg-white/[0.02] px-3 py-2.5 sm:px-4"
+              >
+                {DEMO_TABS.map((tab, index) => {
+                  const Icon = TAB_ICONS[tab.id];
+                  const selected = tab.id === active;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      ref={(node) => {
+                        tabRefs.current[index] = node;
+                      }}
+                      type="button"
+                      role="tab"
+                      id={`demo-tab-${tab.id}`}
+                      aria-selected={selected}
+                      aria-controls={`demo-panel-${tab.id}`}
+                      tabIndex={selected ? 0 : -1}
+                      onClick={() => selectTab(tab.id, index)}
+                      className={cn(
+                        "demo-tab relative inline-flex min-h-[38px] items-center gap-1.5 rounded-lg px-3 text-[12.5px] font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50",
+                        selected ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {selected && (
+                        <motion.span
+                          layoutId="demo-tab-pill"
+                          className="demo-tab-pill"
+                          transition={springSoft}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <Icon size={13} className="relative z-10" aria-hidden="true" />
+                      <span className="relative z-10">{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <span className="hero-status-pill inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em]">
-                <span className="hero-status-dot" aria-hidden="true" />
-                Interactive
-              </span>
-            </div>
 
-            <div
-              role="tablist"
-              aria-label="Workspace demo views"
-              onKeyDown={handleTabKeyDown}
-              className="demo-tabs flex items-center gap-1 border-b border-border/50 px-3 py-2.5 sm:px-4"
-            >
-              {DEMO_TABS.map((tab, index) => {
-                const Icon = TAB_ICONS[tab.id];
-                const selected = tab.id === active;
-
-                return (
-                  <button
-                    key={tab.id}
-                    ref={(node) => {
-                      tabRefs.current[index] = node;
-                    }}
-                    type="button"
-                    role="tab"
-                    id={`demo-tab-${tab.id}`}
-                    aria-selected={selected}
-                    aria-controls={`demo-panel-${tab.id}`}
-                    tabIndex={selected ? 0 : -1}
-                    onClick={() => selectTab(tab.id, index)}
-                    className={cn(
-                      "demo-tab relative inline-flex min-h-[38px] items-center gap-1.5 rounded-lg px-3 text-[12.5px] font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      selected ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {selected && (
-                      <motion.span
-                        layoutId="demo-tab-pill"
-                        className="demo-tab-pill"
-                        transition={springSoft}
-                        aria-hidden="true"
-                      />
-                    )}
-                    <Icon size={13} className="relative z-10" aria-hidden="true" />
-                    <span className="relative z-10">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="p-4 sm:p-6">
-              {reduceMotion ? (
-                <div
-                  role="tabpanel"
-                  id={`demo-panel-${active}`}
-                  aria-labelledby={`demo-tab-${active}`}
-                  tabIndex={0}
-                  className="demo-pane focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {panel}
-                </div>
-              ) : (
-                <AnimatePresence mode="wait" custom={direction} initial={false}>
-                  <motion.div
-                    key={active}
+              <div className="p-4 sm:p-6">
+                {reduceMotion ? (
+                  <div
                     role="tabpanel"
                     id={`demo-panel-${active}`}
                     aria-labelledby={`demo-tab-${active}`}
                     tabIndex={0}
-                    custom={direction}
-                    variants={PANE_VARIANTS}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={PANE_TRANSITION}
-                    className="demo-pane focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="demo-pane focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50"
                   >
                     {panel}
-                  </motion.div>
-                </AnimatePresence>
-              )}
+                  </div>
+                ) : (
+                  <AnimatePresence mode="wait" custom={direction} initial={false}>
+                    <motion.div
+                      key={active}
+                      role="tabpanel"
+                      id={`demo-panel-${active}`}
+                      aria-labelledby={`demo-tab-${active}`}
+                      tabIndex={0}
+                      custom={direction}
+                      variants={PANE_VARIANTS}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={PANE_TRANSITION}
+                      className="demo-pane focus:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50"
+                    >
+                      {panel}
+                    </motion.div>
+                  </AnimatePresence>
+                )}
+              </div>
             </div>
-          </div>
+          </ObsidianWindow>
         </Reveal>
       </div>
     </section>
@@ -256,7 +261,7 @@ function SolutionPane({ reduceMotion }: { reduceMotion: boolean | null }) {
     <>
       <div className="hero-code-shell overflow-hidden rounded-xl">
         <div className="hero-code-bar flex items-center justify-between px-3 py-2">
-          <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+          <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             <Terminal size={10} aria-hidden="true" />
             Solution.java
           </span>

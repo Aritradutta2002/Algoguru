@@ -92,7 +92,7 @@ const getTopicColor = (id: string) =>
 
 const modeMeta = {
   ds:       { label: "DSA",      icon: <Layers size={11} />,  badge: "bg-violet-500/10 text-violet-400 border-violet-500/20"  },
-  lang:     { label: "Java",     icon: <Coffee size={11} />,  badge: "bg-blue-500/10 text-blue-400 border-blue-500/20"  },
+  lang:     { label: "Java",     icon: <Coffee size={11} />,  badge: "bg-obsidian-accent/10 text-obsidian-accent border-obsidian-accent/20"  },
   practice: { label: "Practice", icon: <Trophy size={11} />,  badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"},
 } as const;
 
@@ -203,29 +203,29 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
 
   return (
     <div
-      className="flex flex-col h-full w-full border-r border-border/50 overflow-hidden"
-      style={{ background: "hsl(var(--card))" }}
+      className="flex flex-col h-full w-full border-r border-obsidian-border overflow-hidden"
+      style={{ background: "hsl(var(--obsidian-pane))" }}
     >
 
       {/* ── Brand Header ──────────────────────────────────── */}
       <div
         className="relative flex items-center gap-2 px-3 py-3 flex-shrink-0"
-        style={{ borderBottom: "1px solid hsl(var(--border) / 0.4)" }}
+        style={{ borderBottom: "1px solid hsl(var(--obsidian-border))" }}
       >
         <div className="absolute inset-0 pointer-events-none opacity-40"
-          style={{ background: "radial-gradient(ellipse at 0% 50%, hsl(var(--primary)/0.12) 0%, transparent 65%)" }} />
-        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-xl p-1 transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          style={{ background: "radial-gradient(ellipse at 0% 50%, hsl(var(--obsidian-accent)/0.12) 0%, transparent 65%)" }} />
+        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-xl p-1 transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <span className="relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center">
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 rounded-[30%] bg-primary/25 blur-[10px]"
+              className="pointer-events-none absolute inset-0 rounded-[30%] bg-obsidian-accent/25 blur-[10px]"
             />
             <AlgoGuruMark size={34} title={null} className="relative" />
           </span>
           <div className="flex flex-col min-w-0">
             <span className="font-display text-[14.5px] font-semibold tracking-[-0.02em] leading-tight truncate">
               <span className="text-foreground">Algo</span>
-              <span className="text-primary">Guru</span>
+              <span className="text-obsidian-accent">Guru</span>
             </span>
             <span className={cn(
               "inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border w-fit",
@@ -236,13 +236,13 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             </span>
           </div>
         </Link>
-        <AppTooltip content={<span>Collapse sidebar <kbd className="ml-2 rounded border border-border px-1 py-0.5 text-[10px]">Alt + B</kbd></span>} side="right">
+        <AppTooltip content={<span>Collapse sidebar <kbd className="ml-2 rounded border border-obsidian-border px-1 py-0.5 text-[10px]">Alt + B</kbd></span>} side="right">
           <button
             type="button"
             onClick={onCollapse}
             aria-label="Collapse sidebar"
             aria-keyshortcuts="Alt+B"
-            className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-border/50 bg-muted/40 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-white/[0.04] text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <PanelLeft size={16} aria-hidden="true" />
           </button>
@@ -256,11 +256,11 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
           <div className={cn(
             "relative rounded-xl border transition-all duration-200",
             searchFocused || searchQuery
-              ? "border-primary/40 shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] bg-background"
-              : "border-border/50 bg-muted/40 hover:border-border/80"
+              ? "border-obsidian-accent/40 shadow-[0_0_0_3px_hsl(var(--obsidian-accent)/0.08)] bg-obsidian-void"
+              : "border-obsidian-border bg-white/[0.04] hover:border-obsidian-border"
           )}>
             <div className="flex items-center gap-2 px-3 py-2.5">
-              <Search size={13} className={cn("flex-shrink-0 transition-colors", searchFocused ? "text-primary" : "text-muted-foreground/55")} />
+              <Search size={13} className={cn("flex-shrink-0 transition-colors", searchFocused ? "text-obsidian-accent" : "text-muted-foreground/55")} />
               <input
                 ref={searchInputRef}
                 value={searchQuery}
@@ -279,12 +279,12 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.12 }}
                     onClick={() => setSearchQuery("")}
-                    className="touch-manipulation flex-shrink-0 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                    className="touch-manipulation flex-shrink-0 p-1 rounded-md hover:bg-white/[0.06] text-muted-foreground hover:text-foreground"
                   >
                     <X size={12} />
                   </motion.button>
                 ) : (
-                  <kbd className="hidden sm:flex flex-shrink-0 items-center text-[9px] font-mono text-muted-foreground/35 border border-border/35 rounded px-1.5 py-0.5 select-none">
+                  <kbd className="hidden sm:flex flex-shrink-0 items-center text-[9px] font-mono text-muted-foreground/35 border border-obsidian-border rounded px-1.5 py-0.5 select-none">
                     ⌘K
                   </kbd>
                 )}
@@ -298,8 +298,8 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="border-t border-border/40 overflow-hidden rounded-b-xl"
-                  style={{ background: "hsl(var(--popover))" }}
+                  className="border-t border-obsidian-border overflow-hidden rounded-b-xl"
+                  style={{ background: "hsl(var(--obsidian-elevated))" }}
                 >
                   <div className="max-h-60 overflow-y-auto">
                     {searchResults.length === 0 ? (
@@ -315,7 +315,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                           <button
                             key={item.path}
                             onClick={() => { navigate(item.path); setSearchQuery(""); }}
-                            className="touch-manipulation w-full flex items-center gap-2.5 px-3 py-2 min-h-[38px] text-left transition-colors hover:bg-muted/50 border-b border-border/25 last:border-0 group"
+                            className="touch-manipulation w-full flex items-center gap-2.5 px-3 py-2 min-h-[38px] text-left transition-colors hover:bg-white/[0.04] border-b border-white/[0.04] last:border-0 group"
                           >
                             <div
                               className="w-7 h-7 rounded-lg flex items-center justify-center text-[13px] flex-shrink-0 border"
@@ -325,14 +325,14 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex min-w-0 items-center gap-1.5">
-                                <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-foreground group-hover:text-primary transition-colors" title={item.title}>{item.title}</span>
+                                <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-foreground group-hover:text-obsidian-accent transition-colors" title={item.title}>{item.title}</span>
                                 {item.difficulty && <DifficultyPill difficulty={item.difficulty} />}
                               </div>
                               {item.parent && (
                                 <div className="text-[10px] text-muted-foreground/55 mt-0.5 truncate" title={item.parent}>{item.parent}</div>
                               )}
                             </div>
-                            <ChevronRight size={11} className="text-muted-foreground/25 group-hover:text-primary/50 flex-shrink-0 transition-colors" />
+                            <ChevronRight size={11} className="text-muted-foreground/25 group-hover:text-obsidian-accent/50 flex-shrink-0 transition-colors" />
                           </button>
                         );
                       })
@@ -355,16 +355,16 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                 className={cn(
                   "touch-manipulation flex items-center gap-2.5 w-full min-w-0 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group",
                   isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                    ? "bg-obsidian-accent/10 text-obsidian-accent"
+                    : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
                 )}
               >
-                <span className={cn("flex items-center justify-center w-5 h-5 transition-all", isActive ? "text-primary" : "text-muted-foreground/65 group-hover:text-foreground")}>
+                <span className={cn("flex items-center justify-center w-5 h-5 transition-all", isActive ? "text-obsidian-accent" : "text-muted-foreground/65 group-hover:text-foreground")}>
                   <Icon size={15} />
                 </span>
                 <span className="min-w-0 flex-1 truncate text-left" title={label}>{label}</span>
                 {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" style={{ boxShadow: "0 0 6px hsl(var(--primary)/0.8)" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-obsidian-accent" style={{ boxShadow: "0 0 6px hsl(var(--obsidian-accent)/0.8)" }} />
                 )}
               </button>
             );
@@ -396,8 +396,8 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                       className={cn(
                         "touch-manipulation flex items-center justify-between w-full min-w-0 gap-2 overflow-hidden px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group",
                         isActive
-                          ? "bg-muted/80 text-foreground"
-                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                          ? "bg-white/[0.08] text-foreground"
+                          : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
                       )}
                     >
                       <div className="flex flex-1 items-center gap-2.5 min-w-0">
@@ -453,8 +453,8 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                                       className={cn(
                                         "touch-manipulation flex items-center gap-2.5 w-full px-2.5 py-1.5 min-h-[34px] rounded-lg text-[12px] font-medium transition-all duration-100 text-left group",
                                         active
-                                          ? "text-foreground bg-muted/50"
-                                          : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                                          ? "text-foreground bg-white/[0.06]"
+                                          : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
                                       )}
                                     >
                                       <span
@@ -481,7 +481,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
         <div className="flex-1" />
 
         {/* ── User Profile Footer ────────────────────────── */}
-        <div className="mx-3 mb-3 mt-2 rounded-xl border border-border/40 bg-muted/20 overflow-hidden">
+        <div className="mx-3 mb-3 mt-2 rounded-xl border border-obsidian-border bg-white/[0.03] overflow-hidden">
           <div className="flex items-center gap-2.5 px-3 py-2.5">
             <div className="relative flex-shrink-0">
               {avatarUrl ? (
@@ -489,7 +489,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                   src={avatarUrl}
                   alt=""
                   className="w-9 h-9 rounded-xl object-cover"
-                  style={{ border: "2px solid hsl(var(--primary)/0.28)", boxShadow: "0 0 10px hsl(var(--primary)/0.18)" }}
+                  style={{ border: "2px solid hsl(var(--obsidian-accent)/0.28)", boxShadow: "0 0 10px hsl(var(--obsidian-accent)/0.18)" }}
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
@@ -497,10 +497,10 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
                   style={{
-                    background: "linear-gradient(135deg, hsl(var(--primary)/0.85), hsl(var(--primary)/0.45))",
-                    border: "2px solid hsl(var(--primary)/0.28)",
-                    boxShadow: "0 0 10px hsl(var(--primary)/0.18)",
-                    color: "hsl(var(--primary-foreground))",
+                    background: "linear-gradient(135deg, hsl(var(--obsidian-accent)/0.85), hsl(var(--obsidian-accent)/0.45))",
+                    border: "2px solid hsl(var(--obsidian-accent)/0.28)",
+                    boxShadow: "0 0 10px hsl(var(--obsidian-accent)/0.18)",
+                    color: "hsl(0 0% 100%)",
                   }}
                 >
                   {userName[0]?.toUpperCase()}

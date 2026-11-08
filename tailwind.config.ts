@@ -95,6 +95,16 @@ export default {
           line: "hsl(var(--surface-line))",
           raised: "hsl(var(--surface-raised))",
         },
+        /* Obsidian desktop surfaces. Light values mirror the existing paper
+           palette; dark values are the enterprise Obsidian ramp. */
+        obsidian: {
+          void: "hsl(var(--obsidian-void))",
+          pane: "hsl(var(--obsidian-pane))",
+          elevated: "hsl(var(--obsidian-elevated))",
+          border: "hsl(var(--obsidian-border))",
+          accent: "hsl(var(--obsidian-accent))",
+          success: "hsl(var(--obsidian-success))",
+        },
         code: {
           bg: "hsl(var(--code-bg))",
           border: "hsl(var(--code-border))",
@@ -130,6 +140,7 @@ export default {
         accent: "var(--shadow-accent)",
         overlay: "var(--shadow-overlay)",
         cardHover: "var(--shadow-accent)",
+        specular: "inset 0 1px 0 hsl(var(--obsidian-specular))",
       },
       transitionTimingFunction: {
         premium: "cubic-bezier(0.22, 1, 0.36, 1)",

@@ -27,7 +27,7 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
         <AppTooltip content="Guru AI is embedded in the problem description panel">
           <span
             className={cn(
-              "inline-flex h-9 items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 [&_svg]:text-blue-600 dark:[&_svg]:text-blue-400",
+              "inline-flex h-9 items-center rounded-lg border border-obsidian-border bg-white/[0.04] text-sm font-medium text-foreground/80 [&_svg]:text-obsidian-accent",
               compact ? "h-9 w-9 justify-center px-0 gap-0" : "px-3 gap-2",
               className,
             )}
@@ -36,7 +36,7 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
               <NavIcon icon={Sparkles} />
               <span
                 aria-hidden="true"
-                className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-slate-50 dark:ring-slate-900"
+                className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-obsidian-elevated"
               />
             </span>
             {!compact && <span className="hidden sm:inline leading-none">Guru Active</span>}
@@ -57,11 +57,11 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
           className={cn(
             "group relative inline-flex h-9 shrink-0 items-center rounded-lg border text-sm font-medium leading-none",
             "transition-colors duration-150 ease-out touch-manipulation select-none",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
             compact ? "w-9 justify-center px-0 gap-0" : "px-3 gap-2",
             open
-              ? "border-blue-600/30 bg-blue-50/80 text-slate-900 [&_svg]:text-blue-600 dark:border-blue-500/40 dark:bg-blue-950/50 dark:text-slate-50 dark:[&_svg]:text-blue-400"
-              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100",
+              ? "border-obsidian-accent/30 bg-obsidian-accent/10 text-foreground [&_svg]:text-obsidian-accent dark:border-obsidian-accent/40 dark:bg-obsidian-accent/10 dark:text-foreground dark:[&_svg]:text-obsidian-accent"
+              : "border-obsidian-border bg-white/[0.04] text-foreground/80 [&_svg]:text-muted-foreground hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground",
             className,
           )}
           {...props}
@@ -70,7 +70,7 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
             <NavIcon icon={Sparkles} />
             <span
               aria-hidden="true"
-              className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"
+              className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-obsidian-elevated"
             />
           </span>
 

@@ -64,7 +64,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       'meta[name="theme-color"]',
     );
     if (themeColor) {
-      themeColor.content = theme === "dark" ? "#07090D" : "#FAFAF8";
+      themeColor.content = theme === "dark" ? "#070709" : "#FAFAF8";
     }
   }, [theme]);
 

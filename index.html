@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
     <meta name="color-scheme" content="dark light" />
-    <meta name="theme-color" content="#07090D" />
+    <meta name="theme-color" content="#070709" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -84,7 +84,7 @@
           root.style.colorScheme = theme;
           var meta = document.querySelector('meta[name="theme-color"]');
           if (meta) {
-            meta.setAttribute("content", theme === "dark" ? "#07090D" : "#FAFAF8");
+            meta.setAttribute("content", theme === "dark" ? "#070709" : "#FAFAF8");
           }
         } catch (error) {
           document.documentElement.classList.add("dark");
@@ -107,7 +107,7 @@
       }
 
       html.dark #boot-splash {
-        background: #07090d;
+        background: #070709;
       }
 
       #boot-splash[data-state="leaving"] {

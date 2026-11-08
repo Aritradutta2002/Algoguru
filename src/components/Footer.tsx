@@ -60,9 +60,9 @@ export function Footer({ onSupportClick }: FooterProps) {
   };
 
   return (
-    <footer className="relative mt-20 w-full overflow-hidden border-t border-border/70 bg-[linear-gradient(180deg,transparent,hsl(var(--muted)/0.28))]">
+    <footer className="relative mt-20 w-full overflow-hidden border-t border-obsidian-border bg-[linear-gradient(180deg,transparent,hsl(var(--obsidian-accent)/0.05))]">
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--primary)/0.4),rgb(103_232_249/0.2),transparent)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--obsidian-accent)/0.4),hsl(var(--obsidian-success)/0.2),transparent)]"
         aria-hidden="true"
       />
       <div
@@ -80,7 +80,7 @@ export function Footer({ onSupportClick }: FooterProps) {
             >
               <AlgoGuruMark size={34} />
               <span className="font-display text-[16px] font-bold tracking-tight">
-                Algo<span className="text-primary">Guru</span>
+                Algo<span className="text-obsidian-accent">Guru</span>
               </span>
             </Link>
             <p className="mt-4 text-[13px] leading-6 text-muted-foreground">
@@ -90,7 +90,7 @@ export function Footer({ onSupportClick }: FooterProps) {
             <button
               type="button"
               onClick={onSupportClick}
-              className="group mt-5 inline-flex items-center gap-2 rounded-xl border border-border/80 bg-card/70 px-3.5 py-2 text-[12px] font-semibold text-muted-foreground shadow-soft transition-all duration-200 hover:border-primary/30 hover:bg-card hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group mt-5 inline-flex items-center gap-2 rounded-xl border border-obsidian-border bg-obsidian-pane/70 px-3.5 py-2 text-[12px] font-semibold text-muted-foreground shadow-soft transition-all duration-200 hover:border-obsidian-accent/30 hover:bg-obsidian-pane hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Heart size={13} className="text-rose-500 transition-transform duration-200 group-hover:scale-110" />
               Buy me a coffee
@@ -111,7 +111,7 @@ export function Footer({ onSupportClick }: FooterProps) {
                 >
                   <Icon
                     size={13}
-                    className="text-muted-foreground/60 transition-colors group-hover:text-primary"
+                    className="text-muted-foreground/60 transition-colors group-hover:text-obsidian-accent"
                   />
                   {label}
                 </Link>
@@ -133,7 +133,7 @@ export function Footer({ onSupportClick }: FooterProps) {
                 >
                   <Icon
                     size={13}
-                    className="text-muted-foreground/60 transition-colors group-hover:text-primary"
+                    className="text-muted-foreground/60 transition-colors group-hover:text-obsidian-accent"
                   />
                   {label}
                 </Link>
@@ -145,7 +145,7 @@ export function Footer({ onSupportClick }: FooterProps) {
               >
                 <ArrowUp
                   size={13}
-                  className="text-muted-foreground/60 transition-colors group-hover:text-primary"
+                  className="text-muted-foreground/60 transition-colors group-hover:text-obsidian-accent"
                 />
                 Back to top
               </button>
@@ -169,7 +169,7 @@ export function Footer({ onSupportClick }: FooterProps) {
                   <span className="flex items-center gap-2">
                     <Icon
                       size={13}
-                      className="text-muted-foreground/60 transition-colors group-hover:text-primary"
+                      className="text-muted-foreground/60 transition-colors group-hover:text-obsidian-accent"
                     />
                     {label}
                   </span>
@@ -183,7 +183,7 @@ export function Footer({ onSupportClick }: FooterProps) {
           </nav>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-border/60 pt-5 text-[11.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col gap-3 border-t border-obsidian-border pt-5 text-[11.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {currentYear} AlgoGuru. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
             <span>Built by Aritra</span>

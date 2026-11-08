@@ -49,6 +49,7 @@ import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { NotificationCenter } from "@/components/layout/NotificationCenter";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { AiCommandLauncher } from "@/components/layout/AiCommandLauncher";
+import { SpotlightNavbar } from "@/components/layout/SpotlightNavbar";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 
 // Route-level code splitting keeps the initial shell small. Auth stays eager:
@@ -538,13 +539,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             minSize={50}
             className="flex flex-col min-h-0"
           >
-          <header
+          <SpotlightNavbar
             data-scrolled={headerScrolled ? "true" : undefined}
             data-route={location.pathname === "/" ? "home" : undefined}
             className={cn(
-              "app-header sticky top-0 z-50 h-16 shrink-0 border-b border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md transition-shadow duration-200",
+              "app-header sticky top-0 z-50 h-16 shrink-0 border-b border-obsidian-border bg-obsidian-elevated/90 backdrop-blur-xl transition-shadow duration-200",
               headerScrolled &&
-                "shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.45)]",
+                "shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]",
             )}
           >
             <div
@@ -648,7 +649,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                 style={{ transform: "scaleX(0)" }}
               />
             </div>
-          </header>
+          </SpotlightNavbar>
 
           {guruOpen ? (
             isMobile ? (

@@ -92,10 +92,10 @@ export function NotificationCenter() {
             aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ""}`}
             className={cn(
               "group relative inline-flex h-11 w-11 lg:h-9 lg:w-9 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent",
-              "text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400",
+              "text-muted-foreground [&_svg]:text-muted-foreground",
               "transition-colors duration-150 ease-out",
-              "hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+              "hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40",
               "touch-manipulation select-none",
             )}
           >
@@ -103,7 +103,7 @@ export function NotificationCenter() {
             {unreadCount > 0 && (
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-500 ring-2 ring-white dark:ring-slate-950"
+                className="pointer-events-none absolute top-2 right-2 h-2 w-2 rounded-full bg-obsidian-accent ring-2 ring-obsidian-elevated"
               />
             )}
           </button>
@@ -113,15 +113,15 @@ export function NotificationCenter() {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-80 sm:w-96 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 p-2 shadow-xl backdrop-blur-md"
+        className="w-80 sm:w-96 rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-2 shadow-xl backdrop-blur-md"
       >
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="text-sm font-semibold text-foreground">
               Notifications
             </h3>
             {unreadCount > 0 && (
-              <span className="rounded-full bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+              <span className="rounded-full bg-obsidian-accent/10 px-2 py-0.5 text-[11px] font-semibold text-obsidian-accent">
                 {unreadCount} new
               </span>
             )}
@@ -130,7 +130,7 @@ export function NotificationCenter() {
             <button
               type="button"
               onClick={markAllAsRead}
-              className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-obsidian-accent transition-colors cursor-pointer"
             >
               <NavIcon icon={CheckCheck} chip />
               <span>Mark all read</span>
@@ -146,8 +146,8 @@ export function NotificationCenter() {
             className={cn(
               "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
               filter === "all"
-                ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold"
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
+                ? "bg-obsidian-accent/10 text-foreground font-semibold"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             All
@@ -158,20 +158,20 @@ export function NotificationCenter() {
             className={cn(
               "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
               filter === "unread"
-                ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold"
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
+                ? "bg-obsidian-accent/10 text-foreground font-semibold"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             Unread ({unreadCount})
           </button>
         </div>
 
-        <DropdownMenuSeparator className="my-1 bg-slate-200 dark:bg-slate-800" />
+        <DropdownMenuSeparator className="my-1 bg-obsidian-border" />
 
         {/* List of items */}
         <div className="max-h-80 overflow-y-auto space-y-1 p-1">
           {displayedNotifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center text-slate-500 dark:text-slate-400">
+            <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
               <NavIcon icon={Check} className="mb-2" />
               <p className="text-xs font-medium">
                 All caught up! No unread notifications.
@@ -191,28 +191,28 @@ export function NotificationCenter() {
                   className={cn(
                     "flex items-start gap-3 rounded-lg p-2.5 cursor-pointer transition-colors",
                     item.read
-                      ? "opacity-75 hover:opacity-100 hover:bg-slate-100/70 dark:hover:bg-slate-900/70"
-                      : "bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-900",
+                      ? "opacity-75 hover:opacity-100 hover:bg-white/[0.06]"
+                      : "bg-white/[0.04] hover:bg-white/[0.07]",
                   )}
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-obsidian-border bg-white/[0.04] text-muted-foreground mt-0.5">
                     <NavIcon icon={Icon} chip />
                   </div>
                   <div className="flex flex-1 flex-col gap-0.5 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
+                      <span className="text-xs font-medium text-foreground truncate">
                         {item.title}
                       </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">
+                      <span className="text-[11px] text-muted-foreground/70 shrink-0">
                         {item.time}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug line-clamp-2">
+                    <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
                       {item.description}
                     </p>
                   </div>
                   {!item.read && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-500 shrink-0 self-center" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-obsidian-accent shrink-0 self-center" />
                   )}
                 </DropdownMenuItem>
               );

@@ -189,7 +189,7 @@ describe("Primary navigation", () => {
     );
 
     const moreButton = screen.getByRole("button", { name: /more navigation options/i });
-    expect(moreButton).toHaveClass("text-slate-900");
+    expect(moreButton).toHaveClass("text-foreground");
   });
 
   it("shows contest live dot on 'More' button when contest is live in overflow", () => {

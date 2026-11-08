@@ -1080,3 +1080,308 @@
     var(--shadow-accent);
 }
 
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Obsidian surface pass
+   These overrides keep the existing landing structure while replacing the
+   old blue/cyan card language with the Obsidian desktop ramp. Light mode
+   resolves to the existing paper values through the shared tokens.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.landing-hero {
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--obsidian-elevated)) 0%,
+      hsl(var(--obsidian-void)) 58%,
+      hsl(var(--obsidian-void)) 100%
+    );
+}
+
+.hero-shell {
+  background:
+    radial-gradient(ellipse 58% 48% at 78% 0%, hsl(var(--obsidian-accent) / 0.18), transparent 64%),
+    radial-gradient(ellipse 48% 42% at 8% 18%, hsl(var(--obsidian-success) / 0.08), transparent 68%),
+    linear-gradient(180deg, hsl(var(--obsidian-elevated)) 0%, hsl(var(--obsidian-void)) 62%, hsl(var(--obsidian-void)) 100%);
+}
+
+.hero-mesh {
+  background:
+    radial-gradient(ellipse 58% 58% at 78% -6%, hsl(var(--obsidian-accent) / 0.22), transparent 64%),
+    radial-gradient(ellipse 44% 52% at 4% 14%, hsl(var(--obsidian-success) / 0.08), transparent 68%),
+    radial-gradient(ellipse 78% 52% at 54% 112%, hsl(var(--obsidian-accent) / 0.1), transparent 74%);
+}
+
+.hero-cursor-glow {
+  background: radial-gradient(
+    540px circle at var(--hero-x, 70%) var(--hero-y, 8%),
+    hsl(var(--obsidian-accent) / 0.14),
+    transparent 58%
+  );
+}
+
+.hero-vignette {
+  background: linear-gradient(
+    180deg,
+    transparent 52%,
+    hsl(var(--obsidian-void) / 0.55) 86%,
+    hsl(var(--obsidian-void)) 100%
+  );
+}
+
+.hero-gradient-text,
+.landing-gradient {
+  background-image: linear-gradient(105deg, hsl(var(--obsidian-accent)) 0%, hsl(268 84% 68%) 52%, hsl(var(--obsidian-success)) 100%);
+}
+
+.dark .hero-gradient-text,
+.dark .landing-gradient {
+  background-image: linear-gradient(105deg, hsl(var(--obsidian-accent)) 0%, hsl(268 84% 72%) 52%, hsl(var(--obsidian-success)) 100%);
+}
+
+.landing-primary {
+  background-color: hsl(var(--obsidian-accent));
+  background-image: linear-gradient(120deg, hsl(var(--obsidian-accent)) 0%, hsl(258 90% 58%) 46%, hsl(var(--obsidian-success)) 132%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 14px 34px -14px hsl(var(--obsidian-accent) / 0.7),
+    0 2px 6px -2px rgb(0 0 0 / 0.45);
+}
+
+.landing-primary:hover {
+  background-image: linear-gradient(120deg, hsl(var(--obsidian-accent)) 0%, hsl(258 90% 54%) 46%, hsl(var(--obsidian-success)) 132%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.24),
+    0 18px 40px -16px hsl(var(--obsidian-accent) / 0.75),
+    0 4px 10px -4px rgb(0 0 0 / 0.5);
+}
+
+.landing-preview,
+.landing-path-card,
+.premium-card,
+.demo-shell {
+  background: hsl(var(--obsidian-pane));
+  border-color: hsl(var(--obsidian-border));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--obsidian-specular)),
+    0 24px 70px -36px rgb(0 0 0 / 0.9);
+}
+
+.landing-preview {
+  box-shadow:
+    inset 0 1px 0 hsl(var(--obsidian-specular)),
+    0 32px 90px -42px hsl(var(--obsidian-accent) / 0.45),
+    0 20px 50px -30px rgb(0 0 0 / 0.8);
+}
+
+.hero-preview-frame {
+  background: linear-gradient(
+    145deg,
+    hsl(var(--obsidian-accent) / 0.55),
+    hsl(var(--obsidian-border)) 30%,
+    hsl(var(--obsidian-border)) 70%,
+    hsl(var(--obsidian-success) / 0.4)
+  );
+  box-shadow:
+    0 42px 110px -55px hsl(var(--obsidian-accent) / 0.5),
+    0 24px 60px -30px rgb(0 0 0 / 0.8);
+}
+
+.hero-preview-card.premium-card {
+  background: linear-gradient(180deg, hsl(var(--obsidian-pane)) 0%, hsl(var(--obsidian-pane)) 62%, hsl(var(--obsidian-elevated)) 100%);
+  box-shadow: inset 0 1px 0 hsl(var(--obsidian-specular));
+}
+
+.hero-preview-sheen {
+  background: linear-gradient(120deg, hsl(0 0% 100% / 0.06) 0%, transparent 32%, transparent 68%, hsl(var(--obsidian-success) / 0.04) 100%);
+}
+
+.hero-window-bar,
+.demo-window-bar {
+  background: linear-gradient(180deg, hsl(var(--obsidian-elevated)) 0%, hsl(var(--obsidian-elevated) / 0.78) 100%);
+  border-color: hsl(var(--obsidian-border));
+}
+
+.hero-window-tabs,
+.demo-tabs {
+  border-color: hsl(var(--obsidian-border));
+  background: hsl(var(--obsidian-void) / 0.55);
+}
+
+.hero-window-tab.is-active,
+.demo-tab-pill {
+  background: hsl(var(--obsidian-elevated));
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 1px 0 hsl(var(--obsidian-specular));
+}
+
+.hero-status-pill {
+  border-color: hsl(var(--obsidian-success) / 0.25);
+  background: hsl(var(--obsidian-success) / 0.1);
+  color: hsl(var(--obsidian-success));
+}
+
+.hero-status-dot,
+.hero-chip-live {
+  background: hsl(var(--obsidian-success));
+  box-shadow: 0 0 0 3px hsl(var(--obsidian-success) / 0.14);
+}
+
+.hero-pane {
+  border-color: hsl(var(--obsidian-border));
+  background: linear-gradient(180deg, hsl(var(--obsidian-void) / 0.7), hsl(var(--obsidian-void) / 0.42));
+  box-shadow: inset 0 1px 0 hsl(var(--obsidian-specular));
+}
+
+.hero-plan-pane {
+  background: linear-gradient(180deg, hsl(var(--obsidian-elevated) / 0.72), hsl(var(--obsidian-elevated) / 0.42));
+}
+
+.hero-code-shell {
+  border-color: hsl(var(--obsidian-border));
+  background: hsl(var(--obsidian-void));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--obsidian-specular)),
+    0 10px 26px -20px rgb(0 0 0 / 0.95);
+}
+
+.hero-code-bar {
+  border-color: hsl(var(--obsidian-border));
+  background: hsl(var(--obsidian-elevated) / 0.7);
+}
+
+.hero-focus-card,
+.hero-roadmap-btn,
+.hero-float-chip,
+.demo-example,
+.demo-annotation {
+  border-color: hsl(var(--obsidian-border));
+  background: hsl(var(--obsidian-elevated) / 0.7);
+  box-shadow: inset 0 1px 0 hsl(var(--obsidian-specular));
+}
+
+.demo-annotation {
+  border-color: hsl(var(--obsidian-accent) / 0.2);
+  background: hsl(var(--obsidian-accent) / 0.07);
+}
+
+.hero-focus-bar {
+  background: linear-gradient(180deg, hsl(var(--obsidian-accent) / 0.9), hsl(var(--obsidian-success) / 0.35));
+}
+
+.hero-goal-fill {
+  background: linear-gradient(90deg, hsl(var(--obsidian-accent)), hsl(var(--obsidian-success)));
+  box-shadow: 0 0 14px hsl(var(--obsidian-success) / 0.45);
+}
+
+.hero-eyebrow,
+.hero-cta-secondary,
+.hero-quiz-link,
+.hero-preview-label,
+.hero-tag,
+.hero-plan-step {
+  border-color: hsl(var(--obsidian-border));
+  background: hsl(var(--obsidian-elevated) / 0.72);
+  box-shadow: inset 0 1px 0 hsl(var(--obsidian-specular));
+}
+
+.hero-play-tile,
+.hero-check,
+.hero-chip-icon-ai {
+  border-color: hsl(var(--obsidian-accent) / 0.24);
+  background: hsl(var(--obsidian-accent) / 0.1);
+  color: hsl(var(--obsidian-accent));
+}
+
+.hero-cta-secondary:hover,
+.hero-quiz-link:hover,
+.hero-roadmap-btn:hover {
+  border-color: hsl(var(--obsidian-accent) / 0.42);
+  background: hsl(var(--obsidian-elevated));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--obsidian-specular)),
+    0 16px 32px -24px hsl(var(--obsidian-accent) / 0.45);
+}
+
+.hero-plan-item.is-complete .hero-plan-step {
+  border-color: hsl(var(--obsidian-accent) / 0.5);
+  background: hsl(var(--obsidian-accent));
+  color: hsl(0 0% 100%);
+  box-shadow: 0 0 0 4px hsl(var(--obsidian-accent) / 0.12);
+}
+
+.spotlight-card::before {
+  background: radial-gradient(
+    480px circle at var(--spot-x, 50%) var(--spot-y, 0%),
+    hsl(var(--obsidian-accent) / 0.15),
+    transparent 46%
+  );
+}
+
+.nav-glass,
+.mobile-dock {
+  background: hsl(var(--obsidian-elevated) / 0.86);
+  border-color: hsl(var(--obsidian-border));
+  box-shadow:
+    inset 0 1px 0 hsl(var(--obsidian-specular)),
+    0 20px 45px -18px rgb(0 0 0 / 0.75);
+}
+
+.app-header::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--obsidian-accent) / 0.45) 22%,
+    hsl(var(--obsidian-success) / 0.25) 62%,
+    transparent
+  );
+}
+
+.app-header[data-route="home"][data-scrolled="true"] {
+  box-shadow:
+    0 1px 0 hsl(var(--obsidian-void)) inset,
+    0 16px 40px -20px hsl(var(--obsidian-accent) / 0.28);
+}
+
+/* Local generate-button equivalent: specular sweep and sparkle without a
+   focus-state render. The existing MagneticButton still owns pointer motion. */
+.obsidian-generate-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    120% 160% at 50% 120%,
+    hsl(var(--obsidian-accent) / 0.55),
+    transparent 62%
+  );
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.obsidian-generate-button:hover::before,
+.obsidian-generate-button:focus-visible::before {
+  opacity: 1;
+}
+
+.obsidian-generate-spark {
+  animation: obsidian-spark 2.4s ease-in-out infinite;
+}
+
+@keyframes obsidian-spark {
+  0%, 100% {
+    opacity: 0.72;
+    transform: scale(0.94) rotate(-4deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08) rotate(4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obsidian-generate-spark {
+    animation: none;
+  }
+}

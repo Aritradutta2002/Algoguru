@@ -24,16 +24,16 @@ export function QuizSection() {
   return (
     <section
       id="quiz"
-      className="relative overflow-hidden border-y border-border/60 bg-muted/30"
+      className="relative overflow-hidden border-y border-obsidian-border bg-obsidian-pane/40"
     >
       {/* Background glow effects */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,hsl(var(--primary)/0.14),transparent_50%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_90%,hsl(var(--primary)/0.08),transparent_40%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,hsl(var(--obsidian-accent)/0.14),transparent_50%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_90%,hsl(var(--obsidian-success)/0.08),transparent_40%)]" />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-6 py-20 md:px-10 lg:grid-cols-[1.2fr_1fr] lg:px-16">
         {/* ── Left: CTA ── */}
         <Reveal>
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
+          <span className="inline-flex items-center gap-2 rounded-full border border-obsidian-accent/25 bg-obsidian-accent/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-obsidian-accent">
             <Shuffle size={14} />
             Contest · MCQ Quiz
           </span>
@@ -56,7 +56,7 @@ export function QuizSection() {
                 key={item.id}
                 to={`/contest/quiz?language=${item.id}`}
                 onClick={openQuizFullscreen}
-                className="hero-cta-secondary group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:text-primary"
+                className="hero-cta-secondary group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-foreground transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:text-obsidian-accent"
               >
                 <Code2 size={14} />
                 {item.label}
@@ -82,12 +82,12 @@ export function QuizSection() {
 
         {/* ── Right: Feature card ── */}
         <Reveal delay={0.08} className="premium-card overflow-hidden rounded-3xl">
-          <div className="flex items-center justify-between border-b border-border/70 bg-primary/[0.045] px-6 py-4">
+          <div className="flex items-center justify-between border-b border-obsidian-border bg-obsidian-accent/[0.045] px-6 py-4">
             <span className="flex items-center gap-2 text-sm font-semibold">
-              <Sparkles size={16} className="text-primary" />
+              <Sparkles size={16} className="text-obsidian-accent" />
               Exam-Grade Challenge
             </span>
-            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+            <span className="rounded-full bg-obsidian-accent/10 px-2.5 py-1 text-xs font-medium text-obsidian-accent">
               MCQ
             </span>
           </div>
@@ -126,7 +126,7 @@ export function QuizSection() {
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                       item.highlight
                         ? "bg-amber-500/10 text-amber-500"
-                        : "bg-primary/10 text-primary"
+                        : "bg-obsidian-accent/10 text-obsidian-accent"
                     }`}
                   >
                     <item.icon size={20} />

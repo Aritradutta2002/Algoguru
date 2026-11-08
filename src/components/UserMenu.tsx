@@ -57,7 +57,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
       <button
         type="button"
         onClick={() => navigate("/auth")}
-        className="touch-manipulation inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-3.5 text-sm font-medium text-white shadow-2xs transition-colors duration-150 hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+        className="touch-manipulation inline-flex h-9 items-center justify-center rounded-lg bg-obsidian-accent px-3.5 text-sm font-medium text-white shadow-2xs transition-colors duration-150 hover:bg-obsidian-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40"
       >
         <span>Sign in</span>
       </button>
@@ -79,19 +79,19 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
           <button
             type="button"
             aria-label="User account menu"
-            className="group touch-manipulation inline-flex h-11 lg:h-9 items-center gap-1.5 rounded-lg px-1.5 text-slate-600 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 select-none"
+            className="group touch-manipulation inline-flex h-11 lg:h-9 items-center gap-1.5 rounded-lg px-1.5 text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-white/[0.06] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/40 select-none"
           >
             {avatar ? (
               <img
                 src={avatar}
                 alt=""
-                className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                className="h-8 w-8 rounded-full object-cover ring-1 ring-obsidian-border"
                 style={{ aspectRatio: "1/1" }}
                 referrerPolicy="no-referrer"
                 loading="lazy"
               />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 ring-1 ring-slate-200 dark:ring-slate-700">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.04] text-xs font-semibold text-foreground/80 ring-1 ring-obsidian-border">
                 {initial}
               </div>
             )}
@@ -107,25 +107,25 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
           align="end"
           sideOffset={8}
           collisionPadding={16}
-          className="w-64 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 p-1.5 shadow-xl backdrop-blur-md"
+          className="w-64 rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-1.5 shadow-xl backdrop-blur-md"
         >
           <DropdownMenuLabel className="px-2.5 py-2 font-normal">
             <div className="flex flex-col gap-0.5">
-              <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <p className="truncate text-sm font-semibold text-foreground">
                 {name}
               </p>
-              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              <p className="truncate text-xs text-muted-foreground">
                 {user.email}
               </p>
             </div>
           </DropdownMenuLabel>
 
-          <DropdownMenuSeparator className="my-1 bg-slate-200 dark:bg-slate-800" />
+          <DropdownMenuSeparator className="my-1 bg-obsidian-border" />
 
           <div className="space-y-0.5">
             <DropdownMenuItem
               onClick={() => navigate("/profile")}
-              className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-slate-100 cursor-pointer transition-colors"
+              className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-white/[0.06] focus:text-foreground cursor-pointer transition-colors"
             >
               <NavIcon icon={User} chip />
               <span>Profile</span>
@@ -133,7 +133,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
 
             <DropdownMenuItem
               onClick={() => navigate("/profile")}
-              className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-slate-100 cursor-pointer transition-colors"
+              className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-white/[0.06] focus:text-foreground cursor-pointer transition-colors"
             >
               <NavIcon icon={Settings} chip />
               <span>Settings</span>
@@ -141,7 +141,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
 
             <DropdownMenuItem
               onClick={() => navigate("/notes")}
-              className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-slate-100 cursor-pointer transition-colors"
+              className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-white/[0.06] focus:text-foreground cursor-pointer transition-colors"
             >
               <NavIcon icon={FileText} chip />
               <span>My notes</span>
@@ -150,7 +150,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
             {onOpenLibrary && (
               <DropdownMenuItem
                 onClick={onOpenLibrary}
-                className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-slate-100 cursor-pointer transition-colors"
+                className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-white/[0.06] focus:text-foreground cursor-pointer transition-colors"
               >
                 <NavIcon icon={BookOpen} chip />
                 <span>Learning library</span>
@@ -159,26 +159,26 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
 
             <DropdownMenuItem
               onClick={() => setShortcutsOpen(true)}
-              className="touch-manipulation flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-slate-100 cursor-pointer transition-colors"
+              className="touch-manipulation flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-white/[0.06] focus:text-foreground cursor-pointer transition-colors"
             >
               <span className="flex items-center gap-2">
                 <NavIcon icon={Keyboard} chip />
                 <span>Keyboard shortcuts</span>
               </span>
-              <kbd className="rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] font-medium text-slate-500 dark:text-slate-400">
+              <kbd className="rounded border border-obsidian-border bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
                 ?
               </kbd>
             </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={toggleTheme}
-              className="touch-manipulation flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-slate-100 cursor-pointer transition-colors"
+              className="touch-manipulation flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-white/[0.06] focus:text-foreground cursor-pointer transition-colors"
             >
               <span className="flex items-center gap-2">
                 <NavIcon icon={isDark ? Sun : Moon} chip />
                 <span>Theme</span>
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground">
                 {isDark ? "Dark" : "Light"}
               </span>
             </DropdownMenuItem>
@@ -186,7 +186,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
             {isAdmin && (
               <DropdownMenuItem
                 onClick={() => navigate("/admin")}
-                className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-700 dark:text-slate-200 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 focus:bg-slate-100 dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-slate-100 cursor-pointer transition-colors"
+                className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-white/[0.06] focus:text-foreground cursor-pointer transition-colors"
               >
                 <NavIcon icon={Shield} chip />
                 <span>Admin dashboard</span>
@@ -194,7 +194,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
             )}
           </div>
 
-          <DropdownMenuSeparator className="my-1 bg-slate-200 dark:bg-slate-800" />
+          <DropdownMenuSeparator className="my-1 bg-obsidian-border" />
 
           <DropdownMenuItem
             onClick={signOut}
@@ -207,27 +207,27 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
       </DropdownMenu>
 
       <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
-        <DialogContent className="sm:max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <DialogContent className="sm:max-w-md rounded-xl border border-obsidian-border bg-obsidian-elevated">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">
+            <DialogTitle className="text-base font-semibold text-foreground">
               Keyboard shortcuts
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <DialogDescription className="text-xs text-muted-foreground">
               Navigate AlgoGuru faster with keyboard commands.
             </DialogDescription>
           </DialogHeader>
-          <div className="divide-y divide-slate-200/70 dark:divide-slate-800">
+          <div className="divide-y divide-obsidian-border">
             {KEYBOARD_SHORTCUTS.map((item) => (
               <div
                 key={item.label}
-                className="flex items-center justify-between py-2.5 text-sm text-slate-700 dark:text-slate-300"
+                className="flex items-center justify-between py-2.5 text-sm text-foreground/80"
               >
                 <span>{item.label}</span>
                 <span className="flex items-center gap-1">
                   {item.keys.map((key) => (
                     <kbd
                       key={key}
-                      className="rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-1.5 py-0.5 font-mono text-xs font-medium text-slate-600 dark:text-slate-300"
+                      className="rounded border border-obsidian-border bg-white/[0.04] px-1.5 py-0.5 font-mono text-xs font-medium text-foreground/75"
                     >
                       {key}
                     </kbd>
