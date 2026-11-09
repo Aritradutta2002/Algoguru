@@ -44,35 +44,35 @@ const TILE = (() => {
   return `M${points.join("L")}Z`;
 })();
 
-const STROKE = 7;
-const STROKE_COMPACT = 8.4;
-const LEGS = "M16.88 49.28 L32 14.72 L47.12 49.28";
-const BAR = "M21.74 37.4 H42.26";
-const NODE = { cx: 38.91, cy: 37.4, r: 2.6 };
+const STROKE = 6.8;
+const STROKE_COMPACT = 8.0;
+const LEGS = "M16 50 L32 14 L48 50";
+const BAR = "M22 36 H42";
+const NODE = { cx: 39.2, cy: 36.0, r: 4.2 };
 
 const BADGE_STOPS = [
-  ["0%", "#A6C2FF"],
-  ["24%", "#6E97FB"],
-  ["56%", "#3D6DF0"],
-  ["80%", "#2249CE"],
-  ["100%", "#122F92"],
+  ["0%", "#38BDF8"],
+  ["18%", "#6366F1"],
+  ["48%", "#3B82F6"],
+  ["78%", "#1D4ED8"],
+  ["100%", "#0B0F19"],
 ];
 const GLYPH_STOPS = [
   ["0%", "#FFFFFF"],
-  ["52%", "#FBFDFF"],
-  ["100%", "#EDF3FF"],
+  ["50%", "#F8FAFC"],
+  ["100%", "#E2E8F0"],
 ];
-const BLUE = "#2F6BE8";
-const INK = "#0B0F14";
-const ACCENT = "#6FE3F8";
-const ACCENT_DEEP = "#22D3EE";
-const WORDMARK_FONT = "'Space Grotesk','Outfit','Inter',system-ui,sans-serif";
+const BLUE = "#3B82F6";
+const INK = "#070709";
+const ACCENT = "#00F5FF";
+const ACCENT_DEEP = "#06B6D4";
+const WORDMARK_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
 
-/** Small-size ramp: no near-white first stop, or the white letter vanishes. */
+/** Small-size ramp: high-contrast electric indigo into vivid sapphire */
 const BADGE_STOPS_COMPACT = [
-  ["0%", "#6E9BFF"],
-  ["48%", "#3568EA"],
-  ["100%", "#17399F"],
+  ["0%", "#6366F1"],
+  ["45%", "#2563EB"],
+  ["100%", "#1D4ED8"],
 ];
 
 /* ── SVG builders ────────────────────────────────────────────────── */
@@ -87,7 +87,7 @@ const tileLayers = `<path d="${TILE}" fill="url(#tile)"/>
     <path d="${TILE}" fill="url(#bloom)"/>
     <path d="${TILE}" fill="url(#gloss)"/>
     <path d="${TILE}" fill="url(#shade)"/>
-    <path d="${TILE}" fill="none" stroke="url(#rim)" stroke-width="1.5"/>`;
+    <path d="${TILE}" fill="none" stroke="url(#rim)" stroke-width="1.2"/>`;
 
 function tileDefs({ detail = true, mono = false, compact = false } = {}) {
   return `<defs>
@@ -99,35 +99,36 @@ function tileDefs({ detail = true, mono = false, compact = false } = {}) {
     }
     ${
       detail
-        ? `<radialGradient id="bloom" cx="0.86" cy="0.92" r="0.8">
-            <stop offset="0%" stop-color="${ACCENT_DEEP}" stop-opacity="0.42"/>
-            <stop offset="42%" stop-color="${ACCENT_DEEP}" stop-opacity="0.13"/>
-            <stop offset="100%" stop-color="${ACCENT_DEEP}" stop-opacity="0"/>
+        ? `<radialGradient id="bloom" cx="0.84" cy="0.88" r="0.82">
+            <stop offset="0%" stop-color="#00F5FF" stop-opacity="0.45"/>
+            <stop offset="45%" stop-color="#6366F1" stop-opacity="0.16"/>
+            <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
           </radialGradient>
-          <radialGradient id="gloss" cx="0.2" cy="0.02" r="0.95">
-            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.58"/>
-            <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.17"/>
+          <radialGradient id="gloss" cx="0.2" cy="0.04" r="0.9">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.48"/>
+            <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.12"/>
             <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
           </radialGradient>
-          <linearGradient id="shade" x1="32" y1="26" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#04102B" stop-opacity="0"/>
-            <stop offset="100%" stop-color="#04102B" stop-opacity="0.3"/>
+          <linearGradient id="shade" x1="32" y1="28" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.45"/>
           </linearGradient>
           <linearGradient id="rim" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75"/>
-            <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.1"/>
-            <stop offset="70%" stop-color="#0A1B45" stop-opacity="0.12"/>
-            <stop offset="100%" stop-color="#0A1B45" stop-opacity="0.38"/>
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
+            <stop offset="25%" stop-color="#FFFFFF" stop-opacity="0.15"/>
+            <stop offset="70%" stop-color="rgba(99, 102, 241, 0.2)"/>
+            <stop offset="100%" stop-color="rgba(2, 6, 23, 0.6)"/>
           </linearGradient>
           <filter id="lift" x="-30%" y="-30%" width="160%" height="180%">
-            <feDropShadow dx="0" dy="1.2" stdDeviation="2.6" flood-color="#05132F" flood-opacity="0.3"/>
+            <feDropShadow dx="0" dy="1.6" stdDeviation="2.2" flood-color="#020617" flood-opacity="0.5"/>
           </filter>`
         : ""
     }
-    <radialGradient id="node" cx="0.34" cy="0.28" r="0.82">
-      <stop offset="0%" stop-color="#B7F4FF"/>
-      <stop offset="52%" stop-color="#4FD8F2"/>
-      <stop offset="100%" stop-color="#1C9EC4"/>
+    <radialGradient id="node" cx="0.32" cy="0.28" r="0.8">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="35%" stop-color="#38BDF8"/>
+      <stop offset="75%" stop-color="#00F5FF"/>
+      <stop offset="100%" stop-color="#0284C7"/>
     </radialGradient>
   </defs>`;
 }
@@ -136,7 +137,9 @@ const glyph = ({ stroke = STROKE, color = "url(#ink)", lift = true } = {}) =>
   `<g${lift ? ' filter="url(#lift)"' : ""} fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"><path d="${LEGS}"/><path d="${BAR}"/></g>`;
 
 const nodeDot = (fill = "url(#node)") =>
-  `<circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="${fill}"/>`;
+  `<circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r + 2.2}" fill="#00F5FF" opacity="0.32"/>
+   <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="${fill}" stroke="#FFFFFF" stroke-width="0.9"/>
+   <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r * 0.42}" fill="#FFFFFF"/>`;
 
 function markSvg() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
@@ -157,7 +160,7 @@ function monoMarkSvg(reverse = false) {
   ${tileDefs({ detail: false, mono: true })}
   <path d="${TILE}" fill="${tileFill}"/>
   ${glyph({ color: inkColor, lift: false })}
-  ${nodeDot(reverse ? BLUE : ACCENT)}
+  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="${reverse ? BLUE : ACCENT}"/>
 </svg>
 `;
 }
@@ -179,7 +182,7 @@ function appIconSvg({ size = 512, bleed = false } = {}) {
   <title id="t">AlgoGuru</title>
   ${tileDefs()}
   ${body}
-  ${bleed ? "" : `<path d="${TILE}" fill="none" stroke="url(#rim)" stroke-width="1.5"/>`}
+  ${bleed ? "" : `<path d="${TILE}" fill="none" stroke="url(#rim)" stroke-width="1.2"/>`}
   ${glyph({ stroke: bleed ? 6.4 : STROKE })}
   ${nodeDot()}
 </svg>
@@ -187,17 +190,19 @@ function appIconSvg({ size = 512, bleed = false } = {}) {
 }
 
 function faviconSvg() {
-  // 16px first: no bloom/gloss/shade/rim and no node — those layers only add
-  // mud at tab size. What matters is contrast, so the tile drops to the
-  // compact ramp (the near-white first stop washes the apex out) and the
-  // letter carries a heavier stroke to keep its counter open.
+  // High-contrast, sharp, brilliant browser tab icon:
+  // Compact indigo-sapphire ramp, specular micro-rim, bold white glyph, glowing cyan Guru nexus with diamond center
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   ${tileDefs({ detail: false, mono: true, compact: true })}
   <path d="${TILE}" fill="url(#tile)"/>
+  <path d="${TILE}" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
   <g fill="none" stroke="#FFFFFF" stroke-width="${STROKE_COMPACT}" stroke-linecap="round" stroke-linejoin="round">
     <path d="${LEGS}"/>
     <path d="${BAR}"/>
   </g>
+  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r + 2.2}" fill="${ACCENT}" opacity="0.45"/>
+  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="url(#node)" stroke="#FFFFFF" stroke-width="1"/>
+  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r * 0.45}" fill="#FFFFFF"/>
 </svg>
 `;
 }
@@ -208,6 +213,7 @@ function maskIconSvg() {
     <path d="${LEGS}"/>
     <path d="${BAR}"/>
   </g>
+  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="#000000"/>
 </svg>
 `;
 }
@@ -221,8 +227,8 @@ function lockupSvg(orientation = "horizontal") {
     ? markMarkup
     : `<svg x="52" y="14" width="96" height="96" viewBox="0 0 64 64">${markMarkup}</svg>`;
   const text = horizontal
-    ? `<text x="82" y="43.5" font-family="${WORDMARK_FONT}" font-size="33" font-weight="600" letter-spacing="-0.9"><tspan fill="${INK}">Algo</tspan><tspan fill="${BLUE}">Guru</tspan></text>`
-    : `<text x="100" y="158" text-anchor="middle" font-family="${WORDMARK_FONT}" font-size="38" font-weight="600" letter-spacing="-1"><tspan fill="${INK}">Algo</tspan><tspan fill="${BLUE}">Guru</tspan></text>`;
+    ? `<text x="80" y="43" font-family="${WORDMARK_FONT}" font-size="32" font-weight="600" letter-spacing="-0.03em"><tspan fill="${INK}">Algo</tspan><tspan fill="${BLUE}" dx="0.5">Guru</tspan></text>`
+    : `<text x="100" y="156" text-anchor="middle" font-family="${WORDMARK_FONT}" font-size="36" font-weight="600" letter-spacing="-0.03em"><tspan fill="${INK}">Algo</tspan><tspan fill="${BLUE}" dx="0.5">Guru</tspan></text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-labelledby="t">
   <title id="t">AlgoGuru</title>
@@ -237,6 +243,7 @@ function lockupSvg(orientation = "horizontal") {
 
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
+  "/home/ubuntu/.cache/ms-playwright/chromium-1248/chrome-linux-arm64/chrome",
   "C:/Program Files/Google/Chrome/Application/chrome.exe",
   "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
   "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
@@ -267,7 +274,12 @@ let renderCount = 0;
  */
 function runChrome(args, { out, timeout = 30000 } = {}) {
   const profile = join(work, `profile-${renderCount++}`);
-  const finalArgs = [`--user-data-dir=${profile}`, ...args];
+  const finalArgs = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    `--user-data-dir=${profile}`,
+    ...args,
+  ];
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
@@ -427,8 +439,8 @@ writeFileSync(
       start_url: "/",
       scope: "/",
       display: "standalone",
-      background_color: "#07090D",
-      theme_color: "#07090D",
+      background_color: "#070709",
+      theme_color: "#070709",
       icons: [
         { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
         { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

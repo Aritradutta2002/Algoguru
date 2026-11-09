@@ -60,6 +60,7 @@ export function BrandLoader({
         style={{ width: geometry.stage, height: geometry.stage }}
         aria-hidden="true"
       >
+        <span className="agl__halo" />
         <span className="agl__ring agl__ring--track" />
         <span className="agl__ping" />
         <span className="agl__ring agl__ring--outer" />
@@ -83,8 +84,9 @@ export function BrandLoader({
         >
           <defs>
             <radialGradient id={burstId}>
-              <stop offset="0%" stopColor={BRAND_ACCENT} stopOpacity="0.95" />
-              <stop offset="45%" stopColor={BRAND_ACCENT} stopOpacity="0.38" />
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+              <stop offset="35%" stopColor={BRAND_ACCENT} stopOpacity="0.85" />
+              <stop offset="70%" stopColor={BRAND_ACCENT} stopOpacity="0.3" />
               <stop offset="100%" stopColor={BRAND_ACCENT} stopOpacity="0" />
             </radialGradient>
           </defs>
@@ -92,7 +94,7 @@ export function BrandLoader({
             className="agl__burst"
             cx={BRAND_GLYPH.node.cx}
             cy={BRAND_GLYPH.node.cy}
-            r="15"
+            r="18"
             fill={`url(#${burstId})`}
           />
           <g className="agl__drawgroup">
@@ -103,8 +105,15 @@ export function BrandLoader({
             className="agl__spark"
             cx={BRAND_GLYPH.node.cx}
             cy={BRAND_GLYPH.node.cy}
-            r={BRAND_GLYPH.node.r + 0.4}
+            r={BRAND_GLYPH.node.r + 0.6}
             fill={BRAND_ACCENT}
+          />
+          <circle
+            className="agl__spark agl__spark--core"
+            cx={BRAND_GLYPH.node.cx}
+            cy={BRAND_GLYPH.node.cy}
+            r={BRAND_GLYPH.node.r * 0.42}
+            fill="#FFFFFF"
           />
         </svg>
       </span>
@@ -112,6 +121,12 @@ export function BrandLoader({
       {label ? (
         <span className={cn("agl__label", !showLabel && "sr-only")}>{label}</span>
       ) : null}
+
+      {variant === "screen" && (
+        <span className="agl__meter" aria-hidden="true">
+          <span className="agl__meter-bar" />
+        </span>
+      )}
     </span>
   );
 }

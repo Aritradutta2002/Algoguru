@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from "react-resizable-panels";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1253,8 +1254,8 @@ function CodeEditorPane({
         {/* --- Monaco Editor --- */}
         <div className="solver-editor-surface relative min-h-0 flex-1">
           {!codeLoaded && (
-            <div className="solver-editor-surface absolute inset-0 z-10 flex items-center justify-center" role="status" aria-label="Loading saved code">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <div className="solver-editor-surface absolute inset-0 z-10 flex items-center justify-center bg-obsidian-pane/80 backdrop-blur-xs" role="status" aria-label="Loading saved code">
+              <BrandLoader variant="inline" size="sm" label="Loading saved code…" />
             </div>
           )}
           <Editor

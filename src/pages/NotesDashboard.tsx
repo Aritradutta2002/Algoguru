@@ -28,6 +28,7 @@ import { renderNoteMarkdown, parseNoteSegments } from "@/lib/renderNoteMarkdown"
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 
 type NoteSource = "core-java" | "practice" | "system-design";
 
@@ -615,7 +616,7 @@ export default function NotesDashboard() {
   if (notesLoading && notesData.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin" size={24} style={{ color: "hsl(var(--muted-foreground))" }} />
+        <BrandLoader variant="screen" size="md" label="Loading your notes…" />
       </div>
     );
   }

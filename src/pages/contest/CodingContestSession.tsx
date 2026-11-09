@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 import { Loader2, AlertTriangle, Maximize } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBeforeUnloadWarning } from "@/hooks/useBeforeUnloadWarning";
@@ -821,14 +822,8 @@ export function CodingContestSession() {
 
   if (!bundle || !activeProblem) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <Loader2
-          aria-hidden="true"
-          className="h-6 w-6 animate-spin text-muted-foreground"
-        />
-        <p role="status" className="text-sm text-muted-foreground">
-          Loading your contest…
-        </p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-obsidian-void">
+        <BrandLoader variant="screen" size="lg" label="Loading your contest…" />
       </div>
     );
   }

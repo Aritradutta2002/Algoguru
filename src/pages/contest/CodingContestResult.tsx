@@ -20,6 +20,7 @@ import type { CodingContestResultData } from "@/lib/contest/types";
 import { CodingDifficultyBadge } from "@/components/contest/coding/CodingProblemPanel";
 import { ContestModeNotice } from "@/components/contest/ContestModeNotice";
 import { formatExamTime } from "@/lib/formatTime";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 
 /**
  * Coding contest result report.
@@ -103,11 +104,8 @@ export function CodingContestResult() {
 
   if (!data) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
-        <Loader2 aria-hidden="true" className="h-6 w-6 animate-spin text-muted-foreground" />
-        <p role="status" className="text-sm text-muted-foreground">
-          Loading your result…
-        </p>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
+        <BrandLoader variant="screen" size="lg" label="Loading your result…" />
       </div>
     );
   }

@@ -8,6 +8,13 @@ import { cn } from "@/lib/utils";
 export function AppLoadingScreen({ label = "Loading your workspace" }: { label?: string }) {
   return (
     <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-obsidian-void">
+      {/* Subtle ambient lighting */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
+      >
+        <div className="h-[440px] w-[560px] rounded-full bg-gradient-to-tr from-primary/10 via-indigo-500/5 to-cyan-500/10 blur-[120px]" />
+      </div>
       <BrandLoader variant="screen" size="lg" label={label} className="relative z-10" />
     </div>
   );

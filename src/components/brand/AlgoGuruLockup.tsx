@@ -54,7 +54,7 @@ export function AlgoGuruLockup({
       <path d={BRAND_TILE_PATH} fill={`url(#${bloomId})`} />
       <path d={BRAND_TILE_PATH} fill={`url(#${glossId})`} />
       <path d={BRAND_TILE_PATH} fill={`url(#${shadeId})`} />
-      <path d={BRAND_TILE_PATH} fill="none" stroke={`url(#${rimId})`} strokeWidth="1.5" />
+      <path d={BRAND_TILE_PATH} fill="none" stroke={`url(#${rimId})`} strokeWidth="1.2" />
       <g
         filter={`url(#${liftId})`}
         fill="none"
@@ -66,7 +66,9 @@ export function AlgoGuruLockup({
         <path d={BRAND_GLYPH.legs} />
         <path d={BRAND_GLYPH.bar} />
       </g>
-      <circle cx={BRAND_GLYPH.node.cx} cy={BRAND_GLYPH.node.cy} r={BRAND_GLYPH.node.r} fill={`url(#${nodeId})`} />
+      <circle cx={BRAND_GLYPH.node.cx} cy={BRAND_GLYPH.node.cy} r={BRAND_GLYPH.node.r + 2.2} fill="#00F5FF" opacity="0.32" />
+      <circle cx={BRAND_GLYPH.node.cx} cy={BRAND_GLYPH.node.cy} r={BRAND_GLYPH.node.r} fill={`url(#${nodeId})`} stroke="#FFFFFF" strokeWidth="0.9" />
+      <circle cx={BRAND_GLYPH.node.cx} cy={BRAND_GLYPH.node.cy} r={BRAND_GLYPH.node.r * 0.42} fill="#FFFFFF" />
     </>
   );
 
@@ -95,33 +97,34 @@ export function AlgoGuruLockup({
             <stop key={stop.offset} offset={stop.offset} stopColor={stop.color} />
           ))}
         </linearGradient>
-        <radialGradient id={bloomId} cx="0.86" cy="0.92" r="0.8">
-          <stop offset="0%" stopColor={BRAND_ACCENT_DEEP} stopOpacity="0.42" />
-          <stop offset="42%" stopColor={BRAND_ACCENT_DEEP} stopOpacity="0.13" />
-          <stop offset="100%" stopColor={BRAND_ACCENT_DEEP} stopOpacity="0" />
+        <radialGradient id={bloomId} cx="0.84" cy="0.88" r="0.82">
+          <stop offset="0%" stopColor="#00F5FF" stopOpacity="0.45" />
+          <stop offset="45%" stopColor="#6366F1" stopOpacity="0.16" />
+          <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
         </radialGradient>
-        <radialGradient id={glossId} cx="0.2" cy="0.02" r="0.95">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.58" />
-          <stop offset="30%" stopColor="#FFFFFF" stopOpacity="0.17" />
+        <radialGradient id={glossId} cx="0.2" cy="0.04" r="0.9">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.48" />
+          <stop offset="28%" stopColor="#FFFFFF" stopOpacity="0.12" />
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id={shadeId} x1="32" y1="26" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#04102B" stopOpacity="0" />
-          <stop offset="100%" stopColor="#04102B" stopOpacity="0.3" />
+        <linearGradient id={shadeId} x1="32" y1="28" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#020617" stopOpacity="0" />
+          <stop offset="100%" stopColor="#020617" stopOpacity="0.45" />
         </linearGradient>
         <linearGradient id={rimId} x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.75" />
-          <stop offset="30%" stopColor="#FFFFFF" stopOpacity="0.1" />
-          <stop offset="70%" stopColor="#0A1B45" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="#0A1B45" stopOpacity="0.38" />
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
+          <stop offset="25%" stopColor="#FFFFFF" stopOpacity="0.15" />
+          <stop offset="70%" stopColor="rgba(99, 102, 241, 0.2)" />
+          <stop offset="100%" stopColor="rgba(2, 6, 23, 0.6)" />
         </linearGradient>
-        <radialGradient id={nodeId} cx="0.34" cy="0.28" r="0.82">
-          <stop offset="0%" stopColor="#B7F4FF" />
-          <stop offset="52%" stopColor="#4FD8F2" />
-          <stop offset="100%" stopColor="#1C9EC4" />
+        <radialGradient id={nodeId} cx="0.32" cy="0.28" r="0.8">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="35%" stopColor="#38BDF8" />
+          <stop offset="75%" stopColor="#00F5FF" />
+          <stop offset="100%" stopColor="#0284C7" />
         </radialGradient>
         <filter id={liftId} x="-30%" y="-30%" width="160%" height="180%">
-          <feDropShadow dx="0" dy="1.2" stdDeviation="2.6" floodColor="#05132F" floodOpacity="0.3" />
+          <feDropShadow dx="0" dy="1.6" stdDeviation="2.2" floodColor="#020617" floodOpacity="0.5" />
         </filter>
       </defs>
 
@@ -137,28 +140,28 @@ export function AlgoGuruLockup({
 
       {orientation === "horizontal" ? (
         <text
-          x="82"
-          y="43.5"
+          x="80"
+          y="43"
           fontFamily={WORDMARK_FONT}
-          fontSize={33}
+          fontSize={32}
           fontWeight={600}
-          letterSpacing="-0.9"
+          letterSpacing="-0.03em"
         >
           <tspan fill="currentColor">Algo</tspan>
-          <tspan fill={BRAND_BLUE}>Guru</tspan>
+          <tspan fill={BRAND_BLUE} dx="0.5">Guru</tspan>
         </text>
       ) : (
         <text
           x="100"
-          y="158"
+          y="156"
           textAnchor="middle"
           fontFamily={WORDMARK_FONT}
-          fontSize={38}
+          fontSize={36}
           fontWeight={600}
-          letterSpacing="-1"
+          letterSpacing="-0.03em"
         >
           <tspan fill="currentColor">Algo</tspan>
-          <tspan fill={BRAND_BLUE}>Guru</tspan>
+          <tspan fill={BRAND_BLUE} dx="0.5">Guru</tspan>
         </text>
       )}
     </svg>

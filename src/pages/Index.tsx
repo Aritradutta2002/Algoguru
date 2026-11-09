@@ -18,6 +18,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
 import { useHomeSidebar } from "@/contexts/HomeSidebarContext";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 
 const RoadmapFullscreenOverlay = lazy(() =>
   import("@/components/roadmap/RoadmapFullscreenOverlay").then((module) => ({
@@ -268,9 +269,9 @@ export default function Index() {
               <div
                 role="status"
                 aria-live="polite"
-                className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-obsidian-border bg-obsidian-pane px-5 py-3 text-sm shadow-overlay"
+                className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-obsidian-border bg-obsidian-elevated/95 px-5 py-2.5 shadow-overlay backdrop-blur-md"
               >
-                Loading your roadmap…
+                <BrandLoader variant="inline" size="sm" label="Loading your roadmap…" />
               </div>
             }
           >

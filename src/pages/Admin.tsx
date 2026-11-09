@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Users, BarChart3, Shield, Trash2, Loader2, UserCog, Ban, ShieldCheck } from "lucide-react";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 
 interface UserEntry {
   id: string;
@@ -108,7 +109,7 @@ export default function Admin() {
   if (roleLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin" size={24} style={{ color: "hsl(var(--muted-foreground))" }} />
+        <BrandLoader variant="screen" size="md" label="Loading admin console…" />
       </div>
     );
   }
@@ -163,9 +164,8 @@ export default function Admin() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Loader2 className="animate-spin text-muted-foreground" size={24} />
-            <p className="text-xs text-muted-foreground">Fetching records…</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <BrandLoader variant="screen" size="sm" label="Fetching records…" />
           </div>
         ) : (
           <motion.div

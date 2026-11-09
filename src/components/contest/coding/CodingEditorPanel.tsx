@@ -28,6 +28,7 @@ import type { CompilerDiagnostic } from "@/lib/playground/compilerDiagnostics";
 import type { PublicCodingProblem } from "@/lib/contest/types";
 import { formatJava, formatJavaCode } from "@/lib/contest/javaFormat";
 import { cn } from "@/lib/utils";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 
 /**
  * Java code editor pane: file tab bar, the language / format / run / submit
@@ -80,12 +81,9 @@ function EditorSkeleton() {
     <div
       role="status"
       aria-live="polite"
-      className="flex h-full w-full items-center justify-center bg-surface-panel"
+      className="flex h-full w-full items-center justify-center bg-obsidian-void"
     >
-      <div className="flex flex-col items-center gap-2">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <span className="text-xs text-muted-foreground">Loading code editor…</span>
-      </div>
+      <BrandLoader variant="screen" size="md" label="Loading code editor…" />
     </div>
   );
 }
