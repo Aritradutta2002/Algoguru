@@ -72,7 +72,7 @@ export default function NotesDashboard() {
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
-  const saveFeedbackTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const saveFeedbackTimerRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
@@ -314,7 +314,7 @@ export default function NotesDashboard() {
     const idColumn = entry.source === "practice" ? "problem_id" : "question_id";
 
     const { error } = await supabase
-      .from(table)
+      .from(table as any)
       .update({ notes: "" })
       .eq("user_id", user.id)
       .eq(idColumn, entry.questionId);
@@ -370,7 +370,7 @@ export default function NotesDashboard() {
     const idColumn = parsed.source === "practice" ? "problem_id" : "question_id";
 
     const { error } = await supabase
-      .from(table)
+      .from(table as any)
       .update({ notes: trimmed })
       .eq("user_id", user.id)
       .eq(idColumn, parsed.questionId);
@@ -621,35 +621,35 @@ export default function NotesDashboard() {
   }
 
   return (
-    <div className="flex-1 min-h-screen bg-background text-foreground selection:bg-primary/25">
+    <div className="flex-1 min-h-screen bg-obsidian-void text-foreground">
 
-      <section className="relative border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%)]" />
-        <div className="relative mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-20 lg:px-16">
+      <section className="relative border-b border-obsidian-border bg-obsidian-void">
+        <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-6 md:py-14">
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="flex flex-wrap items-center gap-3 mb-5">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
               <button
+                type="button"
                 onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-obsidian-border bg-obsidian-pane text-xs font-medium text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground transition-colors"
               >
                 <ArrowLeft size={12} />
                 Back
               </button>
-              <div className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-primary/30 bg-primary/10 text-xs font-medium text-primary">
+              <div className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-obsidian-border bg-obsidian-elevated text-xs font-medium text-foreground">
                 <BookOpen size={12} />
                 Knowledge base
               </div>
             </div>
 
-            <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.04em] md:text-5xl lg:text-6xl">
-              My <span className="text-primary">notes</span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.03em] text-foreground">
+              My notes
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground">
               Manage your personal study material. {notesCount} note{notesCount !== 1 ? "s" : ""} saved across your journey. Persists across all your devices.
             </p>
 
@@ -723,9 +723,10 @@ export default function NotesDashboard() {
               ))}
             </select>
             <button
+              type="button"
               onClick={toggleSelectAllFiltered}
               disabled={filteredNotes.length === 0}
-              className="px-5 py-3 rounded-xl bg-muted/20 border border-border/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all disabled:opacity-40"
+              className="h-9 px-3 rounded-md bg-muted/40 border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40"
             >
               {allFilteredSelected ? "Clear Selection" : "Select All"}
             </button>
@@ -733,9 +734,8 @@ export default function NotesDashboard() {
         </div>
 
         {filteredNotes.length > 0 && (
-          <div className="flex items-center gap-2 px-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-xs text-muted-foreground">
               {filteredNotes.length} visible · {selectedFilteredNotes.length} selected
             </span>
           </div>
@@ -779,57 +779,57 @@ export default function NotesDashboard() {
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="group bg-card border rounded-[32px] overflow-hidden transition-all hover:shadow-overlay hover:shadow-primary/5"
+                  className="group bg-obsidian-pane border border-obsidian-border rounded-[0.875rem] overflow-hidden transition-all hover:bg-obsidian-elevated"
                 >
-                  <div className="p-8 md:p-10 space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                      <div className="flex-1 space-y-3 min-w-0">
-                        <div className="flex items-center gap-3">
+                  <div className="p-6 md:p-8 space-y-5">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+                      <div className="flex-1 space-y-2.5 min-w-0">
+                        <div className="flex items-center gap-2.5 flex-wrap">
                           <input
                             type="checkbox"
                             checked={!!selectedNotes[noteId]}
                             onChange={() => toggleNoteSelection(noteId)}
-                            className="w-5 h-5 rounded-lg border-2 border-border/50 text-primary focus:ring-primary/20 cursor-pointer transition-all"
+                            className="w-4 h-4 rounded border-obsidian-border text-foreground focus:ring-foreground/20 cursor-pointer transition-all"
                           />
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                          <span className="text-[11px] font-medium px-2 py-0.5 rounded border border-obsidian-border bg-foreground/[0.04] text-foreground">
                             {noteMeta.topicTag}
                           </span>
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted/20 border border-border/50 text-muted-foreground">
+                          <span className="text-[11px] font-medium px-2 py-0.5 rounded border border-obsidian-border bg-foreground/[0.02] text-muted-foreground">
                             {noteMeta.sourceLabel}
                           </span>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                          <span className="text-[11px] font-medium text-muted-foreground/60">
                             {new Date(entry.updatedAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <h3 className="text-xl md:text-2xl font-semibold uppercase tracking-tight text-foreground leading-tight group-hover:text-primary transition-colors">
+                        <h3 className="text-lg md:text-xl font-semibold tracking-[-0.02em] text-foreground leading-tight">
                           {noteMeta.title}
                         </h3>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <AppTooltip content="View">
-                          <button onClick={() => openNoteModal(entry, false)} className="p-3 rounded-2xl bg-muted/30 text-primary hover:bg-primary/10 transition-all" aria-label="View note">
-                            <Eye size={18} />
+                          <button onClick={() => openNoteModal(entry, false)} className="p-2 rounded-lg border border-obsidian-border bg-obsidian-pane hover:bg-obsidian-elevated text-muted-foreground hover:text-foreground transition-all" aria-label="View note">
+                            <Eye size={16} />
                           </button>
                         </AppTooltip>
                         <AppTooltip content="Edit">
-                          <button onClick={() => openNoteModal(entry, true)} className="p-3 rounded-2xl bg-muted/30 text-warning hover:bg-warning/10 transition-all" aria-label="Edit note">
-                            <PencilLine size={18} />
+                          <button onClick={() => openNoteModal(entry, true)} className="p-2 rounded-lg border border-obsidian-border bg-obsidian-pane hover:bg-obsidian-elevated text-muted-foreground hover:text-foreground transition-all" aria-label="Edit note">
+                            <PencilLine size={16} />
                           </button>
                         </AppTooltip>
                         <AppTooltip content="Download">
-                          <button onClick={() => downloadSingleNotePDF(entry)} className="p-3 rounded-2xl bg-muted/30 text-success hover:bg-success/10 transition-all" aria-label="Download note">
-                            <Download size={18} />
+                          <button onClick={() => downloadSingleNotePDF(entry)} className="p-2 rounded-lg border border-obsidian-border bg-obsidian-pane hover:bg-obsidian-elevated text-muted-foreground hover:text-foreground transition-all" aria-label="Download note">
+                            <Download size={16} />
                           </button>
                         </AppTooltip>
                         <AppTooltip content="Delete">
                           <button 
                             onClick={() => deleteNote(entry)} 
                             disabled={deletingId === noteId}
-                            className="p-3 rounded-2xl bg-muted/30 text-destructive hover:bg-destructive/10 transition-all" 
+                            className="p-2 rounded-lg border border-obsidian-border bg-obsidian-pane hover:bg-obsidian-elevated text-muted-foreground hover:text-destructive transition-all" 
                             aria-label="Delete note"
                           >
-                            {deletingId === noteId ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                            {deletingId === noteId ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                           </button>
                         </AppTooltip>
                       </div>
@@ -837,13 +837,13 @@ export default function NotesDashboard() {
 
                     <div className="relative">
                       <div
-                        className={`text-sm md:text-base leading-relaxed font-medium text-muted-foreground prose-sm prose-p:my-2 max-w-full ${isExpanded ? "" : "line-clamp-4"}`}
+                        className={`text-sm leading-relaxed font-normal text-muted-foreground prose-sm prose-p:my-2 max-w-full ${isExpanded ? "" : "line-clamp-4"}`}
                         dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(entry.notes) }}
                       />
                       {entry.notes.length > 300 && (
                         <button
                           onClick={() => setExpandedNote(isExpanded ? null : noteId)}
-                          className="mt-4 text-[11px] font-semibold uppercase tracking-widest text-primary hover:underline flex items-center gap-1.5"
+                          className="mt-3 text-xs font-medium text-foreground hover:underline flex items-center gap-1.5"
                         >
                           {isExpanded ? "Show Less" : "Read Full Note"}
                           {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -858,9 +858,9 @@ export default function NotesDashboard() {
         )}
 
         {notesCount > 0 && (
-          <div className="flex items-center justify-center gap-2 pt-12 border-t border-border/30">
-            <div className="w-1.5 h-1.5 rounded-full bg-success" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/40">
+          <div className="flex items-center justify-center gap-2 pt-10 border-t border-obsidian-border">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <p className="text-xs text-muted-foreground/60">
               Cloud Synced • Persists across devices
             </p>
           </div>
@@ -881,36 +881,36 @@ export default function NotesDashboard() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-border/50 shadow-overlay bg-card"
+              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between gap-6 px-8 py-8 border-b border-border/50">
-                <div className="min-w-0 space-y-2">
-                  <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-6 px-6 py-5 border-b border-obsidian-border">
+                <div className="min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {activeMeta && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded border border-obsidian-border bg-foreground/[0.04] text-foreground">
                         {activeMeta.topicTag}
                       </span>
                     )}
                     {activeMeta && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-muted/20 border border-border/50 text-muted-foreground">
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded border border-obsidian-border bg-foreground/[0.02] text-muted-foreground">
                         {activeMeta.sourceLabel}
                       </span>
                     )}
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                    <span className="text-[11px] font-medium text-muted-foreground/60">
                       {isEditingNote ? "Editing Note" : "Viewing Note"}
                     </span>
                   </div>
-                  <h2 className="text-xl font-semibold leading-tight tracking-[-0.02em] text-foreground md:text-2xl">
+                  <h2 className="text-lg font-semibold leading-tight tracking-[-0.02em] text-foreground md:text-xl">
                     {activeMeta?.title ?? activeNoteEntry.questionId}
                   </h2>
                 </div>
-                <button onClick={closeNoteModal} className="p-3 rounded-2xl bg-muted/30 hover:bg-muted text-muted-foreground transition-all">
-                  <X size={20} />
+                <button onClick={closeNoteModal} className="p-2 rounded-lg border border-obsidian-border bg-obsidian-pane hover:bg-obsidian-elevated text-muted-foreground hover:text-foreground transition-all">
+                  <X size={18} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-8 md:p-10">
+              <div className="flex-1 overflow-y-auto p-6 md:p-8">
                 {isEditingNote ? (
                   <RichTextNoteEditor
                     value={noteDraft}
@@ -924,49 +924,49 @@ export default function NotesDashboard() {
                   />
                 ) : (
                   <div
-                    className="text-base md:text-lg leading-relaxed font-medium text-muted-foreground prose-lg prose-p:my-4 prose-pre:bg-muted/50 prose-pre:rounded-2xl prose-pre:p-6"
+                    className="text-sm md:text-base leading-relaxed font-normal text-muted-foreground prose prose-p:my-3 prose-pre:bg-obsidian-elevated prose-pre:rounded-lg prose-pre:p-4"
                     dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(activeNoteEntry.notes) }}
                   />
                 )}
               </div>
 
-              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-8 py-8 border-t border-border/50 bg-muted/10">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 px-6 py-4 border-t border-obsidian-border bg-foreground/[0.02]">
+                <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => navigate(activeMeta?.contextPath ?? "/notes")}
-                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg border border-obsidian-border bg-obsidian-pane text-xs font-medium text-foreground transition-all hover:bg-obsidian-elevated"
                   >
-                    <StickyNote size={16} />
+                    <StickyNote size={15} />
                     {activeMeta?.contextCta ?? "View Context"}
                   </button>
                   <button
                     onClick={() => downloadSingleNotePDF(activeNoteEntry)}
-                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg border border-obsidian-border bg-obsidian-pane text-xs font-medium text-foreground transition-all hover:bg-obsidian-elevated"
                   >
-                    <Download size={16} />
+                    <Download size={15} />
                     Export PDF
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   {isEditingNote ? (
                     <>
                       <button
                         onClick={() => { setNoteDraft(activeNoteEntry.notes); setIsEditingNote(false); }}
-                        className="flex-1 md:flex-none px-6 py-3 rounded-xl border bg-card text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:bg-muted"
+                        className="flex-1 md:flex-none px-4 py-2 rounded-lg border border-obsidian-border bg-obsidian-pane text-xs font-medium text-foreground transition-all hover:bg-obsidian-elevated"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={saveNote}
                         disabled={savingNoteId === activeNoteId}
-                        className="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
+                        className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-foreground text-background text-xs font-medium transition-all hover:bg-foreground/85"
                       >
                         {savingNoteId === activeNoteId
-                          ? <Loader2 size={16} className="animate-spin" />
+                          ? <Loader2 size={15} className="animate-spin" />
                           : savedNoteId === activeNoteId
-                            ? <CheckCircle2 size={16} />
-                            : <Save size={16} />}
+                            ? <CheckCircle2 size={15} />
+                            : <Save size={15} />}
                         {savingNoteId === activeNoteId
                           ? "Saving..."
                           : savedNoteId === activeNoteId
@@ -977,9 +977,9 @@ export default function NotesDashboard() {
                   ) : (
                     <button
                       onClick={() => setIsEditingNote(true)}
-                      className="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-primary/90 shadow-lg shadow-primary/20"
+                      className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-foreground text-background text-xs font-medium transition-all hover:bg-foreground/85"
                     >
-                      <PencilLine size={16} />
+                      <PencilLine size={15} />
                       Edit Note
                     </button>
                   )}

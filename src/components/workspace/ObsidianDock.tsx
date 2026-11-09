@@ -37,7 +37,6 @@ export function ObsidianDock({
       aria-label="Obsidian workspace dock"
       className={cn(
         "relative flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-obsidian-border bg-obsidian-elevated/85 p-1.5 shadow-[0_20px_60px_-24px_rgba(0,0,0,0.9)] backdrop-blur-xl",
-        "shadow-specular",
         className,
       )}
     >
@@ -60,10 +59,10 @@ export function ObsidianDock({
             onClick={() => onSelect(id)}
             className={cn(
               "group relative inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-[11.5px] font-semibold transition-colors duration-200",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               isActive
-                ? "border-obsidian-accent/35 bg-obsidian-accent/15 text-obsidian-accent"
-                : "border-transparent text-muted-foreground hover:border-white/[0.08] hover:bg-white/[0.06] hover:text-foreground",
+                ? "border-obsidian-border bg-foreground/[0.08] text-foreground"
+                : "border-transparent text-muted-foreground hover:border-obsidian-border hover:bg-foreground/[0.05] hover:text-foreground",
             )}
           >
             <Icon size={15} aria-hidden="true" />
@@ -71,7 +70,7 @@ export function ObsidianDock({
             {isActive && (
               <span
                 aria-hidden="true"
-                className="absolute inset-x-3 bottom-1 h-px rounded-full bg-obsidian-accent/70"
+                className="absolute inset-x-3 bottom-1 h-px rounded-full bg-foreground"
               />
             )}
           </motion.button>

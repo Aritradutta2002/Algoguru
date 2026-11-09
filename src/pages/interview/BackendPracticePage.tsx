@@ -160,7 +160,7 @@ export default function BackendPracticePage() {
           transition={{ duration: 0.3 }}
           className="mb-5"
         >
-          <h1 className="flex items-center gap-2 text-2xl font-black text-foreground sm:text-3xl">
+          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl">
             <Dumbbell className="h-6 w-6 text-warning" />
             Practice With Problems
           </h1>
@@ -172,13 +172,13 @@ export default function BackendPracticePage() {
           </p>
         </motion.header>
 
-        <section className="mb-5 rounded-2xl border border-border/50 bg-card/70 p-4">
+        <section className="mb-5 rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
               <Target className="h-4 w-4 text-primary" />
               {progress.practiceSolvedCount} of {PRACTICE_PROBLEM_COUNT} solved
             </h2>
-            <span className="text-lg font-black text-primary">{solvedPercent}%</span>
+            <span className="text-lg font-semibold tabular-nums text-foreground">{solvedPercent}%</span>
           </div>
           <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
             <motion.div

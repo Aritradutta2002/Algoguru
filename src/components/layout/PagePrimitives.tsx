@@ -18,7 +18,7 @@ export const PageContainer = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("mx-auto w-full max-w-7xl px-5 md:px-10 lg:px-16", className)}
+    className={cn("mx-auto w-full max-w-7xl px-5 sm:px-6", className)}
     {...props}
   />
 ));
@@ -27,7 +27,7 @@ PageContainer.displayName = "PageContainer";
 /* ─── Page header ─────────────────────────────────────────────────── */
 
 interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
-  /** Small uppercase label above the title. */
+  /** Small label above the title. */
   eyebrow?: React.ReactNode;
   title: React.ReactNode;
   description?: React.ReactNode;
@@ -55,34 +55,27 @@ export function PageHeader({
     <div
       className={cn(
         "relative",
-        !bare && "border-b border-border/60",
+        !bare && "border-b border-obsidian-border",
         className,
       )}
       {...props}
     >
-      {/* Soft, restrained radial wash — matches the home page hero */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,hsl(var(--primary)/0.10),transparent_35%),radial-gradient(circle_at_15%_40%,hsl(var(--accent)/0.06),transparent_30%)]"
-      />
       <PageContainer
         className={cn(
           "relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between",
-          size === "compact" ? "py-10 md:py-12" : "py-12 md:py-16 lg:py-20",
+          size === "compact" ? "py-8 md:py-10" : "py-10 md:py-14",
         )}
       >
         <div className="min-w-0 max-w-3xl">
-          {breadcrumb && <div className="mb-5">{breadcrumb}</div>}
+          {breadcrumb && <div className="mb-4">{breadcrumb}</div>}
           {eyebrow && (
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-soft">
-              {eyebrow}
-            </div>
+            <p className="lp-kicker mb-3">{eyebrow}</p>
           )}
-          <h1 className="text-3xl font-bold leading-[1.08] tracking-[-0.035em] text-foreground md:text-4xl lg:text-5xl">
+          <h1 className="text-3xl font-semibold leading-[1.1] tracking-[-0.03em] text-foreground md:text-4xl">
             {title}
           </h1>
           {description && (
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">
+            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground">
               {description}
             </p>
           )}
@@ -117,8 +110,8 @@ export function Section({
   return (
     <section
       className={cn(
-        "mx-auto w-full max-w-7xl px-5 md:px-10 lg:px-16",
-        divided && "border-t border-border/60",
+        "mx-auto w-full max-w-7xl px-5 sm:px-6",
+        divided && "border-t border-obsidian-border",
         className,
       )}
       {...props}
@@ -132,7 +125,7 @@ export function Section({
               </h2>
             )}
             {description && (
-              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
+              <p className="mt-1.5 max-w-2xl text-[15px] leading-6 text-muted-foreground">
                 {description}
               </p>
             )}
@@ -157,10 +150,9 @@ export const Surface = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-2xl border border-border bg-card text-card-foreground shadow-card",
+      "rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane text-foreground transition-colors",
       padded && "p-5",
-      interactive &&
-        "transition-colors hover:border-primary/35 hover:shadow-accent",
+      interactive && "hover:bg-obsidian-elevated",
       className,
     )}
     {...props}
@@ -183,34 +175,27 @@ export function StatCard({
   value,
   hint,
   icon,
-  accent,
+  accent: _accent,
   className,
   ...props
 }: StatCardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-card p-5 shadow-card",
+        "rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-5",
         className,
       )}
       {...props}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        <span className="text-[13px] text-muted-foreground">{label}</span>
         {icon && (
-          <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
-            style={{
-              background: accent ? `${accent}14` : "hsl(var(--primary) / 0.1)",
-              borderColor: accent ? `${accent}2E` : "hsl(var(--primary) / 0.2)",
-              color: accent || "hsl(var(--primary))",
-            }}
-          >
+          <span className="text-muted-foreground/70" aria-hidden="true">
             {icon}
           </span>
         )}
       </div>
-      <div className="mt-3 text-2xl font-semibold tracking-[-0.02em] text-foreground">
+      <div className="mt-2 text-[1.75rem] font-semibold tracking-tight text-foreground tabular-nums">
         {value}
       </div>
       {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
@@ -244,12 +229,12 @@ export function EmptyState({
       {...props}
     >
       {icon && (
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-muted-foreground">
           {icon}
         </div>
       )}
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-[15px] font-semibold text-foreground">{title}</p>
         {description && (
           <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">
             {description}
@@ -283,7 +268,7 @@ export function SegmentedControl<T extends string>({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 rounded-lg border border-border bg-muted p-1",
+        "inline-flex items-center gap-1 rounded-lg border border-obsidian-border bg-obsidian-elevated p-1",
         fullWidth && "w-full",
         className,
       )}
@@ -303,7 +288,7 @@ export function SegmentedControl<T extends string>({
               size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-[13px]",
               fullWidth && "flex-1",
               active
-                ? "bg-card text-foreground shadow-soft"
+                ? "bg-foreground/[0.08] text-foreground shadow-none"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -327,7 +312,7 @@ export const Toolbar = React.forwardRef<
     className={cn(
       "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
       sticky &&
-        "sticky top-0 z-20 -mx-5 mb-6 border-b border-border bg-background/90 px-5 py-3 backdrop-blur md:-mx-10 md:px-10 lg:-mx-16 lg:px-16",
+        "sticky top-0 z-20 -mx-5 mb-6 border-b border-obsidian-border bg-obsidian-void/90 px-5 py-3 backdrop-blur sm:-mx-6 sm:px-6",
       className,
     )}
     {...props}
@@ -347,8 +332,8 @@ export const Pill = React.forwardRef<
     className={cn(
       "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
       active
-        ? "border-primary/30 bg-primary/10 text-primary"
-        : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+        ? "border-obsidian-border bg-foreground/[0.08] text-foreground"
+        : "border-obsidian-border bg-obsidian-pane text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground",
       className,
     )}
     {...props}

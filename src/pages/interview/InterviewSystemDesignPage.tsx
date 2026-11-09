@@ -98,7 +98,7 @@ const _QuestionCard = ({
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground/50 bg-muted/30 px-2 py-0.5 rounded-md">
+              <span className="text-[11px] font-mono font-medium text-muted-foreground bg-muted/30 px-2 py-0.5 rounded-md">
                 Q{String(idx + 1).padStart(2, "0")}
               </span>
               {isDone && <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">Done</span>}
@@ -231,7 +231,7 @@ export default function InterviewSystemDesignPage() {
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
 
-  const { setOpen: setGlobalSidebarOpen } = useSidebar();
+  const { setOpen: setGlobalSidebarOpen, toggleSidebar } = useSidebar();
   const sidebarWasOpen = useRef<boolean | null>(null);
 
   // Close global sidebar for better reading
@@ -482,7 +482,7 @@ export default function InterviewSystemDesignPage() {
             {/* Global sidebar toggle */}
             <AppTooltip content="Toggle App Sidebar">
               <button
-                onClick={() => setGlobalSidebarOpen((prev) => !prev)}
+                onClick={toggleSidebar}
                 className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 transition-all ml-1"
                 aria-label="Toggle Sidebar"
               >
@@ -542,7 +542,7 @@ export default function InterviewSystemDesignPage() {
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex w-[260px] xl:w-[300px] shrink-0 border-r border-border/40 bg-card/30 flex-col overflow-y-auto sticky top-0 self-start" style={{ maxHeight: 'calc(100vh - 56px)' }}>
           <div className="p-5 pb-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-4 flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-muted-foreground mb-4 flex items-center justify-between">
               <span>Topics</span>
               <span className="text-[10px] bg-muted/50 px-2 py-0.5 rounded-full text-foreground/80 lowercase tracking-normal">
                 {doneCount}/{totalQuestions} done
@@ -608,7 +608,7 @@ export default function InterviewSystemDesignPage() {
               >
                 <div className="p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">Topics</h2>
+                    <h2 className="text-xs font-semibold text-muted-foreground">Topics</h2>
                     <button onClick={() => setTopicSidebarOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
                       <X size={16} />
                     </button>

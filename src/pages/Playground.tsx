@@ -3206,13 +3206,13 @@ export default function Playground() {
                     className="lc-surface fixed left-1/2 top-16 z-[9999] max-h-[70vh] w-[90vw] max-w-md -translate-x-1/2 animate-in overflow-hidden overflow-y-auto rounded-xl fade-in zoom-in-95 duration-200"
                   >
                     <div
-                      className="px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                      className="px-5 py-2.5 text-xs font-medium"
                       style={{
                         borderBottom: "1px solid var(--lc-border)",
                         color: "var(--lc-muted)",
                       }}
                     >
-                      Standard Templates
+                      Standard templates
                     </div>
                     <div className="space-y-0.5 p-1.5">
                       {CP_TEMPLATES.map((tmpl) => {
@@ -3295,14 +3295,14 @@ export default function Playground() {
                     {userTemplates.length > 0 && (
                       <>
                         <div
-                          className="mt-1 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                          className="mt-1 px-5 py-2.5 text-xs font-medium"
                           style={{
                             borderTop: "1px solid var(--lc-border)",
                             borderBottom: "1px solid var(--lc-border)",
                             color: "var(--lc-muted)",
                           }}
                         >
-                          My Templates
+                          My templates
                         </div>
                         <div className="space-y-0.5 p-1.5">
                           {userTemplates.map((tmpl) => (

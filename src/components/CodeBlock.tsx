@@ -81,7 +81,7 @@ export const CodeBlock = memo(function CodeBlock({
               onClick={handleCopy}
               aria-label={copied ? "Copied" : "Copy code"}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors shrink-0 ${
-                copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+                copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-foreground/[0.08]"
               }`}
             >
               {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}

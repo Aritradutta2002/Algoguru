@@ -95,7 +95,7 @@ function StatTile({
         </span>
         <div className="min-w-0">
           <div className="text-xl font-bold leading-none text-foreground">{value}</div>
-          <div className="mt-1 truncate text-[11px] uppercase tracking-wide text-muted-foreground">
+          <div className="mt-1 truncate text-[13px] font-medium text-muted-foreground">
             {label}
           </div>
         </div>
@@ -140,7 +140,7 @@ function PillarCard({
         </span>
         <ArrowRight className="cjh-path-arrow h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
       </div>
-      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="mt-4 text-[13px] font-medium text-muted-foreground">
         {eyebrow}
       </p>
       <h3 className="mt-1 text-lg font-bold text-foreground">{title}</h3>
@@ -211,16 +211,16 @@ export default function BackendInterviewHubPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="cjh-hero relative overflow-hidden rounded-3xl border border-border/50 bg-card/70 p-6 backdrop-blur sm:p-8"
+          className="cjh-hero relative overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 sm:p-8"
         >
           <div className="relative">
-            <span className="cjh-hero-badge inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+            <span className="cjh-hero-badge inline-flex items-center gap-1.5 rounded border border-obsidian-border bg-foreground/[0.04] px-2.5 py-1 text-[11px] font-medium text-foreground">
               <Sparkles className="h-3 w-3" />
               Built for 3–4 years of experience
             </span>
-            <h1 className="cjh-hero-title mt-4 text-3xl font-black leading-tight text-foreground sm:text-4xl">
+            <h1 className="cjh-hero-title mt-4 text-3xl font-semibold tracking-[-0.03em] leading-tight text-foreground sm:text-4xl">
               Spring Boot &amp; Backend Engineering
-              <span className="block text-primary">Interview Masterclass</span>
+              <span className="block text-foreground/80">Interview Masterclass</span>
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               Every annotation with its internals, the Collections Framework, how <code>HashMap</code> really
@@ -303,7 +303,7 @@ export default function BackendInterviewHubPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-black text-primary">{studiedPercent}%</span>
+              <span className="text-2xl font-semibold tabular-nums text-foreground">{studiedPercent}%</span>
             </div>
           </div>
           <div className="cjh-progress-track mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">

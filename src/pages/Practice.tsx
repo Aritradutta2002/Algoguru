@@ -74,7 +74,7 @@ export default function Practice() {
   const [onlyUnsolved, setOnlyUnsolved] = useState(false);
   const [onlySaved, setOnlySaved] = useState(false);
   const celebrationIdRef = useRef(0);
-  const noteSaveFeedbackTimersRef = useRef<Record<string, ReturnType<typeof window.setTimeout>>>({});
+  const noteSaveFeedbackTimersRef = useRef<Record<string, number | ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     return () => {
@@ -255,86 +255,80 @@ export default function Practice() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,hsl(var(--primary)/0.13),transparent_38%),radial-gradient(circle_at_12%_55%,hsl(var(--accent)/0.07),transparent_30%)]" />
-          <div className="absolute inset-0 bg-grid opacity-30" />
-          <div className="aurora-blob right-[6%] top-[-10%] h-64 w-64 bg-primary/10" />
-        </div>
-        <div className="relative mx-auto max-w-7xl px-5 py-12 md:px-10 md:py-16 lg:px-16">
+    <div className="min-h-screen bg-obsidian-void text-foreground">
+      <section className="relative border-b border-obsidian-border bg-obsidian-void">
+        <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-6 md:py-14">
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
             <div className="max-w-2xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/70 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground shadow-soft backdrop-blur-sm">
-                <TrendingUp size={12} className="text-primary" /> Master data structures & algorithms
-              </div>
-              <h1 className="font-display text-4xl font-bold leading-[1.04] tracking-[-0.045em] md:text-5xl lg:text-[3.8rem]">
-                Master code.{" "}
-                <span className="text-gradient-brand">Ace interviews.</span>
+              <p className="lp-kicker mb-3">
+                <TrendingUp size={12} className="inline mr-1" /> Master data structures & algorithms
+              </p>
+              <h1 className="text-3xl font-semibold leading-[1.08] tracking-[-0.03em] sm:text-4xl md:text-5xl text-foreground">
+                Master code. Ace interviews.
               </h1>
-              <p className="mt-5 max-w-2xl text-[15px] leading-7 text-muted-foreground md:text-base md:leading-8">
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted-foreground">
                 Curated by pattern — Array, String, Binary Search, Stack, Linked
                 List, Heap, Tree & more. Track progress, save notes, and solve
                 with editorial.
               </p>
               {loadingState && (
-                <div className="mt-4 inline-flex items-center gap-2 text-[12.5px] text-muted-foreground">
-                  <Loader2 size={14} className="animate-spin" /> Syncing your progress…
+                <div className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 size={13} className="animate-spin" /> Syncing your progress…
                 </div>
               )}
             </div>
 
-            <div className="premium-card w-full shrink-0 p-6 lg:w-[370px]">
+            <div className="w-full shrink-0 rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-5 lg:w-[360px]">
               <div className="flex items-center gap-4">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-[12px] font-semibold text-foreground">
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                     <Target size={14} className="text-primary" /> Your progress
                   </div>
-                  <p className="mt-2 font-display text-[2rem] font-bold tracking-[-0.04em]">
+                  <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
                     {progressPct}%
                   </p>
-                  <p className="text-[11.5px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {solvedCount} of {totalProblems} problems solved
                   </p>
                 </div>
                 <ProgressRing
                   value={progressPct}
-                  size={84}
+                  size={76}
                   label={`${progressPct}% of practice problems completed`}
                 >
-                  <Target size={19} className="text-primary" />
+                  <Target size={18} className="text-primary" />
                 </ProgressRing>
               </div>
 
-              <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-obsidian-elevated">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-primary to-sky-400 transition-[width] duration-500 ease-premium"
+                  className="h-full rounded-full bg-primary transition-[width] duration-300"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
 
-              <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-xl border border-border/70 bg-muted/30 p-2.5">
-                  <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-md border border-obsidian-border bg-obsidian-elevated p-2">
+                  <div className="text-[11px] font-medium text-muted-foreground">
                     Solved
                   </div>
-                  <div className="mt-1 text-[13px] font-semibold text-foreground">
+                  <div className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">
                     {solvedCount}
                   </div>
                 </div>
-                <div className="rounded-xl border border-border/70 bg-muted/30 p-2.5">
-                  <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <div className="rounded-md border border-obsidian-border bg-obsidian-elevated p-2">
+                  <div className="text-[11px] font-medium text-muted-foreground">
                     Saved
                   </div>
-                  <div className="mt-1 text-[13px] font-semibold text-foreground">
+                  <div className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">
                     {savedForRevision.size}
                   </div>
                 </div>
-                <div className="rounded-xl border border-primary/20 bg-primary/10 p-2.5">
-                  <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-primary/80">
+                <div className="rounded-md border border-primary/30 bg-primary/10 p-2">
+                  <div className="text-[11px] font-medium text-primary">
                     Remaining
                   </div>
-                  <div className="mt-1 text-[13px] font-semibold text-primary">
+                  <div className="mt-0.5 text-sm font-semibold text-primary tabular-nums">
                     {totalProblems - solvedCount}
                   </div>
                 </div>
@@ -344,8 +338,8 @@ export default function Practice() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-5 py-8 md:px-10 md:py-10 lg:px-16">
-        <div className="sticky top-0 z-20 -mx-5 mb-9 border-b border-border/60 bg-background/90 px-5 py-3 backdrop-blur-xl md:-mx-10 md:px-10 lg:-mx-16 lg:px-16">
+      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 md:py-10">
+        <div className="sticky top-0 z-20 -mx-5 mb-8 border-b border-obsidian-border bg-obsidian-void/90 px-5 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative min-w-0 flex-1">
               <Search
@@ -359,14 +353,14 @@ export default function Practice() {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search problems or companies…"
                 aria-label="Search problems or companies"
-                className="h-10 w-full rounded-xl border border-border bg-card/70 pl-9 pr-9 text-[13px] text-foreground shadow-[inset_0_1px_0_hsl(var(--foreground)/0.025)] outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-muted-foreground/60 hover:border-primary/30 focus:border-primary focus:bg-card focus:ring-2 focus:ring-ring/15"
+                className="h-10 w-full rounded-lg border border-obsidian-border bg-obsidian-pane pl-9 pr-9 text-[13px] text-foreground outline-none transition-[border-color,background-color] placeholder:text-muted-foreground/60 hover:border-obsidian-border focus:border-foreground/30 focus:bg-obsidian-elevated focus:ring-0"
               />
               {query.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setQuery("")}
                   aria-label="Clear search"
-                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
+                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-obsidian-elevated hover:text-foreground"
                 >
                   <X size={13} />
                 </button>
@@ -381,27 +375,27 @@ export default function Practice() {
                   onClick={() => setDifficultyFilter(level)}
                   aria-pressed={difficultyFilter === level}
                   className={cn(
-                    "h-8 rounded-lg border px-3 text-[11.5px] font-semibold transition-all duration-200",
+                    "h-8 rounded-lg border px-3 text-[11.5px] font-medium transition-colors",
                     difficultyFilter === level
-                      ? "border-primary/30 bg-primary/10 text-primary"
-                      : "border-border/70 bg-card/60 text-muted-foreground hover:border-border hover:bg-card hover:text-foreground",
+                      ? "border-obsidian-border bg-foreground/[0.08] text-foreground"
+                      : "border-obsidian-border bg-obsidian-pane text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground",
                   )}
                 >
                   {level === "all" ? "All levels" : level}
                 </button>
               ))}
 
-              <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
+              <span className="mx-1 hidden h-5 w-px bg-obsidian-border sm:block" aria-hidden="true" />
 
               <button
                 type="button"
                 onClick={() => setOnlyUnsolved((value) => !value)}
                 aria-pressed={onlyUnsolved}
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11.5px] font-semibold transition-all duration-200",
+                  "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11.5px] font-medium transition-colors",
                   onlyUnsolved
-                    ? "border-primary/30 bg-primary/10 text-primary"
-                    : "border-border/70 bg-card/60 text-muted-foreground hover:border-border hover:bg-card hover:text-foreground",
+                    ? "border-obsidian-border bg-foreground/[0.08] text-foreground"
+                    : "border-obsidian-border bg-obsidian-pane text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground",
                 )}
               >
                 <CheckCircle2 size={12} />
@@ -412,10 +406,10 @@ export default function Practice() {
                 onClick={() => setOnlySaved((value) => !value)}
                 aria-pressed={onlySaved}
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11.5px] font-semibold transition-all duration-200",
+                  "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[11.5px] font-medium transition-colors",
                   onlySaved
-                    ? "border-primary/30 bg-primary/10 text-primary"
-                    : "border-border/70 bg-card/60 text-muted-foreground hover:border-border hover:bg-card hover:text-foreground",
+                    ? "border-obsidian-border bg-foreground/[0.08] text-foreground"
+                    : "border-obsidian-border bg-obsidian-pane text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground",
                 )}
               >
                 <Sparkles size={12} />
@@ -451,22 +445,22 @@ export default function Practice() {
             const topicPct = topicTotal ? Math.round((topicSolved / topicTotal) * 100) : 0;
             return (
               <div key={topic.id} className="space-y-5">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border pb-4">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-obsidian-border pb-4">
                   <div className="flex items-start gap-4">
-                    <div className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${accent.border} ${accent.soft} ${accent.text} md:flex`}>
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-pane text-muted-foreground md:flex">
                       <Layers size={18} />
                     </div>
                     <div>
-                      <h2 className="flex items-center gap-3 font-display text-2xl font-bold tracking-tight text-foreground">
+                      <h2 className="flex items-center gap-3 text-xl font-semibold tracking-[-0.02em] text-foreground">
                         {topic.title}
-                        <span className={`hidden items-center rounded-md border px-2 py-0.5 text-[11px] font-semibold md:inline-flex ${accent.border} ${accent.soft} ${accent.text}`}>{topicSolved}/{topicTotal}</span>
+                        <span className="hidden items-center rounded-md border border-obsidian-border bg-foreground/[0.04] px-2 py-0.5 text-[11px] font-medium text-muted-foreground md:inline-flex">{topicSolved}/{topicTotal}</span>
                       </h2>
                       <p className="mt-1.5 text-sm leading-6 text-muted-foreground max-w-3xl">{topic.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-                      <Code2 size={13} className={accent.text} /> {topicPct}% done
+                      <Code2 size={13} className="text-muted-foreground" /> {topicPct}% done
                     </div>
                   </div>
                 </div>
@@ -479,23 +473,23 @@ export default function Practice() {
                     const progress = total ? (done / total) * 100 : 0;
                     const isDone = done === total && total > 0;
                     return (
-                      <div key={sub.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-200 hover:border-primary/30 hover:shadow-card">
-                        <div className={`h-0.5 w-full ${isDone ? "bg-success" : "bg-muted"}`} />
+                      <div key={sub.id} className="group flex flex-col overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane transition-all duration-200 hover:bg-obsidian-elevated/40">
+                        <div className={`h-0.5 w-full ${isDone ? "bg-emerald-500" : "bg-obsidian-border"}`} />
                         <Accordion type="single" collapsible value={openSubtopicId === sub.id ? sub.id : undefined} onValueChange={(v) => setOpenSubtopicId(v === sub.id ? sub.id : null)} className="w-full">
                           <AccordionItem value={sub.id} className="border-none">
                             <AccordionTrigger className="hover:no-underline px-6 py-5 group/trigger">
                               <div className="flex flex-col items-start text-left gap-2.5 w-full pr-2">
                                 <div className="flex items-center justify-between w-full gap-3">
-                                  <h3 className="text-base font-semibold tracking-tight text-foreground group-hover/trigger:text-primary transition-colors line-clamp-1">
+                                  <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors line-clamp-1">
                                     {sub.title}
                                   </h3>
-                                  <div className={`shrink-0 px-2.5 py-0.5 text-xs font-semibold rounded-md border flex items-center gap-1.5 ${isDone ? "bg-success/10 border-success/30 text-success" : "bg-muted/40 border-border text-muted-foreground"}`}>
+                                  <div className={`shrink-0 px-2.5 py-0.5 text-xs font-medium rounded-md border flex items-center gap-1.5 ${isDone ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-obsidian-elevated border-obsidian-border text-muted-foreground"}`}>
                                     {isDone && <CheckCircle2 size={12} />} {done}/{total}
                                   </div>
                                 </div>
                                 <p className="text-sm leading-6 text-muted-foreground line-clamp-2 max-w-[95%]">{sub.description}</p>
-                                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mt-2">
-                                  <motion.div className={`h-full ${isDone ? "bg-success" : "bg-primary"}`} initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
+                                <div className="w-full h-1.5 bg-obsidian-elevated rounded-full overflow-hidden mt-2">
+                                  <motion.div className={`h-full ${isDone ? "bg-emerald-500" : "bg-foreground/50"}`} initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
                                 </div>
                               </div>
                             </AccordionTrigger>
@@ -508,17 +502,17 @@ export default function Practice() {
                                   const hasNotes = (notesByProblem[prob.id] ?? "").trim().length > 0;
                                   const rowBusy = upsertingProblemId === prob.id;
                                   return (
-                                    <div key={prob.id} className={`group/row p-4 rounded-xl border transition-colors ${checked ? "border-success/40 bg-success/5" : "border-border bg-card hover:bg-muted/30"}`}>
+                                    <div key={prob.id} className={`group/row p-4 rounded-lg border transition-colors ${checked ? "border-emerald-500/30 bg-emerald-500/5" : "border-obsidian-border bg-obsidian-pane hover:bg-obsidian-elevated"}`}>
                                       <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
-                                          <Checkbox id={prob.id} checked={checked} onCheckedChange={() => void toggleProblem(prob.id)} className="h-4 w-4 rounded border-border data-[state=checked]:bg-success data-[state=checked]:border-success shrink-0" />
+                                          <Checkbox id={prob.id} checked={checked} onCheckedChange={() => void toggleProblem(prob.id)} className="h-4 w-4 rounded border-obsidian-border data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 shrink-0" />
                                           <label htmlFor={prob.id} className={`text-sm font-medium cursor-pointer select-none truncate leading-5 ${checked ? "text-muted-foreground line-through" : "text-foreground"}`}>
                                             {prob.title}
                                           </label>
-                                          {checked && <CheckCircle2 size={14} className="text-success hidden sm:block" />}
+                                          {checked && <CheckCircle2 size={14} className="text-emerald-400 hidden sm:block" />}
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
-                                          <span className={`text-xs font-medium px-2 py-0.5 rounded-md border ${getDifficultyColor(prob.difficulty)}`}>{prob.difficulty}</span>
+                                          <span className={`text-xs font-medium px-2 py-0.5 rounded border ${getDifficultyColor(prob.difficulty)}`}>{prob.difficulty}</span>
                                           {rowBusy && <Loader2 size={13} className="animate-spin text-muted-foreground" />}
                                         </div>
                                       </div>
@@ -526,7 +520,7 @@ export default function Practice() {
                                       <div className="mt-3 flex flex-wrap items-center gap-2">
                                         <div className="flex flex-wrap gap-1.5 mr-auto">
                                           {prob.companies.slice(0, 4).map((c) => (
-                                            <span key={`${prob.id}-${c}`} className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted border border-border text-muted-foreground">
+                                            <span key={`${prob.id}-${c}`} className="text-xs font-normal px-2 py-0.5 rounded bg-obsidian-elevated border border-obsidian-border text-muted-foreground">
                                               {c}
                                             </span>
                                           ))}
@@ -534,26 +528,26 @@ export default function Practice() {
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                           <AppTooltip content="LeetCode">
-                                            <a href={prob.leetcodeLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-muted border border-border text-xs font-medium text-muted-foreground hover:bg-foreground hover:text-background transition-colors">
+                                            <a href={prob.leetcodeLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-obsidian-pane border border-obsidian-border text-xs font-medium text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground transition-colors">
                                               LC
                                             </a>
                                           </AppTooltip>
                                           <AppTooltip content="GeeksforGeeks">
-                                            <a href={prob.gfgLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-muted border border-border text-xs font-medium text-muted-foreground hover:bg-success hover:text-success-foreground hover:border-success transition-colors">
+                                            <a href={prob.gfgLink} target="_blank" rel="noreferrer" className="h-7 px-2.5 flex items-center justify-center rounded-md bg-obsidian-pane border border-obsidian-border text-xs font-medium text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground transition-colors">
                                               GFG
                                             </a>
                                           </AppTooltip>
-                                          <Link to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`} className="h-7 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:brightness-95 inline-flex items-center gap-1">
+                                          <Link to={`/practice/solution/${prob.id}/${toProblemSlug(prob.title)}`} className="h-7 px-3 rounded-md bg-foreground text-background text-xs font-medium hover:bg-foreground/85 inline-flex items-center gap-1">
                                             Solution <ArrowRight size={12} />
                                           </Link>
                                         </div>
                                       </div>
 
-                                      <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-border">
-                                        <button type="button" onClick={() => openNotesPopup(prob.id)} disabled={isSavingNotes} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${hasNotes ? "bg-primary/10 border-primary/30 text-primary" : "bg-card border-border text-muted-foreground hover:bg-muted"}`}>
+                                      <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-obsidian-border">
+                                        <button type="button" onClick={() => openNotesPopup(prob.id)} disabled={isSavingNotes} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${hasNotes ? "bg-foreground/[0.08] border-obsidian-border text-foreground" : "bg-obsidian-pane border-obsidian-border text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground"}`}>
                                           {isSavingNotes ? <Loader2 size={12} className="animate-spin" /> : <StickyNote size={12} />} {hasNotes ? "Edit note" : "Add note"}
                                         </button>
-                                        <button type="button" onClick={() => void toggleSaveForRevision(prob.id)} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${isRevisionSaved ? "bg-primary/10 border-primary/30 text-primary" : "bg-card border-border text-muted-foreground hover:bg-muted"}`}>
+                                        <button type="button" onClick={() => void toggleSaveForRevision(prob.id)} className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium border transition-colors ${isRevisionSaved ? "bg-foreground/[0.08] border-obsidian-border text-foreground" : "bg-obsidian-pane border-obsidian-border text-muted-foreground hover:bg-obsidian-elevated hover:text-foreground"}`}>
                                           <Sparkles size={12} /> {isRevisionSaved ? "Saved" : "Save"}
                                         </button>
                                       </div>
@@ -573,21 +567,21 @@ export default function Practice() {
           })}
 
           {filteredTopics.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-muted/50 text-muted-foreground">
-                <Search size={20} />
+            <div className="flex flex-col items-center justify-center rounded-[0.875rem] border border-dashed border-obsidian-border bg-obsidian-pane px-6 py-14 text-center">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-muted-foreground">
+                <Search size={18} />
               </span>
-              <h3 className="mt-4 font-display text-lg font-bold tracking-tight">
+              <h3 className="mt-4 text-base font-semibold text-foreground">
                 No problems match those filters
               </h3>
-              <p className="mt-2 max-w-sm text-[13px] leading-6 text-muted-foreground">
+              <p className="mt-1.5 max-w-sm text-xs leading-5 text-muted-foreground">
                 Try a shorter search, a different difficulty, or clear the
                 saved/unsolved filters.
               </p>
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-[12px] font-semibold shadow-soft transition-colors hover:border-primary/30 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-obsidian-border bg-obsidian-elevated px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-foreground/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <RotateCcw size={12} />
                 Clear filters

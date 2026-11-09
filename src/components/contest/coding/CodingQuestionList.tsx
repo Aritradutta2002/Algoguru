@@ -79,7 +79,7 @@ export function CodingQuestionList({
                       <span className="inline-block rounded-md bg-primary/15 px-2 py-1 text-xs font-medium text-primary">
                         Question {entry.index + 1}
                       </span>
-                      <h3 className="mt-3 font-display text-lg font-semibold tracking-tight text-foreground">
+                      <h3 className="mt-2 text-base font-semibold tracking-[-0.02em] text-foreground">
                         {entry.problem.title}
                       </h3>
                     </div>

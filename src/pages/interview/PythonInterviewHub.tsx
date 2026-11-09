@@ -19,7 +19,12 @@ const LEARNING_PATHS = [
   { id: "system-design", title: "System Design", subtitle: "Scalable system thinking", icon: Layers, color: "destructive" as const, route: "/interview/python/system-design" },
   { id: "sql-structure", title: "SQL Questions", subtitle: "Interview SQL concepts & patterns", icon: Flame, color: "info" as const, route: "/interview/python/sql-structure" },
 ];
-const PATH_ICON_STYLES = { primary: "bg-primary/10 border-primary/20 text-primary", accent: "bg-accent/10 border-accent/20 text-accent", destructive: "bg-destructive/10 border-destructive/20 text-destructive", info: "bg-info/10 border-info/20 text-info" };
+const PATH_ICON_STYLES = {
+  primary: "bg-obsidian-elevated border-obsidian-border text-foreground",
+  accent: "bg-obsidian-elevated border-obsidian-border text-foreground",
+  destructive: "bg-obsidian-elevated border-obsidian-border text-foreground",
+  info: "bg-obsidian-elevated border-obsidian-border text-foreground",
+};
 
 function countDifficulty(questions: ReturnType<typeof getAllPythonQuestions>, difficulty: string){ return questions.filter((q)=> q.meta.difficulty===difficulty).length; }
 
@@ -75,10 +80,10 @@ export default function PythonInterviewHub(){
               </div>
             </div>
             <dl className="grid grid-cols-2 gap-3">
-              {[{label:"Questions", value:`${totalQuestions}+`},{label:"Topics", value:String(topicCount)},{label:"Difficulty Mix", value:null, custom:(<span className="text-xs font-bold leading-relaxed"><span className="text-success">{easyCount}E</span>{" · "}<span className="text-warning">{mediumCount}M</span>{" · "}<span className="text-destructive">{hardCount}H</span></span>)},{label:"Python Versions", value:"3.8 – 3.13"}].map((stat)=>(
+              {[{label:"Questions", value:`${totalQuestions}+`},{label:"Topics", value:String(topicCount)},{label:"Difficulty Mix", value:null, custom:(<span className="text-xs font-semibold leading-relaxed"><span className="text-success">{easyCount}E</span>{" · "}<span className="text-warning">{mediumCount}M</span>{" · "}<span className="text-destructive">{hardCount}H</span></span>)},{label:"Python Versions", value:"3.8 – 3.13"}].map((stat)=>(
                 <div key={stat.label} className="cjh-stat-card">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">{stat.label}</dt>
-                  <dd className="text-2xl font-bold text-foreground">{stat.custom ?? stat.value}</dd>
+                  <dt className="text-xs font-medium text-muted-foreground mb-1">{stat.label}</dt>
+                  <dd className="text-2xl font-semibold text-foreground tabular-nums">{stat.custom ?? stat.value}</dd>
                 </div>
               ))}
             </dl>
@@ -165,7 +170,7 @@ export default function PythonInterviewHub(){
         <motion.section className="mb-14" aria-labelledby="quick-revision-heading" initial={{opacity:0,y:16}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5}}>
           <div className="cjh-revision-banner p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 relative z-10">
             <div className="flex-1">
-              <div className="inline-flex items-center gap-2 text-primary text-[10px] font-bold uppercase tracking-widest font-mono mb-2"><Sparkles size={12}/> ~{quickRevisionMinutes} min revision</div>
+              <div className="inline-flex items-center gap-2 text-primary text-xs font-medium mb-2"><Sparkles size={12}/> ~{quickRevisionMinutes} min revision</div>
               <h2 id="quick-revision-heading" className="text-xl md:text-2xl font-bold mb-2 flex items-center gap-2"><Timer size={20} className="text-primary"/> Interview tomorrow?</h2>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">Skim the highest-priority questions first — theory, code, and one-line takeaways designed for last-minute revision.</p>
             </div>
@@ -174,7 +179,7 @@ export default function PythonInterviewHub(){
         </motion.section>
 
         <motion.section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Study stats" variants={stagger} initial="initial" whileInView="animate" viewport={{once:true}}>
-          {[{icon:Bookmark,label:"Bookmarks",value:bookmarkedCount,sub:"saved questions",iconClass:"bg-primary/10 text-primary"},{icon:CheckCircle2,label:"Completed",value:doneCount,sub:`of ${totalQuestions} questions`,iconClass:"bg-success/10 text-success"},{icon:Timer,label:"Full Read",value:`~${fullReadMinutes} min`,sub:"all answers",iconClass:"bg-warning/10 text-warning"},{icon:Flame,label:"Quick Revision",value:`~${quickRevisionMinutes} min`,sub:"high-priority essentials",iconClass:"bg-destructive/10 text-destructive"}].map((stat,i)=>{ const Icon=stat.icon; return (<motion.div key={stat.label} variants={fadeUp} transition={{delay:i*0.05}}><div className="cjh-footer-stat"><div className={`cjh-footer-stat-icon ${stat.iconClass}`}><Icon size={14}/></div><p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono mb-1">{stat.label}</p><p className="text-2xl font-bold">{stat.value}</p><p className="text-[11px] text-muted-foreground mt-0.5">{stat.sub}</p></div></motion.div>); })}
+          {[{icon:Bookmark,label:"Bookmarks",value:bookmarkedCount,sub:"saved questions"},{icon:CheckCircle2,label:"Completed",value:doneCount,sub:`of ${totalQuestions} questions`},{icon:Timer,label:"Full Read",value:`~${fullReadMinutes} min`,sub:"all answers"},{icon:Flame,label:"Quick Revision",value:`~${quickRevisionMinutes} min`,sub:"high-priority essentials"}].map((stat,i)=>{ const Icon=stat.icon; return (<motion.div key={stat.label} variants={fadeUp} transition={{delay:i*0.05}}><div className="cjh-footer-stat"><div className="cjh-footer-stat-icon border border-obsidian-border bg-obsidian-elevated text-muted-foreground"><Icon size={14}/></div><p className="text-xs font-medium text-muted-foreground mb-1">{stat.label}</p><p className="text-2xl font-semibold tabular-nums text-foreground">{stat.value}</p><p className="text-xs text-muted-foreground mt-0.5">{stat.sub}</p></div></motion.div>); })}
         </motion.section>
       </div>
     </div>

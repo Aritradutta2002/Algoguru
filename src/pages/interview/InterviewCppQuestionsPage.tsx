@@ -116,7 +116,7 @@ const _QuestionCard = ({
           <div className="flex-1 min-w-0">
             {/* Meta row */}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground/50 bg-muted/30 px-2 py-0.5 rounded-md">
+              <span className="text-[11px] font-mono font-medium text-muted-foreground bg-muted/30 px-2 py-0.5 rounded-md">
                 Q{String(entry.index + 1).padStart(2, "0")}
               </span>
               <span className="text-[10px] font-semibold text-muted-foreground/70 flex items-center gap-1">
@@ -297,7 +297,7 @@ export default function InterviewCppQuestionsPage() {
   const [noteDraft, setNoteDraft] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { setOpen: setGlobalSidebarOpen } = useSidebar();
+  const { setOpen: setGlobalSidebarOpen, toggleSidebar } = useSidebar();
   const sidebarWasOpen = useRef<boolean | null>(null);
 
   // SEO title
@@ -629,7 +629,7 @@ export default function InterviewCppQuestionsPage() {
             {/* Global sidebar toggle */}
             <AppTooltip content="Toggle App Sidebar">
               <button
-                onClick={() => setGlobalSidebarOpen((prev) => !prev)}
+                onClick={toggleSidebar}
                 className="w-9 h-9 rounded-full flex items-center justify-center border border-border/40 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 transition-all"
                 aria-label="Toggle App Sidebar"
               >
@@ -712,7 +712,7 @@ export default function InterviewCppQuestionsPage() {
         {/* Permanent Desktop Sidebar */}
         <aside className="hidden lg:block w-[240px] xl:w-[270px] shrink-0 border-r border-border/40 bg-card/30">
           <div className="sticky top-0 max-h-[calc(100vh-64px)] overflow-y-auto p-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-3 flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center justify-between">
               <span>Topics</span>
               <span className="text-[10px] bg-muted/50 px-2 py-0.5 rounded-full text-foreground/80 lowercase tracking-normal font-mono">
                 {doneCount}/{totalQuestions}

@@ -176,7 +176,7 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border",
                         isSelected
-                          ? "border-obsidian-border bg-foreground/[0.06] text-obsidian-accent"
+                          ? "border-obsidian-border bg-foreground/[0.06] text-foreground"
                           : "border-obsidian-border bg-foreground/[0.03] text-muted-foreground",
                       )}
                     >

@@ -32,7 +32,6 @@ import { advancedMathContent } from "@/data/advancedMathContent";
 import { advancedTopicsContent } from "@/data/advancedTopicsContent";
 import { javaContentMap } from "@/data/javaContent";
 import { practiceContentMap } from "@/data/practiceContent";
-import { systemDesignTopics } from "@/data/systemDesignInterviewData";
 import type { ContentSection } from "@/data/recursionContent";
 
 const dsContentMap: Record<string, ContentSection[]> = {
@@ -53,57 +52,20 @@ const dsContentMap: Record<string, ContentSection[]> = {
 import { useMode } from "@/contexts/ModeContext";
 import { useAuth } from "@/contexts/AuthContext";
 
-/* ─── Per-topic color system ─────────────────────────────── */
-const topicColors: Record<string, { from: string; to: string; glow: string; text: string }> = {
-  recursion:            { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.22)",  text: "#818cf8" },
-  backtracking:         { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#93c5fd" },
-  dp:                   { from: "#10b981", to: "#059669", glow: "rgba(16,185,129,0.22)",  text: "#34d399" },
-  graphs:               { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-  bits:                 { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#60a5fa" },
-  heaps:                { from: "#ec4899", to: "#8b5cf6", glow: "rgba(236,72,153,0.22)",  text: "#f472b6" },
-  strings:              { from: "#14b8a6", to: "#0ea5e9", glow: "rgba(20,184,166,0.22)",  text: "#2dd4bf" },
-  "number-theory":      { from: "#22c55e", to: "#16a34a", glow: "rgba(34,197,94,0.22)",  text: "#4ade80" },
-  trees:                { from: "#a78bfa", to: "#8b5cf6", glow: "rgba(167,139,250,0.22)", text: "#c4b5fd" },
-  "segment-tree":       { from: "#0ea5e9", to: "#6366f1", glow: "rgba(14,165,233,0.22)", text: "#38bdf8" },
-  "advanced-math":      { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)", text: "#38bdf8" },
-    "advanced-topics":    { from: "#ec4899", to: "#f472b6", glow: "rgba(236,72,153,0.22)", text: "#f9a8d4" },
-  "stack-queue":        { from: "#8b5cf6", to: "#6366f1", glow: "rgba(139,92,246,0.22)", text: "#a78bfa" },
-  "java-basics":        { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-  "java-oop":           { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.22)",  text: "#818cf8" },
-    "java-exceptions":    { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#93c5fd" },
-  "java-collections":   { from: "#10b981", to: "#059669", glow: "rgba(16,185,129,0.22)",  text: "#34d399" },
-  "java-generics":      { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#60a5fa" },
-  "java-streams":       { from: "#ec4899", to: "#8b5cf6", glow: "rgba(236,72,153,0.22)",  text: "#f472b6" },
-  "java-multithreading":{ from: "#14b8a6", to: "#0ea5e9", glow: "rgba(20,184,166,0.22)",  text: "#2dd4bf" },
-  "java-io":            { from: "#a78bfa", to: "#8b5cf6", glow: "rgba(167,139,250,0.22)", text: "#c4b5fd" },
-  "java-advanced":      { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-    "practice-arrays":    { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#93c5fd" },
-  "practice-strings":   { from: "#10b981", to: "#059669", glow: "rgba(16,185,129,0.22)",  text: "#34d399" },
-  "practice-recursion": { from: "#0ea5e9", to: "#3b82f6", glow: "rgba(14,165,233,0.22)",  text: "#38bdf8" },
-  "practice-dp":        { from: "#3b82f6", to: "#6366f1", glow: "rgba(59,130,246,0.22)",  text: "#60a5fa" },
-  "practice-graphs":    { from: "#ec4899", to: "#8b5cf6", glow: "rgba(236,72,153,0.22)",  text: "#f472b6" },
-  "practice-trees":     { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.22)",  text: "#818cf8" },
-  "practice-greedy":    { from: "#14b8a6", to: "#0ea5e9", glow: "rgba(20,184,166,0.22)",  text: "#2dd4bf" },
-  "practice-stack-queue":{ from: "#8b5cf6", to: "#6366f1", glow: "rgba(139,92,246,0.22)", text: "#a78bfa" },
-};
-
-const getTopicColor = (id: string) =>
-  topicColors[id] ?? { from: "#6366f1", to: "#8b5cf6", glow: "rgba(99,102,241,0.2)", text: "#818cf8" };
-
 const modeMeta = {
-  ds:       { label: "DSA",      icon: <Layers size={11} />,  badge: "bg-violet-500/10 text-violet-400 border-violet-500/20"  },
-  lang:     { label: "Java",     icon: <Coffee size={11} />,  badge: "bg-obsidian-accent/10 text-obsidian-accent border-obsidian-accent/20"  },
-  practice: { label: "Practice", icon: <Trophy size={11} />,  badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"},
+  ds:       { label: "DSA",      icon: <Layers size={11} />,  badge: "border-obsidian-border bg-obsidian-elevated text-muted-foreground" },
+  lang:     { label: "Java",     icon: <Coffee size={11} />,  badge: "border-obsidian-border bg-obsidian-elevated text-muted-foreground" },
+  practice: { label: "Practice", icon: <Trophy size={11} />,  badge: "border-obsidian-border bg-obsidian-elevated text-muted-foreground" },
 } as const;
 
 const DifficultyPill = ({ difficulty }: { difficulty: string }) => {
   const colors: Record<string, string> = {
-    Easy:   "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    Medium: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    Hard:   "bg-red-500/10 text-red-400 border-red-500/20",
+    Easy:   "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
+    Medium: "border-amber-500/30 bg-amber-500/10 text-amber-500",
+    Hard:   "border-red-500/30 bg-red-500/10 text-red-500",
   };
   return (
-    <span className={cn("inline-flex items-center text-[9px] font-bold px-1.5 py-px rounded-md border tracking-wide uppercase", colors[difficulty] ?? colors.Hard)}>
+    <span className={cn("inline-flex items-center text-[10px] font-medium px-1.5 py-px rounded border", colors[difficulty] ?? colors.Hard)}>
       {difficulty}
     </span>
   );
@@ -148,87 +110,64 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
 
     const allContentMaps: Record<string, ContentSection[]> = { ...dsContentMap, ...javaContentMap, ...practiceContentMap };
     Object.entries(allContentMaps).forEach(([topicId, sections]) => {
-      const topic = allTopicsList.find((t) => t.id === topicId);
-      if (!topic || !sections) return;
-      sections.forEach((section) => {
-        if (!section.title || !section.id) return;
-        const isGroupHeader = /^(Easy|Medium|Hard) Problems$/i.test(section.title);
-        if (isGroupHeader) return;
-        const alreadyExists = items.some((i) => i.id === section.id && i.path.startsWith(`/${topicId}`));
-        if (alreadyExists) return;
-        items.push({ id: section.id, title: section.title, icon: topic.icon, type: "content", path: `/${topicId}#${section.id}`, parent: topic.title, subtopicCount: 0, difficulty: section.difficulty });
+      sections.forEach((sec) => {
+        items.push({
+          id: `${topicId}-${sec.id}`,
+          title: sec.title,
+          icon: "📄",
+          type: "content",
+          path: `/${topicId}#${sec.id}`,
+          parent: topicId.replace(/-/g, " "),
+          subtopicCount: 0,
+        });
       });
     });
 
-    systemDesignTopics.forEach((topic) => {
-      topic.questions.forEach((question) => {
-        items.push({ id: question.id, title: question.question, icon: topic.icon, type: "content", path: `/interview/java/system-design#${question.id}`, parent: `System Design — ${topic.title}`, subtopicCount: 0, difficulty: undefined });
-      });
-    });
     return items;
   }, []);
 
   const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return [];
-    const terms = q.split(/\s+/);
     return allSearchItems
-      .filter((i) => {
-        const text = `${i.title} ${i.parent || ''} ${i.id}`.toLowerCase();
-        return terms.every(t => text.includes(t));
-      })
-      .sort((a, b) => {
-        const aTitle = a.title.toLowerCase();
-        const bTitle = b.title.toLowerCase();
-        if (aTitle === q && bTitle !== q) return -1;
-        if (bTitle === q && aTitle !== q) return 1;
-        const aStarts = aTitle.startsWith(q) ? 0 : 1;
-        const bStarts = bTitle.startsWith(q) ? 0 : 1;
-        if (aStarts !== bStarts) return aStarts - bStarts;
-        const typePriority = { topic: 0, subtopic: 1, content: 2 };
-        return (typePriority[a.type] ?? 2) - (typePriority[b.type] ?? 2);
-      });
+      .filter((item) =>
+        item.title.toLowerCase().includes(q) ||
+        (item.parent && item.parent.toLowerCase().includes(q))
+      )
+      .slice(0, 15);
   }, [searchQuery, allSearchItems]);
 
-  const toggleTopic = (id: string) => setOpenTopics((prev) => ({ ...prev, [id]: !prev[id] }));
-  const isSubActive   = (topicId: string, subId: string) => currentPath === `/${topicId}` && currentHash === subId;
-  const isTopicActive = (topicId: string) => currentPath === `/${topicId}`;
+  const toggleTopic = (id: string) => {
+    setOpenTopics((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const isTopicActive = (id: string) => currentPath === `/${id}`;
+  const isSubActive = (topicId: string, subId: string) =>
+    currentPath === `/${topicId}` && currentHash === subId;
+
   const meta = modeMeta[currentMode.id as keyof typeof modeMeta] ?? modeMeta.ds;
 
   const navItems = [
-    { label: "Home",       Icon: Home,  path: "/" },
+    { label: "Home",       Icon: Home,   path: "/" },
+    { label: "Practice",   Icon: Layers, path: "/practice" },
     { label: "Contest",    Icon: Trophy, path: "/contest" },
-    { label: "Playground", Icon: Code2, path: "/playground" },
+    { label: "Playground", Icon: Code2,  path: "/playground" },
   ];
 
   return (
-    <div
-      className="flex flex-col h-full w-full border-r border-obsidian-border overflow-hidden"
-      style={{ background: "hsl(var(--obsidian-pane))" }}
-    >
-
+    <div className="flex flex-col h-full w-full border-r border-obsidian-border bg-obsidian-pane overflow-hidden">
       {/* ── Brand Header ──────────────────────────────────── */}
-      <div
-        className="relative flex items-center gap-2 px-3 py-3 flex-shrink-0"
-        style={{ borderBottom: "1px solid hsl(var(--obsidian-border))" }}
-      >
-        <div className="absolute inset-0 pointer-events-none opacity-40"
-          style={{ background: "radial-gradient(ellipse at 0% 50%, hsl(var(--obsidian-accent)/0.12) 0%, transparent 65%)" }} />
-        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-xl p-1 transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <span className="relative inline-flex h-9 w-9 flex-shrink-0 items-center justify-center">
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 rounded-[30%] bg-obsidian-accent/25 blur-[10px]"
-            />
-            <AlgoGuruMark size={34} title={null} className="relative" />
+      <div className="relative flex items-center gap-2 px-3 py-3 flex-shrink-0 border-b border-obsidian-border">
+        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-lg p-1 transition-colors hover:bg-foreground/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <span className="relative inline-flex h-8 w-8 flex-shrink-0 items-center justify-center">
+            <AlgoGuruMark size={30} title={null} className="relative" />
           </span>
           <div className="flex flex-col min-w-0">
-            <span className="font-display text-[14.5px] font-semibold tracking-[-0.02em] leading-tight truncate">
-              <span className="text-foreground">Algo</span>
-              <span className="text-obsidian-accent">Guru</span>
+            <span className="text-[14px] font-semibold tracking-tight leading-tight truncate">
+              <span className="text-foreground">AlgoGuru</span>
             </span>
             <span className={cn(
-              "inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border w-fit",
+              "inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded border w-fit",
               meta.badge
             )}>
               {meta.icon}
@@ -242,25 +181,24 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             onClick={onCollapse}
             aria-label="Collapse sidebar"
             aria-keyshortcuts="Alt+B"
-            className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-white/[0.04] text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <PanelLeft size={16} aria-hidden="true" />
+            <PanelLeft size={15} aria-hidden="true" />
           </button>
         </AppTooltip>
       </div>
 
       <div className="flex flex-col gap-0 px-0 py-0 overflow-y-auto overflow-x-hidden flex-1 min-h-0">
-
         {/* ── Search ─────────────────────────────────────── */}
         <div className="px-3 pt-3 pb-1">
           <div className={cn(
-            "relative rounded-xl border transition-all duration-200",
+            "relative rounded-lg border transition-all duration-150",
             searchFocused || searchQuery
-              ? "border-obsidian-accent/40 shadow-[0_0_0_3px_hsl(var(--obsidian-accent)/0.08)] bg-obsidian-void"
-              : "border-obsidian-border bg-white/[0.04] hover:border-obsidian-border"
+              ? "border-primary bg-obsidian-void"
+              : "border-obsidian-border bg-obsidian-elevated hover:border-obsidian-border"
           )}>
-            <div className="flex items-center gap-2 px-3 py-2.5">
-              <Search size={13} className={cn("flex-shrink-0 transition-colors", searchFocused ? "text-obsidian-accent" : "text-muted-foreground/55")} />
+            <div className="flex items-center gap-2 px-3 py-2">
+              <Search size={13} className={cn("flex-shrink-0 transition-colors", searchFocused ? "text-primary" : "text-muted-foreground")} />
               <input
                 ref={searchInputRef}
                 value={searchQuery}
@@ -268,23 +206,20 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
                 placeholder="Search topics, problems…"
-                className="flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-muted-foreground/45 text-foreground min-w-0"
+                className="flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-muted-foreground/60 text-foreground min-w-0"
               />
               <AnimatePresence>
                 {searchQuery ? (
-                  <motion.button
+                  <button
                     key="clear"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.12 }}
+                    type="button"
                     onClick={() => setSearchQuery("")}
-                    className="touch-manipulation flex-shrink-0 p-1 rounded-md hover:bg-white/[0.06] text-muted-foreground hover:text-foreground"
+                    className="touch-manipulation flex-shrink-0 p-1 rounded hover:bg-foreground/[0.05] text-muted-foreground hover:text-foreground"
                   >
                     <X size={12} />
-                  </motion.button>
+                  </button>
                 ) : (
-                  <kbd className="hidden sm:flex flex-shrink-0 items-center text-[9px] font-mono text-muted-foreground/35 border border-obsidian-border rounded px-1.5 py-0.5 select-none">
+                  <kbd className="hidden sm:flex flex-shrink-0 items-center text-[10px] font-mono text-muted-foreground border border-obsidian-border rounded px-1.5 py-0.5 select-none">
                     ⌘K
                   </kbd>
                 )}
@@ -293,52 +228,43 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
 
             <AnimatePresence>
               {searchQuery.trim() && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.15 }}
-                  className="border-t border-obsidian-border overflow-hidden rounded-b-xl"
-                  style={{ background: "hsl(var(--obsidian-elevated))" }}
+                <div
+                  className="border-t border-obsidian-border overflow-hidden rounded-b-lg bg-obsidian-elevated"
                 >
                   <div className="max-h-60 overflow-y-auto">
                     {searchResults.length === 0 ? (
                       <div className="flex flex-col items-center gap-2 py-5 text-center">
-                        <Search size={16} className="text-muted-foreground/25" />
-                        <p className="text-[11.5px] text-muted-foreground/55">No results for "<span className="text-foreground/60">{searchQuery}</span>"</p>
+                        <Search size={16} className="text-muted-foreground/40" />
+                        <p className="text-[12px] text-muted-foreground">No results for "{searchQuery}"</p>
                       </div>
                     ) : (
-                      searchResults.slice(0, 18).map((item) => {
-                        const topicId = item.path.split("/")[1]?.split("#")[0] ?? "";
-                        const color = getTopicColor(topicId);
-                        return (
-                          <button
-                            key={item.path}
-                            onClick={() => { navigate(item.path); setSearchQuery(""); }}
-                            className="touch-manipulation w-full flex items-center gap-2.5 px-3 py-2 min-h-[38px] text-left transition-colors hover:bg-white/[0.04] border-b border-white/[0.04] last:border-0 group"
+                      searchResults.slice(0, 18).map((item) => (
+                        <button
+                          key={item.path}
+                          type="button"
+                          onClick={() => { navigate(item.path); setSearchQuery(""); }}
+                          className="touch-manipulation w-full flex items-center gap-2.5 px-3 py-2 min-h-[38px] text-left transition-colors hover:bg-foreground/[0.05] border-b border-obsidian-border last:border-0 group"
+                        >
+                          <div
+                            className="w-6 h-6 rounded-md flex items-center justify-center text-[12px] flex-shrink-0 border border-obsidian-border bg-obsidian-pane text-foreground"
                           >
-                            <div
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-[13px] flex-shrink-0 border"
-                              style={{ background: `${color.from}12`, borderColor: `${color.from}25`, color: color.text }}
-                            >
-                              {item.icon}
+                            {item.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex min-w-0 items-center gap-1.5">
+                              <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-foreground group-hover:text-primary transition-colors" title={item.title}>{item.title}</span>
+                              {item.difficulty && <DifficultyPill difficulty={item.difficulty} />}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex min-w-0 items-center gap-1.5">
-                                <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-foreground group-hover:text-obsidian-accent transition-colors" title={item.title}>{item.title}</span>
-                                {item.difficulty && <DifficultyPill difficulty={item.difficulty} />}
-                              </div>
-                              {item.parent && (
-                                <div className="text-[10px] text-muted-foreground/55 mt-0.5 truncate" title={item.parent}>{item.parent}</div>
-                              )}
-                            </div>
-                            <ChevronRight size={11} className="text-muted-foreground/25 group-hover:text-obsidian-accent/50 flex-shrink-0 transition-colors" />
-                          </button>
-                        );
-                      })
+                            {item.parent && (
+                              <div className="text-[11px] text-muted-foreground mt-0.5 truncate" title={item.parent}>{item.parent}</div>
+                            )}
+                          </div>
+                          <ChevronRight size={11} className="text-muted-foreground group-hover:text-foreground flex-shrink-0 transition-colors" />
+                        </button>
+                      ))
                     )}
                   </div>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
           </div>
@@ -351,20 +277,21 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             return (
               <button
                 key={path}
+                type="button"
                 onClick={() => navigate(path)}
                 className={cn(
-                  "touch-manipulation flex items-center gap-2.5 w-full min-w-0 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group",
+                  "touch-manipulation flex items-center gap-2.5 w-full min-w-0 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150 group",
                   isActive
-                    ? "bg-obsidian-accent/10 text-obsidian-accent"
-                    : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
+                    ? "bg-foreground/[0.06] text-foreground"
+                    : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
                 )}
               >
-                <span className={cn("flex items-center justify-center w-5 h-5 transition-all", isActive ? "text-obsidian-accent" : "text-muted-foreground/65 group-hover:text-foreground")}>
+                <span className={cn("flex items-center justify-center w-5 h-5 transition-colors", isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
                   <Icon size={15} />
                 </span>
                 <span className="min-w-0 flex-1 truncate text-left" title={label}>{label}</span>
                 {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-obsidian-accent" style={{ boxShadow: "0 0 6px hsl(var(--obsidian-accent)/0.8)" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground" />
                 )}
               </button>
             );
@@ -373,11 +300,11 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
 
         {/* ── Section divider ─────────────────────────────── */}
         <div className="mx-3 mt-3 mb-1.5 flex items-center gap-2">
-          <div className="flex-1 h-px bg-border/40" />
-          <span className="text-[9.5px] font-semibold uppercase tracking-widest text-muted-foreground/45 select-none">
+          <div className="flex-1 h-px bg-obsidian-border" />
+          <span className="text-[11px] font-medium text-muted-foreground select-none">
             {currentMode.id === "ds" ? "Topics" : currentMode.id === "lang" ? "Modules" : "Practice"}
           </span>
-          <div className="flex-1 h-px bg-border/40" />
+          <div className="flex-1 h-px bg-obsidian-border" />
         </div>
 
         {/* ── Topic Tree ─────────────────────────────────── */}
@@ -386,31 +313,23 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             {activeTopics.map((topic) => {
               const isOpen   = openTopics[topic.id];
               const isActive = isTopicActive(topic.id);
-              const color    = getTopicColor(topic.id);
 
               return (
                 <SidebarMenuItem key={topic.id}>
                   <SidebarMenuButton asChild className="h-auto p-0">
                     <button
+                      type="button"
                       onClick={() => { toggleTopic(topic.id); navigate(`/${topic.id}`); }}
                       className={cn(
-                        "touch-manipulation flex items-center justify-between w-full min-w-0 gap-2 overflow-hidden px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group",
+                        "touch-manipulation flex items-center justify-between w-full min-w-0 gap-2 overflow-hidden px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150 group",
                         isActive
-                          ? "bg-white/[0.08] text-foreground"
-                          : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                          ? "bg-foreground/[0.06] text-foreground"
+                          : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
                       )}
                     >
                       <div className="flex flex-1 items-center gap-2.5 min-w-0">
                         <div
-                          className="flex items-center justify-center w-7 h-7 rounded-lg text-[13px] flex-shrink-0 border transition-all duration-200"
-                          style={{
-                            background: isActive
-                              ? `linear-gradient(135deg, ${color.from}20, ${color.to}18)`
-                              : `${color.from}0e`,
-                            borderColor: isActive ? `${color.from}38` : `${color.from}18`,
-                            color: color.text,
-                            boxShadow: isActive ? `0 0 10px ${color.glow}` : "none",
-                          }}
+                          className="flex items-center justify-center w-7 h-7 rounded-md text-[13px] flex-shrink-0 border border-obsidian-border bg-obsidian-elevated text-foreground/80 transition-colors"
                         >
                           {topic.icon}
                         </div>
@@ -419,10 +338,10 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <span className="text-[10px] text-muted-foreground/35 font-mono tabular-nums">{topic.subtopics.length}</span>
+                        <span className="text-[11px] text-muted-foreground tabular-nums">{topic.subtopics.length}</span>
                         <ChevronDown
                           size={13}
-                          className={cn("transition-transform duration-200 text-muted-foreground/35", isOpen && "rotate-180")}
+                          className={cn("transition-transform duration-150 text-muted-foreground", isOpen && "rotate-180")}
                         />
                       </div>
                     </button>
@@ -435,12 +354,11 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                        transition={{ duration: 0.15 }}
                         className="overflow-hidden"
                       >
                         <SidebarMenuSub
-                          className="ml-3.5 mt-1 pl-3 space-y-0.5"
-                          style={{ borderLeft: `1.5px solid ${color.from}28` }}
+                          className="ml-3.5 mt-1 pl-3 space-y-0.5 border-l border-obsidian-border"
                         >
                           {topic.subtopics.map((sub) => {
                             const active = isSubActive(topic.id, sub.id);
@@ -449,17 +367,17 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                                 <SidebarMenuSubButton asChild className="h-auto p-0">
                                   <AppTooltip content={sub.title} side="right">
                                     <button
+                                      type="button"
                                       onClick={() => navigate(`/${topic.id}#${sub.id}`)}
                                       className={cn(
-                                        "touch-manipulation flex items-center gap-2.5 w-full px-2.5 py-1.5 min-h-[34px] rounded-lg text-[12px] font-medium transition-all duration-100 text-left group",
+                                        "touch-manipulation flex items-center gap-2.5 w-full px-2.5 py-1.5 min-h-[32px] rounded-md text-[12px] font-medium transition-colors text-left group",
                                         active
-                                          ? "text-foreground bg-white/[0.06]"
-                                          : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                                          ? "text-foreground bg-foreground/[0.06]"
+                                          : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
                                       )}
                                     >
                                       <span
-                                        className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-200", active ? "scale-110" : "opacity-25 group-hover:opacity-55")}
-                                        style={{ background: active ? color.from : "currentColor" }}
+                                        className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors", active ? "bg-foreground" : "bg-muted-foreground/40 group-hover:bg-muted-foreground")}
                                       />
                                       <span className="min-w-0 flex-1 truncate leading-snug">{sub.title}</span>
                                     </button>
@@ -481,43 +399,35 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
         <div className="flex-1" />
 
         {/* ── User Profile Footer ────────────────────────── */}
-        <div className="mx-3 mb-3 mt-2 rounded-xl border border-obsidian-border bg-white/[0.03] overflow-hidden">
+        <div className="mx-3 mb-3 mt-2 rounded-lg border border-obsidian-border bg-obsidian-elevated overflow-hidden">
           <div className="flex items-center gap-2.5 px-3 py-2.5">
             <div className="relative flex-shrink-0">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt=""
-                  className="w-9 h-9 rounded-xl object-cover"
-                  style={{ border: "2px solid hsl(var(--obsidian-accent)/0.28)", boxShadow: "0 0 10px hsl(var(--obsidian-accent)/0.18)" }}
+                  className="w-8 h-8 rounded-lg object-cover border border-obsidian-border"
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
               ) : (
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(var(--obsidian-accent)/0.85), hsl(var(--obsidian-accent)/0.45))",
-                    border: "2px solid hsl(var(--obsidian-accent)/0.28)",
-                    boxShadow: "0 0 10px hsl(var(--obsidian-accent)/0.18)",
-                    color: "hsl(0 0% 100%)",
-                  }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold border border-obsidian-border bg-obsidian-pane text-foreground"
                 >
                   {userName[0]?.toUpperCase()}
                 </div>
               )}
               <span
-                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-card"
-                style={{ boxShadow: "0 0 6px rgba(16,185,129,0.7)" }}
+                className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-obsidian-elevated"
               />
             </div>
 
             <div className="flex-1 min-w-0">
               <AppTooltip content={userName} side="top" align="start">
-                <div className="text-[13px] font-semibold truncate text-foreground leading-tight">{userName}</div>
+                <div className="text-[13px] font-medium truncate text-foreground leading-tight">{userName}</div>
               </AppTooltip>
               <AppTooltip content={user?.email ?? ""} side="top" align="start">
-                <div className="text-[10.5px] text-muted-foreground/65 truncate mt-0.5 leading-tight">
+                <div className="text-[11px] text-muted-foreground truncate mt-0.5 leading-tight">
                   {user?.email?.split("@")[0]}
                 </div>
               </AppTooltip>
@@ -525,9 +435,10 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
 
             <AppTooltip content="Sign out">
               <button
+                type="button"
                 onClick={signOut}
                 aria-label="Sign out"
-                className="touch-manipulation p-2 rounded-lg transition-all duration-150 hover:bg-destructive/10 text-muted-foreground/55 hover:text-destructive group"
+                className="touch-manipulation p-1.5 rounded-md transition-colors hover:bg-destructive/10 text-muted-foreground hover:text-destructive group"
               >
                 <LogOut size={14} className="group-hover:translate-x-0.5 transition-transform duration-150" />
               </button>
@@ -536,7 +447,6 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
         </div>
 
       </div>
-
     </div>
   );
 }

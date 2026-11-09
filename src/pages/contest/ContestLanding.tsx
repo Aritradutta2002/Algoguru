@@ -12,7 +12,7 @@ import {
   ListChecks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { PageContainer } from "@/components/layout/PagePrimitives";
 import { MCQ_QUESTIONS } from "@/lib/mcqQuizBank";
 import { QUIZ_LENGTH, getQuizLanguages } from "@/lib/quizBank";
 import {
@@ -20,7 +20,6 @@ import {
   CODING_CONTEST_DURATION_LABEL,
 } from "@/lib/contest/config";
 import { PUBLIC_JAVA_PROBLEMS } from "@/lib/codingContest/javaProblemBank";
-import { cn } from "@/lib/utils";
 
 /**
  * Contest landing page.
@@ -66,7 +65,6 @@ function ModeCard({
   to,
   busy,
   disabledHint,
-  accent,
 }: {
   icon: typeof Shuffle;
   eyebrow: string;
@@ -77,32 +75,27 @@ function ModeCard({
   to: string;
   busy?: boolean;
   disabledHint?: string;
-  accent: "primary" | "secondary";
+  accent?: "primary" | "secondary";
 }) {
   return (
     <section
       aria-labelledby={`${to.replace(/\W/g, "")}-title`}
-      className="spotlight-card premium-card premium-card-hover flex h-full flex-col p-6 focus-within:border-primary/60 sm:p-7"
+      className="flex h-full flex-col rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 transition-colors hover:bg-obsidian-elevated/50 sm:p-7"
     >
       <div className="flex items-center gap-3">
         <span
-          className={cn(
-            "inline-flex h-11 w-11 items-center justify-center rounded-2xl",
-            accent === "primary"
-              ? "bg-primary/10 text-primary"
-              : "bg-secondary text-secondary-foreground",
-          )}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-foreground"
         >
           <Icon aria-hidden="true" className="h-5 w-5" />
         </span>
-        <Badge variant="outline" className="font-normal">
+        <span className="lp-chip">
           {eyebrow}
-        </Badge>
+        </span>
       </div>
 
       <h2
         id={`${to.replace(/\W/g, "")}-title`}
-        className="mt-4 font-display text-2xl font-semibold tracking-tight"
+        className="mt-4 text-xl font-semibold tracking-[-0.02em] text-foreground sm:text-2xl"
       >
         {title}
       </h2>
@@ -110,7 +103,7 @@ function ModeCard({
         {purpose}
       </p>
 
-      <div className="mt-5 flex-1 border-t border-border pt-5">
+      <div className="mt-5 flex-1 border-t border-obsidian-border pt-5">
         <FactList items={facts} />
       </div>
 
@@ -119,12 +112,12 @@ function ModeCard({
           <div
             role="status"
             aria-live="polite"
-            className="h-11 w-full animate-pulse rounded-xl bg-muted"
+            className="h-10 w-full animate-pulse rounded-lg bg-obsidian-elevated"
           >
             <span className="sr-only">Checking availability…</span>
           </div>
         ) : (
-          <Button asChild size="lg" className="w-full">
+          <Button asChild size="default" className="w-full">
             <Link to={to}>
               {actionLabel}
               <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
@@ -151,37 +144,30 @@ export function ContestLanding() {
     CODING_PROBLEM_COUNT < CODING_CONTEST_CONFIG.minProblems;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <header className="relative overflow-hidden rounded-[2rem] border border-border/80 bg-card px-6 py-10 shadow-overlay sm:px-10 sm:py-12">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,hsl(var(--primary)/0.14),transparent_42%),radial-gradient(circle_at_8%_100%,hsl(var(--accent)/0.08),transparent_35%)]" />
-          <div className="absolute inset-0 bg-grid opacity-35" />
-          <div className="aurora-blob -right-10 -top-20 h-64 w-64 bg-primary/10" />
-          <div className="bg-noise absolute inset-0" />
-        </div>
-
-        <div className="relative">
-          <Badge variant="secondary" className="border border-primary/15 bg-primary/10 font-medium text-primary">
-            <Trophy aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
+    <PageContainer className="py-10 md:py-14">
+      <header className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 sm:p-8">
+        <div>
+          <p className="lp-kicker mb-3">
+            <Trophy aria-hidden="true" className="inline mr-1.5 h-3.5 w-3.5" />
             Assessment
-          </Badge>
-          <h1 className="mt-4 font-display text-4xl font-bold tracking-[-0.045em] sm:text-5xl">
+          </p>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-foreground sm:text-4xl">
             Contest
           </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted-foreground">
+          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground">
             Two ways to be assessed: a randomized multiple-choice quiz, or a
             timed Java coding exam. Both run in a mandatory fullscreen
             examination environment and both warn you when you look away.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/50 px-2.5 py-1 text-[10.5px] font-medium text-muted-foreground backdrop-blur-sm">
-              <Shuffle size={11} className="text-primary" /> {MCQ_QUESTION_COUNT} MCQ bank
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-obsidian-border bg-obsidian-elevated px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              <Shuffle size={12} className="text-primary" /> {MCQ_QUESTION_COUNT} MCQ bank
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/50 px-2.5 py-1 text-[10.5px] font-medium text-muted-foreground backdrop-blur-sm">
-              <Code2 size={11} className="text-primary" /> {CODING_CONTEST_DURATION_LABEL} coding
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-obsidian-border bg-obsidian-elevated px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              <Code2 size={12} className="text-primary" /> {CODING_CONTEST_DURATION_LABEL} coding
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10.5px] font-medium text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 size={11} /> Auto-graded
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-500">
+              <CheckCircle2 size={12} /> Auto-graded
             </span>
           </div>
         </div>
@@ -275,11 +261,11 @@ export function ContestLanding() {
 
       <section
         aria-labelledby="contest-shared-rules"
-        className="premium-card mt-8 p-6 sm:p-7"
+        className="mt-8 rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 sm:p-7"
       >
         <h2
           id="contest-shared-rules"
-          className="font-display text-lg font-semibold tracking-tight"
+          className="text-lg font-semibold tracking-[-0.02em] text-foreground"
         >
           How both modes work
         </h2>
@@ -287,7 +273,7 @@ export function ContestLanding() {
           <div className="flex gap-3">
             <MonitorPlay aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-medium">Fullscreen is mandatory</p>
+              <p className="text-sm font-medium text-foreground">Fullscreen is mandatory</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Neither mode starts its clock until the browser is actually in
                 fullscreen.
@@ -297,7 +283,7 @@ export function ContestLanding() {
           <div className="flex gap-3">
             <ListChecks aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-medium">Look away and you are warned</p>
+              <p className="text-sm font-medium text-foreground">Look away and you are warned</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Leaving fullscreen, switching tabs or blurring the window counts
                 as a warning.
@@ -307,7 +293,7 @@ export function ContestLanding() {
           <div className="flex gap-3">
             <Clock3 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-medium">Timeout submits for you</p>
+              <p className="text-sm font-medium text-foreground">Timeout submits for you</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 When the clock runs out your work is submitted automatically and
                 the exam closes.
@@ -320,7 +306,7 @@ export function ContestLanding() {
           {CODING_PROBLEM_COUNT} coding problems are currently published.
         </p>
       </section>
-    </div>
+    </PageContainer>
   );
 }
 

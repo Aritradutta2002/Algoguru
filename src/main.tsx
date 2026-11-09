@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./styles/ui.css";
 
 /**
  * Fade the static pre-hydration splash out once React takes over. It lives as a

@@ -290,7 +290,7 @@ export default function InterviewCoreJavaQuestionsPage() {
   const [noteDraft, setNoteDraft] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { setOpen: setGlobalSidebarOpen } = useSidebar();
+  const { setOpen: setGlobalSidebarOpen, toggleSidebar } = useSidebar();
   const sidebarWasOpen = useRef<boolean | null>(null);
 
   // SEO title
@@ -618,7 +618,7 @@ export default function InterviewCoreJavaQuestionsPage() {
               {/* Global sidebar toggle */}
               <AppTooltip content="Toggle App Sidebar">
                 <button
-                  onClick={() => setGlobalSidebarOpen((prev) => !prev)}
+                  onClick={toggleSidebar}
                   className="cjq-toolbar-btn w-9 h-9 rounded-full flex items-center justify-center border shrink-0 transition-all"
                   aria-label="Toggle App Sidebar"
                 >

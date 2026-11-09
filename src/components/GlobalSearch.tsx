@@ -467,7 +467,7 @@ export function GlobalSearch({
           >
             {/* Vignette: a radial wash instead of a flat scrim, so the
                 spotlight falls on the palette rather than the whole page. */}
-            <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,hsl(var(--primary)/0.10),transparent_60%)] bg-slate-950/55 backdrop-blur-[6px] dark:bg-slate-950/70" />
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.97, y: -10 }}

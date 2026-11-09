@@ -45,10 +45,10 @@ function FileRow({
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
         active
-          ? "bg-obsidian-accent/[0.12] text-obsidian-accent"
-          : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+          ? "bg-foreground/[0.08] text-foreground"
+          : "text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground",
       )}
     >
       <Icon size={13} aria-hidden="true" />
@@ -72,14 +72,14 @@ export function ObsidianVaultTree({
     >
       <div className="flex items-center justify-between gap-2 border-b border-obsidian-border px-3.5 py-3">
         <div className="min-w-0">
-          <p className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70">
+          <p className="text-xs font-medium text-muted-foreground">
             Vault
           </p>
           <p className="mt-0.5 truncate font-mono text-[11px] text-foreground/80">
             algoguru / practice
           </p>
         </div>
-        <span className="rounded-md border border-obsidian-border bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+        <span className="rounded-md border border-obsidian-border bg-foreground/[0.04] px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
           4 files
         </span>
       </div>
@@ -92,7 +92,7 @@ export function ObsidianVaultTree({
               className="shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
               aria-hidden="true"
             />
-            <FolderOpen size={13} className="shrink-0 text-obsidian-accent" aria-hidden="true" />
+            <FolderOpen size={13} className="shrink-0 text-primary" aria-hidden="true" />
             <span className="truncate">practice</span>
           </summary>
           <div className="ml-3 border-l border-obsidian-border pl-1.5">

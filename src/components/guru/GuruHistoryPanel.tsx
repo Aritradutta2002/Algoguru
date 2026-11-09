@@ -84,7 +84,7 @@ export function GuruHistoryPanel({
               <ArrowLeft size={14} />
             </GuruIconButton>
           )}
-          <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-guru-muted">
+          <h3 className="text-xs font-semibold text-guru-muted">
             History
           </h3>
           <span className="rounded-full bg-guru-text/[0.06] px-1.5 py-px text-[10px] tabular-nums text-guru-muted">
@@ -130,7 +130,7 @@ export function GuruHistoryPanel({
         ) : (
           groups.map((group) => (
             <div key={group.label} className="mb-2.5">
-              <p className="px-1.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-guru-muted/70">
+              <p className="px-1.5 py-1 text-xs font-medium text-guru-muted/70">
                 {group.label}
               </p>
               <ul className="space-y-0.5">

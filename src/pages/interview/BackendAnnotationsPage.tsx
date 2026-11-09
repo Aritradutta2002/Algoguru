@@ -76,7 +76,7 @@ function AnnotationRow({ entry }: { entry: AnnotationEntry }) {
           >
             <div className="space-y-3 border-t border-border/40 px-4 py-4">
               <div>
-                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
                   <Cog className="h-3 w-3" />
                   How it works internally
                 </p>
@@ -91,7 +91,7 @@ function AnnotationRow({ entry }: { entry: AnnotationEntry }) {
 
               {entry.gotcha && (
                 <div className="rounded-lg border border-warning/25 bg-warning/5 p-3">
-                  <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-warning">
+                  <p className="flex items-center gap-1.5 text-[13px] font-medium text-warning">
                     <AlertTriangle className="h-3 w-3" />
                     Gotcha
                   </p>
@@ -178,7 +178,7 @@ export default function BackendAnnotationsPage() {
         </nav>
 
         <header className="mb-5">
-          <h1 className="flex items-center gap-2 text-2xl font-black text-foreground sm:text-3xl">
+          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl">
             <Tag className="h-6 w-6 text-primary" />
             Annotation Reference
           </h1>

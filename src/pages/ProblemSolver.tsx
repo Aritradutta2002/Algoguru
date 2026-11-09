@@ -429,7 +429,7 @@ function CodeBlockActions({
         <button
           onClick={() => onInsert(codeText)}
           title="Insert this solution into the code editor"
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors text-zinc-400 hover:text-zinc-100 hover:bg-foreground/[0.08]"
         >
           <CornerDownLeft size={13} />
           Insert into editor
@@ -442,7 +442,7 @@ function CodeBlockActions({
           setTimeout(() => setCopied(false), 2000);
         }}
         className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
-          copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.08]"
+          copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-foreground/[0.08]"
         }`}
       >
         {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
@@ -687,6 +687,12 @@ function CodeEditorPane({
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
   const [codeLoaded, setCodeLoaded] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const buildTestTabs = useCallback((raw?: string, snippet?: string | null) => {

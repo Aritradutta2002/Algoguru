@@ -151,7 +151,7 @@ export default function BackendQuestionDetailPage() {
                 )}
               </div>
 
-              <h1 className="cjq-detail-title text-2xl font-black leading-tight text-foreground sm:text-3xl">
+              <h1 className="cjq-detail-title text-2xl font-semibold tracking-[-0.02em] leading-tight text-foreground sm:text-3xl">
                 {question.question}
               </h1>
 
@@ -311,7 +311,7 @@ export default function BackendQuestionDetailPage() {
                       className="group rounded-xl border border-border/50 bg-card/70 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="text-[13px] font-medium text-muted-foreground">
                           {problem.difficulty} · {problem.estimatedMinutes} min
                         </span>
                         <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
@@ -358,7 +358,7 @@ export default function BackendQuestionDetailPage() {
                   to={`${BACKEND_QUESTIONS_PATH}/${neighbours.previous.slug}`}
                   className="group rounded-xl border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
                 >
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
                     <ArrowLeft className="h-3 w-3" />
                     Previous
                   </span>
@@ -374,7 +374,7 @@ export default function BackendQuestionDetailPage() {
                   to={`${BACKEND_QUESTIONS_PATH}/${neighbours.next.slug}`}
                   className="group rounded-xl border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
                 >
-                  <span className="flex items-center justify-end gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="flex items-center justify-end gap-1.5 text-[13px] font-medium text-muted-foreground">
                     Next
                     <ArrowRight className="h-3 w-3" />
                   </span>
@@ -389,7 +389,7 @@ export default function BackendQuestionDetailPage() {
           {/* TOC */}
           <aside className="hidden w-56 shrink-0 lg:block">
             <div className="sticky top-6">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="mb-2 text-[13px] font-medium text-muted-foreground">
                 On this page
               </p>
               <ul className="space-y-0.5 border-l border-border/50">

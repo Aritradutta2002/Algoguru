@@ -1,29 +1,11 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   Home landing page
-   One neutral surface ramp, hairline borders, a single accent used sparingly
-   and a high-contrast primary action. Every value resolves through theme
-   tokens so day and night mode stay in parity.
+   Home landing page (home-specific styles)
    ───────────────────────────────────────────────────────────────────────── */
 
 .landing-page {
-  --lp-bg: var(--obsidian-void);
-  --lp-surface: var(--obsidian-pane);
-  --lp-raised: var(--obsidian-elevated);
-  --lp-line: var(--obsidian-border);
-  --lp-accent: var(--primary);
-  --lp-success: 152 60% 34%;
-
   container-type: inline-size;
   background: hsl(var(--lp-bg));
   font-family: var(--font-sans);
-}
-
-.dark .landing-page {
-  --lp-success: 156 62% 52%;
-}
-
-.lp-success {
-  color: hsl(var(--lp-success));
 }
 
 .landing-page :is(h1, h2, h3, h4) {
@@ -40,141 +22,13 @@
   outline-offset: 2px;
 }
 
-/* ── Layout ───────────────────────────────────────────────────────────── */
-
-.lp-container {
-  width: 100%;
-  /* Matches the app header container (max-w-7xl, px-3 / sm:px-6) so the
-     logo, headline and footer share one left edge. */
-  max-width: 80rem;
-  margin-inline: auto;
-  padding-inline: 1.25rem;
-}
-
-@media (min-width: 640px) {
-  .lp-container {
-    padding-inline: 1.5rem;
-  }
-}
-
-.lp-section {
-  padding-block: 5rem;
-}
-
-@media (min-width: 768px) {
-  .lp-section {
-    padding-block: 7rem;
-  }
-}
-
-.lp-band {
-  border-block: 1px solid hsl(var(--lp-line));
-  background: hsl(var(--lp-surface));
-}
-
-.lp-split {
-  display: grid;
-  gap: 3rem;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-@container (min-width: 1000px) {
-  .lp-split {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: 4rem;
-    align-items: start;
-  }
-
-  .lp-split--even {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
-  }
-}
-
-/* ── Type ─────────────────────────────────────────────────────────────── */
-
-.lp-kicker {
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25rem;
-  color: hsl(var(--lp-accent));
-}
+/* ── Typography ───────────────────────────────────────────────────────── */
 
 .lp-h1 {
   font-size: clamp(2.5rem, 1.55rem + 3.4cqi, 4.25rem);
   line-height: 1.04;
   letter-spacing: -0.04em;
   text-wrap: balance;
-}
-
-.lp-h2 {
-  font-size: clamp(1.875rem, 1.35rem + 1.7cqi, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.032em;
-  text-wrap: balance;
-}
-
-.lp-lead {
-  font-size: 1.0625rem;
-  line-height: 1.7;
-  color: hsl(var(--muted-foreground));
-  text-wrap: pretty;
-}
-
-/* ── Actions ──────────────────────────────────────────────────────────── */
-
-.lp-btn {
-  display: inline-flex;
-  min-height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border: 1px solid transparent;
-  border-radius: 0.5rem;
-  padding: 0 1.125rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.landing-primary {
-  background: hsl(var(--foreground));
-  color: hsl(var(--background));
-}
-
-.landing-primary:hover {
-  background: hsl(var(--foreground) / 0.86);
-}
-
-.lp-btn-secondary {
-  border-color: hsl(var(--lp-line));
-  background: hsl(var(--lp-surface));
-  color: hsl(var(--foreground));
-}
-
-.lp-btn-secondary:hover {
-  border-color: hsl(var(--muted-foreground) / 0.45);
-  background: hsl(var(--lp-raised));
-}
-
-.lp-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: hsl(var(--foreground));
-  transition: color 0.15s ease;
-}
-
-.lp-link:hover {
-  color: hsl(var(--lp-accent));
 }
 
 @media (max-width: 479px) {
@@ -245,59 +99,7 @@
   }
 }
 
-/* ── Product frame (hero + demo) ──────────────────────────────────────── */
-
-.lp-frame {
-  overflow: hidden;
-  border: 1px solid hsl(var(--lp-line));
-  border-radius: 0.875rem;
-  background: hsl(var(--lp-surface));
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.25),
-    0 32px 80px -24px rgb(0 0 0 / 0.6);
-}
-
-:root:not(.dark) .lp-frame {
-  box-shadow:
-    0 1px 2px rgb(15 23 42 / 0.05),
-    0 28px 64px -28px rgb(15 23 42 / 0.2);
-}
-
-.lp-frame-bar {
-  display: flex;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.75rem;
-  border-bottom: 1px solid hsl(var(--lp-line));
-  background: hsl(var(--lp-raised));
-  padding: 0 0.875rem;
-}
-
-.lp-dot {
-  height: 0.625rem;
-  width: 0.625rem;
-  border-radius: 9999px;
-  background: hsl(var(--muted-foreground) / 0.28);
-}
-
-.lp-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border: 1px solid hsl(var(--lp-line));
-  border-radius: 0.375rem;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  line-height: 1.125rem;
-  color: hsl(var(--muted-foreground));
-}
-
-.lp-chip-success {
-  border-color: hsl(var(--lp-success) / 0.3);
-  background: hsl(var(--lp-success) / 0.08);
-  color: hsl(var(--lp-success));
-}
+/* ── Hero workspace preview ───────────────────────────────────────────── */
 
 .lp-frame-body {
   display: grid;
@@ -385,13 +187,6 @@
   inset: auto 0 -1px;
   height: 1px;
   background: inherit;
-}
-
-.lp-progress {
-  height: 0.25rem;
-  overflow: hidden;
-  border-radius: 9999px;
-  background: hsl(var(--foreground) / 0.08);
 }
 
 .hero-goal-fill {
@@ -491,104 +286,10 @@
   }
 }
 
-/* ── Demo tabs ────────────────────────────────────────────────────────── */
-
-.lp-tab {
-  position: relative;
-  display: inline-flex;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.875rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  transition: color 0.15s ease;
-}
-
-.lp-tab:hover {
-  color: hsl(var(--foreground));
-}
-
-.lp-tab[aria-selected="true"] {
-  color: hsl(var(--foreground));
-}
-
-.lp-tab[aria-selected="true"]::after {
-  content: "";
-  position: absolute;
-  inset: auto 0.5rem -1px;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: hsl(var(--foreground));
-}
+/* ── Demo ─────────────────────────────────────────────────────────────── */
 
 .demo-pane {
   min-height: 22rem;
-}
-
-.lp-well {
-  border: 1px solid hsl(var(--lp-line));
-  border-radius: 0.5rem;
-  background: hsl(var(--lp-bg));
-}
-
-:root:not(.dark) .lp-well {
-  background: hsl(var(--muted) / 0.45);
-}
-
-/* ── Learning-path grid ───────────────────────────────────────────────── */
-
-.lp-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid hsl(var(--lp-line));
-  border-radius: 0.875rem;
-  background: hsl(var(--lp-line));
-}
-
-@container (min-width: 640px) {
-  .lp-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@container (min-width: 960px) {
-  .lp-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.lp-cell {
-  background: hsl(var(--lp-bg));
-  transition: background-color 0.15s ease;
-}
-
-.lp-cell:hover {
-  background: hsl(var(--lp-surface));
-}
-
-.lp-icon {
-  display: inline-flex;
-  height: 2.25rem;
-  width: 2.25rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid hsl(var(--lp-line));
-  border-radius: 0.5rem;
-  background: hsl(var(--lp-surface));
-  color: hsl(var(--foreground) / 0.8);
-}
-
-.lp-cell:hover .lp-icon {
-  background: hsl(var(--lp-raised));
-}
-
-.lp-list > * + * {
-  border-top: 1px solid hsl(var(--lp-line));
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────────── */
@@ -602,36 +303,3 @@
     scroll-behavior: auto !important;
   }
 }
-
-/* ─────────────────────────────────────────────────────────────────────────
-   Shared surface overrides
-   This stylesheet loads with the home route and stays applied afterwards, so
-   other routes have come to rely on these Obsidian card and dock values.
-   They are kept as-is.
-   ───────────────────────────────────────────────────────────────────────── */
-
-.premium-card {
-  background: hsl(var(--obsidian-pane));
-  border-color: hsl(var(--obsidian-border));
-  box-shadow:
-    inset 0 1px 0 hsl(var(--obsidian-specular)),
-    0 24px 70px -36px rgb(0 0 0 / 0.9);
-}
-
-.spotlight-card::before {
-  background: radial-gradient(
-    480px circle at var(--spot-x, 50%) var(--spot-y, 0%),
-    hsl(var(--obsidian-accent) / 0.15),
-    transparent 46%
-  );
-}
-
-.nav-glass,
-.mobile-dock {
-  background: hsl(var(--obsidian-elevated) / 0.86);
-  border-color: hsl(var(--obsidian-border));
-  box-shadow:
-    inset 0 1px 0 hsl(var(--obsidian-specular)),
-    0 20px 45px -18px rgb(0 0 0 / 0.75);
-}
-

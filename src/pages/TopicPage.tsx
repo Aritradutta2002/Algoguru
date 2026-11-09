@@ -189,8 +189,8 @@ export default function TopicPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="relative z-10 px-4 md:px-10 lg:px-16 py-12 md:py-20">
-            <div className="flex items-center gap-2 mb-5 text-xs font-medium text-muted-foreground">
+          <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 py-10 md:py-14">
+            <div className="flex items-center gap-2 mb-4 text-xs font-medium text-muted-foreground">
               <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/")}>
                 Home
               </span>
@@ -200,13 +200,13 @@ export default function TopicPage() {
 
             <div className="flex flex-col md:flex-row md:items-center gap-5">
               <div
-                className="flex items-center justify-center w-14 h-14 rounded-2xl text-2xl font-semibold border shrink-0"
+                className="flex items-center justify-center w-12 h-12 rounded-[0.875rem] text-xl font-semibold border shrink-0"
                 style={{ background: `${color}10`, borderColor: `${color}25`, color: color }}
               >
                 {topic.icon}
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-[-0.035em] text-foreground">
+                <h1 className="text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-4xl">
                   {topic.title}
                 </h1>
                 <div className="flex flex-wrap items-center justify-between gap-4 mt-3">
@@ -224,7 +224,7 @@ export default function TopicPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="inline-flex items-center rounded-lg border border-border bg-card/70 backdrop-blur-sm p-0.5 shadow-sm">
+                    <div className="inline-flex items-center rounded-lg border border-obsidian-border bg-obsidian-pane p-0.5">
                       <AppTooltip content="Smaller text">
                         <button
                           onClick={decreaseFontSize}
@@ -344,7 +344,7 @@ export default function TopicPage() {
 
       {/* Right TOC */}
       <div className="hidden xl:flex flex-col w-56 flex-shrink-0 border-l border-border sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-8 px-5">
-        <div className="text-[11px] font-semibold uppercase tracking-wider mb-4 text-muted-foreground">
+        <div className="text-[13px] font-medium mb-3 text-muted-foreground">
           On this page
         </div>
         <nav className="space-y-0.5">

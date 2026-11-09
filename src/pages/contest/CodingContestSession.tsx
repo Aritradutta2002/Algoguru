@@ -810,7 +810,7 @@ export function CodingContestSession() {
           aria-hidden="true"
           className="h-8 w-8 text-destructive"
         />
-        <h1 className="font-display text-xl font-semibold">
+        <h1 className="text-xl font-semibold text-foreground">
           Contest unavailable
         </h1>
         <p className="max-w-md text-sm text-muted-foreground">{loadError}</p>
@@ -1114,7 +1114,7 @@ export function CodingContestSession() {
           aria-labelledby="coding-start-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
         >
-          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-7 text-center shadow-xl">
+          <div className="w-full max-w-md rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-7 text-center">
             <AlgoGuruLogo
               size={120}
               showText={false}
@@ -1122,7 +1122,7 @@ export function CodingContestSession() {
             />
             <h2
               id="coding-start-title"
-              className="mt-4 font-display text-lg font-semibold tracking-tight"
+              className="mt-4 text-lg font-semibold tracking-tight text-foreground"
             >
               Enter fullscreen to begin
             </h2>

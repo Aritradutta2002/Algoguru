@@ -8,13 +8,13 @@ import {
   ChevronLeft,
   Code2,
   Coffee,
-  Layers,
   Rocket,
   Target,
 } from "lucide-react";
 import JavaInterviewHub from "./interview/JavaInterviewHub";
 import CppInterviewHub from "./interview/CppInterviewHub";
 import PythonInterviewHub from "./interview/PythonInterviewHub";
+import { PageContainer, PageHeader } from "@/components/layout/PagePrimitives";
 
 type InterviewLanguage = "java" | "cpp" | "python";
 
@@ -25,7 +25,6 @@ interface LanguageOption {
   label: string;
   subtitle: string;
   icon: JSX.Element;
-  color: string;
 }
 
 interface LearningPathOption {
@@ -39,7 +38,6 @@ interface LearningPathOption {
   title: string;
   subtitle: string;
   icon: JSX.Element;
-  color: string;
   route: string;
 }
 
@@ -48,22 +46,19 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     id: "java",
     label: "Java",
     subtitle: "Strong OOP and backend interview focus",
-    icon: <Coffee size={24} />,
-    color: "#2563EB",
+    icon: <Coffee size={22} />,
   },
   {
     id: "cpp",
     label: "C++",
     subtitle: "Performance-first problem solving",
-    icon: <Code2 size={24} />,
-    color: "#60A5FA",
+    icon: <Code2 size={22} />,
   },
   {
     id: "python",
     label: "Python",
     subtitle: "Fast prototyping and concise coding",
-    icon: <BrainCircuit size={24} />,
-    color: "#93C5FD",
+    icon: <BrainCircuit size={22} />,
   },
 ];
 
@@ -74,94 +69,90 @@ const getLearningPathOptions = (language: InterviewLanguage): LearningPathOption
         id: "data-structure",
         title: "Data Structure",
         subtitle: "Master core DSA patterns used in rounds",
-        icon: <Target size={24} />,
-        color: "#60A5FA",
+        icon: <Target size={22} />,
         route: "data-structure",
       },
       {
         id: "core-java-qa",
         title: "Core Java Q&A",
         subtitle: "Most asked Java interview theory and scenarios",
-        icon: <Coffee size={24} />,
-        color: "#2563EB",
+        icon: <Coffee size={22} />,
         route: "core-java-qa",
       },
       {
         id: "spring-boot",
         title: "Spring Boot & Backend",
         subtitle: "Annotations, collections, concurrency, security & JWT",
-        icon: <Rocket size={24} />,
-        color: "#93C5FD",
+        icon: <Rocket size={22} />,
         route: "spring-boot",
       },
       {
         id: "system-design",
         title: "System Design",
         subtitle: "Design thinking for scalable systems",
-        icon: <Layers size={24} />,
-        color: "#9BE2C3",
+        icon: <BrainCircuit size={22} />,
         route: "system-design",
       },
       {
         id: "sql-structure",
         title: "SQL Questions",
         subtitle: "Interview-focused SQL concepts and patterns",
-        icon: <Code2 size={24} />,
-        color: "#F472B6",
+        icon: <Code2 size={22} />,
         route: "sql-structure",
       },
     ];
   }
 
-  const isCpp = language === "cpp";
-
-  return [
+  const commonTracks: LearningPathOption[] = [
     {
       id: "data-structure",
       title: "Data Structure",
-      subtitle: "Master core DSA patterns used in rounds",
-      icon: <Target size={24} />,
-      color: "#60A5FA",
+      subtitle: "Core DSA foundations for interviews",
+      icon: <Target size={22} />,
       route: "data-structure",
     },
     {
       id: "language-questions",
-      title: isCpp ? "C++ Questions" : "Python Questions",
-      subtitle: isCpp
-        ? "Most asked C++ interview theory and scenarios"
-        : "Most asked Python interview theory and scenarios",
-      icon: isCpp ? <Code2 size={24} /> : <BrainCircuit size={24} />,
-      color: isCpp ? "#60A5FA" : "#93C5FD",
+      title: `${language.toUpperCase()} Interview Q&A`,
+      subtitle: "Language-specific concepts, tricks and trade-offs",
+      icon: <Code2 size={22} />,
       route: "language-questions",
     },
     {
       id: "system-design",
       title: "System Design",
-      subtitle: "Design thinking for scalable systems",
-      icon: <Layers size={24} />,
-      color: "#9BE2C3",
+      subtitle: "High-level and low-level system design fundamentals",
+      icon: <BrainCircuit size={22} />,
       route: "system-design",
     },
     {
       id: "sql-structure",
       title: "SQL Questions",
       subtitle: "Interview-focused SQL concepts and patterns",
-      icon: <Code2 size={24} />,
-      color: "#F472B6",
+      icon: <Code2 size={22} />,
       route: "sql-structure",
     },
   ];
-};
 
-const isInterviewLanguage = (value: string | undefined): value is InterviewLanguage =>
-  value === "java" || value === "cpp" || value === "python";
+  return commonTracks;
+};
 
 export default function Interview() {
   const navigate = useNavigate();
   const { language } = useParams<{ language?: string }>();
-  const selectedLanguage = isInterviewLanguage(language) ? language : null;
-  const selectedLanguageOption = LANGUAGE_OPTIONS.find((option) => option.id === selectedLanguage);
-  const learningPathOptions = selectedLanguage ? getLearningPathOptions(selectedLanguage) : [];
+
+  const selectedLanguage: InterviewLanguage | null =
+    language === "java" || language === "cpp" || language === "python"
+      ? language
+      : null;
+
+  const selectedLanguageOption = LANGUAGE_OPTIONS.find(
+    (item) => item.id === selectedLanguage,
+  );
+
+  const learningPathOptions = selectedLanguage
+    ? getLearningPathOptions(selectedLanguage)
+    : [];
 
   useEffect(() => {
     if (language && !selectedLanguage) {
@@ -180,45 +171,20 @@ export default function Interview() {
   }
 
   return (
-    <div className="bg-background text-foreground selection:bg-primary/25">
+    <div className="min-h-screen bg-obsidian-void text-foreground">
+      <PageHeader
+        eyebrow="Comprehensive interview preparation"
+        title="Your interview roadmap"
+        description="Start by selecting your preferred programming language. Then pick a focused learning path to jump into the interview track you need."
+      />
 
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_-10%,hsl(var(--primary)/0.16),transparent_38%),radial-gradient(circle_at_8%_20%,hsl(var(--accent)/0.10),transparent_30%),radial-gradient(circle_at_50%_110%,hsl(var(--primary)/0.06),transparent_40%)]" />
-          <div className="absolute inset-0 bg-grid opacity-35" />
-          <div className="aurora-blob right-[4%] top-[6%] h-64 w-64 bg-primary/10" />
-          <div className="bg-noise absolute inset-0" />
-        </div>
-        <div className="relative mx-auto max-w-7xl px-5 py-16 md:px-10 md:py-24 lg:px-16">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/70 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground shadow-soft backdrop-blur-sm">
-              <Target size={12} className="text-primary" /> Comprehensive interview preparation
-            </div>
-
-            <h1 className="max-w-3xl font-display text-[2.75rem] font-bold leading-[1.04] tracking-[-0.045em] sm:text-5xl md:text-6xl">
-              Your interview{" "}
-              <span className="text-gradient-brand">roadmap.</span>
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-[16px] leading-8 text-muted-foreground md:text-lg">
-              Start by selecting your preferred programming language. Then pick a
-              focused learning path to jump into the interview track you need.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-14 md:px-10 md:py-20 lg:px-16 space-y-10">
+      <PageContainer className="py-10 md:py-14 space-y-8">
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${!selectedLanguage ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+          <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium ${!selectedLanguage ? "border-primary/40 bg-primary/10 text-primary" : "border-obsidian-border bg-obsidian-pane text-muted-foreground"}`}>
             <span className="h-1.5 w-1.5 rounded-full bg-current" /> 1. Select language
           </span>
           <ArrowRight size={14} className="text-muted-foreground/40" />
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${selectedLanguage ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+          <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium ${selectedLanguage ? "border-primary/40 bg-primary/10 text-primary" : "border-obsidian-border bg-obsidian-pane text-muted-foreground"}`}>
             <span className="h-1.5 w-1.5 rounded-full bg-current" /> 2. Choose learning path
           </span>
         </div>
@@ -229,48 +195,35 @@ export default function Interview() {
               <MotionLink
                 key={option.id}
                 to={`/interview/${option.id}`}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -3 }}
-                className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:border-primary/25 hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                transition={{ delay: index * 0.04, duration: 0.3, ease: "easeOut" }}
+                className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 transition-colors hover:bg-obsidian-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  style={{ background: "radial-gradient(130% 100% at 50% 0%, " + option.color + "16, transparent 55%)" }}
-                />
-                <div
-                  className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 transition-transform duration-500 ease-premium group-hover:scale-x-100"
-                  style={{ background: "linear-gradient(90deg, " + option.color + ", transparent)" }}
-                />
                 <div className="relative flex h-full flex-col">
-                  <div className="mb-7 flex items-center justify-between">
-                    <div
-                      className="rounded-2xl border p-3.5 shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-110"
-                      style={{ background: option.color + "12", borderColor: option.color + "26", color: option.color }}
-                    >
+                  <div className="mb-6 flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-foreground">
                       {option.icon}
                     </div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       Step 1
                     </span>
                   </div>
                   <div className="flex-1">
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Language</p>
-                    <h3 className="font-display text-[1.55rem] font-bold leading-tight tracking-[-0.02em] group-hover:text-primary transition-colors">
+                    <p className="mb-1 text-xs text-muted-foreground">Language</p>
+                    <h3 className="text-xl font-semibold tracking-[-0.02em] text-foreground transition-colors group-hover:text-primary">
                       {option.label}
                     </h3>
-                    <p className="mt-3 text-[14.5px] leading-7 text-muted-foreground">
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {option.subtitle}
                     </p>
                   </div>
-                  <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
-                    <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: option.color }} />
+                  <div className="mt-6 flex items-center justify-between border-t border-obsidian-border pt-4">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                       Start here
                     </span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                      <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md border border-obsidian-border bg-obsidian-elevated text-muted-foreground transition-colors group-hover:border-primary group-hover:text-primary">
+                      <ArrowRight size={14} />
                     </span>
                   </div>
                 </div>
@@ -278,16 +231,17 @@ export default function Interview() {
             ))}
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <button
+                type="button"
                 onClick={() => navigate("/interview")}
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center gap-2 rounded-lg border border-obsidian-border bg-obsidian-pane px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-obsidian-elevated hover:text-foreground"
               >
-                <ChevronLeft size={15} />
+                <ChevronLeft size={14} />
                 Change language
               </button>
-              <div className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3.5 py-2 text-sm font-medium text-primary">
+              <div className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
                 <Check size={14} />
                 Selected: {selectedLanguageOption?.label}
               </div>
@@ -298,48 +252,35 @@ export default function Interview() {
                 <MotionLink
                   key={path.id}
                   to={`/interview/${selectedLanguage}/${path.route}`}
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={{ y: -3 }}
-                  className="group relative flex min-h-[260px] flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-card transition-all duration-300 ease-premium hover:border-primary/25 hover:shadow-overlay focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  transition={{ delay: index * 0.04, duration: 0.3, ease: "easeOut" }}
+                  className="group relative flex min-h-[220px] flex-col overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 transition-colors hover:bg-obsidian-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <div
-                    className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                    style={{ background: "radial-gradient(130% 100% at 50% 0%, " + path.color + "16, transparent 55%)" }}
-                  />
-                  <div
-                    className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 transition-transform duration-500 ease-premium group-hover:scale-x-100"
-                    style={{ background: "linear-gradient(90deg, " + path.color + ", transparent)" }}
-                  />
                   <div className="relative flex h-full flex-col">
-                    <div className="mb-7 flex items-center justify-between">
-                      <div
-                        className="rounded-2xl border p-3.5 shadow-soft transition-transform duration-300 ease-premium group-hover:-rotate-3 group-hover:scale-110"
-                        style={{ background: path.color + "12", borderColor: path.color + "26", color: path.color }}
-                      >
+                    <div className="mb-6 flex items-center justify-between">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-foreground">
                         {path.icon}
                       </div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         Step 2
                       </span>
                     </div>
                     <div className="flex-1">
-                      <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Learning path</p>
-                      <h3 className="font-display text-[1.55rem] font-bold leading-tight tracking-[-0.02em] group-hover:text-primary transition-colors">
+                      <p className="mb-1 text-xs text-muted-foreground">Learning path</p>
+                      <h3 className="text-xl font-semibold tracking-[-0.02em] text-foreground transition-colors group-hover:text-primary">
                         {path.title}
                       </h3>
-                      <p className="mt-3 text-[14.5px] leading-7 text-muted-foreground">
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         {path.subtitle}
                       </p>
                     </div>
-                    <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
-                      <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
-                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: path.color }} />
+                    <div className="mt-6 flex items-center justify-between border-t border-obsidian-border pt-4">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                         {selectedLanguageOption?.label}
                       </span>
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/40 text-muted-foreground transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                        <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-md border border-obsidian-border bg-obsidian-elevated text-muted-foreground transition-colors group-hover:border-primary group-hover:text-primary">
+                        <ArrowRight size={14} />
                       </span>
                     </div>
                   </div>
@@ -348,7 +289,7 @@ export default function Interview() {
             </div>
           </div>
         )}
-      </section>
+      </PageContainer>
     </div>
   );
 }

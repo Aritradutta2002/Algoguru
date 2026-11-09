@@ -269,37 +269,26 @@ export function CodingContestInstructions() {
         </Button>
 
         {/* Hero Banner */}
-        <header className="relative mt-5 overflow-hidden rounded-3xl border border-border/80 bg-card/60 p-6 backdrop-blur-xl sm:p-10">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full opacity-10 blur-3xl"
-            style={{ background: "hsl(var(--primary))" }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-24 -right-20 h-72 w-72 rounded-full opacity-10 blur-3xl"
-            style={{ background: "hsl(var(--primary))" }}
-          />
-
+        <header className="relative mt-5 overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 sm:p-10">
           <div className="relative">
             <div className="flex flex-wrap items-center gap-2.5">
               <Badge
                 variant="secondary"
-                className="px-3 py-1 font-medium bg-primary/10 text-primary border border-primary/20"
+                className="px-3 py-1 font-medium bg-foreground/[0.04] text-foreground border border-obsidian-border"
               >
                 <Code2 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
                 Java
               </Badge>
               <Badge
                 variant="outline"
-                className="px-3 py-1 font-normal text-muted-foreground border-border/60"
+                className="px-3 py-1 font-normal text-muted-foreground border-obsidian-border"
               >
                 <Clock3 aria-hidden="true" className="mr-1.5 h-3.5 w-3.5" />
                 {CODING_CONTEST_DURATION_LABEL}
               </Badge>
               <Badge
                 variant="outline"
-                className="px-3 py-1 font-normal text-muted-foreground border-border/60"
+                className="px-3 py-1 font-normal text-muted-foreground border-obsidian-border"
               >
                 <CheckCircle2
                   aria-hidden="true"
@@ -310,7 +299,7 @@ export function CodingContestInstructions() {
               </Badge>
             </div>
 
-            <h1 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl text-foreground">
+            <h1 className="mt-4 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl text-foreground">
               Java Coding Contest
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
@@ -321,26 +310,26 @@ export function CodingContestInstructions() {
 
             {/* Quick Spec Pills */}
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-lg border border-obsidian-border bg-obsidian-elevated p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Duration</p>
                 <p className="mt-1 font-mono text-base font-semibold">
                   {CODING_CONTEST_DURATION_LABEL}
                 </p>
               </div>
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-lg border border-obsidian-border bg-obsidian-elevated p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Problems</p>
                 <p className="mt-1 font-mono text-base font-semibold">
                   {CODING_CONTEST_CONFIG.minProblems}–
                   {CODING_CONTEST_CONFIG.maxProblems} Assigned
                 </p>
               </div>
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-lg border border-obsidian-border bg-obsidian-elevated p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Environment</p>
                 <p className="mt-1 font-mono text-base font-semibold">
                   Java 17
                 </p>
               </div>
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-3 text-center sm:text-left">
+              <div className="rounded-lg border border-obsidian-border bg-obsidian-elevated p-3 text-center sm:text-left">
                 <p className="text-xs text-muted-foreground">Monitoring</p>
                 <p className="mt-1 font-mono text-base font-semibold">
                   Fullscreen & Focus
@@ -386,13 +375,13 @@ export function CodingContestInstructions() {
         {/* Contest Rules Section */}
         <section
           aria-labelledby="contest-rules"
-          className="mt-8 rounded-3xl border border-border bg-card/60 p-6 backdrop-blur-xl sm:p-8"
+          className="mt-8 rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 sm:p-8"
         >
-          <div className="flex items-center justify-between border-b border-border/60 pb-4">
+          <div className="flex items-center justify-between border-b border-obsidian-border pb-4">
             <div>
               <h2
                 id="contest-rules"
-                className="font-display text-lg font-semibold tracking-tight"
+                className="text-lg font-semibold tracking-tight"
               >
                 Contest rules
               </h2>
@@ -401,7 +390,7 @@ export function CodingContestInstructions() {
                 challenge.
               </p>
             </div>
-            <Badge variant="outline" className="font-mono text-xs">
+            <Badge variant="outline" className="font-mono text-xs border-obsidian-border">
               {rulesFor(mode).length} Rules
             </Badge>
           </div>
@@ -410,10 +399,10 @@ export function CodingContestInstructions() {
             {rulesFor(mode).map((rule) => (
               <li
                 key={rule.title}
-                className="group flex gap-3.5 rounded-2xl border border-border/60 bg-muted/15 p-4 transition-all hover:border-primary/40 hover:bg-muted/30"
+                className="group flex gap-3.5 rounded-lg border border-obsidian-border bg-obsidian-elevated p-4 transition-colors hover:bg-obsidian-elevated/80"
               >
-                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
-                  <rule.icon aria-hidden="true" className="h-4.5 w-4.5" />
+                <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-obsidian-border bg-obsidian-pane text-foreground">
+                  <rule.icon aria-hidden="true" className="h-4 w-4" />
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -431,14 +420,14 @@ export function CodingContestInstructions() {
         {/* Acknowledgement & Launch Section */}
         <section
           aria-labelledby="contest-acknowledgement"
-          className="mt-6 rounded-3xl border border-border/80 bg-gradient-to-b from-card/80 to-card/40 p-6 backdrop-blur-xl sm:p-8"
+          className="mt-6 rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 sm:p-8"
         >
-          <div className="flex items-start gap-3 rounded-2xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30">
+          <div className="flex items-start gap-3 rounded-lg border border-obsidian-border bg-obsidian-elevated p-4">
             <Checkbox
               id="contest-rules-acknowledged"
               checked={acknowledged}
               onCheckedChange={(checked) => setAcknowledged(checked === true)}
-              className="mt-0.5"
+              className="mt-0.5 border-obsidian-border"
             />
             <label
               htmlFor="contest-rules-acknowledged"
@@ -452,9 +441,9 @@ export function CodingContestInstructions() {
             open={confirmOpen}
             onOpenChange={(open) => !creating && setConfirmOpen(open)}
           >
-            <AlertDialogContent className="rounded-3xl border border-border bg-card/95 backdrop-blur-xl sm:max-w-md">
+            <AlertDialogContent className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane sm:max-w-md">
               <AlertDialogHeader>
-                <AlertDialogTitle className="font-display text-xl">
+                <AlertDialogTitle className="text-xl font-semibold">
                   Start the Java coding contest?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="space-y-3 text-left pt-2 text-sm">

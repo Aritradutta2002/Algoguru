@@ -504,7 +504,7 @@ export function CodingEditorPanel({
       <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
         <AlertDialogContent className="rounded-2xl border border-surface-line bg-surface-chrome backdrop-blur-md sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">
+            <AlertDialogTitle className="font-semibold text-foreground">
               {activeTab?.scratch ? "Clear this scratch tab?" : "Reset this question's code?"}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm">

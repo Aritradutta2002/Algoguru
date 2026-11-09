@@ -60,7 +60,6 @@ export function BrandLoader({
         style={{ width: geometry.stage, height: geometry.stage }}
         aria-hidden="true"
       >
-        <span className="agl__halo" />
         <span className="agl__ring agl__ring--track" />
         <span className="agl__ping" />
         <span className="agl__ring agl__ring--outer" />

@@ -212,7 +212,7 @@ const QuestionCard = memo(function QuestionCard({
                   <>
                     <BackendAnswer answer={question.answer} />
                     <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                      <p className="text-[13px] font-medium text-primary">
                         Interviewer is testing
                       </p>
                       <p className="mt-1 text-sm text-foreground">{question.explanation}</p>
@@ -323,7 +323,7 @@ export default function BackendQuestionsPage() {
         </nav>
 
         <header className="mb-5">
-          <h1 className="text-2xl font-black text-foreground sm:text-3xl">
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-3xl">
             {activeTopic ? activeTopic.topic.title : "Backend Interview Question Bank"}
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">

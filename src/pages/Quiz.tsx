@@ -74,11 +74,11 @@ const QUIZ_LANGUAGES = languages.filter((item) => item.value !== "mixed");
    capping the width, so the page fills a wide display rather than
    stranding a fixed 80rem column in the middle of it. */
 const containerClass =
-  "mx-auto w-full max-w-[110rem] px-4 sm:px-6 lg:px-10 2xl:px-14";
+  "mx-auto w-full max-w-7xl px-5 sm:px-6";
 /* 1rem on small screens avoids iOS Safari's focus-zoom, which fires on any
    form control under 16px. */
 const fieldClass =
-  "mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  "mt-2 w-full rounded-lg border border-obsidian-border bg-obsidian-elevated px-3 py-2.5 text-base sm:text-sm text-foreground focus:outline-none focus:border-primary";
 
 const EXAM_RULES = [
   {
@@ -360,9 +360,9 @@ export default function Quiz() {
   }
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-background text-foreground selection:bg-primary/20">
+    <div className="min-h-screen overflow-y-auto bg-obsidian-void text-foreground selection:bg-primary/20">
       {/* ─── HEADER ─── */}
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-obsidian-border bg-obsidian-void/90 backdrop-blur">
         <div className={cn(containerClass, "flex flex-wrap items-center justify-between gap-3 py-4")}>
           {phase === "running" ? (
             <Button variant="ghost" onClick={() => setConfirmation("leave")}>
@@ -379,8 +379,8 @@ export default function Quiz() {
               Back to Contest
             </Link>
           )}
-          <span className="flex items-center gap-2 font-display font-bold">
-            <Shuffle size={20} className="text-primary" />
+          <span className="flex items-center gap-2 font-semibold text-foreground">
+            <Shuffle size={18} className="text-primary" />
             Contest · MCQ Quiz
           </span>
           <div className="flex items-center gap-3">
@@ -440,43 +440,40 @@ export default function Quiz() {
           <>
             {/* ── Hero Section ── */}
             <section
-              className="relative mb-9 overflow-hidden rounded-3xl border border-border bg-card"
+              className="relative mb-8 overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane"
               aria-labelledby="setup-hero-title"
             >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,hsl(var(--primary)/0.12),transparent_60%)]" />
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_100%,hsl(var(--primary)/0.08),transparent_60%)]" />
-
               <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:p-10">
                 <div className="flex flex-col justify-center">
-                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                    <Sparkles size={14} aria-hidden="true" />
+                  <p className="lp-kicker mb-3">
+                    <Sparkles size={14} className="inline mr-1.5" aria-hidden="true" />
                     Exam-grade MCQ challenge
-                  </span>
+                  </p>
                   <h1
                     id="setup-hero-title"
-                    className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl"
+                    className="mt-2 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl text-foreground"
                   >
                     Small questions.
                     <br />
-                    <span className="text-primary">Big confidence.</span>
+                    Big confidence.
                   </h1>
-                  <p className="mt-5 max-w-prose text-base leading-7 text-muted-foreground">
+                  <p className="mt-4 max-w-prose text-[15px] leading-7 text-muted-foreground">
                     Test what you know with random multiple-choice questions in a
                     strict, distraction-free exam environment. Practice at your
                     pace, or race the clock under real exam conditions.
                   </p>
                 </div>
-                <dl className="grid grid-cols-3 gap-px self-center overflow-hidden rounded-2xl border border-border bg-border">
+                <dl className="grid grid-cols-3 gap-px self-center overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-border">
                   {[
                     ["Question bank", `${MCQ_QUESTIONS.length}`, "curated MCQs"],
                     ["Languages", `${QUIZ_LANGUAGES.length}`, "Java, C++, Python"],
                     ["Scoring", "1 pt", "per correct answer"],
                   ].map(([label, value, hint]) => (
-                    <div key={label} className="bg-card px-3 py-5 text-center sm:px-4">
-                      <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <div key={label} className="bg-obsidian-pane px-3 py-5 text-center sm:px-4">
+                      <dt className="text-xs font-medium text-muted-foreground">
                         {label}
                       </dt>
-                      <dd className="mt-1.5 font-mono text-2xl font-bold tabular-nums sm:text-3xl">
+                      <dd className="mt-1.5 font-mono text-2xl font-semibold tabular-nums sm:text-3xl text-foreground">
                         {value}
                       </dd>
                       <dd className="mt-0.5 text-xs text-muted-foreground">
@@ -489,13 +486,13 @@ export default function Quiz() {
             </section>
 
             {/* ── Exam Rules Section ── */}
-            <section className="mb-9 rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-card to-red-500/5 p-6 sm:p-8">
+            <section className="mb-8 rounded-[0.875rem] border border-amber-500/30 bg-amber-500/5 p-6 sm:p-8">
               <div className="mb-6 flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500">
-                  <Shield size={22} />
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-500">
+                  <Shield size={20} />
                 </span>
                 <div>
-                  <h2 className="font-display text-xl font-bold">
+                  <h2 className="text-xl font-semibold text-foreground">
                     Strict Exam Rules
                   </h2>
                   <p className="text-sm text-muted-foreground">
@@ -509,24 +506,24 @@ export default function Quiz() {
                   <div
                     key={rule.title}
                     className={cn(
-                      "flex items-start gap-4 rounded-2xl border p-4 transition-colors",
+                      "flex items-start gap-3.5 rounded-lg border p-4 transition-colors",
                       i === 2
-                        ? "border-red-500/25 bg-red-500/5"
-                        : "border-border bg-card/60",
+                        ? "border-red-500/30 bg-red-500/5"
+                        : "border-obsidian-border bg-obsidian-pane",
                     )}
                   >
                     <span
                       className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border",
                         i === 2
-                          ? "bg-red-500/15 text-red-500"
-                          : "bg-amber-500/10 text-amber-500",
+                          ? "border-red-500/30 bg-red-500/10 text-red-500"
+                          : "border-amber-500/30 bg-amber-500/10 text-amber-500",
                       )}
                     >
-                      <rule.icon size={20} />
+                      <rule.icon size={18} />
                     </span>
                     <div>
-                      <h3 className="text-sm font-bold">{rule.title}</h3>
+                      <h3 className="text-sm font-semibold text-foreground">{rule.title}</h3>
                       <p className="mt-1 text-sm leading-6 text-muted-foreground">
                         {rule.desc}
                       </p>
@@ -535,8 +532,8 @@ export default function Quiz() {
                 ))}
               </div>
               {/* Warning escalation visual */}
-              <div className="mt-6 rounded-2xl border border-border bg-card/80 p-4">
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <div className="mt-6 rounded-lg border border-obsidian-border bg-obsidian-pane p-4">
+                <p className="mb-3 text-xs font-medium text-muted-foreground">
                   Warning Escalation
                 </p>
                 <div className="flex items-center gap-2">
@@ -544,7 +541,7 @@ export default function Quiz() {
                     <div key={step} className="flex flex-1 flex-col items-center gap-2">
                       <div
                         className={cn(
-                          "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold",
+                          "flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-semibold",
                           step <= 3
                             ? "border-amber-500/30 bg-amber-500/10 text-amber-500"
                             : "border-red-500/40 bg-red-500/15 text-red-500",
@@ -552,7 +549,7 @@ export default function Quiz() {
                       >
                         {step <= 3 ? step : "✕"}
                       </div>
-                      <span className="text-center text-[10px] font-medium leading-tight text-muted-foreground">
+                      <span className="text-center text-[11px] font-medium leading-tight text-muted-foreground">
                         {step <= 3 ? `Warning ${step}` : "Auto-submit"}
                       </span>
                     </div>
@@ -564,12 +561,12 @@ export default function Quiz() {
             {/* ── Configuration + Start Panel ── */}
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)]">
               <section
-                className="rounded-3xl border border-border bg-card p-6 sm:p-8"
+                className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 sm:p-8"
                 aria-labelledby="setup-title"
               >
                 <h2
                   id="setup-title"
-                  className="font-display text-2xl font-bold"
+                  className="text-xl sm:text-2xl font-semibold text-foreground"
                 >
                   Build your challenge
                 </h2>
@@ -650,10 +647,10 @@ export default function Quiz() {
                       <label
                         key={value}
                         className={cn(
-                          "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-card",
+                          "flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors focus-within:ring-2 focus-within:ring-primary",
                           mode === value
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/40 hover:bg-muted/50",
+                            ? "border-primary bg-primary/10"
+                            : "border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05]",
                         )}
                       >
                         <input
@@ -665,7 +662,7 @@ export default function Quiz() {
                           className="mt-1 accent-primary"
                         />
                         <span>
-                          <span className="block font-semibold">
+                          <span className="block font-medium text-foreground">
                             {value === "practice"
                               ? "Practice"
                               : "Timed challenge"}
@@ -682,10 +679,10 @@ export default function Quiz() {
                 </fieldset>
 
                 {/* Fullscreen notice */}
-                <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+                <div className="mt-6 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
                   <Maximize2 size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-amber-500" />
                   <div>
-                    <p className="text-sm font-semibold">
+                    <p className="text-sm font-medium text-foreground">
                       Mandatory fullscreen exam
                     </p>
                     <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
@@ -700,11 +697,11 @@ export default function Quiz() {
               </section>
 
               {/* ── Start Aside ── */}
-              <aside className="flex flex-col rounded-3xl border border-primary/20 bg-gradient-to-b from-primary/10 to-card p-6 lg:sticky lg:top-24 sm:p-8">
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">
+              <aside className="flex flex-col rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6 lg:sticky lg:top-24 sm:p-8">
+                <p className="lp-kicker mb-2">
                   Your next session
-                </span>
-                <h2 className="mt-4 font-display text-2xl font-bold">
+                </p>
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
                   Ready, set, challenge yourself.
                 </h2>
                 <dl className="my-6 grid gap-3 text-sm">
@@ -725,29 +722,29 @@ export default function Quiz() {
                   ].map(([label, value]) => (
                     <div
                       key={label}
-                      className="flex justify-between gap-4 border-b border-border/70 pb-3"
+                      className="flex justify-between gap-4 border-b border-obsidian-border pb-3"
                     >
                       <dt className="text-muted-foreground">{label}</dt>
-                      <dd className="text-right font-medium">{value}</dd>
+                      <dd className="text-right font-medium text-foreground">{value}</dd>
                     </div>
                   ))}
                 </dl>
                 {size > available && (
                   <p
                     role="status"
-                    className="mb-5 rounded-xl border border-border bg-background/60 p-3 text-sm text-muted-foreground"
+                    className="mb-5 rounded-lg border border-obsidian-border bg-obsidian-elevated p-3 text-sm text-muted-foreground"
                   >
                     This selection has {available} questions. Your quiz will
                     include all {count}, without repeats or changing difficulty.
                   </p>
                 )}
                 <Button
-                  className="mt-auto h-12 w-full gap-2 rounded-xl"
+                  className="mt-auto h-11 w-full gap-2 rounded-lg"
                   onClick={() => void start()}
                   disabled={!count || starting}
                 >
                   {starting ? "Opening fullscreen…" : "Start quiz"}
-                  <ArrowRight size={17} />
+                  <ArrowRight size={16} />
                 </Button>
                 <p className="mt-3 text-center text-xs text-muted-foreground">
                   Fullscreen is required. Answers appear after submission.
@@ -762,10 +759,10 @@ export default function Quiz() {
           <>
             <div className="mb-7 flex flex-wrap items-center justify-between gap-5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+                <p className="lp-kicker mb-1">
                   {session.deadline ? "Timed challenge" : "Practice session"}
                 </p>
-                <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
+                <h1 className="text-2xl font-semibold sm:text-3xl text-foreground">
                   One question. One step forward.
                 </h1>
               </div>
@@ -774,7 +771,7 @@ export default function Quiz() {
                 {warningCount > 0 && (
                   <div
                     className={cn(
-                      "flex items-center gap-2 rounded-2xl border px-4 py-3",
+                      "flex items-center gap-2 rounded-lg border px-3 py-2",
                       warningCount >= 3
                         ? "border-red-500/30 bg-red-500/10"
                         : warningCount >= 2
@@ -784,13 +781,13 @@ export default function Quiz() {
                   >
                     {(() => {
                       const Icon = getWarningIcon();
-                      return <Icon size={20} className={getWarningColor()} />;
+                      return <Icon size={18} className={getWarningColor()} />;
                     })()}
                     <div>
-                      <p className={cn("text-[11px] font-bold uppercase tracking-wider", getWarningColor())}>
+                      <p className={cn("text-[10px] font-medium", getWarningColor())}>
                         Warnings
                       </p>
-                      <p className={cn("font-mono text-lg font-bold tabular-nums", getWarningColor())}>
+                      <p className={cn("font-mono text-base font-semibold tabular-nums", getWarningColor())}>
                         {warningCount}/{MAX_WARNINGS}
                       </p>
                     </div>
@@ -803,18 +800,18 @@ export default function Quiz() {
                     session.deadline ? "Time remaining" : "Time elapsed"
                   }
                   className={cn(
-                    "flex items-center gap-3 rounded-2xl border px-5 py-3",
+                    "flex items-center gap-3 rounded-lg border px-4 py-2",
                     session.deadline && remaining <= 60
                       ? "border-destructive/40 bg-destructive/10 text-destructive"
-                      : "border-border bg-card",
+                      : "border-obsidian-border bg-obsidian-pane text-foreground",
                   )}
                 >
-                  <Clock3 size={22} />
+                  <Clock3 size={18} />
                   <div>
-                    <p className="text-[11px] uppercase tracking-wider">
+                    <p className="text-[10px] text-muted-foreground">
                       {session.deadline ? "Time remaining" : "Time elapsed"}
                     </p>
-                    <p className="font-mono text-2xl font-bold tabular-nums">
+                    <p className="font-mono text-xl font-semibold tabular-nums">
                       {formatQuizTime(session.deadline ? remaining : elapsed)}
                     </p>
                   </div>
@@ -822,12 +819,12 @@ export default function Quiz() {
               </div>
             </div>
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_clamp(18rem,22vw,24rem)]">
-              <section className="rounded-3xl border border-border bg-card p-5 sm:p-8">
+              <section className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-5 sm:p-8">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                   <span className="text-sm text-muted-foreground">
                     Question {index + 1} of {questions.length}
                   </span>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  <span className="lp-chip">
                     {QUIZ_LANGUAGE_LABELLED[question.language].label} ·{" "}
                     {question.difficulty} · {question.topic}
                   </span>
@@ -835,7 +832,7 @@ export default function Quiz() {
                 <h2
                   ref={questionRef}
                   tabIndex={-1}
-                  className="max-w-[68ch] whitespace-pre-wrap font-display text-xl font-semibold leading-relaxed outline-none sm:text-2xl"
+                  className="max-w-[68ch] whitespace-pre-wrap text-xl font-semibold leading-relaxed outline-none sm:text-2xl text-foreground"
                 >
                   {question.question}
                 </h2>
@@ -847,10 +844,10 @@ export default function Quiz() {
                       <label
                         key={optionIndex}
                         className={cn(
-                          "flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-card sm:p-5",
+                          "flex cursor-pointer items-start gap-4 rounded-lg border p-4 transition-colors focus-within:ring-2 focus-within:ring-primary sm:p-5",
                           selected
                             ? "border-primary bg-primary/10"
-                            : "border-border hover:border-primary/40 hover:bg-muted/30",
+                            : "border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05]",
                         )}
                       >
                         <input
@@ -863,15 +860,15 @@ export default function Quiz() {
                         <span
                           aria-hidden="true"
                           className={cn(
-                            "grid h-7 w-7 shrink-0 place-items-center rounded-lg border font-mono text-xs font-bold transition-colors",
+                            "grid h-7 w-7 shrink-0 place-items-center rounded-md border font-mono text-xs font-semibold transition-colors",
                             selected
                               ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border bg-background text-muted-foreground",
+                              : "border-obsidian-border bg-obsidian-pane text-muted-foreground",
                           )}
                         >
                           {String.fromCharCode(65 + optionIndex)}
                         </span>
-                        <span className="min-w-0 flex-1 whitespace-pre-wrap break-words pt-0.5 text-sm leading-6 sm:text-base">
+                        <span className="min-w-0 flex-1 whitespace-pre-wrap break-words pt-0.5 text-sm leading-6 sm:text-base text-foreground">
                           <span className="sr-only">{String.fromCharCode(65 + optionIndex)}. </span>
                           {option}
                         </span>
@@ -886,7 +883,7 @@ export default function Quiz() {
                     );
                   })}
                 </fieldset>
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-obsidian-border pt-5">
                   <Button
                     variant="ghost"
                     onClick={() =>
@@ -939,8 +936,8 @@ export default function Quiz() {
                   )}
                 </div>
               </section>
-              <aside className="rounded-3xl border border-border bg-card p-6">
-                <h2 className="font-semibold">Your progress</h2>
+              <aside className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-6">
+                <h2 className="font-semibold text-foreground">Your progress</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {answered} of {questions.length} answered
                 </p>
@@ -950,7 +947,7 @@ export default function Quiz() {
                   aria-valuenow={answered}
                   aria-valuemin={0}
                   aria-valuemax={questions.length}
-                  className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
+                  className="mt-3 h-1.5 overflow-hidden rounded-full bg-obsidian-elevated"
                 >
                   <div
                     className="h-full bg-primary transition-all"
@@ -969,12 +966,12 @@ export default function Quiz() {
                       aria-current={index === position ? "step" : undefined}
                       onClick={() => setIndex(position)}
                       className={cn(
-                        "relative flex h-10 items-center justify-center rounded-lg border text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "relative flex h-9 items-center justify-center rounded-md border text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         answers[item.id] !== undefined
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground",
+                          ? "border-primary/40 bg-primary/10 text-primary"
+                          : "border-obsidian-border bg-obsidian-elevated text-muted-foreground hover:bg-foreground/[0.05]",
                         index === position &&
-                          "ring-2 ring-primary ring-offset-2 ring-offset-card",
+                          "ring-2 ring-primary ring-offset-2 ring-offset-background",
                       )}
                     >
                       {position + 1}
@@ -997,13 +994,13 @@ export default function Quiz() {
                 {warningCount > 0 && (
                   <div
                     className={cn(
-                      "mt-5 rounded-xl border p-3",
+                      "mt-5 rounded-lg border p-3",
                       warningCount >= 3
                         ? "border-red-500/25 bg-red-500/5"
                         : "border-amber-500/25 bg-amber-500/5",
                     )}
                   >
-                    <p className={cn("text-xs font-bold", warningCount >= 3 ? "text-red-500" : "text-amber-500")}>
+                    <p className={cn("text-xs font-semibold", warningCount >= 3 ? "text-red-500" : "text-amber-500")}>
                       ⚠ {warningCount} of {MAX_WARNINGS} warnings used
                     </p>
                     <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
@@ -1028,23 +1025,23 @@ export default function Quiz() {
         {/* ═══════════ RESULTS PHASE ═══════════ */}
         {phase === "results" && session && (
           <>
-            <section className="overflow-hidden rounded-3xl border border-primary/20 bg-card">
+            <section className="overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane">
               <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_minmax(0,22rem)] lg:items-center lg:gap-12 lg:p-10">
                 <div>
-                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                    <Trophy size={28} aria-hidden="true" />
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-primary">
+                    <Trophy size={24} aria-hidden="true" />
                   </span>
-                  <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">
+                  <p className="mt-4 lp-kicker">
                     Challenge complete
                   </p>
-                  <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
+                  <h1 className="mt-2 text-2xl font-semibold sm:text-3xl text-foreground">
                     {warningTerminated
                       ? "Exam terminated."
                       : correct === questions.length
                         ? "A perfect finish!"
                         : "Every attempt makes you better."}
                   </h1>
-                  <p role="status" className="mt-3 text-muted-foreground">
+                  <p role="status" className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
                     {warningTerminated
                       ? `Your exam was auto-submitted after ${MAX_WARNINGS} focus violations. Answers given before termination have been recorded.`
                       : timedOut
@@ -1056,20 +1053,20 @@ export default function Quiz() {
                   {warningCount > 0 && (
                     <div
                       className={cn(
-                        "mt-4 inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium",
+                        "mt-4 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium",
                         warningTerminated
                           ? "border-red-500/30 bg-red-500/10 text-red-500"
                           : "border-amber-500/30 bg-amber-500/10 text-amber-500",
                       )}
                     >
-                      <AlertTriangle size={16} />
+                      <AlertTriangle size={15} />
                       {warningTerminated
                         ? `Terminated after ${warningCount} focus violations`
                         : `${warningCount} focus warning${warningCount > 1 ? "s" : ""} during exam`}
                     </div>
                   )}
 
-                  <div className="mt-7 flex flex-wrap gap-3">
+                  <div className="mt-6 flex flex-wrap gap-3">
                     <Button onClick={() => void start()} disabled={starting}>
                       <RotateCcw size={16} className="mr-2" />
                       Try another quiz
@@ -1079,7 +1076,7 @@ export default function Quiz() {
                     </Button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border">
+                <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-border">
                   {[
                     [
                       "Score",
@@ -1089,11 +1086,11 @@ export default function Quiz() {
                     ["Unanswered", `${questions.length - answered}`],
                     ["Time taken", formatQuizTime(elapsed)],
                   ].map(([label, value]) => (
-                    <div key={label} className="bg-card px-4 py-5 text-center">
-                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <div key={label} className="bg-obsidian-pane px-4 py-5 text-center">
+                      <p className="text-xs font-medium text-muted-foreground">
                         {label}
                       </p>
-                      <p className="mt-1.5 font-mono text-2xl font-bold tabular-nums sm:text-3xl">
+                      <p className="mt-1.5 font-mono text-2xl font-semibold tabular-nums sm:text-3xl text-foreground">
                         {value}
                       </p>
                     </div>
@@ -1107,10 +1104,10 @@ export default function Quiz() {
               </p>
             )}
             {warningCount > 0 && (
-              <div className="mt-5 flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-4">
+              <div className="mt-5 flex items-center gap-3 rounded-[0.875rem] border border-amber-500/30 bg-amber-500/5 p-4">
                 <AlertTriangle size={18} className="shrink-0 text-amber-500" />
                 <div>
-                  <p className="text-sm font-semibold">
+                  <p className="text-sm font-semibold text-foreground">
                     Exam integrity: {warningCount} warning{warningCount > 1 ? "s" : ""}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -1122,7 +1119,7 @@ export default function Quiz() {
               </div>
             )}
             <section className="mt-10" aria-labelledby="review-title">
-              <h2 id="review-title" className="font-display text-2xl font-bold">
+              <h2 id="review-title" className="text-xl sm:text-2xl font-semibold text-foreground">
                 Answer review
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -1135,7 +1132,7 @@ export default function Quiz() {
                   return (
                     <article
                       key={item.id}
-                      className="rounded-2xl border border-border bg-card p-5 sm:p-6"
+                      className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-5 sm:p-6"
                     >
                       <div className="flex items-start gap-3">
                         {isCorrect ? (
@@ -1176,7 +1173,7 @@ export default function Quiz() {
                             </span>
                             {item.options[item.correctIndex]}
                           </p>
-                          <p className="mt-4 border-t border-border pt-4 text-sm leading-7 text-muted-foreground">
+                          <p className="mt-4 border-t border-obsidian-border pt-4 text-sm leading-7 text-muted-foreground">
                             {item.explanation}
                           </p>
                         </div>

@@ -165,7 +165,7 @@ function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-card text-card-foreground shadow-card",
+        "rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane text-foreground",
         className,
       )}
       {...rest}
@@ -177,14 +177,14 @@ function Card({
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <label className="text-xs font-medium text-muted-foreground">
       {children}
     </label>
   );
 }
 
 const INPUT_CLASS =
-  "w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/25";
+  "w-full rounded-lg border border-obsidian-border bg-obsidian-elevated px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary";
 
 function ModalShell({
   onClose,
@@ -1344,20 +1344,10 @@ export default function Profile() {
             <>
               {/* ── Hero ── */}
               <Card className="overflow-hidden">
-                <div className="relative h-36 bg-gradient-to-br from-primary/30 via-primary/10 to-transparent">
-                  <div
-                    className="absolute inset-0 opacity-40"
-                    style={{
-                      backgroundImage:
-                        "radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.35) 1px, transparent 0)",
-                      backgroundSize: "16px 16px",
-                    }}
-                  />
-                  <div className="absolute -right-20 -top-28 h-72 w-72 rounded-full border border-primary/15 bg-primary/10" />
-                  <div className="absolute -right-6 -top-36 h-72 w-72 rounded-full border border-primary/10" />
+                <div className="relative h-28 border-b border-obsidian-border bg-obsidian-elevated">
                   {joinedLabel && (
-                    <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-border/60 bg-background/70 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
-                      <CalendarDays size={11} />
+                    <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-md border border-obsidian-border bg-obsidian-pane px-2.5 py-1 text-[11px] text-muted-foreground">
+                      <CalendarDays size={12} />
                       Joined {joinedLabel}
                     </div>
                   )}
@@ -2052,7 +2042,7 @@ export default function Profile() {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <h3 className="text-xs font-medium text-muted-foreground">
       {children}
     </h3>
   );

@@ -146,19 +146,17 @@ export function ObsidianWindow({
             }
             transition={WINDOW_SPRING}
             className={cn(
-              "relative overflow-hidden rounded-[1.6rem] border border-obsidian-border bg-obsidian-pane text-foreground shadow-[0_36px_100px_-48px_rgba(0,0,0,0.95)] shadow-specular",
+              "relative overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane text-foreground",
               isMaximized &&
                 "fixed inset-3 z-40 max-h-[calc(100dvh-1.5rem)] overflow-y-auto sm:inset-6",
             )}
           >
-            <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)]" />
-
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-obsidian-border bg-obsidian-elevated px-3 py-2.5 sm:px-4">
               <div className="flex min-w-0 items-center gap-2.5">
                 <div className="flex items-center gap-1.5" aria-hidden="true">
-                  <span className="h-2 w-2 rounded-full bg-rose-400/80 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.22)]" />
-                  <span className="h-2 w-2 rounded-full bg-amber-400/80 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.22)]" />
-                  <span className="h-2 w-2 rounded-full bg-emerald-400/80 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.22)]" />
+                  <span className="lp-dot" />
+                  <span className="lp-dot" />
+                  <span className="lp-dot" />
                 </div>
                 <div className="min-w-0">
                   <h3
@@ -174,8 +172,8 @@ export function ObsidianWindow({
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="hidden items-center gap-1.5 rounded-full border border-obsidian-success/25 bg-obsidian-success/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-obsidian-success sm:inline-flex">
-                  <span className="h-1 w-1 rounded-full bg-obsidian-success" aria-hidden="true" />
+                <span className="lp-chip lp-chip-success hidden sm:inline-flex">
+                  <span className="h-1 w-1 rounded-full bg-current" aria-hidden="true" />
                   Live
                 </span>
                 <button
@@ -183,7 +181,7 @@ export function ObsidianWindow({
                   onClick={() => setIsMaximized((value) => !value)}
                   aria-label={isMaximized ? "Restore window size" : "Maximize window"}
                   aria-pressed={isMaximized}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-white/[0.07] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   {isMaximized ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
                 </button>
@@ -191,7 +189,7 @@ export function ObsidianWindow({
                   type="button"
                   onClick={() => updateWindowState("minimized")}
                   aria-label="Minimize window to dock"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-white/[0.07] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   <Minus size={13} />
                 </button>
@@ -199,7 +197,7 @@ export function ObsidianWindow({
                   type="button"
                   onClick={() => updateWindowState("closed")}
                   aria-label="Close window"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-rose-500/15 hover:text-rose-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-accent/50"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-rose-500/15 hover:text-rose-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   <X size={13} />
                 </button>

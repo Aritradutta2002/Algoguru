@@ -78,7 +78,7 @@ function ProblemStatement({ problem }: { problem: PublicCodingProblem }) {
     <article aria-labelledby="coding-problem-title">
       <h1
         id="coding-problem-title"
-        className="font-display text-xl font-bold tracking-tight text-foreground"
+        className="text-xl font-semibold tracking-[-0.02em] text-foreground"
       >
         {problem.title}
       </h1>
@@ -178,7 +178,7 @@ function SubmissionList({
   return (
     <section aria-label="Submissions" className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
+        <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground">
           Submissions
         </h2>
         <p className="text-xs text-muted-foreground">

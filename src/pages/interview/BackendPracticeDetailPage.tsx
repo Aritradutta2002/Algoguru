@@ -149,7 +149,7 @@ export default function BackendPracticeDetailPage() {
             </span>
           </div>
 
-          <h1 className="text-2xl font-black leading-tight text-foreground sm:text-3xl">
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] leading-tight text-foreground sm:text-3xl">
             {problem.title}
           </h1>
 
@@ -376,7 +376,7 @@ export default function BackendPracticeDetailPage() {
               to={`${BACKEND_PRACTICE_PATH}/${previous.id}`}
               className="group rounded-xl border border-border/50 bg-card/60 p-4 transition-colors hover:border-primary/40"
             >
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground">
                 <ArrowLeft className="h-3 w-3" />
                 Previous
               </span>
@@ -392,7 +392,7 @@ export default function BackendPracticeDetailPage() {
               to={`${BACKEND_PRACTICE_PATH}/${next.id}`}
               className="group rounded-xl border border-border/50 bg-card/60 p-4 text-right transition-colors hover:border-primary/40"
             >
-              <span className="flex items-center justify-end gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="flex items-center justify-end gap-1.5 text-[13px] font-medium text-muted-foreground">
                 Next
                 <ArrowRight className="h-3 w-3" />
               </span>

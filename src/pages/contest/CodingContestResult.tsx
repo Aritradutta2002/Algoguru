@@ -40,12 +40,12 @@ function StatCard({
   icon: typeof CheckCircle2;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-4">
+      <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
         <Icon aria-hidden="true" className="h-3.5 w-3.5" />
         {label}
       </p>
-      <p className="mt-2 font-display text-2xl font-semibold tabular-nums">{value}</p>
+      <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
     </div>
   );
 }
@@ -92,7 +92,7 @@ export function CodingContestResult() {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6">
         <AlertTriangle aria-hidden="true" className="mx-auto h-8 w-8 text-destructive" />
-        <h1 className="mt-4 font-display text-xl font-semibold">Result unavailable</h1>
+        <h1 className="mt-4 text-xl font-semibold text-foreground">Result unavailable</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error}</p>
         <Button className="mt-6" onClick={() => navigate("/contest")}>
           Return to Contest
@@ -146,7 +146,7 @@ export function CodingContestResult() {
               : session.status}
           </Badge>
         </div>
-        <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="mt-4 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl text-foreground">
           {processing ? "Evaluating your submission" : "Contest complete"}
         </h1>
         <p className="mt-3 text-sm text-muted-foreground">
@@ -198,7 +198,7 @@ export function CodingContestResult() {
           </section>
 
           <section aria-labelledby="coding-results" className="mt-8">
-            <h2 id="coding-results" className="font-display text-lg font-semibold">
+            <h2 id="coding-results" className="text-lg font-semibold text-foreground">
               Problems
             </h2>
             <ul className="mt-4 space-y-4">
@@ -209,7 +209,7 @@ export function CodingContestResult() {
                 return (
                   <li
                     key={problem.id}
-                    className="rounded-2xl border border-border bg-card p-5"
+                    className="rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-5"
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       {result?.solved ? (

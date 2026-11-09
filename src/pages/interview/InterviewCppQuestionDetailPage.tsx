@@ -231,7 +231,7 @@ export default function InterviewCppQuestionDetailPage() {
           <div className="cjd-sidebar-inner sticky top-[57px] max-h-[calc(100vh-116px)] overflow-y-auto pr-2">
             <div className="flex items-center gap-2 mb-4">
               <BookOpen size={14} className="text-primary" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground font-mono">
+              <span className="text-xs font-medium text-muted-foreground">
                 C++ Interview
               </span>
             </div>
@@ -250,7 +250,7 @@ export default function InterviewCppQuestionDetailPage() {
                   onClick={() => handleQuestionNavigate(previous.slug)}
                   className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group"
                 >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 font-mono mb-0.5">
+                  <span className="block text-xs font-medium text-muted-foreground/60 mb-0.5">
                     ← Previous
                   </span>
                   <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground leading-snug line-clamp-2">
@@ -263,7 +263,7 @@ export default function InterviewCppQuestionDetailPage() {
                   onClick={() => handleQuestionNavigate(next.slug)}
                   className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group"
                 >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 font-mono mb-0.5">
+                  <span className="block text-xs font-medium text-muted-foreground/60 mb-0.5">
                     Next →
                   </span>
                   <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground leading-snug line-clamp-2">
@@ -394,7 +394,7 @@ export default function InterviewCppQuestionDetailPage() {
                         to={getCppQuestionDetailPath(related.question)}
                         className="cjd-surface rounded-xl p-4 border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
                       >
-                        <span className="block text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground/60 mb-1.5">
+                        <span className="block text-xs font-mono font-medium text-muted-foreground/60 mb-1.5">
                           Q{String(related.index + 1).padStart(2, "0")} · {related.topic.title}
                         </span>
                         <span className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors">
@@ -427,7 +427,7 @@ export default function InterviewCppQuestionDetailPage() {
                   onClick={() => handleQuestionNavigate(previous.slug)}
                   className="cjd-surface rounded-xl p-4 text-left border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
                 >
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 font-mono mb-1.5">
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/70 mb-1.5">
                     <ArrowLeft size={12} className="group-hover:-translate-x-0.5 transition-transform" /> Previous
                   </span>
                   <span className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
@@ -442,7 +442,7 @@ export default function InterviewCppQuestionDetailPage() {
                   onClick={() => handleQuestionNavigate(next.slug)}
                   className="cjd-surface rounded-xl p-4 text-right border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all group"
                 >
-                  <span className="flex items-center justify-end gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 font-mono mb-1.5">
+                  <span className="flex items-center justify-end gap-1.5 text-xs font-medium text-muted-foreground/70 mb-1.5">
                     Next <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
                   </span>
                   <span className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
@@ -457,7 +457,7 @@ export default function InterviewCppQuestionDetailPage() {
         {/* Right TOC */}
         <aside className="cjd-toc hidden xl:block">
           <div className="sticky top-[57px]">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground font-mono block mb-3">
+            <span className="text-xs font-medium text-muted-foreground block mb-3">
               On This Page
             </span>
             <nav aria-label="On this page" className="space-y-0.5">
