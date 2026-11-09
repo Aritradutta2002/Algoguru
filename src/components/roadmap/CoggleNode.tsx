@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
 import { Check, Circle, CircleDot, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { readableInk } from "@/lib/colorUtils";
@@ -13,7 +13,7 @@ const HANDLES_FOR: Record<CoggleSide, { target: Position; source: Position; targ
   up: { target: Position.Bottom, source: Position.Top, targetId: "target-bottom", sourceId: "source-top" },
 };
 
-function CoggleNodeImpl({ data, selected }: NodeProps<{ data: CoggleNodeData }>) {
+function CoggleNodeImpl({ data, selected }: NodeProps<Node<CoggleNodeData>>) {
   const {
     id,
     title,

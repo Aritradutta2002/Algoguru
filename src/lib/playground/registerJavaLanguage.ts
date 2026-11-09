@@ -293,7 +293,7 @@ export function registerPlaygroundJavaLanguage(
         seen.add(info.name);
 
         let kind = monaco.languages.CompletionItemKind.Variable;
-        let icon = info.kind;
+        let icon: string = info.kind;
         if (info.kind === "method") kind = monaco.languages.CompletionItemKind.Method;
         else if (info.kind === "class" || info.kind === "interface" || info.kind === "enum") {
           kind = monaco.languages.CompletionItemKind.Class;

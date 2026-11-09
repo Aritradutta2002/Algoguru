@@ -63,6 +63,8 @@ supabase/.env
 .trae/documents/
 .workbuddy-ai/
 .codewhale/
+.agents/
+.playwright-mcp/
 # Claude Code: local per-machine permissions/settings only. Project-level
 # .claude/ settings or commands are intentionally left committable.
 .claude/settings.local.json

@@ -83,7 +83,7 @@ export function buildMonacoEditorOptions({
     fontLigatures: false,
     fontWeight: "400" as const,
     letterSpacing: 0,
-    minimap: { enabled: extras.minimap, autohide: false, maxColumn: 120, renderCharacters: true, scale: 1 },
+    minimap: { enabled: extras.minimap, autohide: "none" as const, maxColumn: 120, renderCharacters: true, scale: 1 },
     scrollBeyondLastLine: false,
     padding: { top: 12, bottom: 12 },
     lineNumbers: relativeLineNumbers ? ("relative" as const) : ("on" as const),

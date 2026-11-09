@@ -882,7 +882,7 @@ export default function Playground() {
   const guruPanelRef = useRef<ImperativePanelHandle>(null);
   const [guruBotOpen, setGuruBotOpen] = useState(false);
   const [guruBotCollapsed, setGuruBotCollapsed] = useState(false);
-  const [guruBotSize, setGuruBotSize] = useState(GURU_DEFAULT_SIZE);
+  const [guruBotSize, setGuruBotSize] = useState<number>(GURU_DEFAULT_SIZE);
   const [selectedCodeForGuru, setSelectedCodeForGuru] = useState("");
   const [guruInitialPrompt, setGuruInitialPrompt] = useState("");
   const [askGuruPopup, setAskGuruPopup] = useState<{
@@ -890,7 +890,7 @@ export default function Playground() {
     left: number;
   } | null>(null);
 
-  const openGuruBotPanel = useCallback((targetSize = GURU_DEFAULT_SIZE) => {
+  const openGuruBotPanel = useCallback((targetSize: number = GURU_DEFAULT_SIZE) => {
     setGuruBotOpen(true);
     setGuruBotCollapsed(false);
     setGuruBotSize(targetSize);

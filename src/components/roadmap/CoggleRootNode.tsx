@@ -1,9 +1,9 @@
 import { memo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import type { CoggleNodeData } from "@/types/roadmapGraph";
 
-function CoggleRootNodeImpl({ data, selected }: NodeProps<{ data: CoggleNodeData }>) {
+function CoggleRootNodeImpl({ data, selected }: NodeProps<Node<CoggleNodeData>>) {
   const {
     title,
     pillWidth,
