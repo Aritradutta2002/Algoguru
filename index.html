@@ -102,12 +102,26 @@
         z-index: 9999;
         display: grid;
         place-items: center;
-        background: #fafaf8;
-        transition: opacity 240ms ease, visibility 240ms ease;
+        /* Same ambient wash the hydrated AppLoadingScreen paints behind the
+           loader, so the two frames cross-fade without a visible jump. */
+        background:
+          radial-gradient(
+            42rem 30rem at 50% 42%,
+            rgba(99, 102, 241, 0.16),
+            rgba(99, 102, 241, 0) 70%
+          ),
+          #070709;
+        transition: opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), visibility 260ms;
       }
 
-      html.dark #boot-splash {
-        background: #070709;
+      html.light #boot-splash {
+        background:
+          radial-gradient(
+            42rem 30rem at 50% 42%,
+            rgba(99, 102, 241, 0.1),
+            rgba(99, 102, 241, 0) 70%
+          ),
+          #fafaf8;
       }
 
       #boot-splash[data-state="leaving"] {
@@ -116,117 +130,226 @@
         pointer-events: none;
       }
 
+      /* Mirrors .agl--screen: stage + label column, centred on the viewport.
+         Both the splash and the loader use the same stage size and the same
+         column gap, so the mark lands on identical pixels during the fade. */
       .boot-splash__inner {
         display: flex;
+        justify-content: center;
+      }
+
+      .bsl {
+        --bsl-cycle: 2.4s;
+        --bsl-ease: cubic-bezier(0.22, 1, 0.36, 1);
+        --bsl-indigo: #6366f1;
+        --bsl-cyan: #22d3ee;
+        --bsl-muted: rgba(248, 250, 252, 0.66);
+        display: inline-flex;
         flex-direction: column;
         align-items: center;
-        /* The hydrated screen centres a stage + label column, which puts its
-           mark ~17.2px above the viewport centre. Matching that offset means
-           the two marks land on the exact same pixels during the cross-fade. */
-        padding-bottom: 35px;
+        gap: 1.15rem;
       }
 
-      .boot-splash__badge {
+      html.light .bsl {
+        --bsl-muted: rgba(15, 23, 42, 0.62);
+      }
+
+      .bsl__stage {
         position: relative;
-        display: grid;
+        display: inline-grid;
         place-items: center;
-        width: 124px;
-        height: 124px;
+        width: 116px;
+        height: 116px;
       }
 
-      .boot-splash__badge::before {
-        content: "";
+      .bsl__wash {
+        position: absolute;
+        inset: -18%;
+        border-radius: 9999px;
+        background: radial-gradient(closest-side, rgba(99, 102, 241, 0.22), transparent);
+        animation: bsl-wash var(--bsl-cycle) var(--bsl-ease) infinite;
+      }
+
+      .bsl__plate {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        border-radius: 26%;
+        overflow: hidden;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          0 18px 36px -18px rgba(2, 6, 23, 0.55);
+      }
+
+      .bsl__mark,
+      .bsl__glyph {
+        display: block;
+      }
+
+      .bsl__glyph {
         position: absolute;
         inset: 0;
-        border-radius: 9999px;
-        border: 1.5px solid rgba(99, 102, 241, 0.14);
+        margin: auto;
+        overflow: visible;
+        z-index: 1;
       }
 
-      .boot-splash__orbit {
-        position: absolute;
-        inset: 0;
-        border-radius: 9999px;
-        background: conic-gradient(
-          from 0turn,
-          rgba(99, 102, 241, 0) 0turn,
-          rgba(99, 102, 241, 0) 0.38turn,
-          rgba(99, 102, 241, 0.25) 0.65turn,
-          #6366f1 0.88turn,
-          rgba(99, 102, 241, 0) 1turn
-        );
-        -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 1.5px), #000 calc(100% - 1px));
-        mask: radial-gradient(farthest-side, #0000 calc(100% - 1.5px), #000 calc(100% - 1px));
-        animation: boot-orbit 3.2s linear infinite;
-        will-change: transform;
+      .bsl__fill {
+        opacity: 0;
+        animation: bsl-fill var(--bsl-cycle) var(--bsl-ease) infinite;
       }
 
-      /* Counter-rotating cyan arc */
-      .boot-splash__orbit--inner {
-        inset: 10%;
-        background: conic-gradient(
-          from 0turn,
-          rgba(56, 189, 248, 0) 0turn,
-          rgba(56, 189, 248, 0) 0.45turn,
-          rgba(56, 189, 248, 0.3) 0.75turn,
-          #38bdf8 0.92turn,
-          rgba(56, 189, 248, 0) 1turn
-        );
-        -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 1.2px), #000 calc(100% - 0.8px));
-        mask: radial-gradient(farthest-side, #0000 calc(100% - 1.2px), #000 calc(100% - 0.8px));
-        animation: boot-orbit 4.8s linear infinite reverse;
+      .bsl__burst {
+        transform-box: fill-box;
+        transform-origin: center;
+        opacity: 0;
+        animation: bsl-burst var(--bsl-cycle) var(--bsl-ease) infinite;
       }
 
-      .boot-splash__halo {
-        position: absolute;
-        inset: -6%;
-        border-radius: 9999px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.24), transparent 70%);
-        filter: blur(10px);
-        animation: boot-halo 2.8s ease-in-out infinite;
+      .bsl__spark {
+        transform-box: fill-box;
+        transform-origin: center;
+        opacity: 0;
+        animation: bsl-spark var(--bsl-cycle) var(--bsl-ease) infinite;
       }
 
-      .boot-splash__mark {
+      .bsl__label {
+        margin: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.3;
+        letter-spacing: 0.005em;
+        color: var(--bsl-muted);
+      }
+
+      .bsl__meter {
         position: relative;
         display: block;
-        filter: drop-shadow(0 12px 32px rgba(15, 23, 42, 0.45));
+        width: 128px;
+        height: 1px;
+        margin-top: -0.15rem;
+        border-radius: 9999px;
+        overflow: hidden;
+        background: rgba(248, 250, 252, 0.09);
       }
 
-      @keyframes boot-orbit {
-        to {
-          transform: rotate(1turn);
+      .bsl__meter-bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 38%;
+        border-radius: inherit;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--bsl-indigo) 22%,
+          #3b82f6 48%,
+          var(--bsl-cyan) 72%,
+          transparent
+        );
+        animation: bsl-meter 1.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+
+      @keyframes bsl-fill {
+        0%,
+        36% {
+          opacity: 0;
+        }
+        50%,
+        84% {
+          opacity: 1;
+        }
+        92%,
+        100% {
+          opacity: 0;
         }
       }
 
-      @keyframes boot-halo {
+      @keyframes bsl-burst {
+        0%,
+        33% {
+          opacity: 0;
+          transform: scale(0.35);
+        }
+        40% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        60%,
+        100% {
+          opacity: 0;
+          transform: scale(1.7);
+        }
+      }
+
+      @keyframes bsl-spark {
+        0%,
+        34% {
+          opacity: 0;
+          transform: scale(0.2);
+        }
+        41% {
+          opacity: 1;
+          transform: scale(1.35);
+        }
+        52%,
+        84% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        92%,
+        100% {
+          opacity: 0;
+          transform: scale(0.6);
+        }
+      }
+
+      @keyframes bsl-wash {
         0%,
         100% {
-          opacity: 0.45;
-          transform: scale(0.95);
+          opacity: 0.55;
+          transform: scale(0.96);
         }
-        50% {
-          opacity: 0.85;
-          transform: scale(1.08);
+        52% {
+          opacity: 0.95;
+          transform: scale(1.03);
+        }
+      }
+
+      @keyframes bsl-meter {
+        0% {
+          transform: translate3d(-110%, 0, 0);
+        }
+        100% {
+          transform: translate3d(295%, 0, 0);
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .boot-splash__orbit--inner,
-        .boot-splash__halo {
+        .bsl__fill,
+        .bsl__spark {
+          animation: none;
+          opacity: 1;
+        }
+
+        .bsl__burst,
+        .bsl__wash {
           animation: none;
         }
 
-        .boot-splash__orbit {
+        .bsl__wash {
+          opacity: 0.8;
+        }
+
+        .bsl__burst {
+          opacity: 0;
+        }
+
+        .bsl__meter-bar {
           animation: none;
-          transform: rotate(-0.14turn);
-        }
-
-        .boot-splash__orbit--inner {
-          opacity: 0.55;
-          transform: rotate(0.3turn);
-        }
-
-        .boot-splash__halo {
-          opacity: 0.75;
+          transform: none;
         }
       }
     </style>
@@ -235,82 +358,52 @@
   <body>
     <div id="boot-splash" aria-hidden="true">
       <div class="boot-splash__inner">
-        <div class="boot-splash__badge">
-          <span class="boot-splash__halo"></span>
-          <span class="boot-splash__orbit"></span>
-          <span class="boot-splash__orbit boot-splash__orbit--inner"></span>
-          <svg
-            class="boot-splash__mark"
-            viewBox="0 0 64 64"
-            width="72"
-            height="72"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <defs>
-              <linearGradient id="bootTileGrad" x1="4" y1="0" x2="60" y2="64" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#38BDF8" />
-                <stop offset="18%" stop-color="#6366F1" />
-                <stop offset="48%" stop-color="#3B82F6" />
-                <stop offset="78%" stop-color="#1D4ED8" />
-                <stop offset="100%" stop-color="#0B0F19" />
-              </linearGradient>
-              <linearGradient id="bootInkGrad" x1="32" y1="12" x2="32" y2="52" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#FFFFFF" />
-                <stop offset="52%" stop-color="#F8FAFC" />
-                <stop offset="100%" stop-color="#E2E8F0" />
-              </linearGradient>
-              <radialGradient id="bootBloom" cx="0.84" cy="0.88" r="0.82">
-                <stop offset="0%" stop-color="#00F5FF" stop-opacity="0.45" />
-                <stop offset="45%" stop-color="#6366F1" stop-opacity="0.16" />
-                <stop offset="100%" stop-color="#6366F1" stop-opacity="0" />
-              </radialGradient>
-              <radialGradient id="bootGloss" cx="0.2" cy="0.04" r="0.9">
-                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.48" />
-                <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.12" />
-                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
-              </radialGradient>
-              <linearGradient id="bootShade" x1="32" y1="28" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#020617" stop-opacity="0" />
-                <stop offset="100%" stop-color="#020617" stop-opacity="0.45" />
-              </linearGradient>
-              <linearGradient id="bootRim" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8" />
-                <stop offset="25%" stop-color="#FFFFFF" stop-opacity="0.15" />
-                <stop offset="70%" stop-color="rgba(99, 102, 241, 0.2)" />
-                <stop offset="100%" stop-color="rgba(2, 6, 23, 0.6)" />
-              </linearGradient>
-              <radialGradient id="bootNode" cx="0.32" cy="0.28" r="0.8">
-                <stop offset="0%" stop-color="#FFFFFF" />
-                <stop offset="35%" stop-color="#38BDF8" />
-                <stop offset="75%" stop-color="#00F5FF" />
-                <stop offset="100%" stop-color="#0284C7" />
-              </radialGradient>
-              <path id="bootTile" d="M64.00 32.00L63.98 40.63L63.93 43.66L63.85 45.89L63.73 47.72L63.58 49.30L63.39 50.69L63.17 51.94L62.92 53.08L62.63 54.12L62.30 55.08L61.93 55.96L61.53 56.78L61.09 57.55L60.61 58.26L60.09 58.91L59.52 59.52L58.91 60.09L58.26 60.61L57.55 61.09L56.78 61.53L55.96 61.93L55.08 62.30L54.12 62.63L53.08 62.92L51.94 63.17L50.69 63.39L49.30 63.58L47.72 63.73L45.89 63.85L43.66 63.93L40.63 63.98L32.00 64.00L23.37 63.98L20.34 63.93L18.11 63.85L16.28 63.73L14.70 63.58L13.31 63.39L12.06 63.17L10.92 62.92L9.88 62.63L8.92 62.30L8.04 61.93L7.22 61.53L6.45 61.09L5.74 60.61L5.09 60.09L4.48 59.52L3.91 58.91L3.39 58.26L2.91 57.55L2.47 56.78L2.07 55.96L1.70 55.08L1.37 54.12L1.08 53.08L0.83 51.94L0.61 50.69L0.42 49.30L0.27 47.72L0.15 45.89L0.07 43.66L0.02 40.63L0.00 32.00L0.02 23.37L0.07 20.34L0.15 18.11L0.27 16.28L0.42 14.70L0.61 13.31L0.83 12.06L1.08 10.92L1.37 9.88L1.70 8.92L2.07 8.04L2.47 7.22L2.91 6.45L3.39 5.74L3.91 5.09L4.48 4.48L5.09 3.91L5.74 3.39L6.45 2.91L7.22 2.47L8.04 2.07L8.92 1.70L9.88 1.37L10.92 1.08L12.06 0.83L13.31 0.61L14.70 0.42L16.28 0.27L18.11 0.15L20.34 0.07L23.37 0.02L32.00 0.00L40.63 0.02L43.66 0.07L45.89 0.15L47.72 0.27L49.30 0.42L50.69 0.61L51.94 0.83L53.08 1.08L54.12 1.37L55.08 1.70L55.96 2.07L56.78 2.47L57.55 2.91L58.26 3.39L58.91 3.91L59.52 4.48L60.09 5.09L60.61 5.74L61.09 6.45L61.53 7.22L61.93 8.04L62.30 8.92L62.63 9.88L62.92 10.92L63.17 12.06L63.39 13.31L63.58 14.70L63.73 16.28L63.85 18.11L63.93 20.34L63.98 23.37Z" />
-              <filter id="bootLift" x="-30%" y="-30%" width="160%" height="180%">
-                <feDropShadow dx="0" dy="1.6" stdDeviation="2.2" flood-color="#020617" flood-opacity="0.5" />
-              </filter>
-            </defs>
-            <use href="#bootTile" fill="url(#bootTileGrad)" />
-            <use href="#bootTile" fill="url(#bootBloom)" />
-            <use href="#bootTile" fill="url(#bootGloss)" />
-            <use href="#bootTile" fill="url(#bootShade)" />
-            <use href="#bootTile" fill="none" stroke="url(#bootRim)" stroke-width="1.2" />
-            <g
-              filter="url(#bootLift)"
-              fill="none"
-              stroke="url(#bootInkGrad)"
-              stroke-width="6.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M16 50 L32 14 L48 50" />
-              <path d="M22 36 H42" />
-            </g>
-            <circle cx="39.2" cy="36.0" r="6.4" fill="#00F5FF" opacity="0.32" />
-            <circle cx="39.2" cy="36.0" r="4.2" fill="url(#bootNode)" stroke="#FFFFFF" stroke-width="0.9" />
-            <circle cx="39.2" cy="36.0" r="1.8" fill="#FFFFFF" />
-          </svg>
+        <div class="bsl">
+          <span class="bsl__stage">
+            <span class="bsl__wash"></span>
+            <span class="bsl__plate">
+              <svg class="bsl__mark" viewBox="0 0 64 64" width="66" height="66" aria-hidden="true" focusable="false">
+                <defs>
+                  <linearGradient id="bslTile" x1="10" y1="2" x2="56" y2="62" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#6366F1"/>
+                    <stop offset="42%" stop-color="#3B82F6"/>
+                    <stop offset="78%" stop-color="#22D3EE"/>
+                    <stop offset="100%" stop-color="#0EA5E9"/>
+                  </linearGradient>
+                  <linearGradient id="bslRim" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+                    <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+                    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path id="bslTilePath" d="M64.00 32.00L63.98 40.63L63.93 43.66L63.85 45.89L63.73 47.72L63.58 49.30L63.39 50.69L63.17 51.94L62.92 53.08L62.63 54.12L62.30 55.08L61.93 55.96L61.53 56.78L61.09 57.55L60.61 58.26L60.09 58.91L59.52 59.52L58.91 60.09L58.26 60.61L57.55 61.09L56.78 61.53L55.96 61.93L55.08 62.30L54.12 62.63L53.08 62.92L51.94 63.17L50.69 63.39L49.30 63.58L47.72 63.73L45.89 63.85L43.66 63.93L40.63 63.98L32.00 64.00L23.37 63.98L20.34 63.93L18.11 63.85L16.28 63.73L14.70 63.58L13.31 63.39L12.06 63.17L10.92 62.92L9.88 62.63L8.92 62.30L8.04 61.93L7.22 61.53L6.45 61.09L5.74 60.61L5.09 60.09L4.48 59.52L3.91 58.91L3.39 58.26L2.91 57.55L2.47 56.78L2.07 55.96L1.70 55.08L1.37 54.12L1.08 53.08L0.83 51.94L0.61 50.69L0.42 49.30L0.27 47.72L0.15 45.89L0.07 43.66L0.02 40.63L0.00 32.00L0.02 23.37L0.07 20.34L0.15 18.11L0.27 16.28L0.42 14.70L0.61 13.31L0.83 12.06L1.08 10.92L1.37 9.88L1.70 8.92L2.07 8.04L2.47 7.22L2.91 6.45L3.39 5.74L3.91 5.09L4.48 4.48L5.09 3.91L5.74 3.39L6.45 2.91L7.22 2.47L8.04 2.07L8.92 1.70L9.88 1.37L10.92 1.08L12.06 0.83L13.31 0.61L14.70 0.42L16.28 0.27L18.11 0.15L20.34 0.07L23.37 0.02L32.00 0.00L40.63 0.02L43.66 0.07L45.89 0.15L47.72 0.27L49.30 0.42L50.69 0.61L51.94 0.83L53.08 1.08L54.12 1.37L55.08 1.70L55.96 2.07L56.78 2.47L57.55 2.91L58.26 3.39L58.91 3.91L59.52 4.48L60.09 5.09L60.61 5.74L61.09 6.45L61.53 7.22L61.93 8.04L62.30 8.92L62.63 9.88L62.92 10.92L63.17 12.06L63.39 13.31L63.58 14.70L63.73 16.28L63.85 18.11L63.93 20.34L63.98 23.37Z" fill="url(#bslTile)"/>
+                <path d="M32 1.5L50 20.5L32 39.5L14 20.5Z" fill="#FFFFFF" fill-opacity="0.12"/>
+                <use href="#bslTilePath" fill="none" stroke="url(#bslRim)" stroke-width="1.3"/>
+              </svg>
+              <svg class="bsl__glyph" width="66" height="66" viewBox="0 0 64 64" fill="none" aria-hidden="true" focusable="false">
+                <defs>
+                  <radialGradient id="bslBurst">
+                    <stop offset="0%" stop-color="#FFFFFF"/>
+                    <stop offset="34%" stop-color="#22D3EE" stop-opacity="0.9"/>
+                    <stop offset="72%" stop-color="#3B82F6" stop-opacity="0.32"/>
+                    <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <circle class="bsl__burst" cx="39.7" cy="37.3" r="15" fill="url(#bslBurst)"/>
+                <g fill="#FFFFFF">
+                  <path class="bsl__fill" d="M28.8 14L28.8 19.4L26.2 50.4L22.4 50.4L19.8 19.4L22.4 14Z"/>
+                  <path class="bsl__fill" d="M35.2 14L35.2 19.4L37.8 50.4L41.6 50.4L44.2 19.4L41.6 14Z"/>
+                  <path class="bsl__fill" d="M20.4 35L37.6 35L37.6 39.6L20.4 39.6Z"/>
+                </g>
+                <g class="bsl__spark">
+                  <circle cx="39.7" cy="37.3" r="2.6" fill="#22D3EE"/>
+                  <circle cx="39.7" cy="37.3" r="1.17" fill="#FFFFFF"/>
+                </g>
+              </svg>
+            </span>
+          </span>
+          <p class="bsl__label">Preparing your workspace</p>
+          <span class="bsl__meter"><span class="bsl__meter-bar"></span></span>
         </div>
       </div>
     </div>

@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
-import React from "react";
 import { BrandLoader, type BrandLoaderSize, type BrandLoaderVariant } from "./BrandLoader";
 import { AlgoGuruMark } from "./AlgoGuruMark";
 import { AlgoGuruLockup } from "./AlgoGuruLockup";
 import {
+  BRAND_A,
+  BRAND_RAMP,
   BRAND_VIEWBOX,
   BRAND_TILE_PATH,
-  BRAND_GLYPH,
   glyphStrokeFor,
   showSurfaceDetailFor,
   showNodeFor,
@@ -16,6 +16,27 @@ import {
 } from "./brandGeometry";
 import fs from "node:fs";
 import path from "node:path";
+
+const readProjectFile = (relative: string) =>
+  fs.readFileSync(path.resolve(process.cwd(), relative), "utf-8");
+
+/** Every `M x y …` coordinate pair in a path string. */
+const pathPoints = (d: string): Array<[number, number]> =>
+  (d.match(/L?\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g) ?? []).map((pair): [number, number] => {
+    const [x, y] = pair.replace(/^L?\s*/, "").split(/\s+/);
+    return [parseFloat(x), parseFloat(y)];
+  });
+
+const polygonArea = (d: string) => {
+  const points = pathPoints(d);
+  let area = 0;
+  for (let i = 0; i < points.length; i += 1) {
+    const [x1, y1] = points[i];
+    const [x2, y2] = points[(i + 1) % points.length];
+    area += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(area) / 2;
+};
 
 describe("Adversarial Stress Test: SVG Brand Geometry Integrity", () => {
   it("verifies superellipse geometry: all coordinates inside [0, 64] viewBox with continuous closed path", () => {
@@ -50,63 +71,93 @@ describe("Adversarial Stress Test: SVG Brand Geometry Integrity", () => {
   });
 
   it("verifies path sync between brandGeometry.ts and index.html boot-splash", () => {
-    const indexPath = path.resolve(process.cwd(), "index.html");
-    const indexHtml = fs.readFileSync(indexPath, "utf-8");
+    const indexHtml = readProjectFile("index.html");
 
-    // Verify index.html contains the exact same BRAND_TILE_PATH
+    // The splash mirrors the geometry verbatim so the two frames can never drift.
     expect(indexHtml).toContain(BRAND_TILE_PATH);
-
-    // Verify index.html contains BRAND_GLYPH.trace and BRAND_GLYPH.bar
-    expect(indexHtml).toContain(BRAND_GLYPH.trace);
-    expect(indexHtml).toContain(BRAND_GLYPH.bar);
-
-    // Verify index.html contains exact node coordinates cx="39.2" cy="36.0"
-    expect(indexHtml).toContain(`cx="${BRAND_GLYPH.node.cx}" cy="${BRAND_GLYPH.node.cy.toFixed(1)}"`);
+    expect(indexHtml).toContain(BRAND_A.leftStem);
+    expect(indexHtml).toContain(BRAND_A.rightStem);
+    expect(indexHtml).toContain(BRAND_A.crossbar);
+    expect(indexHtml).toContain(
+      `cx="${BRAND_A.node.cx}" cy="${BRAND_A.node.cy}"`,
+    );
   });
 
-  it("verifies stroke length math vs CSS dash lengths", () => {
-    // Leg 1: (16, 50) -> (32, 14)
-    // Leg 2: (32, 14) -> (48, 50)
-    const leg1Len = Math.hypot(32 - 16, 14 - 50);
-    const leg2Len = Math.hypot(48 - 32, 50 - 14);
-    const totalLegsLen = leg1Len + leg2Len;
+  it("verifies the loader trace lengths match the CSS dash lengths", () => {
+    // The traced stem runs from the crest down to the inset foot: the inner
+    // edge slope is 2.6 units across the full ascent.
+    const stemLen = Math.hypot(2.6, 50.4 - 14);
+    expect(Math.abs(stemLen - BRAND_A.traceLengths.rightStem)).toBeLessThan(0.02);
 
-    // Computed length is ~78.79086 units
-    expect(Math.abs(totalLegsLen - 78.8)).toBeLessThan(0.02);
+    // The bar sweeps from the junction back out to the left end of the bar.
+    const barLen = BRAND_A.node.cx - 20.4;
+    expect(Math.abs(barLen - BRAND_A.traceLengths.bar)).toBeLessThan(0.02);
 
-    // Crossbar: (22, 36) -> (42, 36)
-    const barLen = 42 - 22;
-    expect(barLen).toBe(20);
+    const brandCss = readProjectFile("src/components/brand/brand.css");
 
-    // Check brand.css defines exactly these dash lengths
-    const brandCssPath = path.resolve(process.cwd(), "src/components/brand/brand.css");
-    const brandCss = fs.readFileSync(brandCssPath, "utf-8");
-
-    expect(brandCss).toContain("--agl-len: 78.8;");
-    expect(brandCss).toContain("--agl-len: 20;");
-    expect(brandCss).toContain("stroke-dashoffset: 78.8;");
-    expect(brandCss).toContain("stroke-dashoffset: 20;");
+    expect(brandCss).toContain(`--agl-len: ${BRAND_A.traceLengths.rightStem};`);
+    expect(brandCss).toContain(`--agl-len: ${BRAND_A.traceLengths.bar};`);
+    expect(brandCss).toContain(`stroke-dashoffset: ${BRAND_A.traceLengths.rightStem};`);
+    expect(brandCss).toContain(`stroke-dashoffset: ${BRAND_A.traceLengths.bar};`);
   });
 
-  it("verifies nexus node geometric position on the crossbar junction", () => {
-    const { cx, cy, r } = BRAND_GLYPH.node;
-    expect(cx).toBe(39.2);
-    expect(cy).toBe(36.0);
-    expect(r).toBe(4.2);
+  it("keeps the letter inside the tile with a consistent optical margin", () => {
+    const fullLetter = [BRAND_A.leftStem, BRAND_A.rightStem, BRAND_A.crossbar].flatMap(pathPoints) as Array<[number, number]>;
+    const xs = fullLetter.map(([x]) => x);
+    const ys = fullLetter.map(([, y]) => y);
 
-    // Crossbar runs horizontally along y = 36 from x=22 to x=42
-    expect(cy).toBe(36.0);
-    expect(cx).toBeGreaterThanOrEqual(22);
-    expect(cx).toBeLessThanOrEqual(42);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
 
-    // Right leg equation: from (32, 14) to (48, 50)
-    // Slope = (50 - 14) / (48 - 32) = 36 / 16 = 2.25
-    // At y = 36: x = 32 + (36 - 14) / 2.25 = 32 + 22 / 2.25 = 41.7778
-    const junctionX = 32 + (36 - 14) / 2.25;
-    // Node radius is 4.2, centered at 39.2. Left bound = 35.0, Right bound = 43.4
-    // Node bounds comfortably encompass the junction at x = 41.78
-    expect(cx - r).toBeLessThan(junctionX);
-    expect(cx + r).toBeGreaterThan(junctionX);
+    // Comfortably inside the 64 tile, never touching the edge.
+    expect(minX).toBeGreaterThan(10);
+    expect(maxX).toBeLessThan(54);
+    expect(minY).toBeGreaterThan(10);
+    expect(maxY).toBeLessThan(54);
+
+    // Horizontally centred: the left and right bearings agree within 0.5 units.
+    expect(Math.abs((minX - 0) - (64 - maxX))).toBeLessThan(0.5);
+  });
+
+  it("verifies the junction node sits on the crossbar and on the right stem", () => {
+    const { cx, cy, r } = BRAND_A.node;
+
+    // On the crossbar band, and at its vertical centreline.
+    expect(cy).toBeGreaterThan(35);
+    expect(cy).toBeLessThan(39.6);
+    expect(Math.abs(cy - 37.3)).toBeLessThan(0.01);
+
+    // The right stem is a trapezoid whose inner edge runs 35.2 → 37.8 and whose
+    // outer edge runs 41.6 → 44.2. Its centreline at the bar is therefore 38.4.
+    const innerAt = (y: number) => 35.2 + (2.6 * (y - 19.4)) / (50.4 - 19.4);
+    const outerAt = (y: number) => 41.6 + (2.6 * (y - 19.4)) / (50.4 - 19.4);
+    expect(cx).toBeGreaterThan(innerAt(cy));
+    expect(cx).toBeLessThan(outerAt(cy));
+    expect(Math.abs(cx - (innerAt(cy) + outerAt(cy)) / 2)).toBeLessThan(0.25);
+
+    // The node is seated inside the stem, just past where the crossbar ends.
+    expect(cx - 37.6).toBeGreaterThan(0);
+    expect(cx - 37.6).toBeLessThan(3);
+
+    // The detail is visible without swallowing the bar.
+    expect(r).toBeGreaterThan(2);
+    expect(r * 2).toBeLessThan(8);
+  });
+
+  it("gives the letter enough mass to survive a 16px raster", () => {
+    // Counter area at 16px, in device pixels — it must stay clearly open.
+    const counterAt16 = (polygonArea(BRAND_A.counter) * 16 * 16) / (64 * 64);
+    expect(counterAt16).toBeGreaterThan(4);
+
+    // Brick between the stems, at 16px: two real pixels of separation.
+    const xMinLeft = (16 * 17.4) / 64;
+    const xMinRight = (16 * 50.1) / 64;
+    expect(xMinRight - xMinLeft).toBeGreaterThan(7.5);
+
+    // Crossbar height at 16px: at least 1px.
+    expect((5.4 * 16) / 64).toBeGreaterThan(1);
   });
 });
 
@@ -114,10 +165,10 @@ describe("Adversarial Stress Test: BrandLoader Variants & Sizing Matrix", () => 
   const sizes: BrandLoaderSize[] = ["sm", "md", "lg"];
   const variants: BrandLoaderVariant[] = ["inline", "screen"];
 
-  const expectedDimensions: Record<BrandLoaderSize, { mark: number; stage: number; ring: number }> = {
-    sm: { mark: 20, stage: 34, ring: 1.5 },
-    md: { mark: 40, stage: 70, ring: 2 },
-    lg: { mark: 72, stage: 124, ring: 2.5 },
+  const expectedDimensions: Record<BrandLoaderSize, { mark: number; stage: number; hairline: number }> = {
+    sm: { mark: 22, stage: 38, hairline: 1 },
+    md: { mark: 38, stage: 66, hairline: 1 },
+    lg: { mark: 66, stage: 116, hairline: 2 },
   };
 
   sizes.forEach((size) => {
@@ -133,9 +184,9 @@ describe("Adversarial Stress Test: BrandLoader Variants & Sizing Matrix", () => 
         expect(root).toHaveAttribute("role", "status");
         expect(root).toHaveAttribute("aria-live", "polite");
 
-        // CSS variable for orbit thickness
+        // CSS variable for the meter hairline
         expect(root.getAttribute("style")).toContain(
-          `--agl-orbit-thickness: ${expectedDimensions[size].ring}px`
+          `--agl-hairline: ${expectedDimensions[size].hairline}px`
         );
 
         // Stage dimensions
@@ -179,8 +230,8 @@ describe("Adversarial Stress Test: BrandLoader Variants & Sizing Matrix", () => 
     expect(root).toHaveClass("agl--inline");
 
     const stage = container.querySelector(".agl__stage") as HTMLElement;
-    expect(stage.style.width).toBe("70px");
-    expect(stage.style.height).toBe("70px");
+    expect(stage.style.width).toBe("66px");
+    expect(stage.style.height).toBe("66px");
 
     const labelEl = container.querySelector(".agl__label");
     expect(labelEl).toHaveTextContent("Loading");
@@ -221,9 +272,11 @@ describe("Adversarial Stress Test: Accessibility & Assistive Technology", () => 
     const mark = container.querySelector(".agl__mark");
     expect(mark).toHaveAttribute("aria-hidden", "true");
     expect(mark).toHaveAttribute("role", "presentation");
+
+    expect(screen.getByRole("status")).toHaveTextContent("Accessible progress");
   });
 
-  it("ensures concurrent loaders generate strictly unique burst gradient IDs without collision", () => {
+  it("ensures concurrent loaders generate strictly unique gradient IDs without collision", () => {
     const { container } = render(
       <div>
         {Array.from({ length: 25 }).map((_, i) => (
@@ -244,7 +297,6 @@ describe("Adversarial Stress Test: Accessibility & Assistive Technology", () => 
       expect(ids.has(id!)).toBe(false);
       ids.add(id!);
 
-      // Corresponding circle must reference this exact ID
       const parentSvg = grad.closest("svg")!;
       const burstCircle = parentSvg.querySelector(".agl__burst");
       expect(burstCircle?.getAttribute("fill")).toBe(`url(#${id})`);
@@ -261,27 +313,27 @@ describe("Adversarial Stress Test: Accessibility & Assistive Technology", () => 
 });
 
 describe("Adversarial Stress Test: Reduced Motion Styles in brand.css", () => {
-  const brandCssPath = path.resolve(process.cwd(), "src/components/brand/brand.css");
-  const brandCss = fs.readFileSync(brandCssPath, "utf-8");
+  const brandCss = readProjectFile("src/components/brand/brand.css");
 
   it("contains complete @media (prefers-reduced-motion: reduce) block", () => {
     expect(brandCss).toContain("@media (prefers-reduced-motion: reduce)");
   });
 
-  it("disables all animation keys in reduced-motion mode", () => {
-    const reducedMotionSection = brandCss.slice(brandCss.indexOf("@media (prefers-reduced-motion: reduce)"));
+  it("disables every animated element in reduced-motion mode", () => {
+    const reducedMotionSection = brandCss.slice(
+      brandCss.lastIndexOf("@media (prefers-reduced-motion: reduce)")
+    );
 
-    // Check all animated elements have animation: none
     const expectedNeutralized = [
       ".agl__drawgroup",
       ".agl__draw",
-      ".agl__spark",
+      ".agl__fill",
+      ".agl__band",
       ".agl__burst",
-      ".agl__halo",
-      ".agl__ping",
-      ".agl__mark",
-      ".agl__ring--outer",
-      ".agl__ring--inner",
+      ".agl__spark",
+      ".agl__wash",
+      ".agl__plate",
+      ".agl__sweep",
       ".agl__meter-bar",
     ];
 
@@ -291,12 +343,21 @@ describe("Adversarial Stress Test: Reduced Motion Styles in brand.css", () => {
 
     // Check that letter is fully drawn (stroke-dashoffset: 0)
     expect(reducedMotionSection).toContain("stroke-dashoffset: 0;");
-    // Check that drawgroup and spark have opacity 1
+    // Check that the drawn letter, fill and spark are visible
     expect(reducedMotionSection).toContain("opacity: 1;");
-    // Check that ping and burst are hidden
+    // Check that the ignition and band are hidden
     expect(reducedMotionSection).toContain("opacity: 0;");
-    // Check meter is display: none
-    expect(reducedMotionSection).toContain("display: none;");
+  });
+
+  it("only animates compositor-friendly properties", () => {
+    // Keyframe *blocks* end with a closing brace at column 0; the regex must
+    // stop there rather than swallow the following rule.
+    const keyframeBodies = brandCss.match(/@keyframes[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g) ?? [];
+    expect(keyframeBodies.length).toBeGreaterThan(5);
+
+    for (const block of keyframeBodies) {
+      expect(block).not.toMatch(/\b(width|height|top|left|margin|padding|font-size)\s*:/);
+    }
   });
 });
 
@@ -385,10 +446,10 @@ describe("Adversarial Stress Test: Boot Splash Lifecycle and Synchronization", (
 
 describe("Adversarial Stress Test: AlgoGuruMark Thresholds & Geometry", () => {
   it("verifies threshold helpers across edge sizes", () => {
-    // glyphStrokeFor: < 24 -> 8.0, >= 24 -> 6.8
+    // glyphStrokeFor: < 20 -> 8.0, >= 20 -> 6.8
     expect(glyphStrokeFor(16)).toBe(8.0);
-    expect(glyphStrokeFor(23.9)).toBe(8.0);
-    expect(glyphStrokeFor(24)).toBe(6.8);
+    expect(glyphStrokeFor(19.9)).toBe(8.0);
+    expect(glyphStrokeFor(20)).toBe(6.8);
     expect(glyphStrokeFor(32)).toBe(6.8);
 
     // showSurfaceDetailFor: >= 20
@@ -437,5 +498,25 @@ describe("Adversarial Stress Test: AlgoGuruLockup Proportions", () => {
     const svgStack = cStack.querySelector("svg")!;
     expect(parseFloat(svgStack.getAttribute("width")!)).toBe((45 * LOCKUP_STACKED.w) / LOCKUP_STACKED.h);
     expect(parseFloat(svgStack.getAttribute("height")!)).toBe(45);
+  });
+});
+
+describe("Adversarial Stress Test: Colour Ramp", () => {
+  it("keeps the ramp ordered, opaque and free of near-black stops", () => {
+    expect(BRAND_RAMP.length).toBeGreaterThanOrEqual(4);
+
+    const offsets = BRAND_RAMP.map((stop) => parseFloat(stop.offset));
+    expect(offsets[0]).toBe(0);
+    expect(offsets.at(-1)).toBe(100);
+    for (let i = 1; i < offsets.length; i += 1) {
+      expect(offsets[i]).toBeGreaterThan(offsets[i - 1]);
+    }
+
+    // No stop may be so dark that the white letter loses contrast.
+    BRAND_RAMP.forEach(({ color }) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16) / 255);
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      expect(luminance).toBeGreaterThan(0.15);
+    });
   });
 });

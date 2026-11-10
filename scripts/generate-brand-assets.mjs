@@ -26,120 +26,103 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = join(ROOT, "public");
 const BRAND = join(PUBLIC, "brand");
 
-/* ── Geometry (mirrors brandGeometry.ts) ─────────────────────────── */
+/* ── Geometry ─────────────────────────────────────────────────────
+   The letter, the tile and the palette are READ from brandGeometry.ts rather
+   than copied. Copying is exactly how the tab icon drifted from the in-app
+   mark in the first place; sourcing makes a mismatch impossible. */
 
-/** Superellipse (n = 4.6) sampled as a closed path — continuous curvature. */
-const TILE = (() => {
-  const n = 4.6;
-  const steps = 128;
-  const points = [];
-  for (let i = 0; i < steps; i += 1) {
-    const t = (i / steps) * Math.PI * 2;
-    const c = Math.cos(t);
-    const s = Math.sin(t);
-    const x = 32 + 32 * Math.sign(c) * Math.pow(Math.abs(c), 2 / n);
-    const y = 32 + 32 * Math.sign(s) * Math.pow(Math.abs(s), 2 / n);
-    points.push(`${x.toFixed(2)} ${y.toFixed(2)}`);
-  }
-  return `M${points.join("L")}Z`;
-})();
+const GEOMETRY_SRC = readFileSync(join(ROOT, "src/components/brand/brandGeometry.ts"), "utf8");
 
-const STROKE = 6.8;
-const STROKE_COMPACT = 8.0;
-const LEGS = "M16 50 L32 14 L48 50";
-const BAR = "M22 36 H42";
-const NODE = { cx: 39.2, cy: 36.0, r: 4.2 };
+/** Evaluate the geometry/palette block of the TS module as plain JS. */
+function loadGeometry() {
+  // The typed helper functions below the palette are not needed here, and they
+  // are the only TS syntax in the file that cannot be stripped mechanically.
+  const block = GEOMETRY_SRC.split("export function")[0];
+  const js = block
+    .replace(/^import[\s\S]*?;$/gm, "")
+    .replace(/^export\s+/gm, "")
+    .replace(/\s+as const;/g, ";")
+    .replace(/:\s*(readonly\s+)?\[number,\s*number\]\[\]/g, "")
+    .replace(/:\s*(readonly\s+)?\[number,\s*number\]/g, "")
+    .replace(/:\s*string(?=\s*[,)=])/g, "")
+    .replace(/:\s*number(?=\s*[,)=])/g, "");
 
-const BADGE_STOPS = [
-  ["0%", "#38BDF8"],
-  ["18%", "#6366F1"],
-  ["48%", "#3B82F6"],
-  ["78%", "#1D4ED8"],
-  ["100%", "#0B0F19"],
-];
-const GLYPH_STOPS = [
-  ["0%", "#FFFFFF"],
-  ["50%", "#F8FAFC"],
-  ["100%", "#E2E8F0"],
-];
-const BLUE = "#3B82F6";
-const INK = "#070709";
-const ACCENT = "#00F5FF";
-const ACCENT_DEEP = "#06B6D4";
+  return new Function(
+    `${js}
+     return { BRAND_TILE_PATH, BRAND_A, BRAND_RAMP, BRAND_GLYPH_STOPS,
+              BRAND_BADGE_STOPS_COMPACT, BRAND_INK, BRAND_BLUE, BRAND_ACCENT };`,
+  )();
+}
+
+const BRAND_GEO = loadGeometry();
+
+/** The superellipse tile, straight from the module that the app renders. */
+const TILE = BRAND_GEO.BRAND_TILE_PATH;
+
+/* The letter: two mirrored stems and a crossbar brace, all disjoint. */
+const A_LEFT = BRAND_GEO.BRAND_A.leftStem;
+const A_RIGHT = BRAND_GEO.BRAND_A.rightStem;
+const A_BAR = BRAND_GEO.BRAND_A.crossbar;
+const GLYPH_PATH = `${A_LEFT}${A_RIGHT}${A_BAR}`;
+
+const NODE = { cx: BRAND_GEO.BRAND_A.node.cx, cy: BRAND_GEO.BRAND_A.node.cy, r: BRAND_GEO.BRAND_A.node.r };
+const SHEEN = "M32 1.5L50 20.5L32 39.5L14 20.5Z";
+
+/** Full ramp: indigo → cobalt → sky cyan. */
+const RAMP_STOPS = BRAND_GEO.BRAND_RAMP.map((s) => [s.offset, s.color]);
+/** Tab-size ramp: one tighter indigo→cobalt run, built to survive 16px raster. */
+const COMPACT_STOPS = BRAND_GEO.BRAND_BADGE_STOPS_COMPACT.map((s) => [s.offset, s.color]);
+const GLYPH_STOPS = BRAND_GEO.BRAND_GLYPH_STOPS.map((s) => [s.offset, s.color]);
+const BLUE = BRAND_GEO.BRAND_BLUE;
+const INK = BRAND_GEO.BRAND_INK;
+const ACCENT = BRAND_GEO.BRAND_ACCENT;
 const WORDMARK_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
-
-/** Small-size ramp: high-contrast electric indigo into vivid sapphire */
-const BADGE_STOPS_COMPACT = [
-  ["0%", "#6366F1"],
-  ["45%", "#2563EB"],
-  ["100%", "#1D4ED8"],
-];
 
 /* ── SVG builders ────────────────────────────────────────────────── */
 
-const stops = (id, compact = false) => {
-  const table = id === "tile" ? (compact ? BADGE_STOPS_COMPACT : BADGE_STOPS) : GLYPH_STOPS;
-  return table.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join("");
-};
+const stopMarkup = (table) =>
+  table.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join("");
 
-/** The lit tile: gradient, bloom, gloss, shade, rim. */
+/** The lit tile: one ramp, one sheen, one rim. */
 const tileLayers = `<path d="${TILE}" fill="url(#tile)"/>
-    <path d="${TILE}" fill="url(#bloom)"/>
-    <path d="${TILE}" fill="url(#gloss)"/>
-    <path d="${TILE}" fill="url(#shade)"/>
-    <path d="${TILE}" fill="none" stroke="url(#rim)" stroke-width="1.2"/>`;
+    <path d="${SHEEN}" fill="url(#sheen)"/>
+    <path d="${TILE}" fill="none" stroke="url(#rim)" stroke-width="1.3"/>`;
 
 function tileDefs({ detail = true, mono = false, compact = false } = {}) {
   return `<defs>
-    <linearGradient id="tile" x1="4" y1="0" x2="60" y2="64" gradientUnits="userSpaceOnUse">${stops("tile", compact)}</linearGradient>
+    <linearGradient id="tile" x1="10" y1="2" x2="56" y2="62" gradientUnits="userSpaceOnUse">${stopMarkup(compact ? COMPACT_STOPS : RAMP_STOPS)}</linearGradient>
     ${
       mono
         ? ""
-        : `<linearGradient id="ink" x1="32" y1="12" x2="32" y2="52" gradientUnits="userSpaceOnUse">${stops("ink")}</linearGradient>`
+        : `<linearGradient id="ink" x1="32" y1="12" x2="32" y2="52" gradientUnits="userSpaceOnUse">${stopMarkup(GLYPH_STOPS)}</linearGradient>`
     }
     ${
       detail
-        ? `<radialGradient id="bloom" cx="0.84" cy="0.88" r="0.82">
-            <stop offset="0%" stop-color="#00F5FF" stop-opacity="0.45"/>
-            <stop offset="45%" stop-color="#6366F1" stop-opacity="0.16"/>
-            <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
-          </radialGradient>
-          <radialGradient id="gloss" cx="0.2" cy="0.04" r="0.9">
-            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.48"/>
-            <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+        ? `<linearGradient id="rim" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+            <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="sheen" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.34"/>
             <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-          </radialGradient>
-          <linearGradient id="shade" x1="32" y1="28" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#020617" stop-opacity="0"/>
-            <stop offset="100%" stop-color="#020617" stop-opacity="0.45"/>
-          </linearGradient>
-          <linearGradient id="rim" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
-            <stop offset="25%" stop-color="#FFFFFF" stop-opacity="0.15"/>
-            <stop offset="70%" stop-color="rgba(99, 102, 241, 0.2)"/>
-            <stop offset="100%" stop-color="rgba(2, 6, 23, 0.6)"/>
-          </linearGradient>
-          <filter id="lift" x="-30%" y="-30%" width="160%" height="180%">
-            <feDropShadow dx="0" dy="1.6" stdDeviation="2.2" flood-color="#020617" flood-opacity="0.5"/>
-          </filter>`
+          </radialGradient>`
         : ""
     }
-    <radialGradient id="node" cx="0.32" cy="0.28" r="0.8">
+    <radialGradient id="node" cx="0.34" cy="0.3" r="0.78">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="35%" stop-color="#38BDF8"/>
-      <stop offset="75%" stop-color="#00F5FF"/>
-      <stop offset="100%" stop-color="#0284C7"/>
+      <stop offset="48%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
     </radialGradient>
   </defs>`;
 }
 
-const glyph = ({ stroke = STROKE, color = "url(#ink)", lift = true } = {}) =>
-  `<g${lift ? ' filter="url(#lift)"' : ""} fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"><path d="${LEGS}"/><path d="${BAR}"/></g>`;
+const glyph = ({ color = "url(#ink)" } = {}) =>
+  `<g fill="${color}"><path d="${A_LEFT}"/><path d="${A_BAR}"/><path d="${A_RIGHT}"/></g>`;
 
 const nodeDot = (fill = "url(#node)") =>
-  `<circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r + 2.2}" fill="#00F5FF" opacity="0.32"/>
-   <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="${fill}" stroke="#FFFFFF" stroke-width="0.9"/>
-   <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r * 0.42}" fill="#FFFFFF"/>`;
+  `<circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r + 1.7}" fill="${ACCENT}" opacity="0.34"/>
+   <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="${fill}"/>`;
 
 function markSvg() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
@@ -159,7 +142,7 @@ function monoMarkSvg(reverse = false) {
   <title id="t">AlgoGuru</title>
   ${tileDefs({ detail: false, mono: true })}
   <path d="${TILE}" fill="${tileFill}"/>
-  ${glyph({ color: inkColor, lift: false })}
+  ${glyph({ color: inkColor })}
   <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="${reverse ? BLUE : ACCENT}"/>
 </svg>
 `;
@@ -168,51 +151,45 @@ function monoMarkSvg(reverse = false) {
 /**
  * App icon artwork at native 64-space so every gradient resolves exactly as it
  * does in the app. `bleed` produces the full-bleed square that iOS/Android mask
- * themselves; the default keeps the superellipse tile on transparency.
+ * themselves; the glyph shrinks to 84% there so nothing clips inside the
+ * maskable safe zone. The default keeps the superellipse tile on transparency.
  */
 function appIconSvg({ size = 512, bleed = false } = {}) {
   const body = bleed
     ? `<rect width="64" height="64" fill="url(#tile)"/>
-       <rect width="64" height="64" fill="url(#bloom)"/>
-       <rect width="64" height="64" fill="url(#gloss)"/>
-       <rect width="64" height="64" fill="url(#shade)"/>`
+       <rect width="64" height="64" fill="url(#sheen)"/>`
     : tileLayers;
+  const letter = bleed
+    ? `<g transform="translate(32 32) scale(0.8) translate(-32 -32)">${glyph()}</g>
+       <g transform="translate(32 32) scale(0.8) translate(-32 -32)">${nodeDot()}</g>`
+    : `${glyph()}${nodeDot()}`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}" role="img" aria-labelledby="t">
   <title id="t">AlgoGuru</title>
   ${tileDefs()}
   ${body}
-  ${bleed ? "" : `<path d="${TILE}" fill="none" stroke="url(#rim)" stroke-width="1.2"/>`}
-  ${glyph({ stroke: bleed ? 6.4 : STROKE })}
-  ${nodeDot()}
+  ${letter}
 </svg>
 `;
 }
 
 function faviconSvg() {
-  // High-contrast, sharp, brilliant browser tab icon:
-  // Compact indigo-sapphire ramp, specular micro-rim, bold white glyph, glowing cyan Guru nexus with diamond center
+  // Browser-tab icon: the compact high-contrast ramp, a solid white letter and
+  // the junction node — tuned so nothing closes up when rastered at 16px.
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   ${tileDefs({ detail: false, mono: true, compact: true })}
   <path d="${TILE}" fill="url(#tile)"/>
-  <path d="${TILE}" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
-  <g fill="none" stroke="#FFFFFF" stroke-width="${STROKE_COMPACT}" stroke-linecap="round" stroke-linejoin="round">
-    <path d="${LEGS}"/>
-    <path d="${BAR}"/>
-  </g>
-  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r + 2.2}" fill="${ACCENT}" opacity="0.45"/>
-  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="url(#node)" stroke="#FFFFFF" stroke-width="1"/>
-  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r * 0.45}" fill="#FFFFFF"/>
+  <path d="${TILE}" fill="none" stroke="rgba(255,255,255,0.34)" stroke-width="1.4"/>
+  <g fill="#FFFFFF"><path d="${A_LEFT}"/><path d="${A_BAR}"/><path d="${A_RIGHT}"/></g>
+  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r + 1.3}" fill="${ACCENT}" opacity="0.5"/>
+  <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="#FFFFFF"/>
 </svg>
 `;
 }
 
 function maskIconSvg() {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <g fill="none" stroke="#000000" stroke-width="${STROKE_COMPACT}" stroke-linecap="round" stroke-linejoin="round">
-    <path d="${LEGS}"/>
-    <path d="${BAR}"/>
-  </g>
+  <g fill="#000000"><path d="${A_LEFT}"/><path d="${A_BAR}"/><path d="${A_RIGHT}"/></g>
   <circle cx="${NODE.cx}" cy="${NODE.cy}" r="${NODE.r}" fill="#000000"/>
 </svg>
 `;
@@ -227,8 +204,8 @@ function lockupSvg(orientation = "horizontal") {
     ? markMarkup
     : `<svg x="52" y="14" width="96" height="96" viewBox="0 0 64 64">${markMarkup}</svg>`;
   const text = horizontal
-    ? `<text x="80" y="43" font-family="${WORDMARK_FONT}" font-size="32" font-weight="600" letter-spacing="-0.03em"><tspan fill="${INK}">Algo</tspan><tspan fill="${BLUE}" dx="0.5">Guru</tspan></text>`
-    : `<text x="100" y="156" text-anchor="middle" font-family="${WORDMARK_FONT}" font-size="36" font-weight="600" letter-spacing="-0.03em"><tspan fill="${INK}">Algo</tspan><tspan fill="${BLUE}" dx="0.5">Guru</tspan></text>`;
+    ? `<text x="80" y="43" font-family="${WORDMARK_FONT}" font-size="32" font-weight="600" letter-spacing="-0.03em"><tspan fill="#0B1220">Algo</tspan><tspan fill="${BLUE}" dx="0.5">Guru</tspan></text>`
+    : `<text x="100" y="156" text-anchor="middle" font-family="${WORDMARK_FONT}" font-size="36" font-weight="600" letter-spacing="-0.03em"><tspan fill="#0B1220">Algo</tspan><tspan fill="${BLUE}" dx="0.5">Guru</tspan></text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-labelledby="t">
   <title id="t">AlgoGuru</title>
@@ -356,7 +333,7 @@ function writeIco(out, entries) {
 /* ── Social card ─────────────────────────────────────────────────── */
 
 function ogImageHtml() {
-  const mark = `<svg viewBox="0 0 64 64" width="72" height="72">${tileDefs()}${tileLayers}${glyph()}${nodeDot()}</svg>`;
+  const mark = `<svg viewBox="0 0 64 64" width="80" height="80">${tileDefs()}${tileLayers}${glyph()}${nodeDot()}</svg>`;
 
   return `<!doctype html><html><head><meta charset="utf-8"><style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');

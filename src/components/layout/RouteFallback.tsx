@@ -3,19 +3,34 @@ import { cn } from "@/lib/utils";
 
 /**
  * Full-viewport loading state used while a top-level route chunk resolves.
- * Keeps a calm, neutral obsidian background and the mark.
+ *
+ * One ambient wash behind the brand story — the wash is the same gradient the
+ * pre-hydration splash (`#boot-splash` in index.html) paints, so a cold load
+ * cross-fades without a visible jump.
  */
-export function AppLoadingScreen({ label = "Loading your workspace" }: { label?: string }) {
+export function AppLoadingScreen({
+  label = "Loading your workspace",
+  progress,
+}: {
+  label?: string;
+  /** 0–100 when the wait is measurable. Omit for an indeterminate shimmer. */
+  progress?: number;
+}) {
   return (
-    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-obsidian-void">
-      {/* Subtle ambient lighting */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-      >
-        <div className="h-[440px] w-[560px] rounded-full bg-gradient-to-tr from-primary/10 via-indigo-500/5 to-cyan-500/10 blur-[120px]" />
-      </div>
-      <BrandLoader variant="screen" size="lg" label={label} className="relative z-10" />
+    <div
+      className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-obsidian-void"
+      style={{
+        backgroundImage:
+          "radial-gradient(42rem 30rem at 50% 42%, hsl(239 84% 67% / 0.16), transparent 70%)",
+      }}
+    >
+      <BrandLoader
+        variant="screen"
+        size="lg"
+        label={label}
+        progress={progress}
+        className="relative z-10"
+      />
     </div>
   );
 }

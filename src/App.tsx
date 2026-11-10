@@ -32,6 +32,7 @@ import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
 import { GuruAvatar } from "@/components/brand/GuruMark";
+import { BrandLoader } from "@/components/brand/BrandLoader";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -799,7 +800,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                         fallback={
                           <div className="flex h-full flex-col items-center justify-center gap-4 bg-card">
                             <GuruAvatar size={52} ring mood="thinking" glow title={null} />
-                            <div className="skeleton-shimmer h-1 w-24 rounded-full" />
+                            <BrandLoader size="sm" label="Opening Guru AI" />
                             <span className="sr-only">Loading Guru AI</span>
                           </div>
                         }
