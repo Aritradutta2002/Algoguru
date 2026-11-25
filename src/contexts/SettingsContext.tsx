@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light";
@@ -24,7 +26,7 @@ const FONT_SIZE_CSS: Record<FontSize, string> = {
   xl: "19px",
 };
 
-const readInitialTheme = (): Theme => {
+const readStoredTheme = (): Theme => {
   try {
     const stored = localStorage.getItem("cp-theme");
     if (stored === "light" || stored === "dark") return stored;
@@ -37,28 +39,55 @@ const readInitialTheme = (): Theme => {
 };
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(readInitialTheme);
+  // Deterministic SSR defaults; real persisted values hydrate after mount.
+  const [theme, setTheme] = useState<Theme>("dark");
+  const [fontSize, setFontSize] = useState<FontSize>("md");
+  const [contentWidth, setContentWidthState] = useState<number>(1100);
+  const [hydrated, setHydrated] = useState(false);
 
-  const [fontSize, setFontSize] = useState<FontSize>(() => {
-    return (localStorage.getItem("cp-fontsize") as FontSize) || "md";
-  });
+  useEffect(() => {
+    setTheme(readStoredTheme());
 
-  const [contentWidth, setContentWidthState] = useState<number>(() => {
-    const saved = localStorage.getItem("cp-content-width");
-    return saved ? Number(saved) : 1100;
-  });
+    try {
+      const savedFont = localStorage.getItem("cp-fontsize");
+      if (savedFont && FONT_SIZES.includes(savedFont as FontSize)) {
+        setFontSize(savedFont as FontSize);
+      }
+      const savedWidth = localStorage.getItem("cp-content-width");
+      if (savedWidth) {
+        const parsed = Number(savedWidth);
+        if (Number.isFinite(parsed)) {
+          setContentWidthState(parsed);
+        }
+      }
+    } catch {
+      // Ignore storage access failures in private browsing.
+    }
+
+    setHydrated(true);
+  }, []);
 
   const setContentWidth = (w: number) => {
     setContentWidthState(w);
-    localStorage.setItem("cp-content-width", String(w));
+    try {
+      localStorage.setItem("cp-content-width", String(w));
+    } catch {
+      // Ignore storage write failures.
+    }
   };
 
   useEffect(() => {
+    if (!hydrated) return;
+
     const root = document.documentElement;
     root.classList.remove("light", "dark");
-    root.classList.add(theme); // adds "dark" or "light"
+    root.classList.add(theme);
     root.style.colorScheme = theme;
-    localStorage.setItem("cp-theme", theme);
+    try {
+      localStorage.setItem("cp-theme", theme);
+    } catch {
+      // Ignore storage write failures.
+    }
 
     const themeColor = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"]',
@@ -66,12 +95,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     if (themeColor) {
       themeColor.content = theme === "dark" ? "#070709" : "#FAFAF8";
     }
-  }, [theme]);
+  }, [theme, hydrated]);
 
   useEffect(() => {
+    if (!hydrated) return;
+
     document.documentElement.style.fontSize = FONT_SIZE_CSS[fontSize];
-    localStorage.setItem("cp-fontsize", fontSize);
-  }, [fontSize]);
+    try {
+      localStorage.setItem("cp-fontsize", fontSize);
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [fontSize, hydrated]);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -90,7 +125,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <SettingsContext.Provider value={{ theme, toggleTheme, fontSize, increaseFontSize, decreaseFontSize, contentWidth, setContentWidth }}>
+    <SettingsContext.Provider
+      value={{
+        theme,
+        toggleTheme,
+        fontSize,
+        increaseFontSize,
+        decreaseFontSize,
+        contentWidth,
+        setContentWidth,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );

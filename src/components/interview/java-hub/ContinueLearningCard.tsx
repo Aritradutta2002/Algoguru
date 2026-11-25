@@ -1,5 +1,9 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { MOST_ASKED_HREF, type StudyFocus } from "./javaHubData";
 
@@ -14,16 +18,16 @@ interface ContinueLearningCardProps {
 export function ContinueLearningCard({ focus }: ContinueLearningCardProps) {
   if (focus.kind === "loading") {
     return (
-      <div className="cjh-continue">
+      <Card className="cjh-continue shadow-none">
         <p className="cjh-eyebrow">Your next topic</p>
         <p className="cjh-continue-loading">Loading your study progress…</p>
-      </div>
+      </Card>
     );
   }
 
   if (focus.kind === "complete") {
     return (
-      <div className="cjh-continue">
+      <Card className="cjh-continue shadow-none">
         <p className="cjh-eyebrow">
           <CheckCircle2 size={14} aria-hidden="true" />
           Curriculum complete
@@ -34,15 +38,17 @@ export function ContinueLearningCard({ focus }: ContinueLearningCardProps) {
           before your interview.
         </p>
         <div className="cjh-continue-actions">
-          <Link to={focus.ctaHref} className="cjh-btn-primary">
-            {focus.ctaLabel}
-            <ArrowRight size={15} />
-          </Link>
-          <Link to={MOST_ASKED_HREF} className="cjh-link">
+          <Button asChild className="cjh-btn-primary">
+            <Link href={focus.ctaHref}>
+              {focus.ctaLabel}
+              <ArrowRight size={15} />
+            </Link>
+          </Button>
+          <Link href={MOST_ASKED_HREF} className="cjh-link">
             Review must-know questions
           </Link>
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -55,7 +61,7 @@ export function ContinueLearningCard({ focus }: ContinueLearningCardProps) {
         : null;
 
   return (
-    <div className="cjh-continue">
+    <Card className="cjh-continue shadow-none">
       <p className="cjh-eyebrow">{focus.kind === "start" ? "Recommended starting topic" : "Current topic"}</p>
       <h3 className="cjh-continue-title">{topic.title}</h3>
       <p className="cjh-continue-desc">{topic.description}</p>
@@ -74,14 +80,16 @@ export function ContinueLearningCard({ focus }: ContinueLearningCardProps) {
         </p>
       </div>
       <div className="cjh-continue-actions">
-        <Link to={focus.ctaHref} className="cjh-btn-primary">
-          {focus.ctaLabel}
-          <ArrowRight size={15} />
-        </Link>
-        <Link to={topic.href} className="cjh-link">
+        <Button asChild className="cjh-btn-primary">
+          <Link href={focus.ctaHref}>
+            {focus.ctaLabel}
+            <ArrowRight size={15} />
+          </Link>
+        </Button>
+        <Link href={topic.href} className="cjh-link">
           Open topic
         </Link>
       </div>
-    </div>
+    </Card>
   );
 }

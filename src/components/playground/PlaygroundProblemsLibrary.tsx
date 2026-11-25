@@ -1,7 +1,12 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import { Search, Loader2, ExternalLink, Code2, ChevronDown, Layers } from "lucide-react";
 import { practiceData, type Problem } from "@/data/practiceData";
 import type { LeetCodeProblem } from "@/lib/leetcodeProblem";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   onSelectProblem: (problem: Problem, leetCodeData: LeetCodeProblem | null, javaSnippet: string, exampleTestcases: string) => void;
@@ -79,8 +84,8 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
       {/* Search + filter */}
       <div className="sticky top-0 z-10 p-3 space-y-2" style={{ background: "var(--lc-panel)", borderBottom: "1px solid var(--lc-border-soft)" }}>
         <div className="relative">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--lc-faint)" }} />
-          <input
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10" style={{ color: "var(--lc-faint)" }} />
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search practice problems…"
@@ -89,13 +94,16 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
         </div>
         <div className="flex items-center gap-1.5">
           {["All", "Easy", "Medium", "Hard"].map((d) => (
-            <button
+            <Button
               key={d}
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setDifficultyFilter(d)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${difficultyFilter === d ? "bg-[color:var(--lc-text)] text-[color:var(--lc-panel)] border-[color:var(--lc-text)]" : "bg-transparent border-[color:var(--lc-border)] text-[color:var(--lc-muted)] hover:text-[color:var(--lc-text)]"}`}
+              className={`h-auto px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${difficultyFilter === d ? "bg-[color:var(--lc-text)] text-[color:var(--lc-panel)] border-[color:var(--lc-text)] hover:bg-[color:var(--lc-text)] hover:text-[color:var(--lc-panel)]" : "bg-transparent border-[color:var(--lc-border)] text-[color:var(--lc-muted)] hover:text-[color:var(--lc-text)]"}`}
             >
               {d}
-            </button>
+            </Button>
           ))}
           <span className="ml-auto text-[11px]" style={{ color: "var(--lc-faint)" }}>
             {totalVisible} problems
@@ -115,7 +123,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
             const isTopicOpen = expandedTopic === topic.id;
             return (
               <div key={topic.id} className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--lc-border)", background: "var(--lc-panel-2)" }}>
-                <button
+                <Button variant="bare" size="bare"
                   onClick={() => setExpandedTopic(isTopicOpen ? null : topic.id)}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left lc-hover"
                 >
@@ -129,7 +137,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
                     {topic.subtopics.reduce((a, s) => a + s.problems.length, 0)}
                   </span>
                   <ChevronDown size={13} className={`transition-transform ${isTopicOpen ? "rotate-180" : ""}`} style={{ color: "var(--lc-muted)" }} />
-                </button>
+                </Button>
 
                 {isTopicOpen && (
                   <div className="px-2 pb-2 space-y-2">
@@ -137,7 +145,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
                       const isSubOpen = expandedSubtopic === sub.id;
                       return (
                         <div key={sub.id} className="rounded-lg border overflow-hidden" style={{ borderColor: "var(--lc-border-soft)", background: "var(--lc-panel)" }}>
-                          <button
+                          <Button variant="bare" size="bare"
                             onClick={() => setExpandedSubtopic(isSubOpen ? null : sub.id)}
                             className="w-full flex items-center gap-2 px-3 py-2 text-left lc-hover"
                           >
@@ -148,7 +156,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
                               {sub.problems.length}
                             </span>
                             <ChevronDown size={12} className={`transition-transform ${isSubOpen ? "rotate-180" : ""}`} style={{ color: "var(--lc-muted)" }} />
-                          </button>
+                          </Button>
 
                           {isSubOpen && (
                             <div className="px-1.5 pb-1.5 space-y-1">
@@ -167,7 +175,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
                                         <span className="text-[12px] font-semibold truncate" style={{ color: "var(--lc-text)" }}>
                                           {prob.title}
                                         </span>
-                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${getDifficultyColor(prob.difficulty)}`}>{prob.difficulty}</span>
+                                        <Badge className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${getDifficultyColor(prob.difficulty)}`}>{prob.difficulty}</Badge>
                                       </div>
                                       <div className="flex items-center gap-1 mt-0.5">
                                         <span className="text-[10px] font-mono truncate" style={{ color: "var(--lc-faint)" }}>
@@ -187,7 +195,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
                                         )}
                                       </div>
                                     </div>
-                                      <button
+                                      <Button variant="bare" size="bare"
                                       onClick={async () => {
                                         if (!slug) return;
                                         const data = await onFetchProblem(slug);
@@ -208,7 +216,7 @@ export function PlaygroundProblemsLibrary({ onSelectProblem, onFetchProblem, der
                                     >
                                       {isLoading ? <Loader2 size={11} className="animate-spin" /> : <Code2 size={11} />}
                                       {isLoading ? "Loading" : isActive ? "Loaded" : "Load"}
-                                    </button>
+                                    </Button>
                                   </div>
                                 );
                               })}

@@ -1,7 +1,10 @@
-import { useRef, useState, type KeyboardEvent } from "react";
+"use client";
+
+import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { Check, Code2, FileText, FlaskConical } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { CodeLine } from "./codeSnippet";
@@ -31,34 +34,6 @@ const TAB_NOTES: Record<DemoTabId, string> = {
 export function WorkspaceDemoSection() {
   const reduceMotion = useReducedMotion();
   const [active, setActive] = useState<DemoTabId>("problem");
-  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
-
-  const activeIndex = DEMO_TABS.findIndex((tab) => tab.id === active);
-
-  const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    let next = activeIndex;
-
-    switch (event.key) {
-      case "ArrowRight":
-        next = (activeIndex + 1) % DEMO_TABS.length;
-        break;
-      case "ArrowLeft":
-        next = (activeIndex - 1 + DEMO_TABS.length) % DEMO_TABS.length;
-        break;
-      case "Home":
-        next = 0;
-        break;
-      case "End":
-        next = DEMO_TABS.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    event.preventDefault();
-    setActive(DEMO_TABS[next].id);
-    tabRefs.current[next]?.focus();
-  };
 
   const panel = (
     <div className="space-y-5">
@@ -131,69 +106,65 @@ export function WorkspaceDemoSection() {
               <span className="lp-chip ml-auto hidden shrink-0 sm:inline-flex">Interactive demo</span>
             </div>
 
-            <div
-              role="tablist"
-              aria-label="Workspace demo views"
-              onKeyDown={handleTabKeyDown}
-              className="flex items-center gap-1 border-b border-obsidian-border px-2 sm:px-3"
+            <Tabs
+              value={active}
+              onValueChange={(value) => setActive(value as DemoTabId)}
+              className="contents"
             >
-              {DEMO_TABS.map((tab, index) => {
-                const Icon = TAB_ICONS[tab.id];
-                const selected = tab.id === active;
+              <TabsList
+                aria-label="Workspace demo views"
+                className="h-auto flex items-center justify-start gap-1 rounded-none border-b border-obsidian-border bg-transparent p-0 px-2 sm:px-3"
+              >
+                {DEMO_TABS.map((tab) => {
+                  const Icon = TAB_ICONS[tab.id];
 
-                return (
-                  <button
-                    key={tab.id}
-                    ref={(node) => {
-                      tabRefs.current[index] = node;
-                    }}
-                    type="button"
-                    role="tab"
-                    id={`demo-tab-${tab.id}`}
-                    aria-selected={selected}
-                    aria-controls={`demo-panel-${tab.id}`}
-                    tabIndex={selected ? 0 : -1}
-                    onClick={() => setActive(tab.id)}
-                    className="lp-tab focus-visible:-outline-offset-2"
-                  >
-                    <Icon size={14} aria-hidden="true" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                  return (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      id={`demo-tab-${tab.id}`}
+                      aria-controls={`demo-panel-${tab.id}`}
+                      className="lp-tab h-auto rounded-none px-3.5 py-0 text-[13px] focus-visible:-outline-offset-2 data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none [&_svg]:shrink-0"
+                    >
+                      <Icon size={14} aria-hidden="true" />
+                      <span>{tab.label}</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
 
-            <div className="p-5 sm:p-7">
-              {reduceMotion ? (
-                <div
-                  role="tabpanel"
-                  id={`demo-panel-${active}`}
-                  aria-labelledby={`demo-tab-${active}`}
-                  tabIndex={0}
-                  className="demo-pane"
-                >
-                  {panel}
-                </div>
-              ) : (
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={active}
+              <div className="p-5 sm:p-7">
+                {reduceMotion ? (
+                  <div
                     role="tabpanel"
                     id={`demo-panel-${active}`}
                     aria-labelledby={`demo-tab-${active}`}
                     tabIndex={0}
-                    variants={PANE_VARIANTS}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={PANE_TRANSITION}
                     className="demo-pane"
                   >
                     {panel}
-                  </motion.div>
-                </AnimatePresence>
-              )}
-            </div>
+                  </div>
+                ) : (
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={active}
+                      role="tabpanel"
+                      id={`demo-panel-${active}`}
+                      aria-labelledby={`demo-tab-${active}`}
+                      tabIndex={0}
+                      variants={PANE_VARIANTS}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={PANE_TRANSITION}
+                      className="demo-pane"
+                    >
+                      {panel}
+                    </motion.div>
+                  </AnimatePresence>
+                )}
+              </div>
+            </Tabs>
           </div>
         </Reveal>
       </div>

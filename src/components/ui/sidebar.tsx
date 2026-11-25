@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
@@ -72,12 +74,10 @@ const SidebarProvider = React.forwardRef<
     ref,
   ) => {
   const isMobile = useIsMobile();
-  const { sidebarOpen, setSidebarOpen } = useResponsivePreferences();
+  const { setSidebarOpen } = useResponsivePreferences();
   
-  // Use responsive preferences for mobile state as well
-  const [openMobile, _setOpenMobile] = React.useState(() => {
-    return sidebarOpen ?? false;
-  });
+  // Deterministic initial state for SSR; persisted values hydrate on mount.
+  const [openMobile, _setOpenMobile] = React.useState(false);
   
   const setOpenMobile = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
@@ -89,10 +89,7 @@ const SidebarProvider = React.forwardRef<
     [openMobile, setSidebarOpen],
   );
 
-  const [_open, _setOpen] = React.useState(() => {
-    // Use responsive preferences if available, otherwise use defaultOpen
-    return sidebarOpen ?? defaultOpen;
-  });
+  const [_open, _setOpen] = React.useState(defaultOpen);
   
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
@@ -110,6 +107,9 @@ const SidebarProvider = React.forwardRef<
   );
 
   const clampSidebarWidth = React.useCallback((w: number) => {
+    if (typeof window === "undefined") {
+      return Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, w));
+    }
     const viewportMax = Math.max(
       SIDEBAR_MIN_WIDTH,
       Math.floor(window.innerWidth * 0.75),
@@ -118,19 +118,49 @@ const SidebarProvider = React.forwardRef<
     return Math.max(SIDEBAR_MIN_WIDTH, Math.min(maxAllowed, w));
   }, []);
 
-  // Resizable sidebar width.
-  const [sidebarWidth, _setSidebarWidth] = React.useState<number>(() => {
-    const saved = localStorage.getItem(widthStorageKey);
-    const initialWidth = saved ? Number(saved) : defaultWidth;
-    return Number.isFinite(initialWidth)
-      ? Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, initialWidth))
-      : defaultWidth;
-  });
+  // Resizable sidebar width (hydrated post-mount for SSR safety).
+  const [sidebarWidth, _setSidebarWidth] = React.useState<number>(defaultWidth);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem(widthStorageKey);
+      if (saved) {
+        const parsed = Number(saved);
+        if (Number.isFinite(parsed)) {
+          _setSidebarWidth(clampSidebarWidth(parsed));
+        }
+      }
+    } catch {
+      // Ignore storage read failures.
+    }
+  }, [clampSidebarWidth, widthStorageKey]);
+
+  React.useEffect(() => {
+    try {
+      if (isMobile) {
+        const storedMobile = localStorage.getItem("sidebar-open-mobile");
+        if (storedMobile === "true" || storedMobile === "false") {
+          _setOpenMobile(storedMobile === "true");
+        }
+      } else if (openProp === undefined) {
+        const storedDesktop = localStorage.getItem("sidebar-open-desktop");
+        if (storedDesktop === "true" || storedDesktop === "false") {
+          _setOpen(storedDesktop === "true");
+        }
+      }
+    } catch {
+      // Ignore storage read failures.
+    }
+  }, [isMobile, openProp]);
 
   const setSidebarWidth = React.useCallback((w: number) => {
     const clamped = clampSidebarWidth(w);
     _setSidebarWidth(clamped);
-    localStorage.setItem(widthStorageKey, String(clamped));
+    try {
+      localStorage.setItem(widthStorageKey, String(clamped));
+    } catch {
+      // Ignore storage write failures.
+    }
   }, [clampSidebarWidth, widthStorageKey]);
 
   const toggleSidebar = React.useCallback(() => {

@@ -1,5 +1,10 @@
-import { useState, useMemo, useRef } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+"use client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+import { useEffect, useState, useMemo, useRef } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -8,6 +13,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { topics } from "@/data/topics";
 import { javaTopics } from "@/data/javaTopics";
 import { practiceTopics } from "@/data/practiceTopics";
@@ -65,19 +72,29 @@ const DifficultyPill = ({ difficulty }: { difficulty: string }) => {
     Hard:   "border-red-500/30 bg-red-500/10 text-red-500",
   };
   return (
-    <span className={cn("inline-flex items-center text-[10px] font-medium px-1.5 py-px rounded border", colors[difficulty] ?? colors.Hard)}>
+    <Badge
+      variant="outline"
+      className={cn("px-1.5 py-px text-[10px] font-medium", colors[difficulty] ?? colors.Hard)}
+    >
       {difficulty}
-    </span>
+    </Badge>
   );
 };
 
 export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname() ?? "/";
+  const router = useRouter();
   const { currentMode } = useMode();
   const { user, profile, resolvedAvatar, signOut } = useAuth();
-  const currentPath = location.pathname;
-  const currentHash = location.hash.replace("#", "");
+  const currentPath = pathname;
+  const [currentHash, setCurrentHash] = useState("");
+
+  useEffect(() => {
+    const syncHash = () => setCurrentHash(window.location.hash.replace("#", ""));
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [currentPath]);
 
   const userName = profile?.display_name || user?.email?.split("@")[0] || "User";
   const avatarUrl = resolvedAvatar;
@@ -158,7 +175,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
     <div className="flex flex-col h-full w-full border-r border-obsidian-border bg-obsidian-pane overflow-hidden">
       {/* ── Brand Header ──────────────────────────────────── */}
       <div className="relative flex items-center gap-2 px-3 py-3 flex-shrink-0 border-b border-obsidian-border">
-        <Link to="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-lg p-1 transition-colors hover:bg-foreground/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Link href="/" className="relative flex items-center gap-3 min-w-0 flex-1 rounded-lg p-1 transition-colors hover:bg-foreground/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <span className="relative inline-flex h-8 w-8 flex-shrink-0 items-center justify-center">
             <AlgoGuruMark size={30} title={null} className="relative" />
           </span>
@@ -166,17 +183,20 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             <span className="text-[14px] font-semibold tracking-tight leading-tight truncate">
               <span className="text-foreground">AlgoGuru</span>
             </span>
-            <span className={cn(
-              "inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded border w-fit",
-              meta.badge
-            )}>
+            <Badge
+              variant="outline"
+              className={cn(
+                "mt-1 w-fit gap-1 px-1.5 py-0.5 text-[10px] font-medium",
+                meta.badge
+              )}
+            >
               {meta.icon}
               {meta.label}
-            </span>
+            </Badge>
           </div>
         </Link>
         <AppTooltip content={<span>Collapse sidebar <kbd className="ml-2 rounded border border-obsidian-border px-1 py-0.5 text-[10px]">Alt + B</kbd></span>} side="right">
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             onClick={onCollapse}
             aria-label="Collapse sidebar"
@@ -184,7 +204,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <PanelLeft size={15} aria-hidden="true" />
-          </button>
+          </Button>
         </AppTooltip>
       </div>
 
@@ -199,25 +219,26 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
           )}>
             <div className="flex items-center gap-2 px-3 py-2">
               <Search size={13} className={cn("flex-shrink-0 transition-colors", searchFocused ? "text-primary" : "text-muted-foreground")} />
-              <input
+              <Input
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
                 placeholder="Search topics, problems…"
-                className="flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-muted-foreground/60 text-foreground min-w-0"
+                aria-label="Search topics and problems"
+                className="flex-1 h-auto w-auto border-0 bg-transparent p-0 text-[12.5px] text-foreground shadow-none outline-none placeholder:text-muted-foreground/60 focus-visible:bg-transparent focus-visible:ring-0 min-w-0 md:text-[12.5px]"
               />
               <AnimatePresence>
                 {searchQuery ? (
-                  <button
+                  <Button variant="bare" size="bare"
                     key="clear"
                     type="button"
                     onClick={() => setSearchQuery("")}
                     className="touch-manipulation flex-shrink-0 p-1 rounded hover:bg-foreground/[0.05] text-muted-foreground hover:text-foreground"
                   >
                     <X size={12} />
-                  </button>
+                  </Button>
                 ) : (
                   <kbd className="hidden sm:flex flex-shrink-0 items-center text-[10px] font-mono text-muted-foreground border border-obsidian-border rounded px-1.5 py-0.5 select-none">
                     ⌘K
@@ -239,10 +260,10 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                       </div>
                     ) : (
                       searchResults.slice(0, 18).map((item) => (
-                        <button
+                        <Button variant="bare" size="bare"
                           key={item.path}
                           type="button"
-                          onClick={() => { navigate(item.path); setSearchQuery(""); }}
+                          onClick={() => { router.push(item.path); setSearchQuery(""); }}
                           className="touch-manipulation w-full flex items-center gap-2.5 px-3 py-2 min-h-[38px] text-left transition-colors hover:bg-foreground/[0.05] border-b border-obsidian-border last:border-0 group"
                         >
                           <div
@@ -260,7 +281,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                             )}
                           </div>
                           <ChevronRight size={11} className="text-muted-foreground group-hover:text-foreground flex-shrink-0 transition-colors" />
-                        </button>
+                        </Button>
                       ))
                     )}
                   </div>
@@ -275,10 +296,10 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
           {navItems.map(({ label, Icon, path }) => {
             const isActive = currentPath === path;
             return (
-              <button
+              <Button variant="bare" size="bare"
                 key={path}
                 type="button"
-                onClick={() => navigate(path)}
+                onClick={() => router.push(path)}
                 className={cn(
                   "touch-manipulation flex items-center gap-2.5 w-full min-w-0 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150 group",
                   isActive
@@ -293,7 +314,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                 {isActive && (
                   <span className="w-1.5 h-1.5 rounded-full bg-foreground" />
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -317,9 +338,9 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
               return (
                 <SidebarMenuItem key={topic.id}>
                   <SidebarMenuButton asChild className="h-auto p-0">
-                    <button
+                    <Button variant="bare" size="bare"
                       type="button"
-                      onClick={() => { toggleTopic(topic.id); navigate(`/${topic.id}`); }}
+                      onClick={() => { toggleTopic(topic.id); router.push(`/${topic.id}`); }}
                       className={cn(
                         "touch-manipulation flex items-center justify-between w-full min-w-0 gap-2 overflow-hidden px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150 group",
                         isActive
@@ -344,7 +365,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                           className={cn("transition-transform duration-150 text-muted-foreground", isOpen && "rotate-180")}
                         />
                       </div>
-                    </button>
+                    </Button>
                   </SidebarMenuButton>
 
                   <AnimatePresence initial={false}>
@@ -366,9 +387,9 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                               <SidebarMenuSubItem key={sub.id}>
                                 <SidebarMenuSubButton asChild className="h-auto p-0">
                                   <AppTooltip content={sub.title} side="right">
-                                    <button
+                                    <Button variant="bare" size="bare"
                                       type="button"
-                                      onClick={() => navigate(`/${topic.id}#${sub.id}`)}
+                                      onClick={() => router.push(`/${topic.id}#${sub.id}`)}
                                       className={cn(
                                         "touch-manipulation flex items-center gap-2.5 w-full px-2.5 py-1.5 min-h-[32px] rounded-md text-[12px] font-medium transition-colors text-left group",
                                         active
@@ -380,7 +401,7 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
                                         className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors", active ? "bg-foreground" : "bg-muted-foreground/40 group-hover:bg-muted-foreground")}
                                       />
                                       <span className="min-w-0 flex-1 truncate leading-snug">{sub.title}</span>
-                                    </button>
+                                    </Button>
                                   </AppTooltip>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -402,21 +423,16 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
         <div className="mx-3 mb-3 mt-2 rounded-lg border border-obsidian-border bg-obsidian-elevated overflow-hidden">
           <div className="flex items-center gap-2.5 px-3 py-2.5">
             <div className="relative flex-shrink-0">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
+              <Avatar className="h-8 w-8 rounded-lg border border-obsidian-border">
+                <AvatarImage
+                  src={avatarUrl ?? undefined}
                   alt=""
-                  className="w-8 h-8 rounded-lg object-cover border border-obsidian-border"
                   referrerPolicy="no-referrer"
-                  loading="lazy"
                 />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold border border-obsidian-border bg-obsidian-pane text-foreground"
-                >
+                <AvatarFallback className="rounded-lg bg-obsidian-pane text-xs font-semibold text-foreground">
                   {userName[0]?.toUpperCase()}
-                </div>
-              )}
+                </AvatarFallback>
+              </Avatar>
               <span
                 className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-obsidian-elevated"
               />
@@ -434,14 +450,14 @@ export function AppSidebar({ onCollapse }: { onCollapse: () => void }) {
             </div>
 
             <AppTooltip content="Sign out">
-              <button
+              <Button variant="bare" size="bare"
                 type="button"
                 onClick={signOut}
                 aria-label="Sign out"
                 className="touch-manipulation p-1.5 rounded-md transition-colors hover:bg-destructive/10 text-muted-foreground hover:text-destructive group"
               >
                 <LogOut size={14} className="group-hover:translate-x-0.5 transition-transform duration-150" />
-              </button>
+              </Button>
             </AppTooltip>
           </div>
         </div>

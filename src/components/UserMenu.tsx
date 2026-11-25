@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import {
   BookOpen,
   ChevronDown,
@@ -15,6 +17,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,20 +51,21 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
   const { user, profile, resolvedAvatar, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const { theme, toggleTheme } = useSettings();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const isDark = theme === "dark";
 
   if (!user) {
     return (
-      <button
+      <Button
         type="button"
-        onClick={() => navigate("/auth")}
-        className="touch-manipulation inline-flex h-9 items-center justify-center rounded-lg bg-foreground px-3.5 text-sm font-medium text-background transition-colors duration-150 hover:bg-foreground/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+        size="sm"
+        onClick={() => router.push("/auth")}
+        className="h-9 rounded-lg px-3.5 text-sm font-medium"
       >
         <span>Sign in</span>
-      </button>
+      </Button>
     );
   }
 
@@ -76,31 +81,23 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             aria-label="User account menu"
             className="group touch-manipulation inline-flex h-11 lg:h-9 items-center gap-1.5 rounded-lg px-1.5 text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 select-none"
           >
-            {avatar ? (
-              <img
-                src={avatar}
-                alt=""
-                className="h-8 w-8 rounded-full object-cover ring-1 ring-obsidian-border"
-                style={{ aspectRatio: "1/1" }}
-                referrerPolicy="no-referrer"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.03] text-xs font-semibold text-foreground/80 ring-1 ring-obsidian-border">
+            <Avatar className="h-8 w-8 ring-1 ring-obsidian-border">
+              <AvatarImage src={avatar ?? undefined} alt="" referrerPolicy="no-referrer" />
+              <AvatarFallback className="bg-foreground/[0.03] text-xs font-semibold text-foreground/80">
                 {initial}
-              </div>
-            )}
+              </AvatarFallback>
+            </Avatar>
             <NavIcon
               icon={ChevronDown}
               chip
               className="transition-transform duration-150 group-data-[state=open]:rotate-180"
             />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
@@ -124,7 +121,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
 
           <div className="space-y-0.5">
             <DropdownMenuItem
-              onClick={() => navigate("/profile")}
+              onClick={() => router.push("/profile")}
               className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-foreground/[0.05] focus:text-foreground cursor-pointer transition-colors"
             >
               <NavIcon icon={User} chip />
@@ -132,7 +129,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              onClick={() => navigate("/profile")}
+              onClick={() => router.push("/profile")}
               className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-foreground/[0.05] focus:text-foreground cursor-pointer transition-colors"
             >
               <NavIcon icon={Settings} chip />
@@ -140,7 +137,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              onClick={() => navigate("/notes")}
+              onClick={() => router.push("/notes")}
               className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-foreground/[0.05] focus:text-foreground cursor-pointer transition-colors"
             >
               <NavIcon icon={FileText} chip />
@@ -185,7 +182,7 @@ export function UserMenu({ onOpenLibrary }: UserMenuProps = {}) {
 
             {isAdmin && (
               <DropdownMenuItem
-                onClick={() => navigate("/admin")}
+                onClick={() => router.push("/admin")}
                 className="touch-manipulation flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 [&_svg]:text-muted-foreground focus:bg-foreground/[0.05] focus:text-foreground cursor-pointer transition-colors"
               >
                 <NavIcon icon={Shield} chip />

@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { ArrowUpRight, Heart } from "lucide-react";
 import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
+import { Button } from "@/components/ui/button";
 
 interface FooterProps {
   onSupportClick: () => void;
@@ -12,15 +15,15 @@ const LINKEDIN_URL = "https://www.linkedin.com/in/aritra-dutta-rick20/";
 const TWITTER_URL = "https://x.com/Aritra1Sept";
 
 const PRODUCT_LINKS = [
-  { label: "Practice", to: "/practice" },
-  { label: "Playground", to: "/playground" },
-  { label: "Interview", to: "/interview" },
-  { label: "Contest", to: "/contest" },
+  { label: "Practice", href: "/practice" },
+  { label: "Playground", href: "/playground" },
+  { label: "Interview", href: "/interview" },
+  { label: "Contest", href: "/contest" },
 ];
 
 const RESOURCE_LINKS = [
-  { label: "Roadmap", to: "/roadmap" },
-  { label: "Notes", to: "/notes" },
+  { label: "Roadmap", href: "/roadmap" },
+  { label: "Notes", href: "/notes" },
 ];
 
 const SOCIAL_LINKS = [
@@ -57,7 +60,7 @@ export function Footer({ onSupportClick }: FooterProps) {
           {/* Brand */}
           <div className="max-w-xs">
             <Link
-              to="/"
+              href="/"
               className="inline-flex items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
               aria-label="AlgoGuru home"
             >
@@ -70,23 +73,25 @@ export function Footer({ onSupportClick }: FooterProps) {
               A focused workspace for learning data structures, system design and
               the interviews that move your career forward.
             </p>
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={onSupportClick}
-              className="mt-5 inline-flex h-9 items-center gap-2 rounded-lg border border-obsidian-border px-3 text-[13px] font-medium text-foreground transition-colors duration-150 hover:bg-foreground/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="mt-5 h-9 bg-transparent px-3 text-[13px] font-medium hover:bg-foreground/[0.05]"
             >
               <Heart size={14} className="text-muted-foreground" aria-hidden="true" />
               Buy me a coffee
-            </button>
+            </Button>
           </div>
 
           {/* Product */}
           <nav aria-label="Product">
             <h3 className={HEADING_CLASS}>Product</h3>
             <ul className="mt-4 space-y-3">
-              {PRODUCT_LINKS.map(({ label, to }) => (
-                <li key={to}>
-                  <Link to={to} className={LINK_CLASS}>
+              {PRODUCT_LINKS.map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className={LINK_CLASS}>
                     {label}
                   </Link>
                 </li>
@@ -98,17 +103,17 @@ export function Footer({ onSupportClick }: FooterProps) {
           <nav aria-label="Resources">
             <h3 className={HEADING_CLASS}>Resources</h3>
             <ul className="mt-4 space-y-3">
-              {RESOURCE_LINKS.map(({ label, to }) => (
-                <li key={to}>
-                  <Link to={to} className={LINK_CLASS}>
+              {RESOURCE_LINKS.map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className={LINK_CLASS}>
                     {label}
                   </Link>
                 </li>
               ))}
               <li>
-                <button type="button" onClick={scrollToTop} className={LINK_CLASS}>
+                <Button variant="bare" size="bare" type="button" onClick={scrollToTop} className={LINK_CLASS}>
                   Back to top
-                </button>
+                </Button>
               </li>
             </ul>
           </nav>

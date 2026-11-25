@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { HERO_TIMELINE } from "@/lib/motion";
 

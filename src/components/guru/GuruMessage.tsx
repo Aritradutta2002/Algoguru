@@ -1,3 +1,7 @@
+"use client";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
 import { memo, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -65,14 +69,14 @@ function ErrorCard({
           <p className="text-[12.5px] leading-relaxed text-guru-text/90">{info.message}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {info.retryable && (
-              <button
+              <Button variant="bare" size="bare"
                 type="button"
                 onClick={() => onRetry(message.id)}
                 className="inline-flex items-center gap-1.5 rounded-md bg-guru-text/[0.07] px-2.5 py-1 text-[11.5px] font-semibold text-guru-text transition-colors hover:bg-guru-text/[0.12]"
               >
                 <RotateCcw size={12} />
                 Try again
-              </button>
+              </Button>
             )}
             <span className="text-[11px] text-guru-muted">
               Nothing was saved to your history.
@@ -149,7 +153,7 @@ export const GuruMessage = memo(function GuruMessage({
       <article className="group flex flex-col items-end" data-message-id={message.id}>
         {editing ? (
           <div className="w-full max-w-[92%] rounded-xl border border-guru-accent/40 bg-guru-raised/80 p-2">
-            <textarea
+            <Textarea
               ref={editRef}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
@@ -165,11 +169,11 @@ export const GuruMessage = memo(function GuruMessage({
                 }
               }}
               rows={Math.min(8, Math.max(2, draft.split("\n").length))}
-              className="w-full resize-none rounded-lg bg-transparent px-2 py-1.5 text-[13.5px] leading-relaxed text-guru-text outline-none placeholder:text-guru-muted"
+              className="w-full resize-none min-h-0 rounded-lg border-0 bg-transparent px-2 py-1.5 text-[13.5px] leading-relaxed text-guru-text shadow-none outline-none placeholder:text-guru-muted focus-visible:bg-transparent focus-visible:ring-0 md:text-[13.5px]"
               aria-label="Edit your message"
             />
             <div className="mt-1.5 flex items-center justify-end gap-1.5">
-              <button
+              <Button variant="bare" size="bare"
                 type="button"
                 onClick={() => {
                   setDraft(message.content);
@@ -178,15 +182,15 @@ export const GuruMessage = memo(function GuruMessage({
                 className="rounded-md px-2.5 py-1 text-[11.5px] font-medium text-guru-muted transition-colors hover:bg-guru-text/[0.06] hover:text-guru-text"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button variant="bare" size="bare"
                 type="button"
                 onClick={submitEdit}
                 disabled={!draft.trim()}
                 className="rounded-md bg-guru-accent px-2.5 py-1 text-[11.5px] font-semibold text-guru-on-accent transition-colors hover:bg-guru-accent/90 disabled:opacity-40"
               >
                 Save &amp; send
-              </button>
+              </Button>
             </div>
           </div>
         ) : (

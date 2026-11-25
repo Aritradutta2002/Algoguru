@@ -1,17 +1,26 @@
+"use client";
+
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useRouter } from "next/navigation";
 import { RoadmapFullscreenOverlay } from "./RoadmapFullscreenOverlay";
 import type { RoadmapId } from "@/data/roadmaps";
 
 /**
  * Route-level mount of the chrome-free roadmap overlay. Used for deep links
  * (/roadmap, /roadmap/:roadmapId) so users can share/bookmark a specific
- * roadmap view. The component lives outside <AppLayout> so no sidebar, header,
+ * roadmap view. The component lives outside <WorkspaceShell> so no sidebar, header,
  * or footer is rendered — only the overlay.
  */
-export function RoadmapFullscreenRoute() {
-  const navigate = useNavigate();
-  const { roadmapId } = useParams<{ roadmapId?: string }>();
+export function RoadmapFullscreenRoute({
+  roadmapId: roadmapIdProp,
+}: {
+  roadmapId?: string;
+} = {}) {
+  const router = useRouter();
+  const params = useParams<{ roadmapId?: string }>();
+  const rawParam = params?.roadmapId;
+  const roadmapId =
+    roadmapIdProp ?? (Array.isArray(rawParam) ? rawParam[0] : rawParam);
 
   // When this route mounts, ensure we're at the top so the canvas is visible.
   useEffect(() => {
@@ -23,9 +32,9 @@ export function RoadmapFullscreenRoute() {
       open
       onClose={() => {
         if (window.history.length > 1) {
-          navigate(-1);
+          router.back();
         } else {
-          navigate("/", { replace: true });
+          router.replace("/");
         }
       }}
       initialRoadmapId={

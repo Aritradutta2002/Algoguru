@@ -1,28 +1,16 @@
-import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import { QuizSection } from "@/components/quiz/QuizSection";
 import { MCQ_QUESTIONS } from "@/lib/mcqQuizBank";
+vi.mock("next/link", async () => {
+  const mod = await import("@/test/nextNavigationMock");
+  return mod.createNextLinkMock();
+});
 
-function Destination() {
-  const location = useLocation();
-  return (
-    <p>
-      Quiz page: {location.pathname}
-      {location.search}
-    </p>
-  );
-}
+afterEach(cleanup);
+
 function renderSection() {
-  return render(
-    <MemoryRouter>
-      <Routes>
-        <Route path="/" element={<QuizSection />} />
-        <Route path="/contest" element={<div>Contest landing</div>} />
-        <Route path="/contest/quiz" element={<Destination />} />
-      </Routes>
-    </MemoryRouter>,
-  );
+  return render(<QuizSection />);
 }
 
 describe("QuizSection", () => {
@@ -45,8 +33,9 @@ describe("QuizSection", () => {
 
   it("sends the main call to action to the Contest landing page", () => {
     renderSection();
-    fireEvent.click(screen.getByRole("link", { name: /open contest/i }));
-    expect(screen.getByText("Contest landing")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /open contest/i }),
+    ).toHaveAttribute("href", "/contest");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -56,9 +45,9 @@ describe("QuizSection", () => {
     ["Python", "python"],
   ])("opens the quiz with %s preselected", (label, id) => {
     renderSection();
-    fireEvent.click(screen.getByRole("link", { name: label }));
-    expect(
-      screen.getByText(`Quiz page: /contest/quiz?language=${id}`),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute(
+      "href",
+      `/contest/quiz?language=${id}`,
+    );
   });
 });

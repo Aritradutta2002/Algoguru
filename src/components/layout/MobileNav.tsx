@@ -1,4 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
+"use client";
+import { Button } from "@/components/ui/button";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { BriefcaseBusiness, Code2, House, Menu, SquareTerminal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,7 +29,7 @@ interface MobileNavProps {
  * parent hides it on immersive editor/exam routes and when Guru is open.
  */
 export function MobileNav({ onMore, moreActive }: MobileNavProps) {
-  const { pathname } = useLocation();
+  const pathname = usePathname() ?? "/";
 
   return (
     <motion.nav
@@ -41,7 +45,7 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
         return (
           <Link
             key={item.path}
-            to={item.path}
+            href={item.path}
             aria-current={active ? "page" : undefined}
             className={cn(
               "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
@@ -63,7 +67,7 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
         );
       })}
 
-      <button
+      <Button variant="bare" size="bare"
         type="button"
         onClick={onMore}
         aria-label="Open more navigation"
@@ -83,7 +87,7 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
         )}
         <NavIcon icon={Menu} className="relative" />
         <span className="relative">More</span>
-      </button>
+      </Button>
     </motion.nav>
   );
 }

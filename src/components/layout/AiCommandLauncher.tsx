@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { forwardRef } from "react";
 import { Sparkles } from "lucide-react";
 import { AppTooltip } from "@/components/ui/tooltip";
@@ -43,7 +46,7 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
 
     return (
       <AppTooltip content={open ? "Close Guru (⌘J)" : "Ask Guru (⌘J)"}>
-        <button
+        <Button variant="bare" size="bare"
           ref={ref}
           type="button"
           onClick={onClick}
@@ -67,7 +70,7 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
           </span>
 
           {!compact && <span className="leading-none">Ask Guru</span>}
-        </button>
+        </Button>
       </AppTooltip>
     );
   },

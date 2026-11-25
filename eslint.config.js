@@ -5,7 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: [".next", "dist"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -28,6 +28,43 @@ export default tseslint.config(
       "react-hooks/exhaustive-deps": "off",
       "no-empty": "off",
       "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  {
+    files: [
+      "src/app/**/*.{ts,tsx}",
+      "src/features/**/*.{ts,tsx}",
+      "src/components/**/*.{ts,tsx}",
+    ],
+    ignores: [
+      "src/components/ui/**",
+      "**/*.test.{ts,tsx}",
+      "**/*.spec.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement[name.name='button']",
+          message: "Use the shared Button primitive from @/components/ui.",
+        },
+        {
+          selector: "JSXOpeningElement[name.name='input']",
+          message: "Use the shared Input primitive from @/components/ui.",
+        },
+        {
+          selector: "JSXOpeningElement[name.name='select']",
+          message: "Use the shared Select primitive from @/components/ui.",
+        },
+        {
+          selector: "JSXOpeningElement[name.name='textarea']",
+          message: "Use the shared Textarea primitive from @/components/ui.",
+        },
+        {
+          selector: "JSXOpeningElement[name.name='dialog']",
+          message: "Use the shared Dialog primitive from @/components/ui.",
+        },
+      ],
     },
   },
 );

@@ -213,12 +213,8 @@ export function useRoadmapProgress(
   roadmap: Roadmap,
   uid: string | "anon" = "anon"
 ): UseRoadmapProgressResult {
-  const [progress, setProgress] = useState<RoadmapProgress>(() =>
-    loadProgress(roadmap.id, uid)
-  );
-  const [positions, setPositions] = useState<PositionMap>(() =>
-    loadPositions(roadmap.id, uid)
-  );
+  const [progress, setProgress] = useState<RoadmapProgress>({});
+  const [positions, setPositions] = useState<PositionMap>({});
 
   // Reload when the roadmap id changes (e.g. user clicks a different tab).
   useEffect(() => {

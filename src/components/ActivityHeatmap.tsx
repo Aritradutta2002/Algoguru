@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import React, {
   useMemo,
   useState,
@@ -6,6 +9,7 @@ import React, {
   useCallback,
 } from "react";
 import { AppTooltip } from "./ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Loader2, Activity, BarChart3 } from "lucide-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -165,7 +169,6 @@ export function ActivityHeatmap({
     }
   };
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [animReady, setAnimReady] = useState(false);
 
@@ -178,19 +181,6 @@ export function ActivityHeatmap({
 
   useEffect(() => {
     setAnimReady(true);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const currentYear = new Date().getFullYear();
@@ -306,6 +296,7 @@ export function ActivityHeatmap({
       count: number;
       month: string;
       isFirstOfMonth: boolean;
+      isFuture: boolean;
     }> = [];
     let currentStreak = 0;
     let maxStr = 0;
@@ -336,8 +327,9 @@ export function ActivityHeatmap({
         date: current,
         dateString: key,
         count: count,
-        month: current.toLocaleString("default", { month: "short" }),
+        month: current.toLocaleString("en-US", { month: "short" }),
         isFirstOfMonth: current.getDate() === 1,
+        isFuture,
       });
     }
 
@@ -449,29 +441,33 @@ export function ActivityHeatmap({
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex w-full sm:w-auto items-center justify-center gap-2 text-xs font-medium text-foreground bg-card border border-border px-3 h-8 rounded-md hover:bg-muted transition-colors"
-            >
-              {selectedYear === "Last 12 months" ? "12 months" : selectedYear}
-              <ChevronDown
-                size={12}
-                className={cn(
-                  "transition-transform duration-200 cursor-pointer",
-                  isDropdownOpen && "rotate-180",
-                )}
-              />
-            </button>
-
-            {isDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 bg-popover text-popover-foreground border border-border rounded-lg shadow-xl overflow-hidden z-50">
-                <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground border-b border-border">
-                  Select range
-                </div>
+          <Popover open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex w-full sm:w-auto items-center justify-center gap-2 text-xs font-medium bg-card border-border px-3 h-8 hover:bg-muted"
+              >
+                {selectedYear === "Last 12 months" ? "12 months" : selectedYear}
+                <ChevronDown
+                  size={12}
+                  className={cn(
+                    "transition-transform duration-200 cursor-pointer",
+                    isDropdownOpen && "rotate-180",
+                  )}
+                />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-44 p-0 overflow-hidden">
+              <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground border-b border-border">
+                Select range
+              </div>
+              <div className="flex flex-col">
                 {yearOptions.map((year) => (
-                  <button
+                  <Button variant="bare" size="bare"
                     key={year}
+                    type="button"
                     onClick={() => {
                       setSelectedYear(year);
                       setIsDropdownOpen(false);
@@ -489,11 +485,11 @@ export function ActivityHeatmap({
                         Current
                       </span>
                     )}
-                  </button>
+                  </Button>
                 ))}
               </div>
-            )}
-          </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Mode Toggle */}
           <div className="grid grid-cols-3 bg-muted rounded-lg p-0.5 border border-border">
@@ -501,18 +497,21 @@ export function ActivityHeatmap({
               const cfg = modeConfig[mode];
               const isActive = dataMode === mode;
               return (
-                <button
+                <Button
                   key={mode}
-                  onClick={() => onModeChange(mode)}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onModeChange?.(mode)}
                   className={cn(
-                    "min-w-0 text-xs font-medium px-3 sm:px-3.5 py-1.5 rounded-md transition-colors",
+                    "h-auto min-w-0 text-xs font-medium px-3 sm:px-3.5 py-1.5 rounded-md transition-colors",
                     isActive
                       ? `${cfg.activeBg} ${cfg.color} shadow-sm`
-                      : "text-muted-foreground hover:text-foreground",
+                      : "text-muted-foreground hover:text-foreground hover:bg-transparent",
                   )}
                 >
                   {cfg.label}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -635,7 +634,7 @@ export function ActivityHeatmap({
                         );
                       }
 
-                      const isFuture = day.date > new Date();
+                      const isFuture = day.isFuture;
                       const count = day.count;
                       const level = getIntensityLevel(count);
                       const colorClass = intensityColors[level];

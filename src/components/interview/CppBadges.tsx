@@ -1,3 +1,6 @@
+"use client";
+
+import { badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Difficulty, InterviewPriority } from "@/data/cppInterviewMetadata";
 
@@ -9,7 +12,14 @@ const DIFFICULTY_STYLES: Record<Difficulty, string> = {
 
 export function CppDifficultyBadge({ difficulty, className }: { difficulty: Difficulty; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-medium capitalize", DIFFICULTY_STYLES[difficulty], className)}>
+    <span
+      className={cn(
+        badgeVariants({ variant: "outline" }),
+        "gap-1.5 text-[11px] capitalize",
+        DIFFICULTY_STYLES[difficulty],
+        className,
+      )}
+    >
       <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
       {difficulty}
     </span>
@@ -30,7 +40,14 @@ const PRIORITY_LABELS: Record<InterviewPriority, string> = {
 };
 export function CppPriorityBadge({ priority, className }: { priority: InterviewPriority; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium", PRIORITY_STYLES[priority], className)}>
+    <span
+      className={cn(
+        badgeVariants({ variant: "outline" }),
+        "gap-1 text-[11px]",
+        PRIORITY_STYLES[priority],
+        className,
+      )}
+    >
       {(priority === "very-high" || priority === "high") && <span aria-hidden="true">🔥</span>}
       {PRIORITY_LABELS[priority]}
     </span>
@@ -38,7 +55,13 @@ export function CppPriorityBadge({ priority, className }: { priority: InterviewP
 }
 export function CppVersionBadge({ version, className }: { version: string; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center rounded-md border border-info/25 bg-info/10 px-2 py-0.5 text-[11px] font-medium text-info", className)}>
+    <span
+      className={cn(
+        badgeVariants({ variant: "outline" }),
+        "border-info/25 bg-info/10 text-[11px] text-info",
+        className,
+      )}
+    >
       {version}
     </span>
   );

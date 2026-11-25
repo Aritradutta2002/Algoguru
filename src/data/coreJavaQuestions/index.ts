@@ -11,6 +11,7 @@
  * - every question's declared topic exists in `TOPIC_DEFINITIONS`
  * - each topic receives exactly the number of questions its `range` implies
  */
+import { isDev } from "@/lib/env";
 import type { InterviewQuestion } from "@/data/coreJavaInterviewData";
 import type { CoreJavaQuestionMeta } from "@/data/coreJavaInterviewMetadata";
 
@@ -91,7 +92,7 @@ export const questionsByTopicId: Record<string, InterviewQuestion[]> = (() => {
   return grouped;
 })();
 
-if (import.meta.env?.DEV) {
+if (isDev) {
   const seen = new Set<string>();
   for (const question of allCoreJavaQuestions) {
     if (seen.has(question.id)) {

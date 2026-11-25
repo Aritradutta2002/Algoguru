@@ -1,195 +1,163 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { cleanup, render } from "@testing-library/react";
 import {
-  contestAppRoutes,
-  contestStandaloneRoutes,
+  CONTEST_PATHS,
+  CONTEST_ROUTES,
+  CONTEST_STANDALONE_ROUTES,
+  CONTEST_WORKSPACE_ROUTES,
+  buildQuizRedirectHref,
 } from "@/components/contest/ContestRoutes";
+import { QuizLegacyRedirect } from "@/components/contest/QuizLegacyRedirect";
+import QuizLegacyRedirectPage from "@/app/(standalone)/quiz/page";
 import {
-  installExamBrowserEnv,
-  restoreExamBrowserEnv,
-} from "@/test/examEnv";
+  NextRedirectError,
+  mockRouter,
+  redirectMock,
+  resetNextNavigationMocks,
+  setMockSearchParams,
+} from "@/test/nextNavigationMock";
 
-vi.mock("@/contexts/AuthContext", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAuth: () => ({
-    session: { user: { id: "user-1" } },
-    user: { id: "user-1", email: "learner@example.com" },
-    profile: null,
-    resolvedAvatar: null,
-    loading: false,
-    signOut: vi.fn(),
-    refreshProfile: vi.fn(),
-  }),
-}));
-
-const ROUTER_FUTURE = {
-  v7_startTransition: true,
-  v7_relativeSplatPath: true,
-} as const;
-
-/**
- * Rendered as a SIBLING of `<Routes>`, not as a catch-all inside it. A catch-all
- * would be shadowed by the real `/contest/quiz` route, which is exactly the
- * route the legacy redirect targets.
- */
-function LocationProbe() {
-  const location = useLocation();
-  return (
-    <div>
-      <span data-testid="pathname">{location.pathname}</span>
-      <span data-testid="search">{location.search}</span>
-    </div>
-  );
-}
-
-function renderAt(path: string, routes: React.ReactElement[]) {
-  return render(
-    <MemoryRouter initialEntries={[path]} future={ROUTER_FUTURE}>
-      <LocationProbe />
-      <Routes>{routes}</Routes>
-    </MemoryRouter>,
-  );
-}
+vi.mock("next/navigation", async () => {
+  const mod = await import("@/test/nextNavigationMock");
+  return mod.createNextNavigationMock();
+});
 
 beforeEach(() => {
-  installExamBrowserEnv();
+  resetNextNavigationMocks();
 });
 
 afterEach(() => {
   cleanup();
-  restoreExamBrowserEnv();
   vi.restoreAllMocks();
 });
 
-describe("Contest route table", () => {
-  it("redirects /quiz to /contest/quiz", () => {
-    renderAt("/quiz", contestStandaloneRoutes());
-    expect(screen.getByTestId("pathname")).toHaveTextContent("/contest/quiz");
-    // And the MCQ flow is what actually rendered at the destination.
-    expect(
-      screen.getByRole("heading", { name: "Build your challenge" }),
-    ).toBeInTheDocument();
-  });
-
-  it("keeps the query string across the /quiz redirect", () => {
-    renderAt("/quiz?language=java&difficulty=easy", contestStandaloneRoutes());
-    // A bare <Navigate to="/contest/quiz"> would have dropped this.
-    expect(screen.getByTestId("pathname")).toHaveTextContent("/contest/quiz");
-    expect(screen.getByTestId("search")).toHaveTextContent(
-      "?language=java&difficulty=easy",
+describe("Contest Next.js route manifest", () => {
+  it("separates standalone exam routes from workspace shell routes", () => {
+    expect(CONTEST_STANDALONE_ROUTES.map((route) => route.path)).toEqual([
+      "/contest/quiz",
+      "/contest/coding",
+      "/contest/coding/session/[sessionId]",
+      "/quiz",
+    ]);
+    expect(CONTEST_WORKSPACE_ROUTES.map((route) => route.path)).toEqual([
+      "/contest",
+      "/contest/coding/result/[sessionId]",
+    ]);
+    expect(CONTEST_ROUTES).toHaveLength(
+      CONTEST_STANDALONE_ROUTES.length + CONTEST_WORKSPACE_ROUTES.length,
     );
   });
 
-  it("preserves an unrelated query parameter on the legacy route", () => {
-    renderAt("/quiz?minutes=5", contestStandaloneRoutes());
-    expect(screen.getByTestId("search")).toHaveTextContent("?minutes=5");
+  it("maps every manifest entry to an App Router page file", () => {
+    for (const route of CONTEST_ROUTES) {
+      expect(route.appFile).toMatch(/^src\/app\/\((standalone|workspace)\)\/.+\/page\.tsx$/);
+      if (route.chrome === "standalone") {
+        expect(route.appFile).toContain("/(standalone)/");
+      } else {
+        expect(route.appFile).toContain("/(workspace)/");
+      }
+    }
   });
 
-  it("renders the existing MCQ flow at /contest/quiz", () => {
-    renderAt("/contest/quiz?language=java&difficulty=easy", contestStandaloneRoutes());
-    // The MCQ setup page's own heading — proves the existing component is what
-    // now answers at the new path.
-    expect(
-      screen.getByRole("heading", { name: "Build your challenge" }),
-    ).toBeInTheDocument();
-  });
-
-  it("preselects the MCQ language and difficulty from the redirected query", () => {
-    // The regression that a lost query string would cause: java/easy arriving
-    // as the "mixed" defaults instead.
-    renderAt("/quiz?language=java&difficulty=easy", contestStandaloneRoutes());
-    const language = screen.getByLabelText("Language") as HTMLSelectElement;
-    const difficulty = screen.getByLabelText("Difficulty") as HTMLSelectElement;
-    expect(language.value).toBe("java");
-    expect(difficulty.value).toBe("easy");
-  });
-
-  it("does not let the legacy redirect hijack /contest/quiz", () => {
-    renderAt("/contest/quiz", contestStandaloneRoutes());
-    expect(screen.getByTestId("pathname")).toHaveTextContent("/contest/quiz");
-    expect(
-      screen.getByRole("heading", { name: "Build your challenge" }),
-    ).toBeInTheDocument();
-  });
-
-  it("matches the coding session param route", () => {
-    renderAt("/contest/coding/session/abc-123", contestStandaloneRoutes());
-    expect(screen.getByTestId("pathname")).toHaveTextContent(
+  it("builds parameterized coding session and result paths cleanly", () => {
+    expect(CONTEST_PATHS.landing).toBe("/contest");
+    expect(CONTEST_PATHS.quiz).toBe("/contest/quiz");
+    expect(CONTEST_PATHS.codingInstructions).toBe("/contest/coding");
+    expect(CONTEST_PATHS.codingSession("abc-123")).toBe(
       "/contest/coding/session/abc-123",
     );
-    // The session page's own loader proves this param route matched rather than
-    // falling through.
-    expect(screen.getByRole("status")).toHaveTextContent("Loading your contest");
-  });
-
-  it("renders the landing page at /contest in the app route group", () => {
-    renderAt("/contest", contestAppRoutes());
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Contest" }),
-    ).toBeInTheDocument();
-  });
-
-  it("renders the instructions page at /contest/coding without the app shell", () => {
-    renderAt("/contest/coding", contestStandaloneRoutes());
-    expect(
-      screen.getByRole("heading", {
-        level: 1,
-        name: "Java Coding Contest",
-      }),
-    ).toBeInTheDocument();
-    // Chrome-free: the page owns its full-height background rather than
-    // inheriting the AppLayout shell.
-    expect(document.querySelector(".min-h-screen")).toBeTruthy();
-  });
-
-  it("keeps the contest landing page in the app shell", () => {
-    renderAt("/contest", contestAppRoutes());
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Contest" }),
-    ).toBeInTheDocument();
-  });
-
-  it("does not route /contest/coding into a topic page", () => {
-    render(
-      <MemoryRouter initialEntries={["/contest/coding"]} future={ROUTER_FUTURE}>
-        <LocationProbe />
-        <Routes>
-          {contestStandaloneRoutes()}
-          <Route path="/:topicId" element={<div>topic page</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-    expect(screen.queryByText("topic page")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", {
-        level: 1,
-        name: "Java Coding Contest",
-      }),
-    ).toBeInTheDocument();
-  });
-
-  it("matches the result param route", () => {
-    renderAt("/contest/coding/result/abc-123", contestAppRoutes());
-    expect(screen.getByTestId("pathname")).toHaveTextContent(
+    expect(CONTEST_PATHS.codingResult("abc-123")).toBe(
       "/contest/coding/result/abc-123",
     );
-    expect(screen.getByRole("status")).toHaveTextContent("Loading your result");
+  });
+});
+
+describe("buildQuizRedirectHref (/quiz query-string forwarding contract)", () => {
+  it("redirects bare /quiz to /contest/quiz without a trailing question mark", () => {
+    expect(buildQuizRedirectHref()).toBe("/contest/quiz");
+    expect(buildQuizRedirectHref("")).toBe("/contest/quiz");
+    expect(buildQuizRedirectHref({})).toBe("/contest/quiz");
+    expect(buildQuizRedirectHref(new URLSearchParams())).toBe("/contest/quiz");
   });
 
-  it("does not route /contest into a topic page", () => {
-    render(
-      <MemoryRouter initialEntries={["/contest"]} future={ROUTER_FUTURE}>
-        <LocationProbe />
-        <Routes>
-          {contestAppRoutes()}
-          <Route path="/:topicId" element={<div>topic page</div>} />
-        </Routes>
-      </MemoryRouter>,
+  it("preserves language and difficulty query params across strings, objects, and URLSearchParams", () => {
+    expect(buildQuizRedirectHref("?language=java&difficulty=easy")).toBe(
+      "/contest/quiz?language=java&difficulty=easy",
     );
-    expect(screen.queryByText("topic page")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 1, name: "Contest" }),
-    ).toBeInTheDocument();
+      buildQuizRedirectHref({ language: "java", difficulty: "easy" }),
+    ).toBe("/contest/quiz?language=java&difficulty=easy");
+    expect(
+      buildQuizRedirectHref(new URLSearchParams("language=java&difficulty=easy")),
+    ).toBe("/contest/quiz?language=java&difficulty=easy");
+  });
+
+  it("preserves arbitrary query params and multi-value arrays while dropping undefined keys", () => {
+    expect(buildQuizRedirectHref({ minutes: "5" })).toBe(
+      "/contest/quiz?minutes=5",
+    );
+    expect(
+      buildQuizRedirectHref({
+        language: "python",
+        tag: ["arrays", "graphs"],
+        empty: undefined,
+      }),
+    ).toBe("/contest/quiz?language=python&tag=arrays&tag=graphs");
+  });
+});
+
+describe("QuizLegacyRedirect", () => {
+  it("replaces /quiz with /contest/quiz when no query parameters exist", () => {
+    setMockSearchParams("");
+    render(<QuizLegacyRedirect />);
+    expect(mockRouter.replace).toHaveBeenCalledWith("/contest/quiz");
+  });
+
+  it("forwards query parameters across the client redirect", () => {
+    setMockSearchParams("language=java&difficulty=easy");
+    render(<QuizLegacyRedirect />);
+    expect(mockRouter.replace).toHaveBeenCalledWith(
+      "/contest/quiz?language=java&difficulty=easy",
+    );
+  });
+
+  it("preserves unrelated query parameters such as minutes=5", () => {
+    setMockSearchParams("minutes=5");
+    render(<QuizLegacyRedirect />);
+    expect(mockRouter.replace).toHaveBeenCalledWith("/contest/quiz?minutes=5");
+  });
+});
+
+describe("Server /quiz legacy redirect page", () => {
+  it("redirects /quiz to /contest/quiz when searchParams is empty", async () => {
+    await expect(
+      QuizLegacyRedirectPage({ searchParams: Promise.resolve({}) }),
+    ).rejects.toThrow(NextRedirectError);
+    expect(redirectMock).toHaveBeenCalledWith("/contest/quiz");
+  });
+
+  it("forwards query parameters on server redirect", async () => {
+    await expect(
+      QuizLegacyRedirectPage({
+        searchParams: Promise.resolve({
+          language: "java",
+          difficulty: "easy",
+        }),
+      }),
+    ).rejects.toThrow(NextRedirectError);
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/contest/quiz?language=java&difficulty=easy",
+    );
+  });
+
+  it("forwards single and array params on server redirect", async () => {
+    await expect(
+      QuizLegacyRedirectPage({
+        searchParams: Promise.resolve({ topic: ["arrays", "trees"] }),
+      }),
+    ).rejects.toThrow(NextRedirectError);
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/contest/quiz?topic=arrays&topic=trees",
+    );
   });
 });

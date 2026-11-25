@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 import { DiagramRenderer } from "@/components/DiagramRenderer";
 import { cppVisualizations } from "@/data/cppVisualizations";

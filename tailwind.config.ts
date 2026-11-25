@@ -12,13 +12,13 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ["JetBrains Mono", "Fira Code", "monospace"],
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "Fira Code", "monospace"],
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Space Grotesk", "Inter", "system-ui", "sans-serif"],
         /* Long-form reading: humanist, high x-height, tuned for prose. */
-        reading: ["Source Sans 3", "Inter", "system-ui", "sans-serif"],
+        reading: ["var(--font-reading)", "Source Sans 3", "Inter", "system-ui", "sans-serif"],
         /* Documentation-grade code face for the Q&A reader. */
-        code: ["JetBrains Mono", "ui-monospace", "monospace"],
+        code: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
         category: {

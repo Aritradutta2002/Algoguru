@@ -1,3 +1,6 @@
+"use client";
+
+import { badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Difficulty, InterviewPriority } from "@/data/coreJavaInterviewMetadata";
 
@@ -16,9 +19,10 @@ export function DifficultyBadge({ difficulty, className }: DifficultyBadgeProps)
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-[5px] border px-2 py-[3px] text-[11px] font-medium leading-none capitalize",
+        badgeVariants({ variant: "outline" }),
+        "gap-1.5 rounded-[5px] px-2 py-[3px] text-[11px] leading-none capitalize",
         DIFFICULTY_STYLES[difficulty],
-        className
+        className,
       )}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
@@ -50,9 +54,10 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-[5px] border px-2 py-[3px] text-[11px] font-medium leading-none",
+        badgeVariants({ variant: "outline" }),
+        "gap-1 rounded-[5px] px-2 py-[3px] text-[11px] leading-none",
         PRIORITY_STYLES[priority],
-        className
+        className,
       )}
     >
       {(priority === "very-high" || priority === "high") && <span aria-hidden="true">🔥</span>}
@@ -70,8 +75,9 @@ export function JavaVersionBadge({ version, className }: JavaVersionBadgeProps) 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-[5px] border border-info/25 bg-info/10 px-2 py-[3px] text-[11px] font-medium leading-none text-info",
-        className
+        badgeVariants({ variant: "outline" }),
+        "rounded-[5px] border-info/25 bg-info/10 px-2 py-[3px] text-[11px] leading-none text-info",
+        className,
       )}
     >
       {version}

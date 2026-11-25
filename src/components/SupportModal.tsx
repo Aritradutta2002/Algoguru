@@ -1,12 +1,20 @@
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Copy, Check, Heart, ExternalLink, Coffee, CreditCard, Shield } from "lucide-react";
+"use client";
 
-const UPI_ID = import.meta.env.VITE_UPI_ID || "your-upi@id";
-const RAZORPAY_URL = import.meta.env.VITE_RAZORPAY_URL || "";
-const PAYPAL_URL = import.meta.env.VITE_PAYPAL_URL || "";
-const CRYPTO_ADDRESS = import.meta.env.VITE_CRYPTO_ADDRESS || "";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { X, Copy, Check, Heart, ExternalLink, Coffee, CreditCard, Shield } from "lucide-react";
+import { publicEnv } from "@/lib/env";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const UPI_ID = publicEnv.upiId || "your-upi@id";
+const RAZORPAY_URL = publicEnv.razorpayUrl || "";
+const PAYPAL_URL = publicEnv.paypalUrl || "";
+const CRYPTO_ADDRESS = publicEnv.cryptoAddress || "";
 
 const AMOUNTS = [49, 99, 199, 499];
 
@@ -44,13 +52,15 @@ function CopyButton({ text }: { text: string }) {
     });
   };
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
+      size="sm"
       onClick={handleCopy}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${copied ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-obsidian-pane border-obsidian-border text-foreground hover:bg-foreground/[0.05]"}`}
+      className={`h-8 gap-1.5 px-3 text-xs ${copied ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/15" : "hover:bg-foreground/[0.05]"}`}
     >
       {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? "Copied" : "Copy"}
-    </button>
+    </Button>
   );
 }
 
@@ -59,8 +69,11 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
   const [amount, setAmount] = useState(99);
   const [custom, setCustom] = useState("");
   const [isPaid, setIsPaid] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  if (returnFocusRef.current === null && typeof document !== "undefined") {
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
+  }
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const visibleTabs = TABS.filter((t) => !("hidden" in t && t.hidden));
@@ -74,102 +87,72 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
     }
   }, [isPaid]);
 
-  useEffect(() => {
-    const previousFocus = document.activeElement as HTMLElement | null;
-    closeButtonRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onCloseRef.current();
-        return;
-      }
-      if (event.key !== "Tab") return;
-
-      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
-      if (!focusable?.length) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      previousFocus?.focus();
-    };
-  }, []);
-
-  return createPortal(
-    <AnimatePresence>
-      <motion.div key="support-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-        <motion.div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="support-modal-title"
-          aria-describedby="support-modal-description"
-          tabIndex={-1}
-          initial={{ scale: 0.98, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.98, opacity: 0 }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
-          onClick={(e) => e.stopPropagation()}
-          className="relative flex w-full max-w-[560px] flex-col overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane shadow-2xl"
-          style={{ maxHeight: "92vh" }}
-        >
+  return (
+    <Dialog
+      open
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onCloseRef.current();
+      }}
+    >
+      <DialogContent
+        showClose={false}
+        aria-modal="true"
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          returnFocusRef.current?.focus();
+        }}
+        className="flex w-full max-w-[560px] flex-col gap-0 overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane p-0 shadow-2xl sm:p-0"
+        style={{ maxHeight: "92vh" }}
+      >
           <div className="relative z-10 flex items-start justify-between border-b border-obsidian-border p-5">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-elevated text-foreground">
                 <Heart size={16} />
               </div>
               <div>
-                <h2 id="support-modal-title" className="text-base font-semibold leading-none text-foreground">Support the build</h2>
-                <p id="support-modal-description" className="mt-1 text-xs text-muted-foreground">Keep AlgoGuru polished and free</p>
+                <DialogTitle className="leading-none text-foreground">
+                  Support the build
+                </DialogTitle>
+                <DialogDescription className="mt-1 text-xs text-muted-foreground">
+                  Keep AlgoGuru polished and free
+                </DialogDescription>
               </div>
             </div>
-            <button ref={closeButtonRef} onClick={onClose} aria-label="Close support dialog" className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Button variant="bare" size="bare" ref={closeButtonRef} onClick={onClose} aria-label="Close support dialog" className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <X size={16} />
-            </button>
+            </Button>
           </div>
 
-          <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as Tab)}
+            className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden"
+          >
             <div className="px-5 pt-4 pb-3">
-              <div className="flex p-1 rounded-lg bg-obsidian-elevated border border-obsidian-border">
+              <TabsList className="w-full h-9 rounded-lg bg-obsidian-elevated border border-obsidian-border p-1">
                 {visibleTabs.map((tab) => (
-                  <button
+                  <TabsTrigger
                     key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 py-1.5 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition-colors ${activeTab === tab.id ? "bg-obsidian-pane text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    value={tab.id}
+                    className="flex-1 h-7 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 data-[state=active]:bg-obsidian-pane data-[state=active]:text-foreground data-[state=active]:shadow-none"
                   >
                     <span>{tab.flag}</span> {tab.label}
-                  </button>
+                  </TabsTrigger>
                 ))}
-              </div>
+              </TabsList>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 md:px-6 py-4">
-              <AnimatePresence mode="wait">
-                {activeTab === "upi" && (
-                  <motion.div key="upi" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
+              <TabsContent value="upi" className="outline-none">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
                     {isPaid ? (
                       <div className="py-10 text-center space-y-3">
                         <div className="w-12 h-12 mx-auto rounded-lg bg-obsidian-elevated border border-obsidian-border flex items-center justify-center text-xl">🎉</div>
                         <h3 className="text-base font-semibold text-foreground">Huge thanks!</h3>
                         <p className="text-sm text-muted-foreground px-6">Your support fuels new features and high-quality content.</p>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-xs font-medium">
+                        <Badge variant="outline" className="inline-flex items-center gap-2 px-3 py-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-xs font-medium">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Closing…
-                        </div>
+                        </Badge>
                       </div>
                     ) : (
                       <>
@@ -180,14 +163,25 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                           </div>
                           <div className="grid grid-cols-4 gap-2">
                             {AMOUNTS.map((a) => (
-                              <button key={a} type="button" onClick={() => { setAmount(a); setCustom(""); }} className={`py-2 rounded-md text-sm font-medium border transition-colors ${amount === a && !custom ? "bg-foreground text-background border-foreground" : "bg-obsidian-pane border-obsidian-border text-foreground hover:bg-obsidian-elevated"}`}>
+                              <Button
+                                key={a}
+                                type="button"
+                                variant={amount === a && !custom ? "default" : "outline"}
+                                onClick={() => { setAmount(a); setCustom(""); }}
+                                className="h-9 rounded-md text-sm font-medium"
+                              >
                                 ₹{a}
-                              </button>
+                              </Button>
                             ))}
                           </div>
                           <div className="mt-3 flex items-center gap-2 rounded-md border border-obsidian-border bg-obsidian-elevated px-3 focus-within:border-primary">
                             <span className="text-muted-foreground text-sm">₹</span>
-                            <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Custom amount" className="flex-1 bg-transparent py-2 outline-none text-sm text-foreground" />
+                            <Input
+                              value={custom}
+                              onChange={(e) => setCustom(e.target.value)}
+                              placeholder="Custom amount"
+                              className="h-9 flex-1 border-0 bg-transparent px-0 py-2 text-sm shadow-none focus-visible:ring-0"
+                            />
                           </div>
                         </div>
 
@@ -201,19 +195,19 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                           <CopyButton text={UPI_ID} />
                         </div>
 
-                        <button type="button" onClick={() => setIsPaid(true)} className="w-full py-2.5 rounded-md bg-foreground text-background text-sm font-medium transition-opacity hover:opacity-90">
-                          <Check size={14} className="inline mr-1.5" /> I have paid via UPI
-                        </button>
+                        <Button type="button" onClick={() => setIsPaid(true)} className="w-full rounded-md text-sm font-medium">
+                          <Check size={14} className="mr-1.5" /> I have paid via UPI
+                        </Button>
                       </>
                     )}
-                  </motion.div>
-                )}
+                </motion.div>
+              </TabsContent>
 
-                {activeTab === "web" && (
-                  <motion.div key="web" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+              <TabsContent value="web" className="outline-none">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                     <p className="text-xs font-medium text-muted-foreground">International support</p>
 
-                    <a href="/buy-me-a-coffee" className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
+                    <Link href="/buy-me-a-coffee" onClick={onClose} className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
                       <div className="w-9 h-9 rounded-md bg-obsidian-pane border border-obsidian-border flex items-center justify-center text-foreground">
                         <Coffee size={16} />
                       </div>
@@ -222,7 +216,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                         <div className="text-xs text-muted-foreground">Open full-page experience</div>
                       </div>
                       <ExternalLink size={14} className="text-muted-foreground" />
-                    </a>
+                    </Link>
 
                     <a href={RAZORPAY_URL || "#"} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
                       <div className="w-9 h-9 rounded-md bg-obsidian-pane border border-obsidian-border flex items-center justify-center text-foreground">
@@ -245,11 +239,12 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                     </a>
 
                     <p className="text-center text-xs text-muted-foreground pt-2">Your contribution funds development, maintenance, and high-quality free content.</p>
-                  </motion.div>
-                )}
+                </motion.div>
+              </TabsContent>
 
-                {activeTab === "crypto" && CRYPTO_ADDRESS && (
-                  <motion.div key="crypto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+              {CRYPTO_ADDRESS && (
+                <TabsContent value="crypto" className="outline-none">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                     <div className="rounded-lg bg-obsidian-elevated border border-obsidian-border p-3">
                       <div className="text-xs font-mono break-all text-foreground">{CRYPTO_ADDRESS}</div>
                       <div className="mt-2 flex justify-end">
@@ -258,17 +253,15 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                     </div>
                     <p className="text-center text-xs text-muted-foreground">BTC, ETH, SOL and EVM tokens supported.</p>
                   </motion.div>
-                )}
-              </AnimatePresence>
+                </TabsContent>
+              )}
             </div>
 
             <div className="px-5 py-3 bg-obsidian-elevated border-t border-obsidian-border flex items-center justify-center gap-2 text-xs text-muted-foreground">
               <Shield size={12} className="text-emerald-500" /> 100% used for platform maintenance
             </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>,
-    document.body
+          </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 }

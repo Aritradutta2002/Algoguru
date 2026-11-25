@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { GuruAvatar } from "@/components/brand/GuruMark";
 import { cn } from "@/lib/utils";

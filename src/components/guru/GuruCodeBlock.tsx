@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy, ArrowRight } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -73,7 +76,7 @@ export const GuruCodeBlock = memo(function GuruCodeBlock({
         </span>
         <div className="flex shrink-0 items-center gap-1">
           {onInsert && (
-            <button
+            <Button variant="bare" size="bare"
               type="button"
               onClick={() => {
                 onInsert(code);
@@ -91,9 +94,9 @@ export const GuruCodeBlock = memo(function GuruCodeBlock({
             >
               {inserted ? <Check size={12} /> : <ArrowRight size={12} />}
               {inserted ? "Inserted" : "Use in editor"}
-            </button>
+            </Button>
           )}
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             onClick={copy}
             className={cn(
@@ -106,7 +109,7 @@ export const GuruCodeBlock = memo(function GuruCodeBlock({
           >
             {copied ? <Check size={12} /> : <Copy size={12} />}
             {copied ? "Copied" : "Copy"}
-          </button>
+          </Button>
         </div>
       </div>
       <div className="overflow-x-auto" style={{ touchAction: "pan-x" }}>

@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { ArrowUpRight, Bug, Gauge, Lightbulb, Sparkles } from "lucide-react";
 import { GuruAvatar } from "@/components/brand/GuruMark";
 import { cn } from "@/lib/utils";
@@ -49,7 +52,7 @@ export function GuruEmptyState({
         {suggestions.slice(0, 4).map((suggestion, index) => {
           const Icon = ICONS[index % ICONS.length];
           return (
-            <button
+            <Button variant="bare" size="bare"
               key={suggestion}
               type="button"
               onClick={() => onPick(suggestion)}
@@ -70,7 +73,7 @@ export function GuruEmptyState({
                 size={13}
                 className="shrink-0 text-guru-muted/50 transition-colors group-hover:text-guru-accent"
               />
-            </button>
+            </Button>
           );
         })}
       </div>

@@ -1,4 +1,7 @@
+"use client";
+
 import { AlertCircle, Bug } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { CompilerDiagnostic } from "@/lib/playground/compilerDiagnostics";
 import type { DebugFrame } from "@/lib/playground/debugTrace";
 import type { JavaSymbol } from "@/lib/playground/javaSymbols";
@@ -22,7 +25,7 @@ export function ProblemsList({
     <ul className="space-y-0.5 p-2">
       {diagnostics.map((d, i) => (
         <li key={`${d.line}:${d.column}:${i}`}>
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             onClick={() => onJump(d.line, d.column)}
             className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-[12px] lc-hover"
@@ -39,7 +42,7 @@ export function ProblemsList({
               </span>{" "}
               {d.message}
             </span>
-          </button>
+          </Button>
         </li>
       ))}
     </ul>
@@ -101,7 +104,7 @@ export function DebuggerPanel({
             Hits
           </p>
           {frames.map((f, i) => (
-            <button
+            <Button variant="bare" size="bare"
               key={`${f.line}-${i}`}
               type="button"
               onClick={() => onJump(f.line)}
@@ -110,7 +113,7 @@ export function DebuggerPanel({
             >
               L{f.line}
               {f.reached ? " reached" : ""}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -137,7 +140,7 @@ export function DocumentOutline({
     <ul className="space-y-0.5 p-2">
       {symbols.map((s, i) => (
         <li key={`${s.kind}-${s.name}-${s.line}-${i}`}>
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             onClick={() => onJump(s.line, s.column)}
             className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] lc-hover"
@@ -150,7 +153,7 @@ export function DocumentOutline({
             <span className="ml-auto font-mono text-[10px]" style={{ color: "var(--lc-faint)" }}>
               {s.line}
             </span>
-          </button>
+          </Button>
         </li>
       ))}
     </ul>

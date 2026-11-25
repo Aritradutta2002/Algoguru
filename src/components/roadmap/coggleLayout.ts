@@ -708,7 +708,8 @@ export function computeCoggleLayout(options: CoggleLayoutOptions): CoggleLayoutR
         onSelect: onSelectNode,
       },
       draggable: false,
-      selectable: true,
+      selectable: statusMatches,
+      domAttributes: statusMatches ? undefined : { "aria-hidden": true },
     });
 
     // Create edge from parent to this node

@@ -29,7 +29,7 @@ function isFull(): boolean {
 }
 
 export function useFullscreenExam(): FullscreenExam {
-  const [isFullscreen, setIsFullscreen] = useState(isFull);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [message, setMessage] = useState("");
 
   // A single `fullscreenchange` listener for the whole hook, registered once.

@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import {
   ChevronRight,
   FileCode2,
@@ -39,7 +42,7 @@ function FileRow({
   const Icon = kind === "java" ? FileCode2 : FileText;
 
   return (
-    <button
+    <Button variant="bare" size="bare"
       type="button"
       onClick={() => onSelectPane(pane)}
       aria-current={active ? "page" : undefined}
@@ -53,7 +56,7 @@ function FileRow({
     >
       <Icon size={13} aria-hidden="true" />
       <span className="truncate">{name}</span>
-    </button>
+    </Button>
   );
 }
 

@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+"use client";
+import { Button } from "@/components/ui/button";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Building2,
   Check,
@@ -70,13 +73,16 @@ interface WorkspaceSwitcherProps {
 }
 
 export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitcherProps) {
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(() => {
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>("personal");
+
+  useEffect(() => {
     try {
-      return localStorage.getItem("algoguru_active_workspace") || "personal";
+      const saved = localStorage.getItem("algoguru_active_workspace");
+      if (saved) setActiveWorkspaceId(saved);
     } catch {
-      return "personal";
+      // storage unavailable
     }
-  });
+  }, []);
 
   const activeWorkspace =
     WORKSPACES.find((w) => w.id === activeWorkspaceId) || WORKSPACES[0];
@@ -94,7 +100,7 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
     <div className={cn("flex items-center gap-2 shrink-0", className)}>
       {/* Brand Lockup: Algo Guru */}
       <Link
-        to="/"
+        href="/"
         aria-label="AlgoGuru Home"
         className="group inline-flex h-9 items-center gap-2.5 rounded-lg px-1.5 text-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian-void select-none"
       >
@@ -118,7 +124,7 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
       {/* Workspace Switcher Chip */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             data-workspace-switcher="true"
             aria-label={`Current workspace: AlgoGuru ${activeWorkspace.name}. Click to switch workspace`}
@@ -140,7 +146,7 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
               chip
               className="transition-transform duration-150 group-data-[state=open]:rotate-180"
             />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent

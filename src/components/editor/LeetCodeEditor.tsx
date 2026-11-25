@@ -1,6 +1,15 @@
+"use client";
+
 import { memo, useCallback } from "react";
-import Editor, { type OnMount } from "@monaco-editor/react";
+import dynamic from "next/dynamic";
+import type { OnMount } from "@monaco-editor/react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { buildMonacoEditorOptions, type ExtraEditorOptions } from "@/lib/playground/editorPrefs";
+
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full" />,
+});
 
 // Shared LeetCode dark theme — identical to ProblemSolver.tsx:134
 export const LEETCODE_DARK_THEME = {

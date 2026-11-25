@@ -1,18 +1,37 @@
-import { Navigate } from "react-router-dom";
+"use client";
+
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { AppLoadingScreen } from "@/components/layout/RouteFallback";
 import { useAuth } from "@/contexts/AuthContext";
+import { isPublicRoute } from "@/lib/publicRoutes";
 
 /**
- * Gate for every authenticated route.
- *
- * Lives in its own module (re-exported from `App.tsx` for existing imports)
- * because the Contest route table also needs it — importing it back from
- * `App.tsx` would create an `App` -> `ContestRoutes` -> `App` cycle.
+ * Client-side fallback gate for authenticated routes (in addition to `src/proxy.ts`
+ * and Server Component DAL checks).
  */
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
-  if (loading) return <AppLoadingScreen label="Restoring your session" />;
-  if (!session) return <Navigate to="/auth" replace />;
+  const router = useRouter();
+  const pathname = usePathname();
+  const isPublic = isPublicRoute(pathname ?? "/");
+
+  useEffect(() => {
+    if (!isPublic && !loading && !session) {
+      const search = typeof window !== "undefined" ? window.location.search : "";
+      const target = `${pathname || "/"}${search}`;
+      router.replace(`/auth?redirect=${encodeURIComponent(target)}`);
+    }
+  }, [isPublic, loading, session, pathname, router]);
+
+  if (isPublic) {
+    return <>{children}</>;
+  }
+
+  if (loading || !session) {
+    return <AppLoadingScreen label="Restoring your session" />;
+  }
+
   return <>{children}</>;
 }
 

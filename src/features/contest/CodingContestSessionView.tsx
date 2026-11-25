@@ -1,0 +1,1092 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  ResizablePanel,
+  ResizablePanelGroup,
+  ResizableHandle,
+} from "@/components/ui/resizable";
+import type { ImperativePanelHandle } from "react-resizable-panels";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { AlgoGuruLogo } from "@/components/AlgoGuruLogo";
+import { BrandLoader } from "@/components/brand/BrandLoader";
+import { Loader2, AlertTriangle, Maximize } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBeforeUnloadWarning } from "@/hooks/useBeforeUnloadWarning";
+import { useContestTimer } from "@/hooks/useContestTimer";
+import { useExamIntegrity } from "@/hooks/useExamIntegrity";
+import { useFullscreenExam } from "@/hooks/useFullscreenExam";
+import { resolveContestSessionService } from "@/lib/contest/contestServices";
+import { configuredSessionMode } from "@/lib/contest/sessionService";
+import { useCodeExecutionService } from "@/lib/contest/codeExecution";
+import { recordLocalProblemResult } from "@/lib/contest/devLocalContestSessionService";
+import { MAX_EXAM_WARNINGS } from "@/lib/examConstants";
+import type {
+  CodingFinalizationReason,
+  CodingSessionBundle,
+  PublicCodingProblem,
+} from "@/lib/contest/types";
+import type { ExecutionResult } from "@/lib/contest/executionService";
+import { CodingContestHeader } from "@/components/contest/coding/CodingContestHeader";
+import {
+  CodingEditorFooter,
+  type CodingViewMode,
+} from "@/components/contest/coding/CodingEditorFooter";
+import {
+  CodingEditorPanel,
+  type EditorTabDescriptor,
+} from "@/components/contest/coding/CodingEditorPanel";
+import { CodingExecutionPanel } from "@/components/contest/coding/CodingExecutionPanel";
+import { CodingIntegrityLock } from "@/components/contest/coding/CodingIntegrityLock";
+import { CodingQuestionList } from "@/components/contest/coding/CodingQuestionList";
+import { CodingQuestionMenu } from "@/components/contest/coding/CodingQuestionMenu";
+import {
+  CodingProblemPanel,
+  type CodingSubmissionSummary,
+} from "@/components/contest/coding/CodingProblemPanel";
+import type { ProblemState } from "@/components/contest/coding/problemState";
+import { formatJavaCode } from "@/lib/contest/javaFormat";
+import { cn } from "@/lib/utils";
+
+/**
+ * Active Java coding contest.
+ *
+ * Chrome-free by design, like the MCQ exam screen. The key behaviours this
+ * component is responsible for:
+ *   - the clock derives from the server's absolute `expiresAt`, never a counter;
+ *   - nothing runs until fullscreen has actually been entered;
+ *   - a focus violation locks editing but keeps the clock and the code;
+ *   - finalization happens exactly once, and a failed finalize NEVER looks like
+ *     a success.
+ */
+
+type SaveStatus = "Saved" | "Saving" | "Unsaved" | "Local draft";
+const DRAFT_PREFIX = "algoguru:coding-contest:draft:";
+
+const SPLIT_LAYOUT_KEY = "algoguru:coding-contest:layout:split";
+const CONSOLE_LAYOUT_KEY = "algoguru:coding-contest:layout:console";
+
+const SPLIT_HANDLE_CLASS =
+  "!w-2.5 border-0 bg-transparent " +
+  "[&>div]:hidden " +
+  "before:pointer-events-none before:absolute before:left-1/2 before:top-1/2 before:h-10 before:w-px before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:bg-surface-line before:transition-all " +
+  "hover:before:w-1 hover:before:bg-primary " +
+  "data-[resize-handle-state=drag]:before:w-1 data-[resize-handle-state=drag]:before:bg-primary " +
+  "focus-visible:before:w-1 focus-visible:before:bg-primary";
+
+const CONSOLE_HANDLE_CLASS =
+  "!h-1.5 border-0 bg-transparent " +
+  "[&>div]:hidden " +
+  "before:pointer-events-none before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-10 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:bg-surface-line before:transition-all " +
+  "hover:before:h-1 hover:before:bg-primary " +
+  "data-[resize-handle-state=drag]:before:h-1 data-[resize-handle-state=drag]:before:bg-primary " +
+  "focus-visible:before:h-1 focus-visible:before:bg-primary";
+
+const PANE_SHELL_CLASS =
+  "flex h-full min-h-0 flex-col overflow-hidden rounded-xl bg-surface-panel";
+
+const CONSOLE_COLLAPSED_PX = 40;
+const DRAFT_DEBOUNCE_MS = 800;
+
+function draftKey(sessionId: string, problemId: string): string {
+  return `${DRAFT_PREFIX}${sessionId}:${problemId}`;
+}
+
+function readLocalDraft(sessionId: string, problemId: string): string {
+  try {
+    return window.localStorage.getItem(draftKey(sessionId, problemId)) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function writeLocalDraft(
+  sessionId: string,
+  problemId: string,
+  code: string,
+): void {
+  try {
+    window.localStorage.setItem(draftKey(sessionId, problemId), code);
+  } catch {
+    /* quota or private mode — the in-memory draft still survives navigation */
+  }
+}
+
+/** Best available code for a problem: local recovery wins over server draft. */
+function resolveDraft(
+  bundle: CodingSessionBundle,
+  problem: PublicCodingProblem,
+): string {
+  const recovered = readLocalDraft(bundle.session.id, problem.id);
+  if (recovered) return recovered;
+  return bundle.drafts[problem.id] ?? problem.starterCode;
+}
+
+interface ScratchTab {
+  id: string;
+  code: string;
+}
+
+interface ScratchState {
+  tabs: ScratchTab[];
+  activeId: string;
+}
+
+const SCRATCH_PREFIX = "algoguru:coding-contest:scratch:";
+const SOLUTION_TAB_ID = "solution";
+const MAX_SCRATCH_TABS = 6;
+
+function scratchKey(sessionId: string, problemId: string): string {
+  return `${SCRATCH_PREFIX}${sessionId}:${problemId}`;
+}
+
+function readScratch(sessionId: string, problemId: string): ScratchState {
+  const empty: ScratchState = { tabs: [], activeId: SOLUTION_TAB_ID };
+  try {
+    const raw = window.localStorage.getItem(scratchKey(sessionId, problemId));
+    if (!raw) return empty;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return empty;
+    const candidate = parsed as { tabs?: unknown; activeId?: unknown };
+    if (!Array.isArray(candidate.tabs)) return empty;
+    const tabs = candidate.tabs
+      .filter(
+        (tab): tab is ScratchTab =>
+          !!tab &&
+          typeof tab === "object" &&
+          typeof (tab as ScratchTab).id === "string" &&
+          typeof (tab as ScratchTab).code === "string",
+      )
+      .slice(0, MAX_SCRATCH_TABS);
+    const activeId =
+      typeof candidate.activeId === "string" &&
+      (candidate.activeId === SOLUTION_TAB_ID ||
+        tabs.some((tab) => tab.id === candidate.activeId))
+        ? candidate.activeId
+        : SOLUTION_TAB_ID;
+    return { tabs, activeId };
+  } catch {
+    return empty;
+  }
+}
+
+function writeScratch(
+  sessionId: string,
+  problemId: string,
+  state: ScratchState,
+): void {
+  try {
+    window.localStorage.setItem(
+      scratchKey(sessionId, problemId),
+      JSON.stringify(state),
+    );
+  } catch {
+    /* quota or private mode — the in-memory tabs still survive navigation */
+  }
+}
+
+export function CodingContestSessionView({
+  sessionId: sessionIdProp,
+}: {
+  sessionId?: string;
+} = {}) {
+  const params = useParams<{ sessionId?: string }>();
+  const sessionId =
+    sessionIdProp ??
+    (Array.isArray(params?.sessionId)
+      ? params.sessionId[0]
+      : params?.sessionId) ??
+    "";
+  const router = useRouter();
+  const { user } = useAuth();
+  const mode = useMemo(() => configuredSessionMode(), []);
+  const service = useMemo(
+    () => resolveContestSessionService(mode, user?.id ?? "anonymous"),
+    [mode, user?.id],
+  );
+  const execution = useCodeExecutionService();
+
+  const [bundle, setBundle] = useState<CodingSessionBundle | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string>("");
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [visited, setVisited] = useState<Record<string, boolean>>({});
+  const [runAttempted, setRunAttempted] = useState<Record<string, boolean>>({});
+  const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("Saved");
+  const [busy, setBusy] = useState<"run" | "submit" | null>(null);
+  const [result, setResult] = useState<ExecutionResult | null>(null);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [returningFullscreen, setReturningFullscreen] = useState(false);
+  const [finaliseError, setFinaliseError] = useState<string | null>(null);
+  const [startGateOpen, setStartGateOpen] = useState(false);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+  const workspaceRef = useRef<HTMLElement>(null);
+  const [questionListOpen, setQuestionListOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"split" | "editor" | "problem">(
+    "split",
+  );
+  const [consoleCollapsed, setConsoleCollapsed] = useState(true);
+  const [scratchTabs, setScratchTabs] = useState<Record<string, ScratchTab[]>>(
+    {},
+  );
+  const [activeTabByProblem, setActiveTabByProblem] = useState<
+    Record<string, string>
+  >({});
+  const [lastResults, setLastResults] = useState<
+    Record<string, { passed: number; total: number }>
+  >({});
+
+  const fullscreen = useFullscreenExam();
+  const [clockStarted, setClockStarted] = useState(false);
+  const inFlightRef = useRef(false);
+  const finalisingRef = useRef(false);
+  const finalisedRef = useRef(false);
+  const saveTimerRef = useRef<number | null>(null);
+  const consolePanelRef = useRef<ImperativePanelHandle>(null);
+  const consoleGroupRef = useRef<HTMLDivElement>(null);
+  const [consoleCollapsedPercent, setConsoleCollapsedPercent] = useState(6);
+
+  // ── Session hydration ────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    if (!sessionId) {
+      setLoadError("No contest session was specified.");
+      return;
+    }
+    void (async () => {
+      try {
+        const loaded = await service.getSession(sessionId);
+        if (cancelled) return;
+        setBundle(loaded);
+        const initial: Record<string, string> = {};
+        const initialScratch: Record<string, ScratchTab[]> = {};
+        const initialActiveTab: Record<string, string> = {};
+        for (const problem of loaded.problems) {
+          initial[problem.id] = resolveDraft(loaded, problem);
+          const stored = readScratch(loaded.session.id, problem.id);
+          if (stored.tabs.length) initialScratch[problem.id] = stored.tabs;
+          initialActiveTab[problem.id] = stored.activeId;
+        }
+        setDrafts(initial);
+        setScratchTabs(initialScratch);
+        setActiveTabByProblem(initialActiveTab);
+        const initialActiveId = loaded.problems[0]?.id ?? "";
+        setActiveId(initialActiveId);
+        setVisited(initialActiveId ? { [initialActiveId]: true } : {});
+
+        // A session restored after the deadline is already closed.
+        if (loaded.session.status !== "active") {
+          finalisedRef.current = true;
+          router.replace(`/contest/coding/result/${sessionId}`);
+        } else {
+          setStartGateOpen(true);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "This contest could not be loaded.",
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [service, sessionId, router]);
+
+  const activeProblem = useMemo(
+    () => bundle?.problems.find((problem) => problem.id === activeId) ?? null,
+    [bundle, activeId],
+  );
+
+  // ── Editor tabs ──────────────────────────────────────────────────────
+  const problemScratchTabs =
+    (activeProblem && scratchTabs[activeProblem.id]) || [];
+  const activeTabId =
+    (activeProblem && activeTabByProblem[activeProblem.id]) || SOLUTION_TAB_ID;
+  const activeScratchTab =
+    problemScratchTabs.find((tab) => tab.id === activeTabId) ?? null;
+  const activeCode = activeScratchTab
+    ? activeScratchTab.code
+    : (activeProblem && drafts[activeProblem.id]) || "";
+  const editorTabs: EditorTabDescriptor[] = [
+    { id: SOLUTION_TAB_ID, label: "Tab-1", scratch: false },
+    ...problemScratchTabs.map((tab, index) => ({
+      id: tab.id,
+      label: `Tab-${index + 2}`,
+      scratch: true,
+    })),
+  ];
+
+  const selectTab = useCallback(
+    (tabId: string) => {
+      if (!activeProblem) return;
+      setActiveTabByProblem((current) => ({
+        ...current,
+        [activeProblem.id]: tabId,
+      }));
+    },
+    [activeProblem],
+  );
+
+  const addScratchTab = useCallback(() => {
+    if (!activeProblem) return;
+    const id = `scratch-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    setScratchTabs((current) => ({
+      ...current,
+      [activeProblem.id]: [
+        ...(current[activeProblem.id] ?? []),
+        { id, code: "" },
+      ],
+    }));
+    setActiveTabByProblem((current) => ({
+      ...current,
+      [activeProblem.id]: id,
+    }));
+  }, [activeProblem]);
+
+  const closeScratchTab = useCallback((problemId: string, tabId: string) => {
+    setScratchTabs((current) => ({
+      ...current,
+      [problemId]: (current[problemId] ?? []).filter((tab) => tab.id !== tabId),
+    }));
+    setActiveTabByProblem((current) =>
+      current[problemId] === tabId
+        ? { ...current, [problemId]: SOLUTION_TAB_ID }
+        : current,
+    );
+  }, []);
+
+  const finalizeContest = useCallback(
+    async (reason: CodingFinalizationReason) => {
+      if (finalisingRef.current || finalisedRef.current || !bundle) return;
+      finalisingRef.current = true;
+      try {
+        await Promise.allSettled(
+          bundle.problems.map((problem) =>
+            service.saveDraft(
+              bundle.session.id,
+              problem.id,
+              drafts[problem.id] ?? "",
+            ),
+          ),
+        );
+        await service.finalize(bundle.session.id, reason);
+        finalisedRef.current = true;
+        setFinishOpen(false);
+        router.push(`/contest/coding/result/${bundle.session.id}`);
+      } catch (error) {
+        finalisingRef.current = false;
+        setFinishOpen(false);
+        setFinaliseError(
+          error instanceof Error
+            ? error.message
+            : "The contest could not be submitted because of a network problem.",
+        );
+      }
+    },
+    [bundle, drafts, router, service],
+  );
+
+  // ── Clock ────────────────────────────────────────────────────────────
+  const handleExpire = useCallback(() => {
+    if (finalisedRef.current) return;
+    setFinaliseError(null);
+    void finalizeContest("expired");
+  }, [finalizeContest]);
+
+  const timer = useContestTimer({
+    expiresAt: clockStarted && bundle ? bundle.session.expiresAt : null,
+    startedAt: clockStarted && bundle ? bundle.session.startedAt : null,
+    onExpire: handleExpire,
+  });
+
+  // ── Integrity ────────────────────────────────────────────────────────
+  const handleAutoSubmit = useCallback(() => {
+    if (finalisedRef.current) return;
+    void service
+      .recordWarning(sessionId, "warning_limit")
+      .then((ack) => {
+        if (ack.finalised) {
+          finalisedRef.current = true;
+          router.push(`/contest/coding/result/${sessionId}`);
+        }
+      })
+      .catch(() => {
+        /* the deadline path remains as a safety net */
+      });
+  }, [router, service, sessionId]);
+
+  const integrity = useExamIntegrity({
+    active: clockStarted && !!bundle && !finalisedRef.current,
+    maxWarnings: MAX_EXAM_WARNINGS,
+    onAutoSubmit: handleAutoSubmit,
+  });
+
+  useBeforeUnloadWarning(!!bundle && !finalisedRef.current && !finishOpen);
+
+  const lastRecordedWarning = useRef(0);
+  useEffect(() => {
+    if (!bundle || integrity.warningCount <= lastRecordedWarning.current)
+      return;
+    lastRecordedWarning.current = integrity.warningCount;
+    void service
+      .recordWarning(sessionId, integrity.warning ?? "focus violation")
+      .then((ack) => {
+        if (ack.finalised && !finalisedRef.current) {
+          finalisedRef.current = true;
+          router.push(`/contest/coding/result/${sessionId}`);
+        }
+      })
+      .catch(() => {
+        /* non-fatal: the server re-derives the count on the next read */
+      });
+  }, [
+    bundle,
+    integrity.warning,
+    integrity.warningCount,
+    router,
+    service,
+    sessionId,
+  ]);
+
+  // ── Drafts ───────────────────────────────────────────────────────────
+  const persistDraft = useCallback(
+    (problemId: string, code: string) => {
+      if (!bundle) return;
+      setSaveStatus("Saving");
+      void service
+        .saveDraft(bundle.session.id, problemId, code)
+        .then(() => setSaveStatus("Saved"))
+        .catch(() => setSaveStatus("Unsaved"));
+    },
+    [bundle, service],
+  );
+
+  const handleCodeChange = useCallback(
+    (next: string) => {
+      if (!activeProblem || integrity.locked) return;
+      setTouched((current) => ({ ...current, [activeProblem.id]: true }));
+
+      if (activeTabId !== SOLUTION_TAB_ID) {
+        setScratchTabs((current) => ({
+          ...current,
+          [activeProblem.id]: (current[activeProblem.id] ?? []).map((tab) =>
+            tab.id === activeTabId ? { ...tab, code: next } : tab,
+          ),
+        }));
+        return;
+      }
+
+      setDrafts((current) => ({ ...current, [activeProblem.id]: next }));
+      writeLocalDraft(bundle!.session.id, activeProblem.id, next);
+
+      if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = window.setTimeout(() => {
+        persistDraft(activeProblem.id, next);
+      }, DRAFT_DEBOUNCE_MS);
+    },
+    [activeProblem, activeTabId, bundle, integrity.locked, persistDraft],
+  );
+
+  useEffect(
+    () => () => {
+      if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!bundle) return;
+    const timerHandle = window.setTimeout(() => {
+      for (const problem of bundle.problems) {
+        writeScratch(bundle.session.id, problem.id, {
+          tabs: scratchTabs[problem.id] ?? [],
+          activeId: activeTabByProblem[problem.id] ?? SOLUTION_TAB_ID,
+        });
+      }
+    }, DRAFT_DEBOUNCE_MS);
+    return () => window.clearTimeout(timerHandle);
+  }, [bundle, scratchTabs, activeTabByProblem]);
+
+  const formatActiveCode = useCallback(async () => {
+    if (!activeProblem || integrity.locked || finalisedRef.current) return;
+    const formatted = await formatJavaCode(activeCode, { indentSize: 4 });
+    if (formatted === activeCode) return;
+    handleCodeChange(formatted);
+  }, [activeCode, activeProblem, handleCodeChange, integrity.locked]);
+
+  // ── Execution ────────────────────────────────────────────────────────
+  const runOrSubmit = useCallback(
+    async (action: "run" | "submit") => {
+      if (!bundle || !activeProblem || inFlightRef.current) return;
+      if (execution.loading) return;
+      inFlightRef.current = true;
+      setBusy(action);
+      setResult(null);
+      setRunAttempted((current) => ({ ...current, [activeProblem.id]: true }));
+      setConsoleCollapsed(false);
+      try {
+        const outcome =
+          action === "run"
+            ? await execution.service.run({
+                sessionId: bundle.session.id,
+                problemId: activeProblem.id,
+                problemSlug: activeProblem.slug,
+                language: "java",
+                code: activeCode,
+                mode: "run",
+              })
+            : await execution.service.submit({
+                sessionId: bundle.session.id,
+                problemId: activeProblem.id,
+                problemSlug: activeProblem.slug,
+                language: "java",
+                code: activeCode,
+                mode: "submit",
+              });
+        setResult(outcome);
+        setLastResults((current) => ({
+          ...current,
+          [activeProblem.id]: { passed: outcome.passed, total: outcome.total },
+        }));
+        if (action === "submit") {
+          setSubmitted((current) => ({ ...current, [activeProblem.id]: true }));
+          if (!bundle.authoritative) {
+            const solved =
+              outcome.total > 0 && outcome.passed === outcome.total;
+            recordLocalProblemResult(window.localStorage, bundle.session.id, {
+              problemId: activeProblem.id,
+              title: activeProblem.title,
+              difficulty: activeProblem.difficulty,
+              submitted: true,
+              solved,
+              passed: outcome.passed,
+              total: outcome.total,
+              submittedCode: activeCode,
+            });
+          }
+        }
+      } catch (error) {
+        setResult({
+          verdict: "unavailable",
+          stdout: "",
+          stderr:
+            error instanceof Error
+              ? error.message
+              : "The execution service did not respond.",
+          compileDiagnostics: [],
+          runtimeMs: 0,
+          memoryKb: 0,
+          testOutcomes: [],
+          passed: 0,
+          total: 0,
+          hiddenEvaluated: false,
+          mode: "practice",
+        });
+      } finally {
+        inFlightRef.current = false;
+        setBusy(null);
+      }
+    },
+    [activeCode, activeProblem, bundle, execution.loading, execution.service],
+  );
+
+  // Keep formatActiveCode referenced cleanly if needed by future shortcuts
+  void formatActiveCode;
+
+  // ── Start gate ───────────────────────────────────────────────────────
+  const beginExam = useCallback(async () => {
+    setReturningFullscreen(true);
+    const ok = await fullscreen.enter();
+    setReturningFullscreen(false);
+    if (!ok) return;
+    setStartGateOpen(false);
+    setClockStarted(true);
+  }, [fullscreen]);
+
+  useEffect(() => {
+    if (!startGateOpen) return;
+    if (fullscreen.isFullscreen) {
+      setStartGateOpen(false);
+      setClockStarted(true);
+    }
+  }, [fullscreen.isFullscreen, startGateOpen]);
+
+  // ── Problem state chips ──────────────────────────────────────────────
+  const stateFor = useCallback(
+    (problem: PublicCodingProblem): ProblemState => {
+      if (submitted[problem.id]) return "Submitted";
+      const lastResult = lastResults[problem.id];
+      if (
+        runAttempted[problem.id] &&
+        lastResult &&
+        lastResult.total > 0 &&
+        lastResult.passed === lastResult.total
+      ) {
+        return "Visible tests passed";
+      }
+      if (runAttempted[problem.id]) return "Run attempted";
+      if (touched[problem.id]) return "Code edited";
+      if (visited[problem.id]) return "Viewed";
+      return "Not visited";
+    },
+    [lastResults, runAttempted, submitted, touched, visited],
+  );
+
+  const submittedCount = Object.values(submitted).filter(Boolean).length;
+
+  const selectProblem = useCallback((problemId: string) => {
+    setActiveId(problemId);
+    setVisited((current) => ({ ...current, [problemId]: true }));
+    setResult(null);
+  }, []);
+
+  const resetActiveCode = useCallback(() => {
+    if (!activeProblem) return;
+    if (activeTabId !== SOLUTION_TAB_ID) {
+      setScratchTabs((current) => ({
+        ...current,
+        [activeProblem.id]: (current[activeProblem.id] ?? []).map((tab) =>
+          tab.id === activeTabId ? { ...tab, code: "" } : tab,
+        ),
+      }));
+      return;
+    }
+    const starter = activeProblem.starterCode;
+    setDrafts((current) => ({ ...current, [activeProblem.id]: starter }));
+    setTouched((current) => ({ ...current, [activeProblem.id]: true }));
+    writeLocalDraft(bundle!.session.id, activeProblem.id, starter);
+    persistDraft(activeProblem.id, starter);
+  }, [activeProblem, activeTabId, bundle, persistDraft]);
+
+  const handleViewModeChange = useCallback((nextMode: CodingViewMode) => {
+    setViewMode(nextMode);
+  }, []);
+
+  useEffect(() => {
+    const panel = consolePanelRef.current;
+    if (!panel) return;
+    if (consoleCollapsed) panel.collapse();
+    else panel.expand();
+  }, [consoleCollapsed, consoleCollapsedPercent]);
+
+  useEffect(() => {
+    const element = consoleGroupRef.current;
+    if (!element) return;
+    const measure = () => {
+      const height = element.getBoundingClientRect().height;
+      if (height <= 0) return;
+      const percent = Math.min(
+        50,
+        Math.max(1, (CONSOLE_COLLAPSED_PX / height) * 100),
+      );
+      setConsoleCollapsedPercent((current) =>
+        Math.abs(current - percent) < 0.05 ? current : percent,
+      );
+    };
+
+    measure();
+    let frame = requestAnimationFrame(() => {
+      measure();
+      frame = requestAnimationFrame(measure);
+    });
+
+    let observer: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(measure);
+      observer.observe(element);
+    }
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  const activeIndex = bundle
+    ? bundle.problems.findIndex((problem) => problem.id === activeId)
+    : 0;
+
+  useEffect(() => {
+    if (!questionListOpen || !bundle || !activeProblem) return;
+    const actions = workspaceRef.current?.querySelectorAll<HTMLButtonElement>(
+      'nav[aria-label="Contest question list"] button',
+    );
+    actions?.[activeIndex]?.focus();
+  }, [activeIndex, activeProblem, bundle, questionListOpen]);
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+        <AlertTriangle
+          aria-hidden="true"
+          className="h-8 w-8 text-destructive"
+        />
+        <h1 className="text-xl font-semibold text-foreground">
+          Contest unavailable
+        </h1>
+        <p className="max-w-md text-sm text-muted-foreground">{loadError}</p>
+        <Button onClick={() => router.push("/contest")}>Return to Contest</Button>
+      </div>
+    );
+  }
+
+  if (!bundle || !activeProblem) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-obsidian-void">
+        <BrandLoader variant="screen" size="lg" label="Loading your contest…" />
+      </div>
+    );
+  }
+
+  const locked = integrity.locked;
+  const finalised = finalisedRef.current;
+  const readonly = locked || finalised;
+
+  const entries = bundle.problems.map((problem, index) => ({
+    problem,
+    index,
+    state: stateFor(problem),
+  }));
+
+  const submissions: CodingSubmissionSummary[] = entries.map((entry) => ({
+    problem: entry.problem,
+    index: entry.index,
+    state: entry.state,
+    passed: lastResults[entry.problem.id]?.passed ?? 0,
+    total: lastResults[entry.problem.id]?.total ?? 0,
+  }));
+
+  const problemPane = locked ? (
+    <p className="px-6 py-6 text-sm text-muted-foreground">
+      The problem statement is hidden while the exam is locked.
+    </p>
+  ) : (
+    <CodingProblemPanel problem={activeProblem} submissions={submissions} />
+  );
+
+  const editorColumn = (
+    <div className="flex h-full min-h-0 flex-col">
+      <div ref={consoleGroupRef} className="relative min-h-0 flex-1">
+        <ResizablePanelGroup
+          direction="vertical"
+          className="min-h-0"
+          autoSaveId={CONSOLE_LAYOUT_KEY}
+          keyboardResizeBy={5}
+        >
+          <ResizablePanel defaultSize={76} minSize={25} className="min-h-0">
+            <div
+              className={cn(
+                "h-full",
+                locked && "pointer-events-none opacity-40",
+              )}
+            >
+              <CodingEditorPanel
+                problem={activeProblem}
+                value={activeCode}
+                onChange={handleCodeChange}
+                readOnly={readonly}
+                diagnostics={result?.compileDiagnostics ?? []}
+                onReset={resetActiveCode}
+                onRun={() => void runOrSubmit("run")}
+                onSubmit={() => void runOrSubmit("submit")}
+                busy={busy !== null}
+                busyMode={busy}
+                actionsDisabled={readonly || execution.loading}
+                localDraftsOnly={!bundle.authoritative}
+                tabs={editorTabs}
+                activeTabId={activeTabId}
+                onSelectTab={selectTab}
+                onAddTab={addScratchTab}
+                onCloseTab={(tabId) => closeScratchTab(activeProblem.id, tabId)}
+                canAddTab={problemScratchTabs.length < MAX_SCRATCH_TABS}
+                canFormat={!readonly && activeCode.trim().length > 0}
+              />
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle
+            className={CONSOLE_HANDLE_CLASS}
+            orientation="horizontal"
+            aria-label="Resize the code editor and results panels"
+          />
+
+          <ResizablePanel
+            ref={consolePanelRef}
+            defaultSize={24}
+            minSize={12}
+            collapsible
+            collapsedSize={consoleCollapsedPercent}
+            onCollapse={() => setConsoleCollapsed(true)}
+            onExpand={() => setConsoleCollapsed(false)}
+            className="min-h-0"
+          >
+            <CodingExecutionPanel
+              busy={busy !== null}
+              mode={busy}
+              result={result}
+              supportsCustomInput={execution.service.supportsCustomInput}
+              graded={execution.service.graded}
+              onRetry={() => void runOrSubmit("run")}
+              collapsed={consoleCollapsed}
+              onCollapsedChange={setConsoleCollapsed}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+
+      <CodingEditorFooter
+        saveStatus={bundle.authoritative ? saveStatus : "Local draft"}
+        warningCount={integrity.warningCount}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+      />
+    </div>
+  );
+
+  return (
+    <div className="flex h-screen flex-col gap-[15px] overflow-hidden bg-surface-page p-[15px] selection:bg-primary/20">
+      <CodingContestHeader
+        remainingSeconds={timer.remainingSeconds}
+        warningCount={integrity.warningCount}
+        localMode={!bundle.authoritative}
+        onFinish={() => setFinishOpen(true)}
+        onToggleList={() => setQuestionListOpen((prev) => !prev)}
+        listOpen={questionListOpen}
+        questionMenu={
+          <CodingQuestionMenu
+            entries={entries}
+            activeId={activeId}
+            activeProblemIndex={activeIndex >= 0 ? activeIndex : 0}
+            totalProblems={bundle.problems.length}
+            onSelect={selectProblem}
+            onOpenList={() => setQuestionListOpen(true)}
+            disabled={readonly}
+          />
+        }
+      />
+
+      {finaliseError ? (
+        <Alert
+          variant="destructive"
+          role="alert"
+          className="shrink-0 rounded-xl border-destructive/40 bg-destructive/10 px-4 py-2.5 text-foreground"
+        >
+          <AlertTriangle aria-hidden="true" className="h-4 w-4 text-destructive" />
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-sm">
+            <span className="flex-1">
+              {finaliseError} Your answers are safe — try submitting again.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void finalizeContest("expired")}
+            >
+              Retry submission
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {/* Main Workspace: two rounded panes divided by a draggable slider. */}
+      <main ref={workspaceRef} className="relative flex min-h-0 flex-1">
+        {viewMode === "split" ? (
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="min-h-0 flex-1"
+            autoSaveId={SPLIT_LAYOUT_KEY}
+            keyboardResizeBy={5}
+          >
+            <ResizablePanel
+              defaultSize={40}
+              minSize={20}
+              className="min-w-0 rounded-xl bg-surface-panel"
+            >
+              {problemPane}
+            </ResizablePanel>
+            <ResizableHandle
+              className={SPLIT_HANDLE_CLASS}
+              orientation="vertical"
+              aria-label="Resize the problem description and coding workspace panels"
+            />
+
+            <ResizablePanel
+              defaultSize={60}
+              minSize={30}
+              className="min-w-0 rounded-xl bg-surface-panel"
+            >
+              {editorColumn}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : viewMode === "problem" ? (
+          <div className={cn(PANE_SHELL_CLASS, "w-full")}>
+            <div className="min-h-0 flex-1 overflow-y-auto">{problemPane}</div>
+            <CodingEditorFooter
+              saveStatus={bundle.authoritative ? saveStatus : "Local draft"}
+              warningCount={integrity.warningCount}
+              viewMode={viewMode}
+              onViewModeChange={handleViewModeChange}
+            />
+          </div>
+        ) : (
+          <div className={cn(PANE_SHELL_CLASS, "w-full")}>{editorColumn}</div>
+        )}
+
+        {/* Full-screen question list */}
+        <CodingQuestionList
+          entries={entries}
+          activeId={activeId}
+          onSelect={selectProblem}
+          disabled={readonly}
+          isOpen={questionListOpen}
+          onClose={() => setQuestionListOpen(false)}
+        />
+      </main>
+
+      {/* Finish confirmation */}
+      <AlertDialog open={finishOpen} onOpenChange={setFinishOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Finish the contest now?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 text-left">
+              <span className="block">
+                Time remaining:{" "}
+                <strong>
+                  {Math.floor(timer.remainingSeconds / 60)}m{" "}
+                  {timer.remainingSeconds % 60}s
+                </strong>
+              </span>
+              <span className="block">
+                Submitted problems: <strong>{submittedCount}</strong> of{" "}
+                {bundle.problems.length}
+              </span>
+              <span className="block">
+                Attempted but not submitted:{" "}
+                <strong>
+                  {
+                    bundle.problems.filter(
+                      (problem) =>
+                        touched[problem.id] && !submitted[problem.id],
+                    ).length
+                  }
+                </strong>
+              </span>
+              <span className="block">
+                Unattempted:{" "}
+                <strong>
+                  {
+                    bundle.problems.filter((problem) => !touched[problem.id])
+                      .length
+                  }
+                </strong>
+              </span>
+              {integrity.warningCount > 0 ? (
+                <span className="block">
+                  Focus warnings recorded:{" "}
+                  <strong>
+                    {integrity.warningCount} of {MAX_EXAM_WARNINGS}
+                  </strong>
+                </span>
+              ) : null}
+              <span className="block font-medium text-foreground">
+                This cannot be undone. Any code you have not submitted will only
+                count if the deadline submits it.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep working</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void finalizeContest("manual")}>
+              Submit and finish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Pre-start gate: nothing runs until fullscreen succeeds. */}
+      <AlertDialog open={startGateOpen}>
+        <AlertDialogContent
+          aria-modal="true"
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            startButtonRef.current?.focus();
+          }}
+          className="grid max-w-md grid-cols-1 gap-0 rounded-[0.875rem] border-obsidian-border bg-obsidian-pane p-7 text-center shadow-none"
+        >
+          <AlgoGuruLogo
+            size={120}
+            showText={false}
+            className="mx-auto text-foreground"
+          />
+          <AlertDialogTitle className="mt-4 text-lg font-semibold tracking-tight text-foreground">
+            Enter fullscreen to begin
+          </AlertDialogTitle>
+          <AlertDialogDescription className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Your 30 minutes start counting down only once the browser is in
+            fullscreen. Leaving it later counts as a focus warning.
+          </AlertDialogDescription>
+          {fullscreen.message ? (
+            <p role="alert" className="mt-3 text-sm text-destructive">
+              {fullscreen.message}
+            </p>
+          ) : null}
+          <AlertDialogAction asChild>
+            <Button
+              ref={startButtonRef}
+              size="lg"
+              className="mt-6 w-full"
+              onClick={() => void beginExam()}
+              disabled={returningFullscreen}
+            >
+              {returningFullscreen ? (
+                <Loader2
+                  aria-hidden="true"
+                  className="mr-2 h-4 w-4 animate-spin"
+                />
+              ) : (
+                <Maximize aria-hidden="true" className="mr-2 h-4 w-4" />
+              )}
+              {returningFullscreen
+                ? "Opening fullscreen…"
+                : "Enter fullscreen and start"}
+            </Button>
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {integrity.warning ? (
+        <CodingIntegrityLock
+          reason={integrity.warning}
+          warningCount={integrity.warningCount}
+          returning={returningFullscreen}
+          onReturnToFullscreen={async () => {
+            setReturningFullscreen(true);
+            const ok = await fullscreen.enter();
+            setReturningFullscreen(false);
+            if (ok) integrity.resume();
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+export default CodingContestSessionView;

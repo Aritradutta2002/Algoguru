@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
   AlertTriangle,
   ChevronDown,
@@ -13,7 +15,11 @@ import {
   Timer,
   XCircle,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EXECUTION_VERDICT_LABELS } from "@/lib/contest/executionService";
 import type {
   ExecutionResult,
@@ -76,95 +82,92 @@ export function CodingExecutionPanel({
       aria-label="Test cases and results"
       className="flex h-full min-h-0 flex-col bg-surface-panel"
     >
-      {/* Console header: Test Case ›  Sample | Hidden */}
-      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-surface-line bg-surface-chrome px-4">
-        <span className="flex items-center gap-1.5 text-sm text-foreground/70">
-          Test Case
-          <ChevronRight
-            aria-hidden="true"
-            className="h-4 w-4 text-muted-foreground"
-          />
-        </span>
-
-        <div
-          role="tablist"
-          aria-label="Result scope"
-          className="flex items-center gap-3"
-        >
-          {(["sample", "hidden"] as const).map((id, index) => (
-            <span key={id} className="flex items-center gap-3">
-              {index > 0 ? (
-                <span aria-hidden="true" className="h-4 w-px bg-surface-line" />
-              ) : null}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={scope === id}
-                onClick={() => setScope(id)}
-                className={cn(
-                  "py-1 text-sm font-medium capitalize transition-colors",
-                  scope === id
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {id}
-              </button>
-            </span>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => onCollapsedChange(!collapsed)}
-          aria-expanded={!collapsed}
-          aria-label={collapsed ? "Expand results" : "Collapse results"}
-          title={collapsed ? "Expand results" : "Collapse results"}
-          className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-raised hover:text-foreground"
-        >
-          {collapsed ? (
-            <ChevronUp aria-hidden="true" className="h-4 w-4" />
-          ) : (
-            <ChevronDown aria-hidden="true" className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-
-      {collapsed ? null : (
-        <div
-          role="tabpanel"
-          aria-label={`${scope} results`}
-          className="min-h-0 flex-1 overflow-y-auto bg-surface-panel p-4"
-        >
-          {scope === "hidden" ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-              <Terminal
-                aria-hidden="true"
-                className="h-7 w-7 text-muted-foreground/40"
-              />
-              <p className="text-sm font-medium text-foreground/80">
-                Hidden tests are never shown
-              </p>
-              <p className="max-w-md text-xs text-muted-foreground">
-                The hidden test inputs and expected outputs stay on the server
-                so they cannot be read out of the page.{" "}
-                {graded
-                  ? "Submit the question to be graded against them."
-                  : "This deployment does not grade submissions, so they are not evaluated here."}
-              </p>
-            </div>
-          ) : (
-            <SampleResults
-              busy={busy}
-              mode={mode}
-              result={result}
-              supportsCustomInput={supportsCustomInput}
-              graded={graded}
-              onRetry={onRetry}
+      <Tabs
+        value={scope}
+        onValueChange={(next) => setScope(next as "sample" | "hidden")}
+        className="flex h-full min-h-0 flex-col"
+      >
+        {/* Console header: Test Case › Sample | Hidden */}
+        <div className="flex h-10 shrink-0 items-center gap-3 border-b border-surface-line bg-surface-chrome px-4">
+          <span className="flex items-center gap-1.5 text-sm text-foreground/70">
+            Test Case
+            <ChevronRight
+              aria-hidden="true"
+              className="h-4 w-4 text-muted-foreground"
             />
-          )}
+          </span>
+
+          <TabsList
+            aria-label="Result scope"
+            className="h-auto gap-3 bg-transparent p-0"
+          >
+            {(["sample", "hidden"] as const).map((id, index) => (
+              <span key={id} className="flex items-center gap-3">
+                {index > 0 ? (
+                  <span aria-hidden="true" className="h-4 w-px bg-surface-line" />
+                ) : null}
+                <TabsTrigger
+                  value={id}
+                  className="rounded-none bg-transparent px-0 py-1 text-sm font-medium capitalize text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
+                >
+                  {id}
+                </TabsTrigger>
+              </span>
+            ))}
+          </TabsList>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => onCollapsedChange(!collapsed)}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? "Expand results" : "Collapse results"}
+            title={collapsed ? "Expand results" : "Collapse results"}
+            className="ml-auto h-8 w-8 rounded-md text-muted-foreground hover:bg-surface-raised hover:text-foreground"
+          >
+            {collapsed ? (
+              <ChevronUp aria-hidden="true" className="h-4 w-4" />
+            ) : (
+              <ChevronDown aria-hidden="true" className="h-4 w-4" />
+            )}
+          </Button>
         </div>
-      )}
+
+        {collapsed ? null : (
+          <div className="min-h-0 flex-1 overflow-y-auto bg-surface-panel p-4">
+            <TabsContent value="hidden" className="mt-0 h-full">
+              <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+                <Terminal
+                  aria-hidden="true"
+                  className="h-7 w-7 text-muted-foreground/40"
+                />
+                <p className="text-sm font-medium text-foreground/80">
+                  Hidden tests are never shown
+                </p>
+                <p className="max-w-md text-xs text-muted-foreground">
+                  The hidden test inputs and expected outputs stay on the server
+                  so they cannot be read out of the page.{" "}
+                  {graded
+                    ? "Submit the question to be graded against them."
+                    : "This deployment does not grade submissions, so they are not evaluated here."}
+                </p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="sample" className="mt-0 h-full">
+              <SampleResults
+                busy={busy}
+                mode={mode}
+                result={result}
+                supportsCustomInput={supportsCustomInput}
+                graded={graded}
+                onRetry={onRetry}
+              />
+            </TabsContent>
+          </div>
+        )}
+      </Tabs>
     </section>
   );
 }
@@ -197,8 +200,8 @@ function SampleResults({
                 : "Compiling and executing against the visible sample tests…"}
           </span>
         </div>
-        <div className="h-2 w-full animate-pulse rounded-full bg-muted" />
-        <div className="h-16 w-full animate-pulse rounded-xl bg-muted/40" />
+        <Skeleton className="h-2 w-full rounded-full" />
+        <Skeleton className="h-16 w-full rounded-xl" />
         <span className="sr-only">Waiting for the execution service…</span>
       </div>
     );
@@ -263,18 +266,18 @@ function SampleResults({
       </div>
 
       {result.mode === "practice" && result.verdict !== "unavailable" ? (
-        <p className="flex items-start gap-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-900 dark:text-amber-300">
-          <AlertTriangle
-            aria-hidden="true"
-            className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
-          />
-          <span>
+        <Alert
+          role="status"
+          className="rounded-lg border-amber-500/40 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-900 dark:text-amber-300 [&>svg]:left-3 [&>svg]:top-3 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400"
+        >
+          <AlertTriangle aria-hidden="true" className="h-4 w-4" />
+          <AlertDescription className="text-xs leading-relaxed">
             Practice run: your code was compiled and executed against the{" "}
             <strong>visible sample tests only</strong>. Hidden tests were not
             evaluated, so this is <strong>not</strong> a graded submission and
             no score is recorded.
-          </span>
-        </p>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {result.verdict === "unavailable" ? (
@@ -289,17 +292,19 @@ function SampleResults({
           </p>
           <div className="mt-2.5 flex flex-wrap items-center gap-3">
             {onRetry ? (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={onRetry}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-panel px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-surface-raised"
+                className="h-7 gap-1.5 rounded-md border-border bg-surface-panel px-2.5 text-xs font-medium text-foreground hover:bg-surface-raised"
               >
                 <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
                 Retry
-              </button>
+              </Button>
             ) : null}
             <Link
-              to="/playground"
+              href="/playground"
               className="inline-flex items-center gap-1.5 text-xs font-medium text-primary underline-offset-2 hover:underline"
             >
               Open the playground
@@ -376,16 +381,17 @@ function SampleResults({
                   <span className="font-mono font-medium">
                     Sample {index + 1}
                   </span>
-                  <span
+                  <Badge
+                    variant="outline"
                     className={cn(
-                      "rounded-md border px-1.5 py-0.5 font-medium",
+                      "rounded-md px-1.5 py-0.5 text-xs font-medium",
                       outcome.passed
                         ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                         : "border-border text-muted-foreground",
                     )}
                   >
                     {outcome.passed ? "Passed" : "Failed"}
-                  </span>
+                  </Badge>
                 </div>
                 {outcome.expectedOutput ? (
                   <p className="mt-1.5 font-mono text-xs text-muted-foreground">

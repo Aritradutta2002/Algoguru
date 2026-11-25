@@ -1,6 +1,9 @@
+"use client";
+
 import { memo } from "react";
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { CoggleNodeData } from "@/types/roadmapGraph";
 
 function CoggleRootNodeImpl({ data, selected }: NodeProps<Node<CoggleNodeData>>) {
@@ -18,16 +21,11 @@ function CoggleRootNodeImpl({ data, selected }: NodeProps<Node<CoggleNodeData>>)
   const percent = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <Button
+      type="button"
+      variant="bare"
+      size="bare"
       onClick={() => onSelect?.(id)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect?.(id);
-        }
-      }}
       aria-label={`${title} Root Hub — ${percent}% completed`}
       className={cn(
         "group relative flex min-h-[124px] cursor-pointer select-none flex-col items-center justify-center gap-1 rounded-xl px-7 py-4 text-center transition-[box-shadow,opacity] duration-300",
@@ -92,7 +90,7 @@ function CoggleRootNodeImpl({ data, selected }: NodeProps<Node<CoggleNodeData>>)
         className="!w-3 !h-3"
         style={{ background: "#f4f6f2" }}
       />
-    </div>
+    </Button>
   );
 }
 

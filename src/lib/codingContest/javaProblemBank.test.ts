@@ -15,7 +15,10 @@ import { PUBLIC_JAVA_PROBLEMS } from "@/lib/codingContest/javaProblemBank";
 const SEED_PATH =
   "../../../supabase/migrations/20260915000000_add_coding_contest.sql";
 
-const SEED = readFileSync(new URL(SEED_PATH, import.meta.url), "utf8");
+const SEED = readFileSync(new URL(SEED_PATH, import.meta.url), "utf8").replace(
+  /\r\n/g,
+  "\n",
+);
 
 interface SeedRow {
   slug: string;

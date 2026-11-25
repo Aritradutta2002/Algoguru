@@ -1,4 +1,8 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { CODING_PROBLEM_POINTS } from "@/lib/contest/config";
 import { cn } from "@/lib/utils";
 import {
@@ -40,11 +44,13 @@ export function CodingQuestionList({
       <div className="relative min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-4 md:px-6">
         {/* Floating dismiss control */}
         <div className="sticky top-0 z-10 flex justify-center">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             aria-label="Close question list"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-raised text-foreground shadow-lg ring-1 ring-surface-line transition-colors hover:bg-surface-raised/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="h-11 w-11 rounded-full bg-surface-raised text-foreground shadow-lg ring-1 ring-surface-line hover:bg-surface-raised/80"
           >
             <svg
               aria-hidden="true"
@@ -57,7 +63,7 @@ export function CodingQuestionList({
             >
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </div>
 
         <nav aria-label="Contest question list" className="mx-auto w-full max-w-5xl">
@@ -69,44 +75,46 @@ export function CodingQuestionList({
 
               return (
                 <li key={entry.problem.id}>
-                  <article
+                  <Card
                     className={cn(
-                      "flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-surface-panel px-5 py-6",
+                      "rounded-xl bg-surface-panel px-5 py-6 shadow-none",
                       isActive ? "border-primary/50" : "border-surface-line",
                     )}
                   >
-                    <div className="min-w-0">
-                      <span className="inline-block rounded-md bg-primary/15 px-2 py-1 text-xs font-medium text-primary">
-                        Question {entry.index + 1}
-                      </span>
-                      <h3 className="mt-2 text-base font-semibold tracking-[-0.02em] text-foreground">
-                        {entry.problem.title}
-                      </h3>
-                    </div>
+                    <article className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <Badge className="rounded-md bg-primary/15 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/15">
+                          Question {entry.index + 1}
+                        </Badge>
+                        <h3 className="mt-2 text-base font-semibold tracking-[-0.02em] text-foreground">
+                          {entry.problem.title}
+                        </h3>
+                      </div>
 
-                    <div className="flex items-center gap-5">
-                      <span
-                        title={`${points} points`}
-                        className="font-mono text-base font-semibold tabular-nums text-amber-500"
-                      >
-                        {points}
-                        <span className="sr-only"> points</span>
-                      </span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={disabled}
-                        onClick={() => {
-                          onSelect(entry.problem.id);
-                          onClose();
-                        }}
-                        aria-label={`${started ? "Resume" : "Attempt"} question ${entry.index + 1}: ${entry.problem.title}`}
-                        className="h-8 rounded-lg px-4 text-xs font-semibold"
-                      >
-                        {started ? "Resume" : "Attempt"}
-                      </Button>
-                    </div>
-                  </article>
+                      <div className="flex items-center gap-5">
+                        <span
+                          title={`${points} points`}
+                          className="font-mono text-base font-semibold tabular-nums text-amber-500"
+                        >
+                          {points}
+                          <span className="sr-only"> points</span>
+                        </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={disabled}
+                          onClick={() => {
+                            onSelect(entry.problem.id);
+                            onClose();
+                          }}
+                          aria-label={`${started ? "Resume" : "Attempt"} question ${entry.index + 1}: ${entry.problem.title}`}
+                          className="h-8 rounded-lg px-4 text-xs font-semibold"
+                        >
+                          {started ? "Resume" : "Attempt"}
+                        </Button>
+                      </div>
+                    </article>
+                  </Card>
                 </li>
               );
             })}

@@ -70,17 +70,20 @@ describe("Adversarial Stress Test: SVG Brand Geometry Integrity", () => {
     }
   });
 
-  it("verifies path sync between brandGeometry.ts and index.html boot-splash", () => {
-    const indexHtml = readProjectFile("index.html");
+  it("verifies path sync between brandGeometry.ts and exported SVG brand assets", () => {
+    const markSvg = readProjectFile("public/brand/algoguru-mark.svg");
+    const faviconSvg = readProjectFile("public/favicon.svg");
 
-    // The splash mirrors the geometry verbatim so the two frames can never drift.
-    expect(indexHtml).toContain(BRAND_TILE_PATH);
-    expect(indexHtml).toContain(BRAND_A.leftStem);
-    expect(indexHtml).toContain(BRAND_A.rightStem);
-    expect(indexHtml).toContain(BRAND_A.crossbar);
-    expect(indexHtml).toContain(
-      `cx="${BRAND_A.node.cx}" cy="${BRAND_A.node.cy}"`,
-    );
+    // Exported SVG assets mirror brandGeometry.ts verbatim so they never drift.
+    for (const svg of [markSvg, faviconSvg]) {
+      expect(svg).toContain(BRAND_TILE_PATH);
+      expect(svg).toContain(BRAND_A.leftStem);
+      expect(svg).toContain(BRAND_A.rightStem);
+      expect(svg).toContain(BRAND_A.crossbar);
+      expect(svg).toContain(
+        `cx="${BRAND_A.node.cx}" cy="${BRAND_A.node.cy}"`,
+      );
+    }
   });
 
   it("verifies the loader trace lengths match the CSS dash lengths", () => {

@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Section-anchor navigation helpers for the Java Interview Hub.
  *

@@ -1,3 +1,5 @@
+"use client";
+
 import { Toaster as Sonner, toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 

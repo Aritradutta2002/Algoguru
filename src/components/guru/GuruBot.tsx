@@ -1,4 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+"use client";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import { ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,7 +28,7 @@ import { GuruHistoryPanel } from "./GuruHistoryPanel";
 import { GuruMessage } from "./GuruMessage";
 import { GuruThinking } from "./GuruThinking";
 import { GuruComposer } from "./GuruComposer";
-import { useGuruChat } from "./useGuruChat";
+import { useGuruChat, type UseGuruChatResult } from "./useGuruChat";
 import "@/styles/guru.css";
 
 export { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
@@ -38,6 +54,26 @@ export interface GuruBotProps {
   onToggleFullscreen?: () => void;
   isFullscreen?: boolean;
 }
+
+export interface GuruChatController {
+  chat: UseGuruChatResult;
+  attachCode: boolean;
+  setAttachCode: Dispatch<SetStateAction<boolean>>;
+  showHistory: boolean;
+  setShowHistory: Dispatch<SetStateAction<boolean>>;
+}
+
+export interface GuruChatProviderProps {
+  children: ReactNode;
+  /** Scopes the single owned chat hook and resets provider state when keyed. */
+  questionId?: string;
+  debugMode?: boolean;
+  initialContext?: string;
+  initialPrompt?: string;
+  onAssistantComplete?: (content: string) => void;
+}
+
+const GuruChatContext = createContext<GuruChatController | null>(null);
 
 const SPLIT_HISTORY_MIN_WIDTH = 560;
 
@@ -91,34 +127,19 @@ function buildCoachingContext({
   );
 }
 
-export function GuruBot({
-  open,
-  onClose,
+function useOwnedGuruChatController({
+  questionId,
   debugMode = false,
   initialContext = "",
   initialPrompt = "",
-  embedded = false,
-  questionId,
-  suggestedPrompts,
-  onInsertCode,
   onAssistantComplete,
-  hideHeader = false,
-  onToggleFullscreen,
-  isFullscreen = false,
-}: GuruBotProps) {
-  const isMobile = useMediaQuery("(max-width: 1023px)");
+}: Pick<
+  GuruBotProps,
+  "questionId" | "debugMode" | "initialContext" | "initialPrompt" | "onAssistantComplete"
+>) {
   const { user, loading: authLoading } = useAuth();
-
-  const chatScope = questionId || "global";
   const [attachCode, setAttachCode] = useState(() => Boolean(questionId));
   const [showHistory, setShowHistory] = useState(false);
-  const [historyQuery, setHistoryQuery] = useState("");
-  const [pinnedToBottom, setPinnedToBottom] = useState(true);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
 
   const buildSystemContext = useCallback(
     (history: GuruChatMessage[]) => {
@@ -129,14 +150,91 @@ export function GuruBot({
   );
 
   const chat = useGuruChat({
-    scope: chatScope,
-    initialDraft: open ? initialPrompt : "",
+    scope: questionId || "global",
+    initialDraft: initialPrompt,
     user,
     authLoading,
     model: "openrouter",
     buildSystemContext,
     onAssistantComplete,
   });
+
+  return useMemo(
+    () => ({ chat, attachCode, setAttachCode, showHistory, setShowHistory }),
+    [attachCode, chat, showHistory],
+  );
+}
+
+/** Owns one chat hook and the Guru UI state shared by all descendant views. */
+export function GuruChatProvider({
+  children,
+  questionId,
+  debugMode = false,
+  initialContext = "",
+  initialPrompt = "",
+  onAssistantComplete,
+}: GuruChatProviderProps) {
+  const controller = useOwnedGuruChatController({
+    questionId,
+    debugMode,
+    initialContext,
+    initialPrompt,
+    onAssistantComplete,
+  });
+  return <GuruChatContext.Provider value={controller}>{children}</GuruChatContext.Provider>;
+}
+
+/** Reads the shared controller from a host that guards a fullscreen surface. */
+export function useGuruChatController(): GuruChatController {
+  const controller = useContext(GuruChatContext);
+  if (!controller) {
+    throw new Error("useGuruChatController must be used within a GuruChatProvider");
+  }
+  return controller;
+}
+
+function OwnedGuruBot(props: GuruBotProps) {
+  const controller = useOwnedGuruChatController({
+    ...props,
+    initialPrompt: props.open ? props.initialPrompt : "",
+  });
+  return <GuruBotSurface {...props} controller={controller} />;
+}
+
+/** Standalone bots own their hook; provided bots consume their host's single owner. */
+export function GuruBot(props: GuruBotProps) {
+  const controller = useContext(GuruChatContext);
+  return controller ? (
+    <GuruBotSurface {...props} controller={controller} />
+  ) : (
+    <OwnedGuruBot {...props} />
+  );
+}
+
+function GuruBotSurface({
+  open,
+  onClose,
+  debugMode = false,
+  initialContext = "",
+  embedded = false,
+  suggestedPrompts,
+  onInsertCode,
+  hideHeader = false,
+  onToggleFullscreen,
+  isFullscreen = false,
+  controller,
+}: GuruBotProps & { controller: GuruChatController }) {
+  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const useFixedOverlay = isMobile && !embedded;
+  const { chat, attachCode, setAttachCode, showHistory, setShowHistory } = controller;
+  const [historyQuery, setHistoryQuery] = useState("");
+  const [pinnedToBottom, setPinnedToBottom] = useState(true);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   const {
     messages,
@@ -166,30 +264,6 @@ export function GuruBot({
     cancelQueued,
   } = chat;
 
-  /* ── Overlay behaviour: restore focus, lock the page behind ────── */
-
-  const restoreFocusRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    restoreFocusRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    return () => {
-      const node = restoreFocusRef.current;
-      if (node && node.isConnected) node.focus({ preventScroll: true });
-      restoreFocusRef.current = null;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open || !isMobile || embedded) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open, isMobile, embedded]);
-
   /* ── Container width decides whether history splits or overlays ─── */
 
   useEffect(() => {
@@ -200,7 +274,7 @@ export function GuruBot({
     });
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [open, useFixedOverlay]);
 
   const splitHistory = containerWidth >= SPLIT_HISTORY_MIN_WIDTH;
   // The panel can be dragged down to 18% of the viewport. Below ~330px the
@@ -221,7 +295,7 @@ export function GuruBot({
       node.setSelectionRange(end, end);
     }, 180);
     return () => window.clearTimeout(timer);
-  }, [open, showHistory, currentId]);
+  }, [open, showHistory, currentId, useFixedOverlay]);
 
   /* ── Scroll management ──────────────────────────────────────────── */
 
@@ -312,42 +386,34 @@ export function GuruBot({
     URL.revokeObjectURL(url);
   }, [activeSession]);
 
-  /* ── Keyboard: escape + focus trap on the mobile overlay ───────── */
+  /* ── Keyboard: Radix owns the mobile Dialog; regions keep Escape ── */
 
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === "Escape") {
-        if (busy) {
-          stop();
-          return;
-        }
-        if (showHistory) {
-          setShowHistory(false);
-          return;
-        }
-        onClose();
-        return;
-      }
+  const handleEscape = useCallback(() => {
+    if (busy) {
+      stop();
+      return;
+    }
+    if (showHistory) {
+      setShowHistory(false);
+      return;
+    }
+    onClose();
+  }, [busy, onClose, showHistory, stop]);
 
-      if (isMobile && !embedded && event.key === "Tab" && containerRef.current) {
-        const focusable = Array.from(
-          containerRef.current.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-          ),
-        ).filter((element) => element.offsetParent !== null);
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
+  const handleDialogEscapeKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.defaultPrevented || (!busy && !showHistory)) return;
+      event.preventDefault();
+      handleEscape();
     },
-    [busy, embedded, isMobile, onClose, showHistory, stop],
+    [busy, handleEscape, showHistory],
+  );
+
+  const handleDialogOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen && !busy && !showHistory) onClose();
+    },
+    [busy, onClose, showHistory],
   );
 
   /* ── Derived render data ───────────────────────────────────────── */
@@ -388,12 +454,8 @@ export function GuruBot({
 
   if (!open) return null;
 
-  const useFixedOverlay = isMobile && !embedded;
-  const containerClasses = cn(
-    "guru-cockpit relative flex h-full flex-col overflow-hidden bg-guru-bg text-guru-text",
-    useFixedOverlay &&
-      "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200",
-  );
+  const containerClasses =
+    "guru-cockpit relative flex h-full flex-col overflow-hidden bg-guru-bg text-guru-text";
 
   const transcript = (
     <>
@@ -436,7 +498,7 @@ export function GuruBot({
 
           {showEscapeHatch && (
             <div className="flex justify-center">
-              <button
+              <Button variant="bare" size="bare"
                 type="button"
                 onClick={() =>
                   handlePick("I'm still stuck — give me the full corrected code and explain the fix vs my version.")
@@ -444,7 +506,7 @@ export function GuruBot({
                 className="rounded-lg border border-guru-line bg-guru-surface/50 px-3 py-1.5 text-[11.5px] font-medium text-guru-muted transition-colors hover:border-guru-accent/35 hover:text-guru-text"
               >
                 Still stuck? Ask for the full answer
-              </button>
+              </Button>
             </div>
           )}
 
@@ -454,7 +516,7 @@ export function GuruBot({
 
       {!pinnedToBottom && messages.length > 0 && (
         <div className="pointer-events-none relative">
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             onClick={() => {
               setPinnedToBottom(true);
@@ -464,7 +526,7 @@ export function GuruBot({
           >
             <ArrowDown size={12} />
             Jump to latest
-          </button>
+          </Button>
         </div>
       )}
 
@@ -492,25 +554,8 @@ export function GuruBot({
     </>
   );
 
-  return (
-    <div
-      ref={containerRef}
-      className={containerClasses}
-      role={useFixedOverlay ? "dialog" : "region"}
-      aria-modal={useFixedOverlay ? true : undefined}
-      aria-label="Guru AI"
-      onKeyDown={handleKeyDown}
-      style={
-        useFixedOverlay
-          ? {
-              // Keep the header clear of the notch and the composer above the
-              // iOS home indicator, without a JS viewport listener.
-              paddingTop: "env(safe-area-inset-top)",
-              paddingBottom: "env(safe-area-inset-bottom)",
-            }
-          : undefined
-      }
-    >
+  const guruContent = (
+    <>
       {!hideHeader && (
         <GuruHeader
           status={status}
@@ -581,7 +626,68 @@ export function GuruBot({
           <div className="flex min-w-0 flex-1 flex-col">{transcript}</div>
         )}
       </div>
+    </>
+  );
 
+  if (useFixedOverlay) {
+    return (
+      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+        <DialogContent
+          ref={containerRef}
+          showClose={false}
+          aria-modal={true}
+          overlayClassName="bg-transparent backdrop-blur-none"
+          onEscapeKeyDown={handleDialogEscapeKeyDown}
+          onOpenAutoFocus={() => {
+            // GuruBot is controlled without a DialogTrigger, so retain the
+            // opener for Radix's close-focus lifecycle.
+            returnFocusRef.current =
+              document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          }}
+          onCloseAutoFocus={() => {
+            const node = returnFocusRef.current;
+            if (node?.isConnected) node.focus({ preventScroll: true });
+            returnFocusRef.current = null;
+          }}
+          className={cn(
+            containerClasses,
+            "fixed inset-0 z-50 w-full max-w-none translate-x-0 translate-y-0 gap-0 rounded-none border-0 border-guru-bg p-0 shadow-[none] sm:p-0",
+            "animate-in fade-in slide-in-from-bottom-2 duration-200",
+          )}
+          style={
+            {
+              // Keep the header clear of the notch and the composer above the
+              // iOS home indicator, without a JS viewport listener. Neutralize
+              // DialogContent's centered/zoom motion for the fullscreen sheet.
+              paddingTop: "env(safe-area-inset-top)",
+              paddingBottom: "env(safe-area-inset-bottom)",
+              "--tw-enter-translate-x": "0px",
+              "--tw-enter-translate-y": "0.5rem",
+              "--tw-exit-translate-x": "0px",
+              "--tw-exit-translate-y": "0.5rem",
+              "--tw-enter-scale": "1",
+              "--tw-exit-scale": "1",
+            } as CSSProperties
+          }
+        >
+          <DialogTitle className="sr-only">Guru AI</DialogTitle>
+          {guruContent}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={containerClasses}
+      role="region"
+      aria-label="Guru AI"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !event.defaultPrevented) handleEscape();
+      }}
+    >
+      {guruContent}
     </div>
   );
 }

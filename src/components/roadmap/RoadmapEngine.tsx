@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
@@ -32,6 +34,7 @@ import type {
 } from "@/types/roadmapGraph";
 import { Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { registerEscapeKeyHandler } from "@/lib/escapeKeyStack";
 
 interface RoadmapEngineProps {
   roadmap: Roadmap;
@@ -288,35 +291,49 @@ function RoadmapEngineInner({
     });
   }, [selectedNodeId, rfInstance]);
 
-  // Keyboard shortcut listeners (Esc to close/clear, 0 to center root, F to fit)
+  // Escape clears engine state before the overlay; 0/F remain canvas shortcuts.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const unregisterEscape = registerEscapeKeyHandler((event) => {
+      const target = event.target;
       if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement
       ) {
-        if (e.key === "Escape") {
-          (e.target as HTMLElement).blur();
-          setSearchQuery("");
-        }
+        wrapperRef.current?.focus({ preventScroll: true });
+        target.blur();
+        setSearchQuery("");
+        return true;
+      }
+
+      if (!selectedNodeId && !searchQuery) return false;
+      setSelectedNodeId(null);
+      setSearchQuery("");
+      return true;
+    }, 1);
+
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
 
-      if (e.key === "Escape") {
-        setSelectedNodeId(null);
-        setSearchQuery("");
-      } else if (e.key === "0") {
+      if (event.key === "0") {
         handleCenterRoot();
-      } else if (e.key === "f" || e.key === "F") {
+      } else if (event.key === "f" || event.key === "F") {
         try {
           reactFlow.fitView({ padding: 0.06, maxZoom: 1, duration: 400 });
         } catch {}
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleCenterRoot, reactFlow]);
+    window.addEventListener("keydown", handleShortcut);
+    return () => {
+      unregisterEscape();
+      window.removeEventListener("keydown", handleShortcut);
+    };
+  }, [handleCenterRoot, reactFlow, searchQuery, selectedNodeId]);
 
   // Node hover handlers
   const onNodeMouseEnter = useCallback(
@@ -380,6 +397,7 @@ function RoadmapEngineInner({
         "coggle-roadmap-shell"
       )}
       ref={wrapperRef}
+      tabIndex={-1}
     >
       {/* Studio Header */}
       <RoadmapHeader
@@ -416,6 +434,7 @@ function RoadmapEngineInner({
           onInit={onInit}
           nodesDraggable={false}
           nodesConnectable={false}
+          nodesFocusable={false}
           elementsSelectable
           panOnDrag
           panOnScroll={false}

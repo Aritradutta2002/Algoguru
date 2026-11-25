@@ -1,3 +1,5 @@
+"use client";
+
 import { Background, BackgroundVariant } from "@xyflow/react";
 
 /**

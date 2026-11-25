@@ -1,3 +1,7 @@
+"use client";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ArrowUp, Code2, Command, CornerDownLeft, Send, Square, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,7 +25,7 @@ interface GuruComposerProps {
   isMobile?: boolean;
   /** Panel is narrow: drop the keyboard legend so the footer stays one line. */
   compact?: boolean;
-  inputRef?: React.RefObject<HTMLTextAreaElement>;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
   /** ArrowUp on an empty composer recalls the last question for editing. */
   onRecallLast?: () => void;
 }
@@ -132,14 +136,14 @@ export function GuruComposer({
             Queued: <span className="text-guru-text/90">{queuedPrompt}</span>
           </p>
           {onCancelQueued && (
-            <button
+            <Button variant="bare" size="bare"
               type="button"
               onClick={onCancelQueued}
               aria-label="Cancel queued message"
               className="rounded p-0.5 text-guru-muted transition-colors hover:text-guru-text"
             >
               <X size={12} />
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -151,7 +155,7 @@ export function GuruComposer({
           className="mb-2 overflow-hidden rounded-xl border border-guru-line bg-guru-surface shadow-lg shadow-black/10 dark:shadow-black/40"
         >
           {commands.map((command, index) => (
-            <button
+            <Button variant="bare" size="bare"
               key={command.id}
               type="button"
               role="option"
@@ -174,7 +178,7 @@ export function GuruComposer({
                   {command.hint}
                 </span>
               </span>
-            </button>
+            </Button>
           ))}
           <div className="flex items-center gap-2 border-t border-guru-line/60 px-3 py-1.5 text-[10.5px] text-guru-muted">
             <GuruKbd>↑</GuruKbd>
@@ -195,7 +199,7 @@ export function GuruComposer({
         <label htmlFor={inputId} className="sr-only">
           Message Guru
         </label>
-        <textarea
+        <Textarea
           id={inputId}
           ref={ref}
           value={value}
@@ -205,13 +209,13 @@ export function GuruComposer({
           rows={1}
           aria-describedby={hintId}
           className={cn(
-            "w-full resize-none bg-transparent px-3.5 pb-2 pt-3 pr-14 text-[13.5px] leading-relaxed text-guru-text",
-            "outline-none placeholder:text-guru-muted/80",
-            "min-h-[48px] max-h-[184px]",
+            "w-full resize-none border-0 bg-transparent px-3.5 pb-2 pt-3 pr-14 text-[13.5px] leading-relaxed text-guru-text",
+            "outline-none placeholder:text-guru-muted/80 focus-visible:bg-transparent focus-visible:ring-0",
+            "min-h-[48px] max-h-[184px] shadow-none md:text-[13.5px]",
           )}
         />
 
-        <button
+        <Button variant="bare" size="bare"
           type="button"
           onClick={() => (busy ? onStop() : onSend())}
           disabled={!busy && !canSend}
@@ -226,11 +230,11 @@ export function GuruComposer({
           )}
         >
           {busy ? <Square size={11} fill="currentColor" /> : <Send size={14} />}
-        </button>
+        </Button>
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        <button
+        <Button variant="bare" size="bare"
           type="button"
           onClick={onToggleAttachCode}
           aria-pressed={attachCode}
@@ -255,7 +259,7 @@ export function GuruComposer({
               ~{contextTokens >= 1000 ? `${(contextTokens / 1000).toFixed(1)}k` : contextTokens}
             </span>
           )}
-        </button>
+        </Button>
 
         <div
           id={hintId}

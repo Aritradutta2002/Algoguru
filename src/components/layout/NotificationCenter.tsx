@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { useState } from "react";
 import {
   Bell,
@@ -87,7 +90,7 @@ export function NotificationCenter() {
         content={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
       >
         <DropdownMenuTrigger asChild>
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ""}`}
             className={cn(
@@ -106,7 +109,7 @@ export function NotificationCenter() {
                 className="pointer-events-none absolute top-2 right-2 h-2 w-2 rounded-full bg-primary ring-2 ring-obsidian-void"
               />
             )}
-          </button>
+          </Button>
         </DropdownMenuTrigger>
       </AppTooltip>
 
@@ -127,20 +130,20 @@ export function NotificationCenter() {
             )}
           </div>
           {unreadCount > 0 && (
-            <button
+            <Button variant="bare" size="bare"
               type="button"
               onClick={markAllAsRead}
               className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <NavIcon icon={CheckCheck} chip />
               <span>Mark all read</span>
-            </button>
+            </Button>
           )}
         </div>
 
         {/* Tab filters */}
         <div className="flex items-center gap-1 px-3 pb-2 pt-1">
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             onClick={() => setFilter("all")}
             className={cn(
@@ -151,8 +154,8 @@ export function NotificationCenter() {
             )}
           >
             All
-          </button>
-          <button
+          </Button>
+          <Button variant="bare" size="bare"
             type="button"
             onClick={() => setFilter("unread")}
             className={cn(
@@ -163,7 +166,7 @@ export function NotificationCenter() {
             )}
           >
             Unread ({unreadCount})
-          </button>
+          </Button>
         </div>
 
         <DropdownMenuSeparator className="my-1 bg-obsidian-border" />

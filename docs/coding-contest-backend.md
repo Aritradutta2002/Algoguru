@@ -16,7 +16,7 @@ Until `contest-execute` exists, the workspace runs the practice runner: the
 learner's Java is really compiled and executed, but only against the problem's
 **public visible** cases. Every result is labelled `mode: "practice"`,
 `hiddenEvaluated: false`, and the service reports `graded: false`, so no score
-can be derived from it. `VITE_CONTEST_EXECUTION_MODE=off` disables execution
+can be derived from it. `NEXT_PUBLIC_CONTEST_EXECUTION_MODE=off` disables execution
 entirely and the console offers a retry.
 
 ---
@@ -30,7 +30,7 @@ the authority for a contest score.**
   process, never via `child_process`, a shell, a Worker, or `eval`.
 - The browser calls *this application's backend*. It never calls a third-party
   execution provider directly, and no provider credential is ever placed in a
-  `VITE_*` variable.
+  `NEXT_PUBLIC_*` variable.
   - This rule is about **graded** execution. The ungraded practice runner
     (`practiceExecutionService.ts`) does call the public Wandbox compile
     service from the browser, the same transport `Playground.tsx` and
@@ -140,7 +140,7 @@ supported pattern:
 |---|---|
 | `CODE_EXECUTION_PROVIDER` | Normalised provider id, e.g. `judge0`, `piston`. |
 | `CODE_EXECUTION_BASE_URL` | Provider base URL. |
-| `CODE_EXECUTION_API_KEY` | Provider credential. **Never** a `VITE_*` variable. |
+| `CODE_EXECUTION_API_KEY` | Provider credential. **Never** a `NEXT_PUBLIC_*` variable. |
 | `CODE_EXECUTION_TIMEOUT_MS` | Wall-clock cap for a single submission. |
 | `CODE_EXECUTION_MAX_OUTPUT_BYTES` | stdout/stderr cap. |
 

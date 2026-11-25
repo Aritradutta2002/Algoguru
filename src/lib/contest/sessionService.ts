@@ -1,3 +1,4 @@
+import { publicEnv } from "@/lib/env";
 import type {
   CodingContestResultData,
   CodingFinalizationReason,
@@ -70,6 +71,6 @@ export type ContestSessionMode = "remote" | "local";
 
 /** Optional dev override; the UI can also switch after an explicit opt-in. */
 export function configuredSessionMode(): ContestSessionMode {
-  const raw = import.meta.env.VITE_CONTEST_SESSION_MODE;
+  const raw = publicEnv.contestSessionMode;
   return raw === "local" ? "local" : "remote";
 }

@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /**
- * `VITE_CONTEST_EXECUTION_MODE` selects the execution path. The default must be
- * a runner that really executes, and every path must be honest about grading.
+ * `NEXT_PUBLIC_CONTEST_EXECUTION_MODE` selects the execution path. The default
+ * must be a runner that really executes, and every path must be honest about
+ * grading.
  */
 
 const request = {
@@ -21,6 +22,7 @@ afterEach(() => {
 
 describe("loadCodeExecutionService", () => {
   it("defaults to the ungraded practice runner", async () => {
+    vi.stubEnv("NEXT_PUBLIC_CONTEST_EXECUTION_MODE", "");
     const { loadCodeExecutionService } =
       await import("@/lib/contest/codeExecution");
     const service = await loadCodeExecutionService();
@@ -29,7 +31,7 @@ describe("loadCodeExecutionService", () => {
   });
 
   it("can be switched off, and then says so instead of faking a run", async () => {
-    vi.stubEnv("VITE_CONTEST_EXECUTION_MODE", "off");
+    vi.stubEnv("NEXT_PUBLIC_CONTEST_EXECUTION_MODE", "off");
     const { loadCodeExecutionService } =
       await import("@/lib/contest/codeExecution");
     const service = await loadCodeExecutionService();
@@ -40,7 +42,7 @@ describe("loadCodeExecutionService", () => {
   });
 
   it("falls back to practice when the server judge is not deployed", async () => {
-    vi.stubEnv("VITE_CONTEST_EXECUTION_MODE", "server");
+    vi.stubEnv("NEXT_PUBLIC_CONTEST_EXECUTION_MODE", "server");
     const { loadCodeExecutionService } =
       await import("@/lib/contest/codeExecution");
     const service = await loadCodeExecutionService();

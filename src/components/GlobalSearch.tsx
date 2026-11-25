@@ -1,3 +1,13 @@
+"use client";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 import {
   useCallback,
   useEffect,
@@ -5,9 +15,9 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from "react";
-import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowDown, ArrowUp, CornerDownLeft, X } from "lucide-react";
 
@@ -317,6 +327,7 @@ export interface GlobalSearchProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   showTrigger?: boolean;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 export function GlobalSearch({
@@ -324,6 +335,7 @@ export function GlobalSearch({
   open: controlledOpen,
   onOpenChange,
   showTrigger = true,
+  returnFocusRef,
 }: GlobalSearchProps = {}) {
   const [internalOpen, setInternalOpen] = useState(initialOpen);
   const isControlled = controlledOpen !== undefined;
@@ -349,7 +361,8 @@ export function GlobalSearch({
   // cmdk only re-focuses its input when its `value` state changes, never on
   // mount — so without this the palette opens unfocused and typing does nothing.
   const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
+  const capturedFocusRef = useRef<HTMLElement | null>(null);
+  const router = useRouter();
   const { user } = useAuth();
   const noteDocs = useNoteDocs(notesEnabled ? user?.id : undefined);
 
@@ -395,9 +408,9 @@ export function GlobalSearch({
       setOpen(false);
       setQuery("");
       setTab("all");
-      navigate(doc.path);
+      router.push(doc.path);
     },
-    [navigate, remember, setOpen],
+    [router, remember, setOpen],
   );
 
   useEffect(() => {
@@ -414,33 +427,32 @@ export function GlobalSearch({
   }, [open]);
 
   useEffect(() => {
+    if (!showTrigger) return;
+
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setOpen((previous) => !previous);
       }
-      if (event.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [setOpen]);
+  }, [setOpen, showTrigger]);
 
   return (
-    <>
+    <Dialog open={open} onOpenChange={setOpen}>
       {showTrigger && (
         <AppTooltip content="Search AlgoGuru (Ctrl+K)">
-          <button
-            type="button"
-            onClick={() => setOpen((previous) => !previous)}
-            aria-label="Search AlgoGuru"
-            aria-expanded={open}
-            aria-haspopup="dialog"
-            data-search-trigger="true"
+          <DialogTrigger asChild>
+            <Button variant="bare" size="bare"
+              type="button"
+              aria-label="Search AlgoGuru"
+              data-search-trigger="true"
             className="group relative flex h-8 w-44 items-center gap-2 overflow-hidden rounded-lg border border-border/60 bg-muted/40 pl-1.5 pr-3 text-left transition-all duration-200 hover:border-primary/30 hover:bg-muted/70 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] active:scale-[0.98] sm:w-56 md:w-64 lg:w-72"
           >
             <SearchMark
               size={20}
-              className="transition-transform duration-300 group-hover:scale-110"
+              className="!size-[20px] transition-transform duration-300 group-hover:scale-110"
             />
             <span className="hidden min-w-0 flex-1 truncate text-[13px] text-muted-foreground/65 transition-colors group-hover:text-muted-foreground sm:inline">
               Search topics, problems…
@@ -448,39 +460,40 @@ export function GlobalSearch({
             <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border/60 bg-background/70 px-1.5 py-px font-mono text-[10px] font-semibold leading-none text-muted-foreground/55 transition-colors group-hover:border-primary/25 group-hover:text-primary md:inline-flex">
               <span>⌘</span>K
             </kbd>
-          </button>
+            </Button>
+          </DialogTrigger>
         </AppTooltip>
       )}
 
-      {open &&
-        createPortal(
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.14 }}
-            onClick={(event) => {
-              if (event.target === event.currentTarget) {
-                setOpen(false);
-              }
-            }}
-            className="fixed inset-0 z-[9999] flex items-start justify-center px-4 pt-[7vh]"
-          >
-            {/* Vignette: a radial wash instead of a flat scrim, so the
-                spotlight falls on the palette rather than the whole page. */}
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(event) => event.stopPropagation()}
-              className="relative w-full max-w-[720px]"
-            >
-              <Command
-                shouldFilter={false}
-                loop
-                className="flex h-[min(620px,80vh)] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-[0_32px_80px_-12px_hsl(var(--foreground)/0.35),0_0_0_1px_hsl(var(--foreground)/0.04)] backdrop-blur-xl"
-              >
+      <DialogContent
+        showClose={false}
+        overlayClassName="z-[9999]"
+        aria-modal="true"
+        onOpenAutoFocus={() => {
+          capturedFocusRef.current =
+            returnFocusRef?.current ??
+            (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+        }}
+        onCloseAutoFocus={(event) => {
+          const returnTarget = capturedFocusRef.current;
+          if (returnTarget) {
+            event.preventDefault();
+            returnTarget.focus();
+          }
+          capturedFocusRef.current = null;
+        }}
+        className="z-[9999] top-[7vh] flex h-[min(620px,80vh)] max-w-[720px] translate-y-0 flex-col gap-0 overflow-hidden rounded-2xl border border-border/80 bg-card/95 p-0 shadow-[0_32px_80px_-12px_hsl(var(--foreground)/0.35),0_0_0_1px_hsl(var(--foreground)/0.04)] backdrop-blur-xl data-[state=closed]:slide-out-to-top-[7vh] data-[state=open]:slide-in-from-top-[7vh] sm:p-0"
+      >
+        <DialogTitle className="sr-only">Search AlgoGuru</DialogTitle>
+        <DialogDescription className="sr-only">
+          Search topics, problems, and notes across AlgoGuru.
+        </DialogDescription>
+        <Command
+          label="Search AlgoGuru"
+          shouldFilter={false}
+          loop
+          className="flex h-auto min-h-0 flex-1 flex-col overflow-hidden bg-transparent"
+        >
                 {/* Input ------------------------------------------------------ */}
                 <div className="flex shrink-0 items-center gap-3 px-4 pb-3.5 pt-4">
                   <SearchMark size={30} className="drop-shadow-sm" />
@@ -496,7 +509,7 @@ export function GlobalSearch({
                   />
 
                   {trimmed && (
-                    <button
+                    <Button variant="bare" size="bare"
                       type="button"
                       onClick={() => {
                         setQuery("");
@@ -505,8 +518,8 @@ export function GlobalSearch({
                       aria-label="Clear query"
                       className="flex h-6 w-6 shrink-0 touch-manipulation items-center justify-center rounded-md border border-border/60 bg-muted/50 text-muted-foreground/80 hover:bg-muted hover:text-foreground active:scale-95 transition-all text-xs"
                     >
-                      <X size={12} />
-                    </button>
+                      <X size={12} className="!size-[12px]" />
+                    </Button>
                   )}
 
                   {trimmed && !showEmptyState && (
@@ -519,14 +532,14 @@ export function GlobalSearch({
                     </motion.span>
                   )}
 
-                  <button
+                  <Button variant="bare" size="bare"
                     type="button"
                     onClick={() => setOpen(false)}
                     aria-label="Close search"
                     className="flex h-7 w-7 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-transparent text-muted-foreground/70 transition-all hover:border-border hover:bg-muted hover:text-foreground active:scale-95"
                   >
-                    <X size={15} />
-                  </button>
+                    <X size={15} className="!size-[15px]" />
+                  </Button>
                 </div>
 
                 {/* Tabs ------------------------------------------------------- */}
@@ -535,9 +548,10 @@ export function GlobalSearch({
                     {SEARCH_TABS.map((entry) => {
                       const active = entry.id === tab;
                       return (
-                        <button
+                        <Button variant="bare" size="bare"
                           key={entry.id}
                           onClick={() => setTab(entry.id)}
+                          aria-pressed={active}
                           className={cn(
                             "relative shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors",
                             active ? "text-primary" : "text-muted-foreground hover:text-foreground",
@@ -551,7 +565,7 @@ export function GlobalSearch({
                             />
                           )}
                           <span className="relative">{entry.label}</span>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -560,7 +574,7 @@ export function GlobalSearch({
                 {/* Body ------------------------------------------------------- */}
                 {/* `max-h-none` drops the 300px default from CommandList so the
                     list flexes to fill the panel instead. */}
-                <CommandList className="max-h-none flex-1 overflow-y-auto px-2 pb-3 pt-1">
+                <CommandList className="max-h-none min-h-0 flex-1 overflow-y-auto px-2 pb-3 pt-1">
                   {showEmptyState ? (
                     <>
                       <div className="flex items-center justify-between px-2 pt-2 pb-0">
@@ -568,7 +582,7 @@ export function GlobalSearch({
                           {recents.length === 0 ? "Quick Access" : "Recent Searches"}
                         </SectionLabel>
                         {recents.length > 0 && (
-                          <button
+                          <Button variant="bare" size="bare"
                             type="button"
                             onClick={() => {
                               writeRecents([]);
@@ -577,7 +591,7 @@ export function GlobalSearch({
                             className="text-[11px] font-medium text-muted-foreground/60 hover:text-primary transition-colors cursor-pointer mr-1"
                           >
                             Clear recent
-                          </button>
+                          </Button>
                         )}
                       </div>
                       <div className="flex flex-wrap gap-1.5 px-2 pb-2">
@@ -652,11 +666,8 @@ export function GlobalSearch({
                   {allDocs.length.toLocaleString()} items indexed
                 </span>
               </div>
-            </Command>
-          </motion.div>
-        </motion.div>,
-        document.body,
-      )}
-    </>
+        </Command>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { AlgoGuruMark, type AlgoGuruMarkVariant } from "@/components/brand/AlgoGuruMark";
 import { AlgoGuruLockup } from "@/components/brand/AlgoGuruLockup";
 

@@ -1,4 +1,16 @@
-import { DiffEditor } from "@monaco-editor/react";
+"use client";
+
+import dynamic from "next/dynamic";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const DiffEditor = dynamic(
+  () => import("@monaco-editor/react").then((m) => m.DiffEditor),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-full w-full" />,
+  },
+);
 
 export function AiEditPreview({
   original,
@@ -22,7 +34,7 @@ export function AiEditPreview({
         background: "var(--lc-panel)",
         borderTop: "1px solid var(--lc-border)",
       }}
-      role="dialog"
+      role="region"
       aria-label="Proposed GuruBot edit"
     >
       <div
@@ -33,12 +45,12 @@ export function AiEditPreview({
           Proposed edit — review before applying
         </p>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={onReject} className="lc-pill lc-pill-muted !py-1 !text-[12px]">
+          <Button type="button" variant="ghost" size="sm" onClick={onReject} className="lc-pill lc-pill-muted !h-auto !py-1 !text-[12px]">
             Reject
-          </button>
-          <button type="button" onClick={onAccept} className="lc-pill lc-pill-green !py-1 !text-[12px]">
+          </Button>
+          <Button type="button" size="sm" onClick={onAccept} className="lc-pill lc-pill-green !h-auto !py-1 !text-[12px]">
             Accept
-          </button>
+          </Button>
         </div>
       </div>
       <div className="min-h-0 flex-1">

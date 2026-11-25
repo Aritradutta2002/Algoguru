@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 /**
  * Shared page-level primitives.
  *
@@ -8,6 +11,7 @@
  * Visual only — no business logic lives here.
  */
 import * as React from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 /* ─── Page container ──────────────────────────────────────────────── */
@@ -265,39 +269,55 @@ export function SegmentedControl<T extends string>({
   size = "default",
   fullWidth = false,
 }: SegmentedControlProps<T>) {
+  const lastEmittedValueRef = React.useRef(value);
+
+  React.useEffect(() => {
+    lastEmittedValueRef.current = value;
+  }, [value]);
+
+  const handleChange = (next: T) => {
+    if (next === value || next === lastEmittedValueRef.current) return;
+
+    lastEmittedValueRef.current = next;
+    onChange(next);
+  };
+
   return (
-    <div
-      className={cn(
-        "inline-flex items-center gap-1 rounded-lg border border-obsidian-border bg-obsidian-elevated p-1",
-        fullWidth && "w-full",
-        className,
-      )}
-      role="tablist"
+    <Tabs
+      value={value}
+      onValueChange={(next) => handleChange(next as T)}
+      className="contents"
     >
-      {options.map((option) => {
-        const active = option.value === value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(option.value)}
-            className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors",
-              size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-[13px]",
-              fullWidth && "flex-1",
-              active
-                ? "bg-foreground/[0.08] text-foreground shadow-none"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {option.icon}
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
+      <TabsList
+        className={cn(
+          "h-auto inline-flex items-center gap-1 rounded-lg border border-obsidian-border bg-obsidian-elevated p-1",
+          fullWidth && "w-full",
+          className,
+        )}
+      >
+        {options.map((option) => {
+          const active = option.value === value;
+          return (
+            <TabsTrigger
+              key={option.value}
+              value={option.value}
+              aria-controls={undefined}
+              className={cn(
+                "inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors",
+                size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-[13px]",
+                fullWidth && "flex-1",
+                active
+                  ? "bg-foreground/[0.08] text-foreground shadow-none data-[state=active]:bg-foreground/[0.08] data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {option.icon}
+              {option.label}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+    </Tabs>
   );
 }
 
@@ -326,7 +346,7 @@ export const Pill = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }
 >(({ className, active = false, ...props }, ref) => (
-  <button
+  <Button variant="bare" size="bare"
     ref={ref}
     type="button"
     className={cn(

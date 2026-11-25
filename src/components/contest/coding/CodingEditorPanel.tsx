@@ -1,4 +1,7 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import type { OnMount } from "@monaco-editor/react";
 import {
   Check,
@@ -13,7 +16,9 @@ import {
   WrapText,
   X,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { CompilerDiagnostic } from "@/lib/playground/compilerDiagnostics";
 import type { PublicCodingProblem } from "@/lib/contest/types";
-import { formatJava, formatJavaCode } from "@/lib/contest/javaFormat";
+import { formatJavaCode } from "@/lib/contest/javaFormat";
 import { cn } from "@/lib/utils";
 import { BrandLoader } from "@/components/brand/BrandLoader";
 
@@ -34,9 +39,9 @@ import { BrandLoader } from "@/components/brand/BrandLoader";
  * Java code editor pane: file tab bar, the language / format / run / submit
  * toolbar, the editor itself and the floating format control.
  *
- * Monaco is loaded lazily so it stays out of the contest landing and MCQ quiz
- * bundles — the existing `editor` chunk is already split in `vite.config.ts`,
- * and `React.lazy` keeps it from loading until an exam workspace mounts.
+ * Monaco is loaded client-only via `next/dynamic(..., { ssr: false })` so it
+ * never evaluates during SSR and stays out of the contest landing and MCQ quiz
+ * bundles.
  */
 
 type MonacoApi = Parameters<OnMount>[1];
@@ -49,10 +54,28 @@ export interface EditorTabDescriptor {
   scratch: boolean;
 }
 
-const LazyLeetCodeEditor = lazy(() =>
-  import("@/components/editor/LeetCodeEditor").then((module) => ({
-    default: module.LeetCodeEditor,
-  })),
+function EditorSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="relative flex h-full w-full items-center justify-center bg-obsidian-void"
+    >
+      <Skeleton className="absolute inset-0 h-full w-full rounded-none opacity-25" />
+      <BrandLoader variant="screen" size="md" label="Loading code editor…" />
+    </div>
+  );
+}
+
+const DynamicLeetCodeEditor = dynamic(
+  () =>
+    import("@/components/editor/LeetCodeEditor").then(
+      (module) => module.LeetCodeEditor,
+    ),
+  {
+    ssr: false,
+    loading: () => <EditorSkeleton />,
+  },
 );
 
 let javaFormatterRegistered = false;
@@ -69,23 +92,9 @@ function ensureJavaFormatter(monaco: MonacoApi): void {
     displayName: "AlgoGuru Java formatter",
     async provideDocumentFormattingEdits(model) {
       const formatted = await formatJavaCode(model.getValue(), { indentSize: 4 });
-      return [
-        { range: model.getFullModelRange(), text: formatted },
-      ];
+      return [{ range: model.getFullModelRange(), text: formatted }];
     },
   });
-}
-
-function EditorSkeleton() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex h-full w-full items-center justify-center bg-obsidian-void"
-    >
-      <BrandLoader variant="screen" size="md" label="Loading code editor…" />
-    </div>
-  );
 }
 
 export function CodingEditorPanel({
@@ -134,8 +143,8 @@ export function CodingEditorPanel({
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const optionsRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<any>(null);
-  const monacoRef = useRef<any>(null);
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
+  const monacoRef = useRef<MonacoApi | null>(null);
   const [isFormatting, setIsFormatting] = useState(false);
   const [isFormatted, setIsFormatted] = useState(false);
 
@@ -200,7 +209,7 @@ export function CodingEditorPanel({
                   active ? "bg-surface-panel" : "hover:bg-surface-raised/60",
                 )}
               >
-                <button
+                <Button variant="bare" size="bare"
                   type="button"
                   role="tab"
                   aria-selected={active}
@@ -218,8 +227,8 @@ export function CodingEditorPanel({
                   )}
                 >
                   {tab.label}
-                </button>
-                <button
+                </Button>
+                <Button variant="bare" size="bare"
                   type="button"
                   onClick={() => onCloseTab(tab.id)}
                   disabled={readOnly || !tab.scratch}
@@ -236,14 +245,16 @@ export function CodingEditorPanel({
                   className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-raised hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
                 >
                   <X aria-hidden="true" className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               </div>
             );
           })}
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={onAddTab}
           disabled={readOnly || !canAddTab}
           aria-label="Add a scratch tab"
@@ -252,28 +263,30 @@ export function CodingEditorPanel({
               ? "Add a scratch tab — a second buffer in this browser, never submitted"
               : "You have reached the scratch tab limit for this contest"
           }
-          className="ml-1 flex h-8 shrink-0 items-center gap-1.5 self-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-surface-raised hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+          className="ml-1 h-8 shrink-0 self-center rounded-md px-2 text-muted-foreground hover:bg-surface-raised hover:text-foreground"
         >
           <Plus aria-hidden="true" className="h-4 w-4" />
-        </button>
+        </Button>
 
         <div ref={optionsRef} className="relative ml-auto shrink-0 self-stretch pr-3">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setOptionsOpen((current) => !current)}
             aria-expanded={optionsOpen}
             aria-haspopup="menu"
             aria-label="Editor options"
             title="Editor options"
             className={cn(
-              "mt-1 flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+              "mt-1 h-8 w-8 rounded-md",
               optionsOpen
                 ? "bg-surface-raised text-foreground"
                 : "text-muted-foreground hover:bg-surface-raised hover:text-foreground",
             )}
           >
             <MoreVertical aria-hidden="true" className="h-4 w-4" />
-          </button>
+          </Button>
 
           {optionsOpen ? (
             <div
@@ -281,7 +294,7 @@ export function CodingEditorPanel({
               aria-label="Editor options"
               className="absolute right-3 top-[calc(100%+6px)] z-50 w-52 rounded-xl border border-surface-line bg-surface-chrome p-1 shadow-2xl"
             >
-              <button
+              <Button variant="bare" size="bare"
                 type="button"
                 role="menuitem"
                 disabled={!canFormat || isFormatting}
@@ -302,8 +315,8 @@ export function CodingEditorPanel({
                 <span className="ml-auto font-mono text-[10px] text-muted-foreground">
                   ⇧⌥F
                 </span>
-              </button>
-              <button
+              </Button>
+              <Button variant="bare" size="bare"
                 type="button"
                 role="menuitemcheckbox"
                 aria-checked={wrapLines}
@@ -312,8 +325,8 @@ export function CodingEditorPanel({
               >
                 <WrapText aria-hidden="true" className="h-3.5 w-3.5 text-muted-foreground" />
                 Soft wrap
-              </button>
-              <button
+              </Button>
+              <Button variant="bare" size="bare"
                 type="button"
                 role="menuitem"
                 disabled={readOnly}
@@ -325,7 +338,7 @@ export function CodingEditorPanel({
               >
                 <RotateCcw aria-hidden="true" className="h-3.5 w-3.5 text-muted-foreground" />
                 {activeTab?.scratch ? "Clear this tab" : "Reset code"}
-              </button>
+              </Button>
             </div>
           ) : null}
         </div>
@@ -334,7 +347,7 @@ export function CodingEditorPanel({
       {/* Language, run and submit */}
       <div className="flex h-[45px] shrink-0 items-center justify-between gap-2 border-b border-surface-line px-4">
         <div className="flex min-w-0 items-center gap-3">
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             disabled
             title="Java is the only language in this contest"
@@ -343,15 +356,16 @@ export function CodingEditorPanel({
           >
             Java
             <ChevronDown aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
-          </button>
+          </Button>
 
           {activeTab?.scratch ? (
-            <span
+            <Badge
+              variant="outline"
               title="Scratch tabs are saved in this browser only and are never submitted."
-              className="truncate rounded-md bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400"
+              className="truncate rounded-md border-amber-500/30 bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400"
             >
               Scratch — not submitted
-            </span>
+            </Badge>
           ) : null}
         </div>
 
@@ -410,59 +424,59 @@ export function CodingEditorPanel({
 
       {/* Editor */}
       <div className="contest-editor-surface relative min-h-0 flex-1" tabIndex={-1}>
-        <Suspense fallback={<EditorSkeleton />}>
-          <LazyLeetCodeEditor
-            language="java"
-            themeId="leetcode-dark"
-            value={value}
-            onChange={(next: string | undefined) => onChange(next ?? "")}
-            readOnly={readOnly}
-            fontSize={15}
-            lineHeight={24}
-            tabSize={4}
-            extraOptions={{
-              minimap: false,
-              wordWrap: wrapLines,
-              cursorSmooth: false,
-              bracketPairColorization: true,
-              formatOnType: false,
-            }}
-            onMount={(editor, monaco) => {
-              editorRef.current = editor;
-              monacoRef.current = monaco;
-              ensureJavaFormatter(monaco);
-              editor.addCommand(
-                monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
-                () => {
-                  void handleFormat();
-                },
-              );
-              monaco.editor.setModelMarkers(
-                monaco.editor.getModels()[0] ?? null,
-                "java",
-                diagnostics.map((diagnostic) => ({
-                  startLineNumber: Math.max(1, diagnostic.line),
-                  endLineNumber: Math.max(1, diagnostic.line),
-                  startColumn: 1,
-                  endColumn: 200,
-                  message: diagnostic.message,
-                  severity: monaco.MarkerSeverity.Error,
-                })),
-              );
-            }}
-          />
-        </Suspense>
+        <DynamicLeetCodeEditor
+          language="java"
+          themeId="leetcode-dark"
+          value={value}
+          onChange={(next: string | undefined) => onChange(next ?? "")}
+          readOnly={readOnly}
+          fontSize={15}
+          lineHeight={24}
+          tabSize={4}
+          extraOptions={{
+            minimap: false,
+            wordWrap: wrapLines,
+            cursorSmooth: false,
+            bracketPairColorization: true,
+            formatOnType: false,
+          }}
+          onMount={(editor, monaco) => {
+            editorRef.current = editor;
+            monacoRef.current = monaco;
+            ensureJavaFormatter(monaco);
+            editor.addCommand(
+              monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
+              () => {
+                void handleFormat();
+              },
+            );
+            monaco.editor.setModelMarkers(
+              monaco.editor.getModels()[0] ?? null,
+              "java",
+              diagnostics.map((diagnostic) => ({
+                startLineNumber: Math.max(1, diagnostic.line),
+                endLineNumber: Math.max(1, diagnostic.line),
+                startColumn: 1,
+                endColumn: 200,
+                message: diagnostic.message,
+                severity: monaco.MarkerSeverity.Error,
+              })),
+            );
+          }}
+        />
 
         {/* Floating editor control: format code. */}
         <div className="absolute bottom-5 left-5 flex items-center overflow-hidden rounded-full bg-surface-chrome shadow-lg">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => void handleFormat()}
             disabled={!canFormat || isFormatting}
             aria-label="Format code"
             title="Format code (Shift+Alt+F)"
             className={cn(
-              "flex h-9 w-9 items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent",
+              "h-9 w-9 rounded-full",
               isFormatted
                 ? "text-emerald-500 hover:bg-surface-raised"
                 : "text-muted-foreground hover:bg-surface-raised hover:text-foreground",
@@ -475,17 +489,19 @@ export function CodingEditorPanel({
             ) : (
               <WandSparkles aria-hidden="true" className="h-4 w-4" />
             )}
-          </button>
+          </Button>
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => setGuideOpen((current) => !current)}
           aria-expanded={guideOpen}
-          className="absolute bottom-5 right-5 rounded-full bg-surface-chrome px-4 py-2 text-xs font-medium text-foreground/80 shadow-lg transition-colors hover:bg-surface-raised hover:text-foreground"
+          className="absolute bottom-5 right-5 h-8 rounded-full bg-surface-chrome px-4 text-xs font-medium text-foreground/80 shadow-lg hover:bg-surface-raised hover:text-foreground"
         >
           Guide Me
-        </button>
+        </Button>
       </div>
 
       {/* Honest status line */}

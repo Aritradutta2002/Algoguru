@@ -2,6 +2,7 @@ import {
   executionUnavailableResult,
   type CodeExecutionService,
 } from "@/lib/contest/executionService";
+import { publicEnv } from "@/lib/env";
 import { useEffect, useState } from "react";
 
 /**
@@ -9,8 +10,8 @@ import { useEffect, useState } from "react";
  *
  * Resolution order:
  *
- *   1. `VITE_CONTEST_EXECUTION_MODE=off`    → explicit "unavailable".
- *   2. `VITE_CONTEST_EXECUTION_MODE=server` → the application backend
+ *   1. `NEXT_PUBLIC_CONTEST_EXECUTION_MODE=off`    → explicit "unavailable".
+ *   2. `NEXT_PUBLIC_CONTEST_EXECUTION_MODE=server` → the application backend
  *      (`contest-execute`). Until that function is deployed the resolver falls
  *      back to the practice runner rather than silently pretending to grade.
  *   3. default                              → the practice runner: a real
@@ -21,7 +22,7 @@ import { useEffect, useState } from "react";
  */
 
 const UNAVAILABLE_MESSAGE =
-  "Code execution is turned off for this deployment (VITE_CONTEST_EXECUTION_MODE=off).";
+  "Code execution is turned off for this deployment (NEXT_PUBLIC_CONTEST_EXECUTION_MODE=off).";
 
 export const unavailableExecutionService: CodeExecutionService = {
   supportsCustomInput: false,
@@ -48,7 +49,7 @@ export const loadFailedExecutionService: CodeExecutionService = {
 let practiceAdapter: CodeExecutionService | null = null;
 
 export async function loadCodeExecutionService(): Promise<CodeExecutionService> {
-  const configured = import.meta.env.VITE_CONTEST_EXECUTION_MODE;
+  const configured = publicEnv.contestExecutionMode;
   if (configured === "off") return unavailableExecutionService;
 
   if (configured === "server") {

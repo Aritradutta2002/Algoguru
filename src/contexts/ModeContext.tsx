@@ -1,4 +1,13 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 export interface AppMode {
   id: string;
@@ -22,13 +31,27 @@ interface ModeContextType {
 const ModeContext = createContext<ModeContextType | null>(null);
 
 export function ModeProvider({ children }: { children: ReactNode }) {
-  const [modeId, setModeId] = useState<string>(() => {
-    return localStorage.getItem("ag-mode") || "ds";
-  });
+  // Deterministic initial state for SSR; hydrate saved mode after mount.
+  const [modeId, setModeId] = useState<string>("ds");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("ag-mode");
+      if (saved && APP_MODES.some((m) => m.id === saved)) {
+        setModeId(saved);
+      }
+    } catch {
+      // Ignore storage read failures.
+    }
+  }, []);
 
   const setMode = useCallback((id: string) => {
     setModeId(id);
-    localStorage.setItem("ag-mode", id);
+    try {
+      localStorage.setItem("ag-mode", id);
+    } catch {
+      // Ignore storage write failures.
+    }
   }, []);
 
   const currentMode = APP_MODES.find((m) => m.id === modeId) || APP_MODES[0];

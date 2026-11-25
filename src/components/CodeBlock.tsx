@@ -1,17 +1,20 @@
+"use client";
+
 import { useState, useEffect, memo } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { oneLight, oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vscDarkPlus, oneLight, oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 /**
  * Theme is read straight off <html> rather than from SettingsContext so the
  * component stays usable anywhere (embedded panels, tests) without a provider.
+ * Starts false on SSR & initial client render to avoid hydration mismatches,
+ * then syncs immediately in useEffect.
  */
 function useIsDark(): boolean {
-  const [isDark, setIsDark] = useState(
-    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-  );
+  const [isDark, setIsDark] = useState(false);
   useEffect(() => {
     const root = document.documentElement;
     const read = () => setIsDark(root.classList.contains("dark"));
@@ -72,21 +75,29 @@ export const CodeBlock = memo(function CodeBlock({
           <div className="flex items-center justify-between px-4 py-2.5 bg-[#232323] border-b border-[#2e2e2e]">
             <div className="flex items-center gap-2 min-w-0">
               {title ? <span className="text-[13px] font-semibold text-zinc-300 tracking-tight truncate">{title}</span> : null}
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border border-[#3a3a3a]">
+              <Badge
+                variant="outline"
+                className="px-2 py-0.5 text-[11px] font-medium font-mono tracking-wide uppercase bg-[#2d2d2d] text-zinc-400 border-[#3a3a3a]"
+              >
                 {displayLang}
-              </span>
+              </Badge>
             </div>
 
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={handleCopy}
               aria-label={copied ? "Copied" : "Copy code"}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors shrink-0 ${
-                copied ? "bg-[#1f3a2a] text-emerald-400" : "text-zinc-400 hover:text-zinc-100 hover:bg-foreground/[0.08]"
+              className={`h-7 px-2.5 gap-1.5 text-xs font-medium shrink-0 ${
+                copied
+                  ? "bg-[#1f3a2a] text-emerald-400 hover:bg-[#1f3a2a] hover:text-emerald-400"
+                  : "text-zinc-400 hover:text-zinc-100 hover:bg-foreground/[0.08]"
               }`}
             >
               {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
               <span>{copied ? "Copied" : "Copy"}</span>
-            </button>
+            </Button>
           </div>
         )}
 
@@ -164,25 +175,27 @@ export const CodeBlock = memo(function CodeBlock({
                 {title}
               </span>
             ) : null}
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-semibold font-mono tracking-wider uppercase"
-              style={{ color: muted, border: `1px solid ${rule}`, background: isDark ? "hsl(222 20% 18%)" : "hsl(0 0% 100%)" }}
+            <Badge
+              variant="outline"
+              className="px-2 py-0.5 text-[10.5px] font-semibold font-mono tracking-wider uppercase"
+              style={{ color: muted, borderColor: rule, background: isDark ? "hsl(222 20% 18%)" : "hsl(0 0% 100%)" }}
             >
               {displayLang}
-            </span>
+            </Badge>
           </div>
 
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={handleCopy}
             aria-label={copied ? "Copied" : "Copy code"}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors shrink-0"
+            className="h-7 px-2.5 gap-1.5 text-xs font-medium shrink-0"
             style={{ color: copied ? "hsl(145 55% 42%)" : muted }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = isDark ? "hsl(222 20% 20%)" : "hsl(214 40% 93%)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             {copied ? <Check size={13} /> : <Copy size={13} />}
             <span>{copied ? "Copied" : "Copy"}</span>
-          </button>
+          </Button>
         </div>
       )}
 

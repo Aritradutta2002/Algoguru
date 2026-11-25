@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
 /**
  * Viewport state interface
@@ -6,82 +6,73 @@ import { useState, useEffect, useRef } from 'react';
 export interface ViewportState {
   width: number;
   height: number;
-  isMobile: boolean;    // < 768px
-  isTablet: boolean;    // 768px - 1024px
-  isDesktop: boolean;   // >= 1024px
-  orientation: 'portrait' | 'landscape';
+  isMobile: boolean; // < 768px
+  isTablet: boolean; // 768px - 1024px
+  isDesktop: boolean; // >= 1024px
+  orientation: "portrait" | "landscape";
+}
+
+const DEFAULT_VIEWPORT: ViewportState = {
+  width: 1024,
+  height: 768,
+  isMobile: false,
+  isTablet: false,
+  isDesktop: true,
+  orientation: "landscape",
+};
+
+function readViewport(): ViewportState {
+  if (typeof window === "undefined") {
+    return DEFAULT_VIEWPORT;
+  }
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  return {
+    width,
+    height,
+    isMobile: width < 768,
+    isTablet: width >= 768 && width < 1024,
+    isDesktop: width >= 1024,
+    orientation: width > height ? "landscape" : "portrait",
+  };
 }
 
 /**
  * Custom hook to track viewport dimensions and breakpoints
  * Uses throttled resize event listener (150ms delay) for performance
- * 
+ *
  * @returns ViewportState object with current viewport information
- * 
+ *
  * Validates Requirements: 8.1, 8.2, 8.3, 8.4
  */
 export function useViewport(): ViewportState {
-  // SSR safety: return default desktop values during server-side rendering
-  const [viewport, setViewport] = useState<ViewportState>(() => {
-    if (typeof window === 'undefined') {
-      return {
-        width: 1024,
-        height: 768,
-        isMobile: false,
-        isTablet: false,
-        isDesktop: true,
-        orientation: 'landscape',
-      };
-    }
-
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    return {
-      width,
-      height,
-      isMobile: width < 768,
-      isTablet: width >= 768 && width < 1024,
-      isDesktop: width >= 1024,
-      orientation: width > height ? 'landscape' : 'portrait',
-    };
-  });
-
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  // Deterministic initial state for SSR; real viewport dimensions hydrate on mount.
+  const [viewport, setViewport] = useState<ViewportState>(DEFAULT_VIEWPORT);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
-    // SSR safety check
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
-    // Throttled resize handler with 150ms delay
+    setViewport(readViewport());
+
     const handleResize = () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
 
       timeoutRef.current = setTimeout(() => {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-
-        setViewport({
-          width,
-          height,
-          isMobile: width < 768,
-          isTablet: width >= 768 && width < 1024,
-          isDesktop: width >= 1024,
-          orientation: width > height ? 'landscape' : 'portrait',
-        });
+        setViewport(readViewport());
       }, 150);
     };
 
-    // Add event listener
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
-    // Cleanup: remove event listener and clear timeout
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { WorkspaceSwitcher, WORKSPACES } from "./WorkspaceSwitcher";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+
+vi.mock("next/link", async () => {
+  const { createNextLinkMock } = await import("@/test/nextNavigationMock");
+  return createNextLinkMock();
+});
 
 /**
  * Radix DropdownMenuTrigger listens to pointerDown and keyDown (Enter, Space, ArrowDown).
@@ -28,11 +32,7 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("renders AlgoGuru mark and default Personal workspace", () => {
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher />);
 
     expect(screen.getByRole("button", { name: /current workspace: algoguru personal/i })).toBeInTheDocument();
     expect(screen.getByText("Algo")).toBeInTheDocument();
@@ -41,11 +41,7 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("opens dropdown menu with Personal, Team, and Enterprise workspaces", () => {
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher />);
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
     openDropdown(trigger);
@@ -57,11 +53,7 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("switches workspace to Team when clicked and updates localStorage", () => {
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher />);
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
     openDropdown(trigger);
@@ -74,11 +66,7 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("switches workspace to Enterprise when clicked", () => {
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher />);
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
     openDropdown(trigger);
@@ -93,32 +81,20 @@ describe("WorkspaceSwitcher", () => {
   it("initializes active workspace from localStorage if present", () => {
     localStorage.setItem("algoguru_active_workspace", "team");
 
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher />);
 
     expect(screen.getByRole("button", { name: /current workspace: algoguru team/i })).toBeInTheDocument();
   });
 
   it("renders compact mode without workspace subtext", () => {
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher compact />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher compact />);
 
     expect(screen.getByRole("button", { name: /current workspace: algoguru personal/i })).toBeInTheDocument();
     expect(screen.queryByText("Personal")).not.toBeInTheDocument();
   });
 
   it("closes dropdown menu on Escape key press", () => {
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher />);
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
     openDropdown(trigger);
@@ -129,11 +105,7 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("switches workspace using keyboard Enter on menu item", () => {
-    render(
-      <MemoryRouter>
-        <WorkspaceSwitcher />
-      </MemoryRouter>
-    );
+    render(<WorkspaceSwitcher />);
 
     const trigger = screen.getByRole("button", { name: /current workspace/i });
     openDropdown(trigger);

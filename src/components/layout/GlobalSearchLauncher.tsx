@@ -1,4 +1,8 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+"use client";
+import { Button } from "@/components/ui/button";
+
+import { useCallback, useEffect, useRef, useState, type Ref } from "react";
+import dynamic from "next/dynamic";
 import { Search } from "lucide-react";
 import { AppTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -12,10 +16,9 @@ import { NavIcon } from "./NavIcon";
  * renders the command palette trigger for zero bundle cost and only fetches the
  * palette when the user actually asks for it — by click or Ctrl/⌘+K.
  */
-const GlobalSearch = lazy(() =>
-  import("@/components/GlobalSearch").then((module) => ({
-    default: module.GlobalSearch,
-  })),
+const GlobalSearch = dynamic(
+  () => import("@/components/GlobalSearch").then((module) => module.GlobalSearch),
+  { ssr: false },
 );
 
 interface SearchTriggerProps {
@@ -24,6 +27,7 @@ interface SearchTriggerProps {
   placeholder?: string;
   compact?: boolean;
   ariaExpanded?: boolean;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function SearchTrigger({
@@ -32,13 +36,15 @@ export function SearchTrigger({
   placeholder = "Search...",
   compact,
   ariaExpanded,
+  ref,
 }: SearchTriggerProps) {
   const isCompact = compact === true;
   const isExplicitWide = compact === false;
 
   return (
     <AppTooltip content="Search (⌘K)">
-      <button
+      <Button variant="bare" size="bare"
+        ref={ref}
         type="button"
         onClick={onClick}
         aria-label="Search AlgoGuru"
@@ -55,7 +61,7 @@ export function SearchTrigger({
           className,
         )}
       >
-        <NavIcon icon={Search} />
+        <NavIcon icon={Search} className="!size-[18px]" />
 
         <span
           className={cn(
@@ -74,7 +80,7 @@ export function SearchTrigger({
         >
           <span>⌘</span>K
         </kbd>
-      </button>
+      </Button>
     </AppTooltip>
   );
 }
@@ -92,6 +98,7 @@ export function GlobalSearchLauncher({
 }: GlobalSearchLauncherProps) {
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleToggle = useCallback(() => {
     if (!loaded) {
@@ -122,15 +129,15 @@ export function GlobalSearchLauncher({
         placeholder={placeholder}
         compact={compact}
         ariaExpanded={open}
+        ref={triggerRef}
       />
       {loaded && (
-        <Suspense fallback={null}>
-          <GlobalSearch
-            showTrigger={false}
-            open={open}
-            onOpenChange={setOpen}
-          />
-        </Suspense>
+        <GlobalSearch
+          showTrigger={false}
+          open={open}
+          onOpenChange={setOpen}
+          returnFocusRef={triggerRef}
+        />
       )}
     </>
   );

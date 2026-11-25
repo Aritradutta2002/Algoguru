@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { AppTooltip } from "@/components/ui/tooltip";
@@ -16,7 +19,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
 
   return (
     <AppTooltip content={isDark ? "Switch to light mode" : "Switch to dark mode"}>
-      <button
+      <Button variant="bare" size="bare"
         type="button"
         onClick={toggleTheme}
         aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
@@ -42,7 +45,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
             <NavIcon icon={isDark ? Sun : Moon} />
           </motion.span>
         </AnimatePresence>
-      </button>
+      </Button>
     </AppTooltip>
   );
 }

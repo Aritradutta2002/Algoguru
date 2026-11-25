@@ -72,6 +72,6 @@ export const roadmapList: RoadmapMeta[] = [
 ];
 
 export function getRoadmap(id: string | undefined): RoadmapMeta | null {
-  if (!id) return null;
+  if (!id || !Object.prototype.hasOwnProperty.call(roadmaps, id)) return null;
   return (roadmaps as Record<string, RoadmapMeta>)[id] ?? null;
 }

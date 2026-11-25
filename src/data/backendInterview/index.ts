@@ -10,6 +10,7 @@
  * DEV-only assertions catch the mistakes that are painful in production:
  * duplicate ids, unknown topics, missing metadata and chunk drift.
  */
+import { isDev } from "@/lib/env";
 import { BACKEND_TOPICS, BACKEND_TOPIC_BY_ID, type BackendTopicDefinition } from "./topics";
 import type { BackendChunk, BackendQuestion, BackendQuestionMeta } from "./contract";
 
@@ -151,7 +152,7 @@ export function getBackendTopicForQuestion(id: string): BackendTopicDefinition |
 /* DEV-only integrity checks                                                 */
 /* ------------------------------------------------------------------------ */
 
-if (import.meta.env?.DEV) {
+if (isDev) {
   const problems: string[] = [];
   const seenIds = new Set<string>();
 

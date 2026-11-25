@@ -1,7 +1,10 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+"use client";
+
+import { useState, useRef, useCallback, useEffect, useId } from "react";
 import { X, Minus, Maximize2, Loader2, GripHorizontal, StickyNote } from "lucide-react";
 import RichTextNoteEditor from "@/components/RichTextNoteEditor";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 interface DraggableNoteEditorProps {
   questionTitle: string;
@@ -12,6 +15,59 @@ interface DraggableNoteEditorProps {
   isSaving: boolean;
 }
 
+const PANEL_W = 480;
+const PANEL_H_APPROX = 440;
+const SIDE_GUTTER = 16;
+const VERTICAL_GUTTER = 24;
+const PANEL_MAX_WIDTH = `min(${PANEL_W}px, max(0px, calc(100vw - ${SIDE_GUTTER * 2}px)))`;
+const PANEL_MAX_HEIGHT = `min(${PANEL_H_APPROX}px, max(0px, calc(100dvh - ${VERTICAL_GUTTER * 2}px)))`;
+const openNoteWindows = new Set<string>();
+
+function getPanelBounds(width: number, height: number) {
+  const gutter = Math.min(SIDE_GUTTER, Math.max(0, width) / 2);
+  const panelWidth = Math.min(PANEL_W, Math.max(0, width - gutter * 2));
+  const maxHeight = Math.max(0, height - VERTICAL_GUTTER * 2);
+  const panelHeight = Math.min(PANEL_H_APPROX, maxHeight);
+
+  return {
+    gutter,
+    panelWidth,
+    maxHeight,
+    maxX: Math.max(gutter, width - panelWidth - gutter),
+    maxY: Math.max(0, height - panelHeight - VERTICAL_GUTTER),
+  };
+}
+
+function clampPanelPosition(pos: { x: number; y: number }, width: number, height: number) {
+  const bounds = getPanelBounds(width, height);
+  return {
+    x: Math.max(bounds.gutter, Math.min(bounds.maxX, pos.x)),
+    y: Math.max(0, Math.min(bounds.maxY, pos.y)),
+  };
+}
+
+function isConnectedAndVisible(element: HTMLElement) {
+  if (
+    !element.isConnected ||
+    element.closest('[hidden], [inert], [aria-hidden="true"]')
+  ) {
+    return false;
+  }
+
+  for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+    const style = window.getComputedStyle(node);
+    if (
+      style.display === "none" ||
+      style.visibility === "hidden" ||
+      style.visibility === "collapse"
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function DraggableNoteEditor({
   questionTitle,
   value,
@@ -20,20 +76,80 @@ export function DraggableNoteEditor({
   onSave,
   isSaving,
 }: DraggableNoteEditorProps) {
-  const PANEL_W = 480;
-  const PANEL_H_APPROX = 440;
-
-  const getInitialPos = () => ({
-    x: Math.max(0, Math.min(window.innerWidth - PANEL_W - 24, window.innerWidth / 2 - PANEL_W / 2)),
-    y: Math.max(0, Math.min(window.innerHeight - PANEL_H_APPROX - 24, window.innerHeight / 2 - PANEL_H_APPROX / 2)),
-  });
-
-  const [pos, setPos] = useState(getInitialPos);
+  // Start at a viewport-safe gutter; center after mount without blocking first paint.
+  const [pos, setPos] = useState({ x: SIDE_GUTTER, y: 0 });
+  const [viewport, setViewport] = useState({ width: 800, height: 680 });
   const [minimized, setMinimized] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [returnFocusTo] = useState<HTMLElement | null>(() =>
+    typeof document !== "undefined" && document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null,
+  );
+  const isTouchDraggingRef = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   const posRef = useRef(pos);
+  const onCloseRef = useRef(onClose);
+  const windowId = useId();
   posRef.current = pos;
+  onCloseRef.current = onClose;
+
+  const { panelWidth } = getPanelBounds(viewport.width, viewport.height);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let initialLayout = true;
+
+    const updateViewport = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const bounds = getPanelBounds(width, height);
+      setViewport({ width, height });
+
+      if (initialLayout) {
+        initialLayout = false;
+        setPos({
+          x: Math.max(bounds.gutter, Math.min(bounds.maxX, width / 2 - bounds.panelWidth / 2)),
+          y: Math.max(0, Math.min(bounds.maxY, height / 2 - Math.min(PANEL_H_APPROX, bounds.maxHeight) / 2)),
+        });
+      } else {
+        setPos((current) => clampPanelPosition(current, width, height));
+      }
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
+  useEffect(() => {
+    openNoteWindows.add(windowId);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const windows = [...openNoteWindows];
+      if (windows[windows.length - 1] !== windowId) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      onCloseRef.current();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      openNoteWindows.delete(windowId);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [windowId]);
+
+  useEffect(() => {
+    const opener = returnFocusTo;
+    return () => {
+      if (opener && isConnectedAndVisible(opener)) {
+        opener.focus();
+      }
+    };
+  }, [returnFocusTo]);
 
   const handleTitleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -52,9 +168,16 @@ export function DraggableNoteEditor({
   useEffect(() => {
     if (!isDragging) return;
     const onMove = (e: MouseEvent) => {
-      const x = Math.max(0, Math.min(window.innerWidth - PANEL_W, e.clientX - dragOffset.current.x));
-      const y = Math.max(0, Math.min(window.innerHeight - 48, e.clientY - dragOffset.current.y));
-      setPos({ x, y });
+      setPos(
+        clampPanelPosition(
+          {
+            x: e.clientX - dragOffset.current.x,
+            y: e.clientY - dragOffset.current.y,
+          },
+          window.innerWidth,
+          window.innerHeight,
+        ),
+      );
     };
     const onUp = () => setIsDragging(false);
     window.addEventListener("mousemove", onMove);
@@ -69,6 +192,8 @@ export function DraggableNoteEditor({
   const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("button")) return;
     const touch = e.touches[0];
+    if (!touch) return;
+    isTouchDraggingRef.current = true;
     dragOffset.current = {
       x: touch.clientX - posRef.current.x,
       y: touch.clientY - posRef.current.y,
@@ -77,18 +202,37 @@ export function DraggableNoteEditor({
 
   useEffect(() => {
     const onTouchMove = (e: TouchEvent) => {
+      if (!isTouchDraggingRef.current) return;
       const touch = e.touches[0];
-      const x = Math.max(0, Math.min(window.innerWidth - PANEL_W, touch.clientX - dragOffset.current.x));
-      const y = Math.max(0, Math.min(window.innerHeight - 48, touch.clientY - dragOffset.current.y));
-      setPos({ x, y });
+      if (!touch) return;
+      setPos(
+        clampPanelPosition(
+          {
+            x: touch.clientX - dragOffset.current.x,
+            y: touch.clientY - dragOffset.current.y,
+          },
+          window.innerWidth,
+          window.innerHeight,
+        ),
+      );
       e.preventDefault();
     };
+    const onTouchEnd = () => {
+      isTouchDraggingRef.current = false;
+    };
     window.addEventListener("touchmove", onTouchMove, { passive: false });
-    return () => window.removeEventListener("touchmove", onTouchMove);
+    window.addEventListener("touchend", onTouchEnd);
+    return () => {
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
   return (
     <motion.div
+      role="dialog"
+      aria-modal="false"
+      aria-label={`Note editor: ${questionTitle}`}
       initial={{ opacity: 0, scale: 0.92, y: 16 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.92, y: 16 }}
@@ -97,7 +241,11 @@ export function DraggableNoteEditor({
       style={{
         left: pos.x,
         top: pos.y,
-        width: PANEL_W,
+        width: panelWidth,
+        maxWidth: PANEL_MAX_WIDTH,
+        maxHeight: PANEL_MAX_HEIGHT,
+        display: "flex",
+        flexDirection: "column",
         userSelect: isDragging ? "none" : "auto",
         boxShadow: isDragging
           ? "var(--shadow-overlay), 0 0 0 1px hsl(var(--primary)/0.3)"
@@ -109,7 +257,7 @@ export function DraggableNoteEditor({
         className={`flex items-center gap-2 px-4 py-3 border-b border-border/30 select-none ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
-        style={{ background: "hsl(var(--card))" }}
+        style={{ background: "hsl(var(--card))", flexShrink: 0 }}
         onMouseDown={handleTitleMouseDown}
         onTouchStart={handleTouchStart}
       >
@@ -126,20 +274,28 @@ export function DraggableNoteEditor({
 
         {/* Window controls */}
         <div className="flex items-center gap-1 ml-1 shrink-0">
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setMinimized((v) => !v)}
             title={minimized ? "Expand" : "Minimize"}
-            className="w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors"
+            aria-label={minimized ? "Expand" : "Minimize"}
+            className="w-6 h-6 rounded-full text-muted-foreground hover:bg-muted/80 hover:text-foreground"
           >
             {minimized ? <Maximize2 size={11} /> : <Minus size={11} />}
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             title="Close"
-            className="w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground hover:bg-destructive/15 hover:text-destructive transition-colors"
+            aria-label="Close"
+            className="w-6 h-6 rounded-full text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
           >
             <X size={11} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -153,10 +309,20 @@ export function DraggableNoteEditor({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.15, ease: "easeInOut" }}
             className="overflow-hidden"
-            style={{ background: "hsl(var(--card))" }}
+            style={{
+              background: "hsl(var(--card))",
+              display: "flex",
+              flexDirection: "column",
+              flex: "1 1 auto",
+              minHeight: 0,
+              overflow: "hidden",
+            }}
           >
             {/* Editor */}
-            <div className="p-3 pt-2">
+            <div
+              className="p-3 pt-2"
+              style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto" }}
+            >
               <RichTextNoteEditor
                 value={value}
                 onChange={onChange}
@@ -169,26 +335,32 @@ export function DraggableNoteEditor({
             {/* Footer */}
             <div
               className="flex items-center justify-between px-4 py-3 border-t border-border/20"
-              style={{ background: "hsl(var(--muted)/0.15)" }}
+              style={{ background: "hsl(var(--muted)/0.15)", flexShrink: 0 }}
             >
               <span className="text-[11px] text-muted-foreground/60 font-medium">
                 Drag title bar to move · Ctrl+B bold · Ctrl+I italic
               </span>
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={onClose}
-                  className="rounded-lg px-4 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="h-8 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="sm"
                   onClick={onSave}
                   disabled={isSaving}
-                  className="flex items-center gap-1.5 rounded-lg bg-primary px-5 py-1.5 text-[13px] font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-primary/90 disabled:opacity-60"
+                  className="h-8 px-5 text-[13px] font-semibold shadow-soft"
                 >
                   {isSaving && <Loader2 size={13} className="animate-spin" />}
                   Save Note
-                </button>
+                </Button>
               </div>
             </div>
           </motion.div>

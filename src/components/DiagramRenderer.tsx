@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useMemo, useState } from "react";
 import { Diagram, DiagramBox, GraphDiagramData, GraphNode, GraphEdge } from "@/data/recursionContent";
 import { motion } from "framer-motion";
@@ -15,6 +17,8 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { AppTooltip } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 /* ══════════════════════════════════════════════════════════════
    EXACT PALETTES & THEME SYSTEM (Identical to User Image)
@@ -697,31 +701,40 @@ function GraphDiagram({ data }: { data: GraphDiagramData }) {
       {/* Zoom Toolbar */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-white border-[2px] border-slate-800 rounded-lg p-1 shadow-sm">
         <AppTooltip content="Zoom in">
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setZoomLevel((z) => Math.min(z + 0.15, 1.6))}
-            className="p-1 rounded text-slate-800 hover:bg-slate-100 transition-colors"
+            className="h-7 w-7 rounded text-slate-800 hover:bg-slate-100 hover:text-slate-900"
             aria-label="Zoom in"
           >
             <ZoomIn size={14} />
-          </button>
+          </Button>
         </AppTooltip>
         <AppTooltip content="Zoom out">
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setZoomLevel((z) => Math.max(z - 0.15, 0.75))}
-            className="p-1 rounded text-slate-800 hover:bg-slate-100 transition-colors"
+            className="h-7 w-7 rounded text-slate-800 hover:bg-slate-100 hover:text-slate-900"
             aria-label="Zoom out"
           >
             <ZoomOut size={14} />
-          </button>
+          </Button>
         </AppTooltip>
         <AppTooltip content="Reset zoom">
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setZoomLevel(1)}
-            className="p-1 rounded text-slate-800 hover:bg-slate-100 transition-colors"
+            className="h-7 w-7 rounded text-slate-800 hover:bg-slate-100 hover:text-slate-900"
             aria-label="Reset zoom"
           >
             <RotateCcw size={14} />
-          </button>
+          </Button>
         </AppTooltip>
       </div>
 
@@ -958,18 +971,24 @@ export function DiagramRenderer({ diagram }: { diagram: Diagram }) {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <span className="hidden sm:inline-flex text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-slate-800 bg-white text-slate-900 shadow-xs">
+          <Badge
+            variant="outline"
+            className="hidden sm:inline-flex text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 border-slate-800 bg-white text-slate-900 shadow-xs"
+          >
             {typeConfig.label}
-          </span>
+          </Badge>
 
           <AppTooltip content={isExpanded ? "Collapse view" : "Expand view"}>
-            <button
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 rounded text-slate-700 hover:text-slate-900 border border-slate-800 bg-white shadow-xs transition-colors"
+              className="h-7 w-7 rounded text-slate-700 hover:text-slate-900 border-slate-800 bg-white hover:bg-slate-100 shadow-xs"
               aria-label="Toggle diagram size"
             >
               {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-            </button>
+            </Button>
           </AppTooltip>
         </div>
       </div>

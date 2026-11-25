@@ -1,5 +1,8 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { CheckCircle2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StudyPlanWeek } from "./javaHubData";
@@ -34,7 +37,7 @@ export function StudyPlanTimeline({ weeks }: StudyPlanTimelineProps) {
             )}
           >
             <h3 className="cjh-plan-heading">
-              <button
+              <Button variant="bare" size="bare"
                 type="button"
                 className="cjh-plan-toggle"
                 aria-expanded={open}
@@ -64,7 +67,7 @@ export function StudyPlanTimeline({ weeks }: StudyPlanTimelineProps) {
                   )}
                 </span>
                 <ChevronDown size={16} className="cjh-plan-chevron" aria-hidden="true" />
-              </button>
+              </Button>
             </h3>
 
             <div id={panelId} className={cn("cjh-plan-panel", open && "is-open")}>
@@ -73,7 +76,7 @@ export function StudyPlanTimeline({ weeks }: StudyPlanTimelineProps) {
                 <ul className="cjh-plan-topics">
                   {week.topics.map((topic) => (
                     <li key={topic.id}>
-                      <Link to={topic.href} className="cjh-plan-topic">
+                      <Link href={topic.href} className="cjh-plan-topic">
                         <span className="cjh-topic-num" aria-hidden="true">
                           {String(topic.number).padStart(2, "0")}
                         </span>

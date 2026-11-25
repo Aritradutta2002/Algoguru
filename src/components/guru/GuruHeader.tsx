@@ -1,3 +1,5 @@
+"use client";
+
 import { History, Maximize, MessageSquarePlus, Minimize, X } from "lucide-react";
 import { GuruAvatar } from "@/components/brand/GuruMark";
 import { AppTooltip } from "@/components/ui/tooltip";

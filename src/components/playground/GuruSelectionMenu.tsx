@@ -1,4 +1,7 @@
+"use client";
+
 import { Bot } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   GURU_SELECTION_ACTIONS,
   type GuruSelectionAction,
@@ -30,7 +33,7 @@ export function GuruSelectionMenu({
         GuruBot
       </div>
       {GURU_SELECTION_ACTIONS.map((action) => (
-        <button
+        <Button variant="bare" size="bare"
           key={action.id}
           type="button"
           role="menuitem"
@@ -40,9 +43,9 @@ export function GuruSelectionMenu({
           style={{ color: "var(--lc-text)" }}
         >
           {action.label}
-        </button>
+        </Button>
       ))}
-      <button
+      <Button variant="bare" size="bare"
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={onDismiss}
@@ -50,7 +53,7 @@ export function GuruSelectionMenu({
         style={{ color: "var(--lc-faint)" }}
       >
         Dismiss
-      </button>
+      </Button>
     </div>
   );
 }

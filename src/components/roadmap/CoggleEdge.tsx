@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 import { BaseEdge, type EdgeProps } from "@xyflow/react";
 import { cn } from "@/lib/utils";

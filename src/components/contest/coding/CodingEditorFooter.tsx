@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BookOpen,
   Check,
@@ -7,6 +9,7 @@ import {
   Loader2,
   ShieldAlert,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { MAX_EXAM_WARNINGS } from "@/lib/examConstants";
 import { cn } from "@/lib/utils";
 
@@ -78,22 +81,24 @@ function IconButton({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={onClick}
       aria-label={label}
       aria-pressed={pressed}
       title={title}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+        "h-8 w-8 rounded-md",
         pressed
-          ? "bg-primary/15 text-primary"
+          ? "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary"
           : "text-muted-foreground hover:bg-surface-raised hover:text-foreground",
         className,
       )}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 

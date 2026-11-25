@@ -5,7 +5,7 @@ import type { CompilerDiagnostic } from "@/lib/playground/compilerDiagnostics";
  *
  * The browser must call the APPLICATION BACKEND for execution. It must never
  * call a third-party judge directly, and no provider secret may ever appear in
- * a `VITE_*` variable. The production implementation is a server-side
+ * a `NEXT_PUBLIC_*` variable. The production implementation is a server-side
  * `contest-execute` edge function documented in
  * `docs/coding-contest-backend.md`; it does not exist yet.
  *

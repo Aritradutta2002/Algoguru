@@ -1,3 +1,5 @@
+import { isDev } from "@/lib/env";
+
 /**
  * The annotation reference catalogue.
  *
@@ -1729,7 +1731,7 @@ export const ANNOTATIONS_BY_CATEGORY: Record<string, AnnotationEntry[]> = ANNOTA
 
 export const ANNOTATION_COUNT = ANNOTATION_CATALOGUE.length;
 
-if (import.meta.env?.DEV) {
+if (isDev) {
   const known = new Set(ANNOTATION_CATEGORIES.map((category) => category.id));
   const unknown = ANNOTATION_CATALOGUE.filter((entry) => !known.has(entry.category));
   if (unknown.length > 0) {

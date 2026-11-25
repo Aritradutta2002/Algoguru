@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Stable entry point for the Guru assistant.
  *

@@ -8,13 +8,8 @@ import { useState, useEffect } from 'react';
  * Validates Requirements: 8.1, 8.2, 8.3, 8.4
  */
 export function useMediaQuery(query: string): boolean {
-  // SSR safety: return false during server-side rendering
-  const [matches, setMatches] = useState<boolean>(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return window.matchMedia(query).matches;
-  });
+  // Deterministic initial value for SSR; real media match hydrates on mount.
+  const [matches, setMatches] = useState<boolean>(false);
 
   useEffect(() => {
     // SSR safety check

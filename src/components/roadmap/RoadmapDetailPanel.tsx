@@ -1,6 +1,12 @@
+"use client";
+
 import { useEffect } from "react";
 import { Check, CircleDot, CircleDashed, X, ArrowRight, ListChecks } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { registerEscapeKeyHandler } from "@/lib/escapeKeyStack";
 import type { NodeStatus, Roadmap, RoadmapNodeData } from "@/types/roadmapGraph";
 
 interface RoadmapDetailPanelProps {
@@ -29,14 +35,13 @@ export function RoadmapDetailPanel({
   onSelectPrereq,
   onSetStatus,
 }: RoadmapDetailPanelProps) {
-  // Close on Escape
+  // Close the topmost detail layer on Escape.
   useEffect(() => {
     if (!node) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return registerEscapeKeyHandler(() => {
+      onClose();
+      return true;
+    }, 2);
   }, [node, onClose]);
 
   if (!node) return null;
@@ -51,13 +56,13 @@ export function RoadmapDetailPanel({
     roadmap.nodes.find((n) => n.id === id)?.data.title ?? id;
 
   return (
-    <div
+    <Card
       role="dialog"
       aria-modal="false"
       aria-labelledby="rm-detail-title"
       className={cn(
         "pointer-events-auto absolute right-4 top-4 z-30 h-[calc(100%-2rem)] w-full max-w-md overflow-hidden rounded-2xl",
-        "border border-border/70 bg-card shadow-[0_16px_48px_-16px_rgb(0_0_0/0.45)]",
+        "border-border/70 bg-card shadow-[0_16px_48px_-16px_rgb(0_0_0/0.45)]",
         "flex flex-col"
       )}
     >
@@ -68,12 +73,13 @@ export function RoadmapDetailPanel({
       />
       <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3 border-b border-border">
         <div className="min-w-0">
-          <div
-            className="text-[11px] font-semibold uppercase tracking-wider"
+          <Badge
+            variant="outline"
+            className="border-transparent px-0 py-0 text-[11px] font-semibold uppercase tracking-wider"
             style={{ color: accent }}
           >
             {node.category}
-          </div>
+          </Badge>
           <h2
             id="rm-detail-title"
             className="text-lg font-bold tracking-tight leading-tight mt-0.5"
@@ -86,14 +92,16 @@ export function RoadmapDetailPanel({
             </p>
           )}
         </div>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={onClose}
           aria-label="Close detail panel"
-          className="shrink-0 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="shrink-0 h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground [&_svg]:size-[15px]"
         >
           <X size={15} />
-        </button>
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
@@ -132,17 +140,19 @@ export function RoadmapDetailPanel({
             <ul className="space-y-1.5">
               {node.prerequisites.map((id) => (
                 <li key={id}>
-                  <button
+                  <Button
                     type="button"
+                    variant="bare"
+                    size="bare"
                     onClick={() => onSelectPrereq(id)}
-                    className="w-full flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-left text-xs font-medium text-foreground hover:border-primary/40 hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="w-full flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-left text-xs font-medium text-foreground hover:border-primary/40 hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40 whitespace-normal [&_svg]:size-3"
                   >
                     <ArrowRight size={12} className="text-muted-foreground" />
                     <span className="flex-1">{titleOf(id)}</span>
                     <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                       jump
                     </span>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -186,7 +196,7 @@ export function RoadmapDetailPanel({
           Click a prerequisite to jump • Press Esc to close
         </span>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -200,7 +210,7 @@ function StatTile({
   sub: string;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-3">
+    <Card className="rounded-lg border-border bg-card p-3 shadow-none">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
@@ -208,7 +218,7 @@ function StatTile({
         {value}
       </div>
       <div className="text-xs text-muted-foreground mt-1">{sub}</div>
-    </div>
+    </Card>
   );
 }
 
@@ -236,19 +246,19 @@ function StatusButton({
     emerald: "bg-success/15 text-success ring-1 ring-success/40",
   }[tone];
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "inline-flex flex-col items-center justify-center gap-1 rounded-lg border bg-card px-2 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors",
-        "focus:outline-none focus:ring-2 focus:ring-primary/40",
+        "h-auto flex-col items-center justify-center gap-1 rounded-lg bg-card px-2 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors [&_svg]:size-3",
         toneCls,
         active && activeCls
       )}
     >
       {icon}
       <span>{label}</span>
-    </button>
+    </Button>
   );
 }

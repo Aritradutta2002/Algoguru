@@ -1,3 +1,4 @@
+import { isDev } from "@/lib/env";
 import { BACKEND_TOPICS } from "./topics";
 
 /**
@@ -7853,7 +7854,7 @@ export function getPracticeProblemsForTopic(topicId: string): BackendPracticePro
   return PRACTICE_PROBLEMS_BY_TOPIC[topicId] ?? [];
 }
 
-if (import.meta.env?.DEV) {
+if (isDev) {
   const problems: string[] = [];
   const seen = new Set<string>();
   const knownTopics = new Set(BACKEND_TOPICS.map((topic) => topic.id));

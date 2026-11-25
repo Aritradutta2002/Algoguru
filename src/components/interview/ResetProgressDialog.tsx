@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Confirmation dialog for destructive progress resets.
  *

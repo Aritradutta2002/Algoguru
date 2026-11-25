@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { GuruAvatar } from "./GuruMark";
@@ -23,7 +26,7 @@ export interface GuruLauncherProps
 export const GuruLauncher = forwardRef<HTMLButtonElement, GuruLauncherProps>(
   function GuruLauncher({ open = false, label = "Guru AI", className, ...props }, ref) {
     return (
-      <button
+      <Button variant="bare" size="bare"
         ref={ref}
         type="button"
         aria-label={open ? `Close ${label}` : `Open ${label}`}
@@ -52,7 +55,7 @@ export const GuruLauncher = forwardRef<HTMLButtonElement, GuruLauncherProps>(
             open ? "scale-95" : "group-hover:scale-105",
           )}
         />
-      </button>
+      </Button>
     );
   },
 );

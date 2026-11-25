@@ -1,9 +1,12 @@
+"use client";
+
 import React, { memo } from "react";
 import { ContentSection } from "@/data/recursionContent";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DiagramRenderer } from "@/components/DiagramRenderer";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Play, Lightbulb, FlaskConical, BookOpen, Info, AlertTriangle, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /* ── Superscript rendering (2^n → 2<sup>n</sup>) ── */
 function renderSuperscript(text: string): React.ReactNode {
@@ -199,7 +202,7 @@ interface ContentRendererProps {
 }
 
 export const ContentRenderer = memo(function ContentRenderer({ section, isPractice }: ContentRendererProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const classified = classifyTheoryLines(section.theory);
 
   // Group header (no theory, no code) — render as a styled divider
@@ -225,9 +228,13 @@ export const ContentRenderer = memo(function ContentRenderer({ section, isPracti
       keyPoints: section.keyPoints,
       code: section.code,
     };
-    navigate("/playground?practice=" + section.id, {
-      state: { practiceProblem: problemData },
-    });
+    try {
+      sessionStorage.setItem("algoguru:playground-practice", JSON.stringify(problemData));
+      sessionStorage.setItem(`algoguru:playground-practice:${section.id}`, JSON.stringify(problemData));
+    } catch {
+      // Ignore storage write errors in restricted browsing modes.
+    }
+    router.push(`/playground?practice=${encodeURIComponent(section.id)}`);
   };
 
   return (
@@ -391,13 +398,15 @@ export const ContentRenderer = memo(function ContentRenderer({ section, isPracti
 
       {/* ═══ Practice in Playground ═══ */}
       {isPractice && section.code && section.code.length > 0 && (
-        <button
+        <Button
+          type="button"
+          variant="outline"
           onClick={openInPlayground}
-          className="cr-playground-btn"
+          className="cr-playground-btn h-auto"
         >
           <Play size={15} />
           Practice in Playground
-        </button>
+        </Button>
       )}
     </div>
   );

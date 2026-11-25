@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from "react";
 import { useReactFlow, Panel } from "@xyflow/react";
 import {
@@ -7,8 +9,9 @@ import {
   Crosshair,
   ChevronsDownUp,
   ChevronsUpDown,
-  RotateCcw,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { AppTooltip } from "@/components/ui/tooltip";
 
@@ -43,8 +46,8 @@ export function RoadmapControls({
 
   return (
     <Panel position="bottom-left" className="!m-4 !mb-6 flex flex-col gap-2 z-20">
-      <div
-        className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_8px_24px_-12px_rgb(0_0_0/0.35)]"
+      <Card
+        className="flex flex-col overflow-hidden rounded-2xl border-border/70 bg-card shadow-[0_8px_24px_-12px_rgb(0_0_0/0.35)]"
         role="toolbar"
         aria-label="Mind-map viewport controls"
       >
@@ -91,7 +94,7 @@ export function RoadmapControls({
             />
           </AppTooltip>
         )}
-      </div>
+      </Card>
 
     </Panel>
   );
@@ -106,17 +109,18 @@ interface CtrlButtonProps {
 
 function CtrlButton({ onClick, label, icon, active = false }: CtrlButtonProps) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={onClick}
       aria-label={label}
       className={cn(
-        "flex h-8 w-8 items-center justify-center transition-all border-b border-border/40 last:border-b-0 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+        "h-8 w-8 rounded-none border-b border-border/40 last:border-b-0 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95",
         active && "bg-primary/15 text-primary"
       )}
     >
       {icon}
-    </button>
+    </Button>
   );
 }

@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +22,7 @@ export const GuruIconButton = forwardRef<HTMLButtonElement, GuruIconButtonProps>
     ...props
   }, ref) {
     return (
-      <button
+      <Button variant="bare" size="bare"
         ref={ref}
         type="button"
         aria-label={label}
@@ -36,7 +39,7 @@ export const GuruIconButton = forwardRef<HTMLButtonElement, GuruIconButtonProps>
         {...props}
       >
         {children}
-      </button>
+      </Button>
     );
   },
 );

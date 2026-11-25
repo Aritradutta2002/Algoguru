@@ -1,4 +1,7 @@
-import { useNavigate } from "react-router-dom";
+"use client";
+import { Button } from "@/components/ui/button";
+
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Code2 } from "lucide-react";
 import { HeroWorkspacePreview } from "./HeroWorkspacePreview";
@@ -20,7 +23,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const phase = useHeroChoreography(reduceMotion);
 
@@ -60,25 +63,25 @@ export function HeroSection({ onExplore, onQuiz, onOpenRoadmap }: HeroSectionPro
             {...rise(0.15)}
             className="lp-hero-actions mt-9 flex flex-wrap items-center gap-3"
           >
-            <button type="button" onClick={onExplore} className="lp-btn landing-primary group">
+            <Button variant="bare" size="bare" type="button" onClick={onExplore} className="lp-btn landing-primary group">
               Explore learning paths
               <ArrowRight
                 size={16}
                 className="transition-transform duration-200 group-hover:translate-x-0.5"
                 aria-hidden="true"
               />
-            </button>
-            <button
+            </Button>
+            <Button variant="bare" size="bare"
               type="button"
-              onClick={() => navigate("/playground")}
+              onClick={() => router.push("/playground")}
               className="lp-btn lp-btn-secondary"
             >
               <Code2 size={16} aria-hidden="true" />
               Open playground
-            </button>
-            <button type="button" onClick={onQuiz} className="lp-link py-2 sm:ml-2">
+            </Button>
+            <Button variant="bare" size="bare" type="button" onClick={onQuiz} className="lp-link py-2 sm:ml-2">
               Or take a 10-question quiz
-            </button>
+            </Button>
           </motion.div>
         </div>
 

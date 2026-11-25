@@ -1,3 +1,5 @@
+"use client";
+
 import type { CSSProperties, ReactNode } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { EASE_OUT } from "@/lib/motion";

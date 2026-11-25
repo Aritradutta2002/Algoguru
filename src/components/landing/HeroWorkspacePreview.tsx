@@ -1,3 +1,6 @@
+"use client";
+import { Button } from "@/components/ui/button";
+
 import { motion } from "framer-motion";
 import { Check, Circle, Loader2, Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -157,14 +160,14 @@ export function HeroWorkspacePreview({
             <div className="lp-progress mt-2">
               <div className="hero-goal-fill w-3/5" />
             </div>
-            <button
+            <Button variant="bare" size="bare"
               type="button"
               onClick={onOpenRoadmap}
               className="lp-btn lp-btn-secondary mt-4 min-h-9 w-full text-[13px]"
             >
               <MapIcon size={14} aria-hidden="true" />
               Browse full roadmap
-            </button>
+            </Button>
           </div>
         </div>
       </div>

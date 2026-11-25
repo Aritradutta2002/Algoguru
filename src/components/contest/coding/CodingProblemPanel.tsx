@@ -1,5 +1,9 @@
+"use client";
+
 import { useState } from "react";
 import { FileText, History } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CODING_DIFFICULTY_TIERS,
   CODING_PROBLEM_POINTS,
@@ -17,16 +21,12 @@ import {
  * per-problem UI logic anywhere in this feature. The `Submissions` tab reports
  * only what this browser session actually knows; the authoritative grading
  * result is produced on the server.
- *
- * Layout follows the contest reference: a flat tab row across the top of the
- * pane, a scrolling statement body, and a soft chrome fade at the foot so long
- * statements do not end against a hard edge.
  */
 
 const DIFFICULTY_TIER_STYLES: Record<PublicCodingProblem["difficulty"], string> = {
-  easy: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-  medium: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  hard: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
+  easy: "border-transparent bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  medium: "border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  hard: "border-transparent bg-rose-500/15 text-rose-700 dark:text-rose-400",
 };
 
 export function CodingDifficultyBadge({
@@ -35,7 +35,8 @@ export function CodingDifficultyBadge({
   difficulty: PublicCodingProblem["difficulty"];
 }) {
   return (
-    <span
+    <Badge
+      variant="outline"
       title={difficulty}
       className={cn(
         "rounded-lg px-3 py-1 text-xs font-medium capitalize",
@@ -43,7 +44,7 @@ export function CodingDifficultyBadge({
       )}
     >
       {CODING_DIFFICULTY_TIERS[difficulty]}
-    </span>
+    </Badge>
   );
 }
 
@@ -86,12 +87,13 @@ function ProblemStatement({ problem }: { problem: PublicCodingProblem }) {
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <CodingDifficultyBadge difficulty={problem.difficulty} />
         {problem.topics.map((topic) => (
-          <span
+          <Badge
             key={topic}
-            className="rounded-lg bg-surface-raised px-3 py-1 text-xs text-muted-foreground"
+            variant="secondary"
+            className="rounded-lg bg-surface-raised px-3 py-1 text-xs font-normal text-muted-foreground"
           >
             {topic}
-          </span>
+          </Badge>
         ))}
       </div>
 
@@ -205,9 +207,12 @@ function SubmissionList({
                     ? `${submission.passed} of ${submission.total} visible tests passed`
                     : "Not run"}
                 </span>
-                <span className="rounded-md border border-surface-line bg-surface-raised px-1.5 py-0.5 font-medium">
+                <Badge
+                  variant="outline"
+                  className="rounded-md border-surface-line bg-surface-raised px-1.5 py-0.5 text-xs font-medium text-muted-foreground"
+                >
                   {PROBLEM_STATE_SHORT_LABELS[submission.state]}
-                </span>
+                </Badge>
               </span>
             </li>
           ))}
@@ -241,47 +246,46 @@ export function CodingProblemPanel({
   ];
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-surface-panel">
-      <div
-        role="tablist"
+    <Tabs
+      value={tab}
+      onValueChange={(next) => setTab(next as "problem" | "submissions")}
+      className="flex h-full min-h-0 flex-col bg-surface-panel"
+    >
+      <TabsList
         aria-label="Problem views"
-        className="flex h-[34px] shrink-0 items-center gap-2 border-b border-surface-line px-6"
+        className="flex h-[34px] shrink-0 justify-start gap-2 rounded-none border-b border-surface-line bg-transparent px-6 py-0"
       >
         {tabs.map(({ id, label, icon: Icon }) => (
-          <button
+          <TabsTrigger
             key={id}
-            type="button"
-            role="tab"
+            value={id}
             id={`coding-pane-tab-${id}`}
-            aria-selected={tab === id}
-            aria-controls={`coding-pane-${id}`}
-            onClick={() => setTab(id)}
-            className={cn(
-              "flex h-full items-center gap-2 px-1 text-sm font-medium transition-colors",
-              tab === id
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground",
-            )}
+            className="flex h-full items-center gap-2 rounded-none bg-transparent px-1 py-0 text-sm font-medium text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
           >
             <Icon aria-hidden="true" className="h-4 w-4" />
             {label}
-          </button>
+          </TabsTrigger>
         ))}
-      </div>
+      </TabsList>
 
       <div className="relative min-h-0 flex-1">
-        <div
-          role="tabpanel"
-          id={`coding-pane-${tab}`}
-          aria-labelledby={`coding-pane-tab-${tab}`}
-          className="h-full overflow-y-auto px-6 pb-16 pt-5"
+        <TabsContent
+          value="problem"
+          id="coding-pane-problem"
+          aria-labelledby="coding-pane-tab-problem"
+          className="mt-0 h-full overflow-y-auto px-6 pb-16 pt-5"
         >
-          {tab === "problem" ? (
-            <ProblemStatement problem={problem} />
-          ) : (
-            <SubmissionList submissions={submissions} />
-          )}
-        </div>
+          <ProblemStatement problem={problem} />
+        </TabsContent>
+
+        <TabsContent
+          value="submissions"
+          id="coding-pane-submissions"
+          aria-labelledby="coding-pane-tab-submissions"
+          className="mt-0 h-full overflow-y-auto px-6 pb-16 pt-5"
+        >
+          <SubmissionList submissions={submissions} />
+        </TabsContent>
 
         {/* Soft foot: statements fade into the pane instead of ending abruptly. */}
         <div
@@ -293,6 +297,6 @@ export function CodingProblemPanel({
           className="pointer-events-none absolute inset-x-0 bottom-9 h-12 bg-gradient-to-t from-surface-chrome to-transparent"
         />
       </div>
-    </div>
+    </Tabs>
   );
 }

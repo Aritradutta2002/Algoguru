@@ -49,10 +49,11 @@ function writeSet(key: string, value: Set<string>) {
 
 function useStoredSet(bucket: Bucket) {
   const key = STORAGE_KEYS[bucket];
-  const [ids, setIds] = useState<Set<string>>(() => readSet(key));
+  const [ids, setIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     const refresh = () => setIds(readSet(key));
+    refresh();
     window.addEventListener(SYNC_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {

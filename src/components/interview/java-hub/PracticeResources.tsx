@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { ArrowRight, BookOpen, Dumbbell, Flame, Layers, Database, Rocket, Tag, Target } from "lucide-react";
 import { ANNOTATION_COUNT } from "@/data/backendInterview/annotations";
 import { BACKEND_TOTAL_QUESTIONS } from "@/lib/backendQuestionIndex";
@@ -116,7 +118,7 @@ export function PracticeResources({ summary, backendStudied, mustKnow }: Practic
               <p className="cjh-resource-desc">{row.description}</p>
               {row.meta && <p className="cjh-resource-meta">{row.meta}</p>}
             </div>
-            <Link to={row.href} className="cjh-link cjh-resource-action">
+            <Link href={row.href} className="cjh-link cjh-resource-action">
               {row.action}
               <ArrowRight size={13} />
             </Link>

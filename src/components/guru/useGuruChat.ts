@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -150,8 +152,8 @@ export function useGuruChat({
   const syncedRef = useRef<Map<string, string>>(new Map());
   const deletedRef = useRef<Set<string>>(new Set());
   const pendingDeleteRef = useRef<Map<string, { session: GuruSession; timer: number }>>(new Map());
-  const runCompletionRef = useRef<(input: RunCompletionInput) => Promise<void>>();
-  const sendRef = useRef<(text?: string) => void>();
+  const runCompletionRef = useRef<((input: RunCompletionInput) => Promise<void>) | undefined>(undefined);
+  const sendRef = useRef<((text?: string) => void) | undefined>(undefined);
   const contextRef = useRef(buildSystemContext);
   const completeRef = useRef(onAssistantComplete);
 

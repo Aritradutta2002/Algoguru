@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { publicEnv } from "@/lib/env";
 import type { GuruApiMessage, GuruErrorInfo } from "./types";
 
 /**
@@ -206,7 +207,6 @@ export function toGuruError(
 
 /* ── Transport ────────────────────────────────────────────────────── */
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guru-chat`;
 const RETRY_DELAYS_MS = [500, 1400];
 
 function abortError() {
@@ -298,13 +298,14 @@ async function runOnce(
   }
 
   let response: Response;
+  const chatUrl = `${publicEnv.supabaseUrl}/functions/v1/guru-chat`;
   try {
-    response = await fetch(CHAT_URL, {
+    response = await fetch(chatUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        apikey: publicEnv.supabasePublishableKey,
       },
       body: JSON.stringify({ messages, model }),
       signal,

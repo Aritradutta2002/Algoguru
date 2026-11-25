@@ -1,3 +1,7 @@
+"use client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -102,12 +106,12 @@ export function GuruHistoryPanel({
             size={13}
             className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-guru-muted/70"
           />
-          <input
+          <Input
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search chats"
             aria-label="Search chats"
-            className="h-8 w-full rounded-lg border border-guru-line/80 bg-guru-surface/60 pl-8 pr-2.5 text-[12px] text-guru-text outline-none transition-colors placeholder:text-guru-muted/70 focus:border-guru-accent/50"
+            className="h-8 w-full rounded-lg border border-guru-line/80 bg-guru-surface/60 pl-8 pr-2.5 py-0 text-[12px] text-guru-text shadow-none outline-none transition-colors placeholder:text-guru-muted/70 focus:border-guru-accent/50 focus-visible:border-guru-accent/50 focus-visible:bg-guru-surface/60 focus-visible:ring-0 hover:border-guru-line/80 md:text-[12px]"
           />
         </div>
       </div>
@@ -140,7 +144,7 @@ export function GuruHistoryPanel({
                     <li key={session.id}>
                       {renamingId === session.id ? (
                         <div className="flex items-center gap-1 rounded-lg border border-guru-accent/40 bg-guru-surface px-1.5 py-1">
-                          <input
+                          <Input
                             ref={renameRef}
                             value={renameDraft}
                             onChange={(event) => setRenameDraft(event.target.value)}
@@ -155,16 +159,16 @@ export function GuruHistoryPanel({
                               }
                             }}
                             aria-label="Chat title"
-                            className="min-w-0 flex-1 bg-transparent px-1 py-0.5 text-[12px] text-guru-text outline-none"
+                            className="min-w-0 flex-1 h-auto w-auto border-0 bg-transparent px-1 py-0.5 text-[12px] text-guru-text shadow-none outline-none focus-visible:bg-transparent focus-visible:ring-0 md:text-[12px]"
                           />
-                          <button
+                          <Button variant="bare" size="bare"
                             type="button"
                             onClick={commitRename}
                             aria-label="Save title"
                             className="rounded p-1 text-guru-success transition-colors hover:bg-guru-text/[0.06]"
                           >
                             <Check size={12} />
-                          </button>
+                          </Button>
                         </div>
                       ) : (
                         <div
@@ -175,7 +179,7 @@ export function GuruHistoryPanel({
                               : "border-transparent hover:bg-guru-text/[0.04]",
                           )}
                         >
-                          <button
+                          <Button variant="bare" size="bare"
                             type="button"
                             onClick={() => onSelect(session.id)}
                             aria-current={active ? "true" : undefined}
@@ -206,9 +210,9 @@ export function GuruHistoryPanel({
                                 <span>{session.messages.length} msgs</span>
                               </span>
                             </span>
-                          </button>
+                          </Button>
                           <span className="flex shrink-0 items-center gap-0.5 py-1.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
-                            <button
+                            <Button variant="bare" size="bare"
                               type="button"
                               onClick={() => onTogglePin(session.id)}
                               aria-label={session.pinned ? "Unpin chat" : "Pin chat"}
@@ -221,23 +225,23 @@ export function GuruHistoryPanel({
                               )}
                             >
                               <Pin size={10} className={session.pinned ? "fill-current" : undefined} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button variant="bare" size="bare"
                               type="button"
                               onClick={() => startRename(session)}
                               aria-label="Rename chat"
                               className="flex h-6 w-6 items-center justify-center rounded text-guru-muted transition-colors hover:bg-guru-text/[0.06] hover:text-guru-text"
                             >
                               <Pencil size={10} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button variant="bare" size="bare"
                               type="button"
                               onClick={() => onDelete(session.id)}
                               aria-label="Delete chat"
                               className="flex h-6 w-6 items-center justify-center rounded text-guru-muted transition-colors hover:bg-guru-danger/15 hover:text-guru-danger"
                             >
                               <Trash2 size={10} />
-                            </button>
+                            </Button>
                           </span>
                         </div>
                       )}
@@ -252,7 +256,7 @@ export function GuruHistoryPanel({
 
       {onExport && (
         <div className="border-t border-guru-line/70 p-2">
-          <button
+          <Button variant="bare" size="bare"
             type="button"
             onClick={onExport}
             disabled={!canExport}
@@ -260,7 +264,7 @@ export function GuruHistoryPanel({
           >
             <Download size={12} />
             Export current chat
-          </button>
+          </Button>
         </div>
       )}
     </aside>

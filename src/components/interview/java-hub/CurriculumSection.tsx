@@ -1,6 +1,10 @@
+"use client";
+
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { ArrowRight, CheckCircle2, Flame, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { DifficultyBadge } from "@/components/interview/CoreJavaBadges";
 import {
@@ -67,10 +71,12 @@ function CurriculumTopicItem({ stat }: { stat: TopicStat }) {
       </div>
 
       <div className="cjh-topic-action">
-        <Link to={stat.href} className="cjh-btn-secondary" aria-label={topicActionName(stat)}>
-          {topicActionLabel(stat)}
-          <ArrowRight size={14} />
-        </Link>
+        <Button asChild variant="outline" className="cjh-btn-secondary">
+          <Link href={stat.href} aria-label={topicActionName(stat)}>
+            {topicActionLabel(stat)}
+            <ArrowRight size={14} />
+          </Link>
+        </Button>
       </div>
 
       <details className="cjh-topic-details">
@@ -109,7 +115,7 @@ export function CurriculumSection({ topics, hotQuestions }: CurriculumSectionPro
     <>
       <div className="cjh-curriculum-search">
         <Search size={15} className="cjh-curriculum-search-icon" aria-hidden="true" />
-        <input
+        <Input
           type="search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -118,15 +124,17 @@ export function CurriculumSection({ topics, hotQuestions }: CurriculumSectionPro
           aria-label="Search topics"
         />
         {searchQuery && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setSearchQuery("")}
             className="cjh-curriculum-clear"
             aria-label="Clear topic search"
           >
             <X size={13} aria-hidden="true" />
             Clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -139,13 +147,14 @@ export function CurriculumSection({ topics, hotQuestions }: CurriculumSectionPro
       ) : (
         <div className="cjh-curriculum-empty">
           <p>No topics match “{searchQuery}”</p>
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setSearchQuery("")}
             className="cjh-btn-secondary"
           >
             Show all topics
-          </button>
+          </Button>
         </div>
       )}
 
@@ -158,7 +167,7 @@ export function CurriculumSection({ topics, hotQuestions }: CurriculumSectionPro
           <ol className="cjh-hotlist">
             {hotQuestions.map((question, index) => (
               <li key={question.id}>
-                <Link to={question.href} className="cjh-hot-row">
+                <Link href={question.href} className="cjh-hot-row">
                   <span className="cjh-hot-rank" aria-hidden="true">
                     {String(index + 1).padStart(2, "0")}
                   </span>
