@@ -174,4 +174,30 @@ describe("Home landing page", () => {
       screen.getByLabelText("Example Java solution for Two Sum"),
     ).toHaveAttribute("tabindex", "0");
   });
+
+  it("toggles between Solution.java and Notes.md inside the hero workspace preview", () => {
+    renderHome();
+    expect(screen.getByLabelText("Example Java solution for Two Sum")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Notes.md" }));
+    expect(screen.getByText("Complement HashMap")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Example Java solution for Two Sum")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Solution.java" }));
+    expect(screen.getByLabelText("Example Java solution for Two Sum")).toBeInTheDocument();
+  });
+
+  it("renders the capability strip, platform bento routes, and auth sync links", () => {
+    renderHome();
+
+    expect(screen.getByRole("region", { name: "Platform capabilities" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /built like an engineering workstation/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open problem solver/i })).toHaveAttribute("href", "/problem-solver");
+    expect(screen.getByRole("link", { name: /open contest hub/i })).toHaveAttribute("href", "/contest");
+    expect(screen.getByRole("link", { name: /launch playground/i })).toHaveAttribute("href", "/playground");
+    expect(screen.getByRole("link", { name: /open study notes/i })).toHaveAttribute("href", "/notes");
+    expect(screen.getByRole("link", { name: /explore interactive roadmap/i })).toHaveAttribute("href", "/roadmap");
+    expect(screen.getByRole("link", { name: /sign in to sync progress/i })).toHaveAttribute("href", "/auth");
+    expect(screen.getByRole("link", { name: /already have an account\? sign in/i })).toHaveAttribute("href", "/auth");
+  });
 });

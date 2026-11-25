@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { BriefcaseBusiness, Code2, House, Menu, SquareTerminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavIcon } from "./NavIcon";
@@ -22,23 +22,26 @@ interface MobileNavProps {
   onMore: () => void;
   /** Routes outside the four primary destinations light up the More item. */
   moreActive: boolean;
+  /** Whether the mobile navigation drawer is currently open. */
+  moreOpen?: boolean;
 }
 
 /**
  * Floating mobile dock. Scope is deliberately limited to the app shell; the
  * parent hides it on immersive editor/exam routes and when Guru is open.
  */
-export function MobileNav({ onMore, moreActive }: MobileNavProps) {
+export function MobileNav({ onMore, moreActive, moreOpen = false }: MobileNavProps) {
   const pathname = usePathname() ?? "/";
+  const reduceMotion = useReducedMotion();
 
   return (
     <motion.nav
       aria-label="Primary mobile navigation"
-      initial={{ opacity: 0, y: 16 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 16 }}
-      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      className="mobile-dock nav-glass pointer-events-auto fixed inset-x-3 z-40 mx-auto flex max-w-md items-stretch gap-0.5 rounded-2xl p-1.5 lg:hidden"
+      exit={reduceMotion ? undefined : { opacity: 0, y: 16 }}
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+      className="mobile-dock nav-glass pointer-events-auto fixed inset-x-3 z-40 mx-auto flex max-w-md items-stretch gap-0.5 rounded-2xl border p-1.5 backdrop-blur-xl backdrop-saturate-150 lg:hidden"
     >
       {ITEMS.map((item) => {
         const active = isActive(pathname, item.path);
@@ -48,7 +51,7 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
             href={item.path}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
+              "relative touch-manipulation flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 select-none",
               active
                 ? "text-foreground [&_svg]:text-foreground"
                 : "text-muted-foreground [&_svg]:text-muted-foreground hover:text-foreground",
@@ -56,37 +59,45 @@ export function MobileNav({ onMore, moreActive }: MobileNavProps) {
           >
             {active && (
               <motion.span
-                layoutId="mobile-nav-pill"
-                className="absolute inset-0 rounded-xl border border-obsidian-border bg-foreground/[0.06]"
-                transition={{ type: "spring", stiffness: 420, damping: 34 }}
-              />
+                layoutId={reduceMotion ? undefined : "mobile-nav-pill"}
+                className="absolute inset-0 rounded-xl border border-obsidian-border bg-foreground/[0.07] shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))]"
+                transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
+              >
+                <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-primary" />
+              </motion.span>
             )}
             <NavIcon icon={item.icon} className="relative" />
-            <span className="relative">{item.label}</span>
+            <span className="relative leading-none">{item.label}</span>
           </Link>
         );
       })}
 
-      <Button variant="bare" size="bare"
+      <Button
+        variant="bare"
+        size="bare"
         type="button"
         onClick={onMore}
         aria-label="Open more navigation"
+        aria-expanded={moreOpen}
+        aria-controls={moreOpen ? "header-navigation-menu" : undefined}
         className={cn(
-          "relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-          moreActive
+          "relative touch-manipulation flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10.5px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 select-none",
+          moreActive || moreOpen
             ? "text-foreground [&_svg]:text-foreground"
             : "text-muted-foreground [&_svg]:text-muted-foreground hover:text-foreground",
         )}
       >
-        {moreActive && (
+        {(moreActive || moreOpen) && (
           <motion.span
-            layoutId="mobile-nav-pill"
-            className="absolute inset-0 rounded-xl border border-obsidian-border bg-foreground/[0.06]"
-            transition={{ type: "spring", stiffness: 420, damping: 34 }}
-          />
+            layoutId={reduceMotion ? undefined : "mobile-nav-pill"}
+            className="absolute inset-0 rounded-xl border border-obsidian-border bg-foreground/[0.07] shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))]"
+            transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
+          >
+            <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-primary" />
+          </motion.span>
         )}
         <NavIcon icon={Menu} className="relative" />
-        <span className="relative">More</span>
+        <span className="relative leading-none">More</span>
       </Button>
     </motion.nav>
   );

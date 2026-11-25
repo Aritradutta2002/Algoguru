@@ -165,13 +165,14 @@ describe("Adversarial Stress Test: SVG Brand Geometry Integrity", () => {
 });
 
 describe("Adversarial Stress Test: BrandLoader Variants & Sizing Matrix", () => {
-  const sizes: BrandLoaderSize[] = ["sm", "md", "lg"];
+  const sizes: BrandLoaderSize[] = ["sm", "md", "lg", "hero"];
   const variants: BrandLoaderVariant[] = ["inline", "screen"];
 
   const expectedDimensions: Record<BrandLoaderSize, { mark: number; stage: number; hairline: number }> = {
     sm: { mark: 22, stage: 38, hairline: 1 },
     md: { mark: 38, stage: 66, hairline: 1 },
     lg: { mark: 66, stage: 116, hairline: 2 },
+    hero: { mark: 88, stage: 148, hairline: 2 },
   };
 
   sizes.forEach((size) => {
@@ -335,9 +336,12 @@ describe("Adversarial Stress Test: Reduced Motion Styles in brand.css", () => {
       ".agl__burst",
       ".agl__spark",
       ".agl__wash",
+      ".agl__aperture",
       ".agl__plate",
       ".agl__sweep",
       ".agl__meter-bar",
+      ".agl-screen__dot",
+      ".agl-skeleton::after",
     ];
 
     expectedNeutralized.forEach((selector) => {

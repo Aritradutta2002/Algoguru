@@ -116,5 +116,17 @@ describe("WorkspaceSwitcher", () => {
     expect(localStorage.getItem("algoguru_active_workspace")).toBe("team");
     expect(screen.getByRole("button", { name: /current workspace: algoguru team/i })).toBeInTheDocument();
   });
+
+  it("displays workspace tier badges in both trigger and dropdown options", () => {
+    render(<WorkspaceSwitcher />);
+
+    expect(screen.getByText("Free")).toBeInTheDocument();
+    const trigger = screen.getByRole("button", { name: /current workspace/i });
+    openDropdown(trigger);
+
+    expect(screen.getByText("Pro")).toBeInTheDocument();
+    expect(screen.getByText("SSO")).toBeInTheDocument();
+    expect(screen.getByText("Owner")).toBeInTheDocument();
+  });
 });
 

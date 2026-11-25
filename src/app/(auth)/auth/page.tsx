@@ -6,7 +6,7 @@ import { AuthView } from "@/features/auth/AuthView";
 export const metadata: Metadata = {
   title: "Sign in — AlgoGuru",
   description:
-    "Sign in or create an AlgoGuru account to track DSA sheets, system design paths, and coding practice.",
+    "Sign in or create an AlgoGuru account to track DSA sheets, Guru AI hints, timed coding contests, and system design paths.",
 };
 
 export default function AuthPage() {

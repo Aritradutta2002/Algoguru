@@ -86,6 +86,7 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
 
   const activeWorkspace =
     WORKSPACES.find((w) => w.id === activeWorkspaceId) || WORKSPACES[0];
+  const ActiveIcon = WORKSPACE_ICONS[activeWorkspace.type];
 
   const handleSelectWorkspace = (id: string) => {
     setActiveWorkspaceId(id);
@@ -97,49 +98,65 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
   };
 
   return (
-    <div className={cn("flex items-center gap-2 shrink-0", className)}>
+    <div className={cn("flex items-center gap-1.5 sm:gap-2 shrink-0", className)}>
       {/* Brand Lockup: Algo Guru */}
       <Link
         href="/"
         aria-label="AlgoGuru Home"
-        className="group inline-flex h-9 items-center gap-2.5 rounded-lg px-1.5 text-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian-void select-none"
+        className="group inline-flex h-9 items-center gap-2 rounded-lg px-1.5 text-foreground transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian-void select-none"
       >
         <AlgoGuruMark size={24} title={null} className="shrink-0" />
-        <span className="flex items-baseline text-[15px] font-semibold leading-none tracking-[-0.02em] text-foreground">
+        <span className="flex items-baseline text-[15px] font-semibold leading-none tracking-[-0.025em] text-foreground">
           <span>Algo</span>
           <span>Guru</span>
         </span>
       </Link>
 
-      {/* Slash Divider */}
+      {/* Crisp Diagonal Slash Divider */}
       {!compact && (
-        <span
+        <svg
           aria-hidden="true"
-          className="text-muted-foreground/40 text-base font-light select-none"
+          viewBox="0 0 12 20"
+          className="h-4 w-3 shrink-0 text-muted-foreground/35 select-none"
+          fill="none"
         >
-          /
-        </span>
+          <path
+            d="M9 2L3 18"
+            stroke="currentColor"
+            strokeWidth="1.25"
+            strokeLinecap="round"
+          />
+        </svg>
       )}
 
       {/* Workspace Switcher Chip */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="bare" size="bare"
+          <Button
+            variant="bare"
+            size="bare"
             type="button"
             data-workspace-switcher="true"
             aria-label={`Current workspace: AlgoGuru ${activeWorkspace.name}. Click to switch workspace`}
             className={cn(
-              "group inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-muted-foreground [&_svg]:text-muted-foreground",
+              "group inline-flex h-8 items-center gap-1.5 rounded-lg border border-transparent px-2 text-[13px] font-medium text-muted-foreground [&_svg]:text-muted-foreground",
               "transition-colors duration-150 ease-out",
-              "hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
+              "hover:border-obsidian-border hover:bg-foreground/[0.04] hover:text-foreground hover:[&_svg]:text-foreground",
+              "data-[state=open]:border-obsidian-border data-[state=open]:bg-foreground/[0.05] data-[state=open]:text-foreground data-[state=open]:[&_svg]:text-foreground",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               "touch-manipulation select-none",
             )}
           >
+            <NavIcon icon={ActiveIcon} size={16} className="opacity-75 group-hover:opacity-100" />
             {!compact && (
-              <span className="truncate max-w-[96px] leading-none">
-                {activeWorkspace.name}
-              </span>
+              <>
+                <span className="truncate max-w-[96px] leading-none text-foreground/90">
+                  {activeWorkspace.name}
+                </span>
+                <span className="hidden lg:inline-flex items-center rounded border border-obsidian-border bg-foreground/[0.03] px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none text-muted-foreground">
+                  {activeWorkspace.badge}
+                </span>
+              </>
             )}
             <NavIcon
               icon={ChevronDown}
@@ -152,12 +169,15 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
         <DropdownMenuContent
           align="start"
           sideOffset={8}
-          className="w-64 rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-1.5 shadow-xl backdrop-blur-md"
+          className="w-72 rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-1.5 shadow-overlay backdrop-blur-xl"
         >
-          <div className="px-2.5 py-1.5">
+          <div className="flex items-center justify-between px-2.5 py-1.5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Workspaces
             </p>
+            <span className="text-[11px] text-muted-foreground/75">
+              {activeWorkspace.role}
+            </span>
           </div>
 
           <div className="space-y-0.5">
@@ -182,23 +202,28 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border",
                         isSelected
-                          ? "border-obsidian-border bg-foreground/[0.06] text-foreground"
+                          ? "border-primary/35 bg-primary/10 text-primary"
                           : "border-obsidian-border bg-foreground/[0.03] text-muted-foreground",
                       )}
                     >
                       <NavIcon icon={ItemIcon} chip />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium text-foreground truncate">
-                        {workspace.name}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-foreground truncate">
+                          {workspace.name}
+                        </span>
+                        <span className="inline-flex items-center rounded border border-obsidian-border bg-foreground/[0.03] px-1.5 py-px font-mono text-[10px] font-medium leading-tight text-muted-foreground">
+                          {workspace.badge}
+                        </span>
+                      </div>
                       <span className="text-xs text-muted-foreground truncate">
                         {workspace.plan}
                       </span>
                     </div>
                   </div>
 
-                  {isSelected && <NavIcon icon={Check} chip className="ml-2" />}
+                  {isSelected && <NavIcon icon={Check} chip className="ml-2 text-primary" />}
                 </DropdownMenuItem>
               );
             })}

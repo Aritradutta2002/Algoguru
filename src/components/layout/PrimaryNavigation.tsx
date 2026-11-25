@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import {
+  ArrowUpRight,
   BookOpen,
   BriefcaseBusiness,
   ChevronDown,
@@ -15,12 +16,14 @@ import {
   GitBranch,
   House,
   Layers,
+  Moon,
   Network,
   Play,
   Route,
   Server,
   Sparkles,
   SquareTerminal,
+  Sun,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
@@ -272,24 +275,37 @@ export function PrimaryNavigation({
 
   useEffect(() => {
     const el = navRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
+    const target = el?.parentElement ?? el;
+    if (!target || typeof ResizeObserver === "undefined") return;
+
+    const updateWidth = (width: number) => {
+      if (width > 0) {
+        setContainerWidth(width);
+      }
+    };
+
+    const initialWidth = target.getBoundingClientRect().width;
+    if (initialWidth > 0) {
+      updateWidth(initialWidth);
+    }
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) {
-        setContainerWidth(entry.contentRect.width);
+        updateWidth(entry.contentRect.width);
       }
     });
 
-    observer.observe(el);
+    observer.observe(target);
     return () => observer.disconnect();
   }, []);
 
-  // When containerWidth is 0 (tests/SSR/initial), default to all 6 items
+  // When containerWidth is 0 (tests/SSR/initial), default to all 6 items.
+  // Thresholds match rendered item widths so we never collapse links unnecessarily.
   const effectiveCount = maxVisibleItems ?? (
-    containerWidth === 0 || containerWidth >= 580 ? 6 :
-    containerWidth >= 460 ? 4 :
-    containerWidth >= 340 ? 3 : 2
+    containerWidth === 0 || containerWidth >= 500 ? 6 :
+    containerWidth >= 400 ? 4 :
+    containerWidth >= 335 ? 3 : 2
   );
 
   const { visibleLinks, overflowLinks } = partitionNavLinks(effectiveCount);
@@ -349,7 +365,7 @@ export function PrimaryNavigation({
     <nav
       ref={navRef}
       aria-label="Primary"
-      className="header-primary-nav flex h-16 items-center gap-1 select-none max-w-full overflow-visible"
+      className="header-primary-nav flex h-16 w-full max-w-full items-center justify-center gap-1 overflow-visible select-none"
     >
       {visibleLinks.map(({ label, path, icon, megaMenu }) => {
         const active = isNavActive(pathname, path);
@@ -382,11 +398,11 @@ export function PrimaryNavigation({
             }
             onClick={megaMenu ? clearTimers : undefined}
             className={cn(
-              "header-nav-link group relative inline-flex h-9 items-center gap-2 rounded-md px-3 text-[14px] font-medium leading-none transition-colors duration-150 ease-out select-none whitespace-nowrap",
+              "header-nav-link group relative inline-flex h-8 items-center gap-2 rounded-lg px-3 text-[13.5px] font-medium leading-none transition-colors duration-150 ease-out select-none whitespace-nowrap",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
               active
-                ? "text-foreground [&_svg]:text-foreground"
-                : "text-muted-foreground [&_svg]:text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
+                ? "bg-foreground/[0.06] text-foreground ring-1 ring-inset ring-obsidian-border/80 [&_svg]:text-foreground"
+                : "text-muted-foreground [&_svg]:text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground hover:[&_svg]:text-foreground",
             )}
           >
             <span className="leading-none">{label}</span>
@@ -402,11 +418,11 @@ export function PrimaryNavigation({
           </Link>
         );
 
-        {/* 2px blue-600 indicator along the bottom edge of the navbar */}
+        {/* 2px primary indicator along the bottom edge of the navbar */}
         const activeIndicator = active && (
           <motion.span
             layoutId={reduceMotion ? undefined : "navbar-active-indicator"}
-            className="header-nav-indicator pointer-events-none absolute inset-x-2 bottom-0 h-px bg-foreground"
+            className="header-nav-indicator pointer-events-none absolute inset-x-2.5 bottom-0 h-[2px] rounded-t-full bg-primary"
             transition={{ type: "spring", stiffness: 460, damping: 36 }}
           />
         );
@@ -436,7 +452,7 @@ export function PrimaryNavigation({
                   align="start"
                   sideOffset={2}
                   aria-label={`${label} quick links`}
-                  className="z-50 w-[480px] rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-2 shadow-xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-150"
+                  className="z-50 w-[480px] rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-2 shadow-overlay backdrop-blur-xl animate-in fade-in-0 zoom-in-95 duration-150"
                   onOpenAutoFocus={clearTimers}
                   onCloseAutoFocus={() => {
                     suppressMenuFocusOpenRef.current = path;
@@ -449,21 +465,36 @@ export function PrimaryNavigation({
                   onMouseEnter={clearTimers}
                   onMouseLeave={scheduleClose}
                 >
+                  <div className="mb-1 flex items-center justify-between px-2.5 pt-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      {label}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground/70">
+                      Quick links
+                    </span>
+                  </div>
                   <div className="grid grid-cols-2 gap-1">
                     {megaMenu.map((entry) => (
                       <Link
                         key={entry.path + entry.title}
                         href={entry.path}
                         onClick={() => handleMenuOpenChange(path, false)}
-                        className="group/item flex items-start gap-3 rounded-lg p-2.5 transition-colors duration-150 hover:bg-foreground/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                        className="group/item flex items-start gap-3 rounded-lg border border-transparent p-2.5 transition-colors duration-150 hover:border-obsidian-border/80 hover:bg-foreground/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                       >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-foreground/[0.03] text-muted-foreground transition-colors duration-150 group-hover/item:border-obsidian-border group-hover/item:bg-foreground/[0.06] group-hover/item:text-foreground">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-foreground/[0.03] text-muted-foreground transition-colors duration-150 group-hover/item:border-primary/35 group-hover/item:bg-primary/[0.08] group-hover/item:text-primary">
                           <NavIcon icon={entry.icon} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {entry.title}
-                          </p>
+                          <div className="flex items-center justify-between gap-1">
+                            <p className="truncate text-[13px] font-medium text-foreground">
+                              {entry.title}
+                            </p>
+                            <ArrowUpRight
+                              size={13}
+                              aria-hidden="true"
+                              className="shrink-0 text-muted-foreground opacity-0 -translate-x-0.5 transition-all duration-150 group-hover/item:opacity-100 group-hover/item:translate-x-0"
+                            />
+                          </div>
                           <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                             {entry.description}
                           </p>
@@ -488,16 +519,18 @@ export function PrimaryNavigation({
         <div className="relative flex h-full items-center">
           <DropdownMenu open={moreOpen} onOpenChange={setMoreOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="bare" size="bare"
+              <Button
+                variant="bare"
+                size="bare"
                 type="button"
                 aria-label="More navigation options"
                 aria-expanded={moreOpen}
                 className={cn(
-                  "header-nav-link group relative inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[14px] font-medium leading-none transition-colors duration-150 ease-out select-none whitespace-nowrap cursor-pointer",
+                  "header-nav-link group relative inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] font-medium leading-none transition-colors duration-150 ease-out select-none whitespace-nowrap cursor-pointer",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
                   isOverflowActive
-                    ? "text-foreground [&_svg]:text-foreground"
-                    : "text-muted-foreground [&_svg]:text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
+                    ? "bg-foreground/[0.06] text-foreground ring-1 ring-inset ring-obsidian-border/80 [&_svg]:text-foreground"
+                    : "text-muted-foreground [&_svg]:text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground hover:[&_svg]:text-foreground",
                 )}
               >
                 <span className="leading-none">More</span>
@@ -524,7 +557,7 @@ export function PrimaryNavigation({
             <DropdownMenuContent
               align="end"
               sideOffset={8}
-              className="w-56 rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-1.5 shadow-xl backdrop-blur-md z-50 animate-in fade-in-0 zoom-in-95 duration-150"
+              className="w-56 rounded-xl border border-obsidian-border bg-obsidian-elevated/95 p-1.5 shadow-overlay backdrop-blur-xl z-50 animate-in fade-in-0 zoom-in-95 duration-150"
             >
               <div className="space-y-0.5">
                 {overflowLinks.map((item) => {
@@ -540,14 +573,14 @@ export function PrimaryNavigation({
                           "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors cursor-pointer select-none",
                           active
                             ? "bg-foreground/[0.06] text-foreground [&_svg]:text-foreground"
-                            : "text-foreground/80 hover:bg-foreground/[0.05] hover:text-foreground [&_svg]:text-muted-foreground",
+                            : "text-foreground/85 hover:bg-foreground/[0.05] hover:text-foreground [&_svg]:text-muted-foreground",
                         )}
                       >
                         <div
                           className={cn(
                             "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border",
                             active
-                              ? "border-obsidian-border bg-foreground/[0.06] text-foreground"
+                              ? "border-primary/35 bg-primary/10 text-primary"
                               : "border-obsidian-border bg-foreground/[0.03] text-muted-foreground",
                           )}
                         >
@@ -571,11 +604,11 @@ export function PrimaryNavigation({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* 2px blue indicator along the bottom edge when an overflow destination is active */}
+          {/* 2px primary indicator along the bottom edge when an overflow destination is active */}
           {isOverflowActive && (
             <motion.span
               layoutId={reduceMotion ? undefined : "navbar-active-indicator"}
-              className="header-nav-indicator pointer-events-none absolute inset-x-2 bottom-0 h-px bg-foreground"
+              className="header-nav-indicator pointer-events-none absolute inset-x-2.5 bottom-0 h-[2px] rounded-t-full bg-primary"
               transition={{ type: "spring", stiffness: 460, damping: 36 }}
             />
           )}
@@ -590,12 +623,16 @@ export function MobileNavigationMenu({
   onClose,
   onOpenLibrary,
   onToggleGuru,
+  onToggleTheme,
+  isDark,
   contestLive,
 }: {
   pathname: string;
   onClose: () => void;
   onOpenLibrary: () => void;
   onToggleGuru?: () => void;
+  onToggleTheme?: () => void;
+  isDark?: boolean;
   contestLive?: boolean;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -636,7 +673,7 @@ export function MobileNavigationMenu({
         aria-labelledby="header-navigation-menu-title"
         aria-describedby="header-navigation-menu-description"
         showClose={false}
-        className="header-menu-sheet fixed inset-x-0 top-16 bottom-0 z-50 flex h-[calc(100dvh-4rem)] w-full flex-col justify-between overflow-y-auto border-t border-obsidian-border bg-obsidian-elevated p-4 shadow-2xl sm:left-auto sm:w-80 sm:border-l"
+        className="header-menu-sheet fixed inset-x-0 top-16 bottom-0 z-50 flex h-[calc(100dvh-4rem)] w-full flex-col justify-between overflow-y-auto border-t border-obsidian-border bg-obsidian-elevated/95 p-4 shadow-2xl backdrop-blur-xl sm:left-auto sm:w-80 sm:border-l"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           (
@@ -669,80 +706,115 @@ export function MobileNavigationMenu({
           Primary navigation links and actions.
         </SheetDescription>
 
-        <nav aria-label="Mobile primary">
-          <div className="space-y-4">
+        <nav aria-label="Mobile primary" className="flex flex-1 flex-col justify-between gap-6">
+          <div className="space-y-5">
             {/* Primary Links */}
-            <div className="flex flex-col gap-1">
-              {NAV_LINKS.map(({ label, path, icon }) => {
-                const active = isNavActive(pathname, path);
-                const showLiveDot = path === "/contest" && contestRunning;
+            <div className="space-y-1.5">
+              <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/75">
+                Navigation
+              </p>
+              <div className="flex flex-col gap-1">
+                {NAV_LINKS.map(({ label, path, icon }) => {
+                  const active = isNavActive(pathname, path);
+                  const showLiveDot = path === "/contest" && contestRunning;
 
-                return (
-                  <Link
-                    key={path}
-                    href={path}
-                    onClick={onClose}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "header-mobile-link flex min-h-[44px] items-center gap-2 rounded-lg px-3 text-[14px] font-medium transition-colors duration-150 select-none",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-                      active
-                        ? "bg-foreground/[0.06] text-foreground [&_svg]:text-foreground"
-                        : "text-muted-foreground [&_svg]:text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground",
-                    )}
-                  >
-                    <NavIcon icon={icon} />
-                    <span className="flex-1 truncate">{label}</span>
-                    {showLiveDot && (
-                      <span className="relative flex h-2 w-2 shrink-0">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link
+                      key={path}
+                      href={path}
+                      onClick={onClose}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "header-mobile-link flex min-h-[44px] items-center gap-2.5 rounded-lg border px-3 text-[14px] font-medium transition-colors duration-150 select-none",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
+                        active
+                          ? "border-obsidian-border bg-foreground/[0.06] text-foreground [&_svg]:text-primary shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))]"
+                          : "border-transparent text-muted-foreground [&_svg]:text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground hover:[&_svg]:text-foreground",
+                      )}
+                    >
+                      <NavIcon icon={icon} />
+                      <span className="flex-1 truncate">{label}</span>
+                      {showLiveDot && (
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="h-px bg-obsidian-border" />
 
             {/* Secondary actions inside mobile drawer */}
-            <div className="flex flex-col gap-2">
-              {onToggleGuru && (
-                <Button variant="bare" size="bare"
+            <div className="space-y-2">
+              <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/75">
+                Quick actions
+              </p>
+              <div className="flex flex-col gap-2">
+                {onToggleGuru && (
+                  <Button
+                    variant="bare"
+                    size="bare"
+                    type="button"
+                    aria-label="Ask Guru (Guru AI Coach)"
+                    onClick={() => {
+                      onClose();
+                      onToggleGuru();
+                    }}
+                    className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-obsidian-border bg-foreground/[0.03] px-3 text-left text-sm font-medium text-foreground/85 [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="relative inline-flex items-center justify-center">
+                        <NavIcon icon={Sparkles} />
+                      </span>
+                      <span>Ask Guru</span>
+                    </span>
+                    <kbd className="inline-flex items-center rounded border border-obsidian-border bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[11px] font-medium text-muted-foreground">
+                      ⌘J
+                    </kbd>
+                  </Button>
+                )}
+
+                <Button
+                  variant="bare"
+                  size="bare"
                   type="button"
-                  aria-label="Ask Guru (Guru AI Coach)"
                   onClick={() => {
                     onClose();
-                    onToggleGuru();
+                    onOpenLibrary();
                   }}
-                  className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-obsidian-border bg-foreground/[0.03] px-3 text-left text-sm font-medium text-foreground/80 [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="flex min-h-[44px] w-full items-center gap-2.5 rounded-lg border border-obsidian-border bg-obsidian-elevated px-3 text-left text-sm font-medium text-foreground/85 [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 cursor-pointer"
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="relative inline-flex items-center justify-center">
-                      <NavIcon icon={Sparkles} />
-                    </span>
-                    <span>Ask Guru</span>
-                  </span>
-                  <kbd className="inline-flex items-center rounded border border-obsidian-border bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[11px] font-medium text-muted-foreground">
-                    ⌘J
-                  </kbd>
+                  <NavIcon icon={BookOpen} />
+                  <span>Browse learning library</span>
                 </Button>
-              )}
-
-              <Button variant="bare" size="bare"
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onOpenLibrary();
-                }}
-                className="flex min-h-[44px] w-full items-center gap-2 rounded-lg border border-obsidian-border bg-obsidian-elevated px-3 text-left text-sm font-medium text-foreground/80 [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 cursor-pointer"
-              >
-                <NavIcon icon={BookOpen} />
-                <span>Browse learning library</span>
-              </Button>
+              </div>
             </div>
           </div>
+
+          {onToggleTheme && (
+            <div className="border-t border-obsidian-border pt-3">
+              <Button
+                variant="bare"
+                size="bare"
+                type="button"
+                onClick={onToggleTheme}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-obsidian-border bg-foreground/[0.03] px-3 text-left text-sm font-medium text-foreground/85 [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              >
+                <span className="flex items-center gap-2.5">
+                  <NavIcon icon={isDark ? Sun : Moon} />
+                  <span>Appearance</span>
+                </span>
+                <span className="rounded border border-obsidian-border bg-foreground/[0.04] px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  {isDark ? "Dark" : "Light"}
+                </span>
+              </Button>
+            </div>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

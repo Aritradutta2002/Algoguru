@@ -425,4 +425,82 @@ describe("Primary navigation", () => {
     const moreButton = screen.getByRole("button", { name: /more navigation options/i });
     expect(moreButton.querySelector('[aria-label="Contest live"]')).toBeInTheDocument();
   });
+
+  it("observes parent container width and keeps all six links visible on desktop widths", () => {
+    const observedTargets: Element[] = [];
+    let roCallback: ResizeObserverCallback | null = null;
+    const OriginalRO = globalThis.ResizeObserver;
+
+    class MockResizeObserver {
+      constructor(cb: ResizeObserverCallback) {
+        roCallback = cb;
+      }
+      observe(target: Element) {
+        observedTargets.push(target);
+      }
+      disconnect() {}
+      unobserve() {}
+    }
+
+    globalThis.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
+    try {
+      render(
+        <div data-testid="nav-slot" style={{ width: "620px" }}>
+          <PrimaryNavigation pathname="/" />
+        </div>,
+      );
+
+      const slot = screen.getByTestId("nav-slot");
+      expect(observedTargets).toContain(slot);
+
+      act(() => {
+        roCallback?.(
+          [{ contentRect: { width: 620 } } as ResizeObserverEntry],
+          {} as ResizeObserver,
+        );
+      });
+
+      expect(screen.getAllByRole("link")).toHaveLength(6);
+      expect(screen.queryByRole("button", { name: /more navigation options/i })).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+
+      act(() => {
+        roCallback?.(
+          [{ contentRect: { width: 420 } } as ResizeObserverEntry],
+          {} as ResizeObserver,
+        );
+      });
+
+      expect(screen.getByRole("button", { name: /more navigation options/i })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Roadmap" })).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Contest" })).not.toBeInTheDocument();
+    } finally {
+      globalThis.ResizeObserver = OriginalRO;
+    }
+  });
+
+  it("renders active route pill styling and optional theme toggle inside mobile drawer", () => {
+    const onToggleTheme = vi.fn();
+    render(
+      <>
+        <button id="header-navigation-toggle">Menu</button>
+        <MobileNavigationMenu
+          pathname="/practice"
+          onClose={vi.fn()}
+          onOpenLibrary={vi.fn()}
+          onToggleTheme={onToggleTheme}
+          isDark={true}
+        />
+      </>,
+    );
+
+    const activeLink = screen.getByRole("link", { name: "Practice" });
+    expect(activeLink).toHaveAttribute("aria-current", "page");
+    expect(activeLink).toHaveClass("bg-foreground/[0.06]", "text-foreground");
+
+    const themeButton = screen.getByRole("button", { name: /switch to light mode/i });
+    expect(themeButton).toBeInTheDocument();
+    fireEvent.click(themeButton);
+    expect(onToggleTheme).toHaveBeenCalledOnce();
+  });
 });

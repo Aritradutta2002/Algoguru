@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
-import { Check, Code2, FileText, FlaskConical } from "lucide-react";
+import { ArrowUpRight, Check, Code2, FileText, FlaskConical } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EASE_OUT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -47,7 +49,7 @@ export function WorkspaceDemoSection() {
     <section id="demo" aria-labelledby="demo-heading" className="lp-band lp-section">
       <div className="lp-container lp-split">
         <Reveal className="lg:sticky lg:top-24">
-          <p className="lp-kicker">Workspace</p>
+          <p className="lp-kicker">Interactive workspace</p>
           <h2 id="demo-heading" className="lp-h2 mt-3">
             The whole loop, in one window.
           </h2>
@@ -61,16 +63,27 @@ export function WorkspaceDemoSection() {
               const Icon = TAB_ICONS[tab.id];
               const selected = tab.id === active;
               return (
-                <li key={tab.id} className="flex items-start gap-4 py-4">
+                <li key={tab.id}>
+                  <Button
+                    variant="bare"
+                    size="bare"
+                    type="button"
+                    onClick={() => setActive(tab.id)}
+                    aria-pressed={selected}
+                    className={cn(
+                      "flex w-full items-start justify-start gap-4 whitespace-normal rounded-none py-4 text-left transition-colors",
+                      selected ? "text-foreground" : "text-muted-foreground hover:text-foreground/85",
+                    )}
+                  >
                     <span
                       className={cn(
                         "mt-0.5 font-mono text-[12px] transition-colors",
-                        selected ? "text-foreground" : "text-muted-foreground/70",
+                        selected ? "text-[hsl(var(--lp-accent))]" : "text-muted-foreground/70",
                       )}
                     >
                       0{index + 1}
                     </span>
-                    <span>
+                    <span className="min-w-0 flex-1">
                       <span
                         className={cn(
                           "flex items-center gap-2 text-[14.5px] font-medium transition-colors",
@@ -80,10 +93,11 @@ export function WorkspaceDemoSection() {
                         <Icon size={15} aria-hidden="true" />
                         {tab.label}
                       </span>
-                      <span className="mt-1 block text-[13.5px] leading-6 text-muted-foreground">
+                      <span className="mt-1 block text-[13.5px] font-normal leading-6 text-muted-foreground">
                         {TAB_NOTES[tab.id]}
                       </span>
                     </span>
+                  </Button>
                 </li>
               );
             })}
@@ -101,9 +115,14 @@ export function WorkspaceDemoSection() {
               <p className="ml-2 min-w-0 truncate text-[12.5px] text-muted-foreground">
                 Stack
                 <span className="mx-1.5 text-muted-foreground/50" aria-hidden="true">/</span>
-                <span className="text-foreground">{DEMO_SESSION.title}</span>
+                <span className="font-medium text-foreground">{DEMO_SESSION.title}</span>
               </p>
-              <span className="lp-chip ml-auto hidden shrink-0 sm:inline-flex">Interactive demo</span>
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
+                  O(n) time · O(n) space
+                </span>
+                <span className="lp-chip hidden sm:inline-flex">Interactive demo</span>
+              </div>
             </div>
 
             <Tabs
@@ -111,27 +130,37 @@ export function WorkspaceDemoSection() {
               onValueChange={(value) => setActive(value as DemoTabId)}
               className="contents"
             >
-              <TabsList
-                aria-label="Workspace demo views"
-                className="h-auto flex items-center justify-start gap-1 rounded-none border-b border-obsidian-border bg-transparent p-0 px-2 sm:px-3"
-              >
-                {DEMO_TABS.map((tab) => {
-                  const Icon = TAB_ICONS[tab.id];
+              <div className="flex items-center justify-between border-b border-obsidian-border px-2 sm:px-3">
+                <TabsList
+                  aria-label="Workspace demo views"
+                  className="h-auto flex items-center justify-start gap-1 rounded-none border-b-0 bg-transparent p-0"
+                >
+                  {DEMO_TABS.map((tab) => {
+                    const Icon = TAB_ICONS[tab.id];
 
-                  return (
-                    <TabsTrigger
-                      key={tab.id}
-                      value={tab.id}
-                      id={`demo-tab-${tab.id}`}
-                      aria-controls={`demo-panel-${tab.id}`}
-                      className="lp-tab h-auto rounded-none px-3.5 py-0 text-[13px] focus-visible:-outline-offset-2 data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none [&_svg]:shrink-0"
-                    >
-                      <Icon size={14} aria-hidden="true" />
-                      <span>{tab.label}</span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
+                    return (
+                      <TabsTrigger
+                        key={tab.id}
+                        value={tab.id}
+                        id={`demo-tab-${tab.id}`}
+                        aria-controls={`demo-panel-${tab.id}`}
+                        className="lp-tab h-auto rounded-none px-3.5 py-0 text-[13px] focus-visible:-outline-offset-2 data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none [&_svg]:shrink-0"
+                      >
+                        <Icon size={14} aria-hidden="true" />
+                        <span>{tab.label}</span>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+
+                <Link
+                  href="/problem-solver"
+                  className="hidden items-center gap-1 px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+                >
+                  Try in solver
+                  <ArrowUpRight size={13} aria-hidden="true" />
+                </Link>
+              </div>
 
               <div className="p-5 sm:p-7">
                 {reduceMotion ? (
@@ -197,7 +226,9 @@ function ProblemPane() {
       <div className="grid gap-3 sm:grid-cols-2">
         {session.examples.map((example, index) => (
           <div key={example.input} className="lp-well px-4 py-3.5">
-            <p className="text-[12px] font-medium text-muted-foreground">Example {index + 1}</p>
+            <p className="font-mono text-[11.5px] font-medium uppercase tracking-wider text-muted-foreground">
+              Example {index + 1}
+            </p>
             <p className="mt-2 font-mono text-[12.5px] text-foreground">{example.input}</p>
             <p className="mt-1 font-mono text-[12.5px] text-muted-foreground">
               Output: <span className="text-foreground">{example.output}</span>
@@ -232,7 +263,7 @@ function SolutionPane({ reduceMotion }: { reduceMotion: boolean | null }) {
       <div className="lp-well overflow-hidden">
         <div className="flex items-center justify-between border-b border-obsidian-border px-4 py-2.5">
           <span className="font-mono text-[12px] text-foreground">Solution.java</span>
-          <span className="text-[11.5px] text-muted-foreground">Java</span>
+          <span className="font-mono text-[11.5px] text-muted-foreground">Java 17 · ArrayDeque</span>
         </div>
         <pre
           tabIndex={0}
@@ -254,7 +285,7 @@ function SolutionPane({ reduceMotion }: { reduceMotion: boolean | null }) {
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ ...ROW_TRANSITION, delay: reduceMotion ? 0 : index * 0.05 }}
-            className="border-l-2 border-obsidian-border pl-3"
+            className="lp-well border-l-2 border-l-[hsl(var(--lp-accent))] px-3.5 py-2.5"
           >
             <span className="font-mono text-[11.5px] text-muted-foreground">Line {annotation.line}</span>
             <p className="mt-1 text-[13px] leading-5 text-foreground/85">{annotation.note}</p>
@@ -272,7 +303,12 @@ function TestsPane({ reduceMotion }: { reduceMotion: boolean | null }) {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[14px] font-medium text-foreground">Test suite</p>
+        <div className="flex items-center gap-3">
+          <p className="text-[14px] font-medium text-foreground">Test suite</p>
+          <span className="hidden font-mono text-[11.5px] text-muted-foreground sm:inline">
+            Avg 0.3 ms · Beats 98.4%
+          </span>
+        </div>
         <span className="lp-chip lp-chip-success">
           <Check size={12} strokeWidth={2.75} aria-hidden="true" />
           {total} / {total} passed

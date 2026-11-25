@@ -3,20 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   AlertCircle,
   ArrowLeft,
   BrainCircuit,
   Check,
-  Code2,
+  Clock,
   Eye,
   EyeOff,
+  KeyRound,
+  Layers,
   Loader2,
+  Lock,
   Moon,
   ShieldCheck,
+  Sparkles,
   Sun,
-  Target,
+  Trophy,
 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,12 +30,13 @@ import { getAuthRedirectUrl, sanitizeRedirectPath } from "@/lib/authUrl";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppTooltip } from "@/components/ui/tooltip";
-import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
+import { AlgoGuruLockup } from "@/components/brand/AlgoGuruLockup";
+
+type AuthMode = "login" | "signup" | "forgot";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
@@ -55,8 +60,44 @@ const signupSchema = z
     path: ["confirmPassword"],
   });
 
+const forgotSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address").max(255),
+});
+
+const PASSWORD_RULES = [
+  { label: "8+ chars", test: (value: string) => value.length >= 8 },
+  { label: "Uppercase", test: (value: string) => /[A-Z]/.test(value) },
+  { label: "Lowercase", test: (value: string) => /[a-z]/.test(value) },
+  { label: "Number", test: (value: string) => /[0-9]/.test(value) },
+] as const;
+
+const DSA_SHEETS = [
+  { name: "Arrays & Hashing", progress: "42 / 50", pct: 84, tag: "Core" },
+  { name: "Sliding Window", progress: "18 / 24", pct: 75, tag: "Pattern" },
+  { name: "System Design Paths", progress: "14 / 20", pct: 70, tag: "Arch" },
+] as const;
+
+const SHOWCASE_PILLARS = [
+  {
+    icon: Layers,
+    title: "Interactive DSA sheets",
+    body: "Pattern-indexed tracks with difficulty coverage and instant test execution.",
+  },
+  {
+    icon: BrainCircuit,
+    title: "Guru AI tutor",
+    body: "Step-by-step reasoning hints that sharpen intuition without spoiling the solve.",
+  },
+  {
+    icon: Trophy,
+    title: "Timed coding contests",
+    body: "Exam-grade 45-minute problem sets with latency and accuracy telemetry.",
+  },
+] as const;
+
 /* ── Field ─────────────────────────────────────────────────────── */
 function Field({
+  id,
   label,
   type,
   placeholder,
@@ -64,8 +105,11 @@ function Field({
   onChange,
   error,
   rightSlot,
+  labelRightSlot,
   autoComplete,
+  disabled,
 }: {
+  id?: string;
   label: string;
   type: string;
   placeholder: string;
@@ -73,44 +117,56 @@ function Field({
   onChange: (value: string) => void;
   error?: string;
   rightSlot?: React.ReactNode;
+  labelRightSlot?: React.ReactNode;
   autoComplete?: string;
+  disabled?: boolean;
 }) {
-  const id = `auth-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const inputId = id ?? `auth-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const errorId = `${inputId}-error`;
 
   return (
     <div className="w-full">
-      <Label
-        htmlFor={id}
-        className="mb-1.5 block text-xs font-medium text-muted-foreground"
-      >
-        {label}
-      </Label>
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <Label
+          htmlFor={inputId}
+          className="text-xs font-medium text-foreground/85"
+        >
+          {label}
+        </Label>
+        {labelRightSlot}
+      </div>
       <div className="relative">
         <Input
-          id={id}
+          id={inputId}
           type={type}
           placeholder={placeholder}
           value={value}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           autoComplete={autoComplete}
           aria-invalid={Boolean(error)}
-          aria-describedby={error ? `${id}-error` : undefined}
+          aria-describedby={error ? errorId : undefined}
           className={cn(
-            "h-10 rounded-lg border-obsidian-border bg-obsidian-elevated pr-10 text-sm text-foreground placeholder:text-muted-foreground/60 hover:border-obsidian-border focus-visible:border-primary focus-visible:bg-obsidian-elevated focus-visible:ring-ring/60 md:text-sm",
-            error && "border-destructive focus-visible:border-destructive",
+            "h-10 rounded-lg border-obsidian-border bg-obsidian-elevated px-3.5 text-sm text-foreground shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))] transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/60 hover:border-foreground/20 focus-visible:border-primary focus-visible:bg-obsidian-pane focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-0 md:text-sm",
+            rightSlot && "pr-10",
+            error &&
+              "border-destructive/80 hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/25",
           )}
         />
         {rightSlot && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2">{rightSlot}</span>
+          <span className="absolute right-2 top-1/2 -translate-y-1/2">
+            {rightSlot}
+          </span>
         )}
       </div>
       {error && (
         <p
-          id={`${id}-error`}
-          className="mt-1.5 flex items-center gap-1 text-[11.5px] text-destructive"
+          id={errorId}
+          role="alert"
+          className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-destructive"
         >
-          <AlertCircle size={11} />
-          {error}
+          <AlertCircle size={12} className="shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </p>
       )}
     </div>
@@ -141,35 +197,27 @@ function GoogleIcon() {
   );
 }
 
-const VALUE_POINTS = [
-  {
-    icon: Target,
-    title: "A path, not a pile of links",
-    body: "Structured DSA, Java and system-design tracks that tell you what to do next.",
-  },
-  {
-    icon: Code2,
-    title: "Solve without setup",
-    body: "A full in-browser editor with tests, so the only thing between you and practice is a click.",
-  },
-  {
-    icon: BrainCircuit,
-    title: "Guru AI when you're stuck",
-    body: "Hints and explanations that help you reason through the problem — not just copy an answer.",
-  },
-] as const;
-
 /* ── AuthView ──────────────────────────────────────────────────── */
 export function AuthView() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = sanitizeRedirectPath(searchParams.get("redirect"), "/");
+  const reduceMotion = useReducedMotion();
+
+  const redirectTarget = sanitizeRedirectPath(
+    searchParams.get("redirect") ?? searchParams.get("next"),
+    "/",
+  );
+  const callbackPath =
+    redirectTarget !== "/"
+      ? `/auth/callback?next=${encodeURIComponent(redirectTarget)}`
+      : "/auth/callback";
+
   const initialCallbackError =
     searchParams.get("error") === "auth_callback_failed"
       ? "Authentication could not be completed. Please try signing in again."
       : "";
 
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -183,8 +231,13 @@ export function AuthView() {
   const [cooldown, setCooldown] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const redirectedRef = useRef(false);
+
   const { session } = useAuth();
   const { theme, toggleTheme } = useSettings();
+
+  const isLogin = mode === "login";
+  const isSignup = mode === "signup";
+  const isForgot = mode === "forgot";
 
   useEffect(() => {
     if (session && !redirectedRef.current) {
@@ -200,22 +253,40 @@ export function AuthView() {
     };
   }, []);
 
-  const resetForm = () => {
+  const triggerCooldown = () => {
+    if (cooldownRef.current) clearTimeout(cooldownRef.current);
+    setCooldown(true);
+    cooldownRef.current = setTimeout(() => setCooldown(false), 3000);
+  };
+
+  const resetForm = (preserveEmail = false) => {
     setError("");
     setMessage("");
     setFieldErrors({});
     setName("");
-    setEmail("");
+    if (!preserveEmail) setEmail("");
     setPassword("");
     setConfirmPassword("");
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
 
-  const switchMode = (nextIsLogin: boolean) => {
-    if (nextIsLogin === isLogin) return;
-    setIsLogin(nextIsLogin);
-    resetForm();
+  const switchMode = (nextMode: AuthMode, preserveEmail = false) => {
+    if (nextMode === mode) return;
+    setMode(nextMode);
+    resetForm(preserveEmail);
+  };
+
+  const handleFieldChange = (field: string, value: string, setter: (v: string) => void) => {
+    setter(value);
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+    if (error) setError("");
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -223,6 +294,35 @@ export function AuthView() {
     setFieldErrors({});
     setError("");
     setMessage("");
+
+    if (isForgot) {
+      const result = forgotSchema.safeParse({ email });
+      if (!result.success) {
+        const errors: Record<string, string> = {};
+        result.error.errors.forEach((err) => {
+          const key = err.path[0] as string;
+          if (!errors[key]) errors[key] = err.message;
+        });
+        setFieldErrors(errors);
+        return;
+      }
+
+      setLoading(true);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        {
+          redirectTo: getAuthRedirectUrl("/reset-password"),
+        },
+      );
+      if (resetError) {
+        setError(resetError.message);
+        triggerCooldown();
+      } else {
+        setMessage("Check your email for a password reset link.");
+      }
+      setLoading(false);
+      return;
+    }
 
     const schema = isLogin ? loginSchema : signupSchema;
     const data = isLogin
@@ -247,8 +347,7 @@ export function AuthView() {
       });
       if (signInError) {
         setError(signInError.message);
-        setCooldown(true);
-        cooldownRef.current = setTimeout(() => setCooldown(false), 3000);
+        triggerCooldown();
       } else if (!redirectedRef.current) {
         redirectedRef.current = true;
         router.replace(redirectTarget);
@@ -260,13 +359,12 @@ export function AuthView() {
         password,
         options: {
           data: { full_name: name.trim() },
-          emailRedirectTo: getAuthRedirectUrl("/auth/callback"),
+          emailRedirectTo: getAuthRedirectUrl(callbackPath),
         },
       });
       if (signUpError) {
         setError(signUpError.message);
-        setCooldown(true);
-        cooldownRef.current = setTimeout(() => setCooldown(false), 3000);
+        triggerCooldown();
       } else {
         setMessage("Check your email for a confirmation link.");
       }
@@ -277,9 +375,10 @@ export function AuthView() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError("");
+    setMessage("");
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: getAuthRedirectUrl("/auth/callback") },
+      options: { redirectTo: getAuthRedirectUrl(callbackPath) },
     });
     if (oauthError) setError(oauthError.message);
     setLoading(false);
@@ -287,297 +386,558 @@ export function AuthView() {
 
   const isDisabled = loading || cooldown;
 
-  return (
-    <main className="relative flex min-h-[100dvh] items-center justify-center bg-obsidian-void p-4 text-foreground md:p-8">
-      {/* top bar */}
-      <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between p-4 md:p-6">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ArrowLeft size={14} />
-          Back to home
-        </Link>
-        <AppTooltip content={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
-          >
-            {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-          </Button>
-        </AppTooltip>
-      </div>
+  const headingTitle = isForgot
+    ? "Reset your password"
+    : isLogin
+      ? "Sign in to AlgoGuru"
+      : "Create your account";
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="relative z-10 mt-12 w-full max-w-5xl md:mt-0"
+  const headingDescription = isForgot
+    ? "Enter your account email and we will send a secure recovery link."
+    : isLogin
+      ? "Resume your DSA sheets, Guru AI sessions, and contest streaks."
+      : "Start tracking structured DSA tracks, system design paths, and timed contests.";
+
+  const submitLabel = loading
+    ? isForgot
+      ? "Sending reset link…"
+      : isLogin
+        ? "Signing in…"
+        : "Creating account…"
+    : cooldown
+      ? "Try again shortly…"
+      : isForgot
+        ? "Send reset link"
+        : isLogin
+          ? "Sign in"
+          : "Create account";
+
+  return (
+    <main className="grid min-h-[100dvh] w-full bg-obsidian-void text-foreground lg:grid-cols-[minmax(0,1fr)_minmax(0,1.06fr)]">
+      {/* ── Left Column: Authentication Workspace ─────────────────── */}
+      <section
+        aria-label="Authentication"
+        className="relative flex min-h-[100dvh] flex-col justify-between px-5 py-6 sm:px-10 md:px-14 lg:px-16"
       >
-        <Card className="grid w-full overflow-hidden rounded-[0.875rem] border-obsidian-border bg-obsidian-pane shadow-none md:grid-cols-[1.08fr_0.92fr]">
-          {/* ── Form ── */}
-          <div className="relative flex flex-col justify-center p-6 sm:p-9 md:p-12">
+        {/* Top chrome bar */}
+        <header className="mx-auto flex w-full max-w-[420px] items-center justify-between gap-3">
+          <Link
+            href="/"
+            aria-label="AlgoGuru home"
+            className="inline-flex items-center rounded-lg py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <AlgoGuruLockup size={28} title={null} />
+            <span className="sr-only">AlgoGuru</span>
+          </Link>
+
+          <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="mb-8 inline-flex w-fit items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="AlgoGuru home"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-obsidian-border bg-obsidian-pane px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <AlgoGuruMark size={32} />
-              <span className="text-[15px] font-semibold tracking-tight">
-                AlgoGuru
-              </span>
+              <ArrowLeft size={13} aria-hidden="true" />
+              <span>Back to home</span>
             </Link>
-
-            <div className="mb-6">
-              <p className="lp-kicker mb-2">
-                <ShieldCheck size={12} className="inline mr-1" />
-                {isLogin ? "Secure sign in" : "Start free"}
-              </p>
-              <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground md:text-3xl">
-                {isLogin ? "Welcome back" : "Build your edge"}
-              </h1>
-              <p className="mt-2 max-w-sm text-[13.5px] leading-6 text-muted-foreground">
-                {isLogin
-                  ? "Sign in to continue your coding journey."
-                  : "Create an account and pick up exactly where you left off."}
-              </p>
-            </div>
-
-            {/* mode switch */}
-            <Tabs
-              value={isLogin ? "login" : "signup"}
-              onValueChange={(value) => switchMode(value === "login")}
-              className="mb-6"
+            <AppTooltip
+              content={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
-              <TabsList className="grid h-auto w-full grid-cols-2 rounded-lg border border-obsidian-border bg-obsidian-elevated p-1">
-                <TabsTrigger
-                  value="login"
-                  className="rounded-md py-1.5 text-xs font-medium data-[state=active]:bg-obsidian-pane data-[state=active]:text-foreground data-[state=active]:shadow-none"
-                >
-                  Sign in
-                </TabsTrigger>
-                <TabsTrigger
-                  value="signup"
-                  className="rounded-md py-1.5 text-xs font-medium data-[state=active]:bg-obsidian-pane data-[state=active]:text-foreground data-[state=active]:shadow-none"
-                >
-                  Create account
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                onClick={toggleTheme}
+                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                className="h-8 w-8 rounded-lg border-obsidian-border bg-obsidian-pane text-muted-foreground hover:text-foreground"
+              >
+                {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+              </Button>
+            </AppTooltip>
+          </div>
+        </header>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <Field
-                  label="Name"
-                  type="text"
-                  placeholder="Your name"
-                  value={name}
-                  onChange={setName}
-                  error={fieldErrors.name}
-                  autoComplete="name"
-                />
+        {/* Centered form block */}
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto my-auto w-full max-w-[420px] py-10"
+        >
+          <div className="mb-6">
+            <p className="inline-flex items-center gap-1.5 rounded-full border border-obsidian-border bg-obsidian-pane px-2.5 py-1 text-[11px] font-medium text-primary">
+              {isForgot ? (
+                <KeyRound size={12} aria-hidden="true" />
+              ) : (
+                <ShieldCheck size={12} aria-hidden="true" />
               )}
-              <Field
-                label="Email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={setEmail}
-                error={fieldErrors.email}
-                autoComplete="email"
-              />
-              <Field
-                label="Password"
-                type={showPassword ? "text" : "password"}
-                placeholder={isLogin ? "Your password" : "8+ chars, upper, lower, number"}
-                value={password}
-                onChange={setPassword}
-                error={fieldErrors.password}
-                autoComplete={isLogin ? "current-password" : "new-password"}
-                rightSlot={
-                  <Button variant="bare" size="bare"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </Button>
-                }
-              />
+              <span>
+                {isForgot
+                  ? "Account recovery"
+                  : isLogin
+                    ? "Workspace access"
+                    : "Start free workspace"}
+              </span>
+            </p>
+            <h1 className="mt-3.5 text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
+              {headingTitle}
+            </h1>
+            <p className="mt-1.5 text-[13.5px] leading-6 text-muted-foreground">
+              {headingDescription}
+            </p>
+          </div>
 
-              {!isLogin && (
+          {!isForgot && (
+            <>
+              {/* Segmented Sign In / Create Account switch */}
+              <Tabs
+                value={isLogin ? "login" : "signup"}
+                onValueChange={(value) =>
+                  switchMode(value === "login" ? "login" : "signup")
+                }
+                className="mb-5"
+              >
+                <TabsList className="grid h-10 w-full grid-cols-2 rounded-lg border border-obsidian-border bg-obsidian-elevated p-1">
+                  <TabsTrigger
+                    value="login"
+                    className="rounded-md py-1.5 text-xs font-medium text-muted-foreground transition-all data-[state=active]:border data-[state=active]:border-obsidian-border data-[state=active]:bg-obsidian-pane data-[state=active]:text-foreground data-[state=active]:shadow-soft"
+                  >
+                    Sign in
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="signup"
+                    className="rounded-md py-1.5 text-xs font-medium text-muted-foreground transition-all data-[state=active]:border data-[state=active]:border-obsidian-border data-[state=active]:bg-obsidian-pane data-[state=active]:text-foreground data-[state=active]:shadow-soft"
+                  >
+                    Create account
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              {/* Google SSO */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isDisabled}
+                className="h-10 w-full gap-2.5 rounded-lg border-obsidian-border bg-obsidian-pane text-[13px] font-medium text-foreground shadow-soft hover:border-foreground/20 hover:bg-obsidian-elevated"
+              >
+                <GoogleIcon />
+                <span>Continue with Google</span>
+              </Button>
+
+              <div className="my-5 flex items-center gap-3" aria-hidden="true">
+                <div className="h-px flex-1 bg-obsidian-border" />
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80">
+                  or with email
+                </span>
+                <div className="h-px flex-1 bg-obsidian-border" />
+              </div>
+            </>
+          )}
+
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            {isSignup && (
+              <Field
+                id="auth-name"
+                label="Full name"
+                type="text"
+                placeholder="Ada Lovelace"
+                value={name}
+                disabled={loading}
+                onChange={(v) => handleFieldChange("name", v, setName)}
+                error={fieldErrors.name}
+                autoComplete="name"
+              />
+            )}
+
+            <Field
+              id="auth-email"
+              label="Email address"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              disabled={loading}
+              onChange={(v) => handleFieldChange("email", v, setEmail)}
+              error={fieldErrors.email}
+              autoComplete="email"
+            />
+
+            {!isForgot && (
+              <div>
                 <Field
-                  label="Confirm password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Re-enter your password"
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
-                  error={fieldErrors.confirmPassword}
-                  autoComplete="new-password"
+                  id="auth-password"
+                  label="Password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={
+                    isLogin
+                      ? "Enter your password"
+                      : "8+ chars, upper, lower, number"
+                  }
+                  value={password}
+                  disabled={loading}
+                  onChange={(v) =>
+                    handleFieldChange("password", v, setPassword)
+                  }
+                  error={fieldErrors.password}
+                  autoComplete={isLogin ? "current-password" : "new-password"}
+                  labelRightSlot={
+                    isLogin ? (
+                      <Button
+                        variant="bare"
+                        size="bare"
+                        type="button"
+                        onClick={() => switchMode("forgot", true)}
+                        className="rounded text-xs font-medium text-primary transition-colors hover:text-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        Forgot password?
+                      </Button>
+                    ) : undefined
+                  }
                   rightSlot={
-                    <Button variant="bare" size="bare"
+                    <Button
+                      variant="bare"
+                      size="bare"
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      aria-pressed={showPassword}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      {showPassword ? (
+                        <EyeOff size={15} aria-hidden="true" />
+                      ) : (
+                        <Eye size={15} aria-hidden="true" />
+                      )}
                     </Button>
                   }
                 />
-              )}
 
-              {error && (
-                <Alert
-                  variant="destructive"
-                  className="rounded-lg border-destructive/30 bg-destructive/10 px-3 py-2 text-xs leading-5"
-                >
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  <AlertDescription className="text-xs leading-5">{error}</AlertDescription>
-                </Alert>
-              )}
-              {message && (
-                <Alert
-                  role="status"
-                  className="rounded-lg border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs leading-5 text-emerald-500 [&>svg]:text-emerald-500"
-                >
-                  <Check className="h-3.5 w-3.5" />
-                  <AlertDescription className="text-xs leading-5">{message}</AlertDescription>
-                </Alert>
-              )}
+                {isSignup && (
+                  <div
+                    className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4"
+                    aria-label="Password requirements"
+                  >
+                    {PASSWORD_RULES.map((rule) => {
+                      const met = rule.test(password);
+                      return (
+                        <span
+                          key={rule.label}
+                          className={cn(
+                            "inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+                            met
+                              ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : "border-obsidian-border bg-obsidian-pane text-muted-foreground",
+                          )}
+                        >
+                          <Check
+                            size={10}
+                            strokeWidth={2.5}
+                            className={cn(
+                              "shrink-0",
+                              met ? "opacity-100" : "opacity-35",
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span className="whitespace-nowrap">{rule.label}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
-              <Button
-                type="submit"
-                disabled={isDisabled}
-                className="mt-1 h-10 w-full rounded-lg text-sm font-medium"
+            {isSignup && (
+              <Field
+                id="auth-confirm-password"
+                label="Confirm password"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                disabled={loading}
+                onChange={(v) =>
+                  handleFieldChange("confirmPassword", v, setConfirmPassword)
+                }
+                error={fieldErrors.confirmPassword}
+                autoComplete="new-password"
+                rightSlot={
+                  <Button
+                    variant="bare"
+                    size="bare"
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={
+                      showConfirmPassword
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
+                    aria-pressed={showConfirmPassword}
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={15} aria-hidden="true" />
+                    ) : (
+                      <Eye size={15} aria-hidden="true" />
+                    )}
+                  </Button>
+                }
+              />
+            )}
+
+            {error && (
+              <Alert
+                variant="destructive"
+                className="rounded-lg border-destructive/35 bg-destructive/10 px-3.5 py-2.5 text-xs leading-5"
               >
-                {loading && <Loader2 size={15} className="animate-spin" />}
-                {loading
-                  ? "Please wait…"
-                  : cooldown
-                    ? "Try again shortly…"
-                    : isLogin
-                      ? "Sign in"
-                      : "Create account"}
-              </Button>
-            </form>
+                <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                <AlertDescription className="text-xs leading-5">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
 
-            <div className="my-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-obsidian-border" />
-              <span className="text-[11px] text-muted-foreground">
-                or
-              </span>
-              <div className="h-px flex-1 bg-obsidian-border" />
-            </div>
+            {message && (
+              <Alert
+                role="status"
+                aria-live="polite"
+                className="rounded-lg border-emerald-500/35 bg-emerald-500/10 px-3.5 py-2.5 text-xs leading-5 text-emerald-700 dark:text-emerald-400 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400"
+              >
+                <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                <AlertDescription className="text-xs leading-5">
+                  {message}
+                </AlertDescription>
+              </Alert>
+            )}
 
             <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleSignIn}
+              type="submit"
+              variant="accent"
               disabled={isDisabled}
-              className="h-10 w-full gap-2.5 rounded-lg text-[13px] font-medium"
+              className="mt-1 h-10 w-full rounded-lg text-sm font-medium shadow-soft"
             >
-              <GoogleIcon />
-              Continue with Google
+              {loading && (
+                <Loader2
+                  size={15}
+                  className="animate-spin"
+                  aria-hidden="true"
+                />
+              )}
+              <span>{submitLabel}</span>
             </Button>
+          </form>
 
-            <p className="mt-6 text-center text-xs text-muted-foreground">
-              {isLogin ? "New to AlgoGuru? " : "Already have an account? "}
-              <Button variant="bare" size="bare"
+          {isForgot ? (
+            <div className="mt-5 text-center">
+              <Button
+                variant="bare"
+                size="bare"
                 type="button"
-                onClick={() => switchMode(!isLogin)}
-                className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={() => switchMode("login", true)}
+                className="inline-flex items-center gap-1.5 rounded text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <ArrowLeft size={12} aria-hidden="true" />
+                <span>Back to sign in</span>
+              </Button>
+            </div>
+          ) : (
+            <p className="mt-5 text-center text-xs text-muted-foreground">
+              {isLogin ? "New to AlgoGuru? " : "Already have an account? "}
+              <Button
+                variant="bare"
+                size="bare"
+                type="button"
+                onClick={() => switchMode(isLogin ? "signup" : "login")}
+                className="rounded font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {isLogin ? "Create an account" : "Sign in"}
               </Button>
             </p>
+          )}
+        </motion.div>
+
+        {/* Security / session trust footer */}
+        <footer className="mx-auto flex w-full max-w-[420px] flex-wrap items-center justify-between gap-2 border-t border-obsidian-border pt-4 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Lock size={11} className="text-primary/80" aria-hidden="true" />
+            <span>PKCE &amp; TLS encrypted session</span>
+          </span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/roadmap"
+              className="transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Roadmap
+            </Link>
+            <Link
+              href="/support"
+              className="transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Support
+            </Link>
+          </div>
+        </footer>
+      </section>
+
+      {/* ── Right Column: Editorial Dark Product Showcase (lg+) ───── */}
+      <aside
+        aria-label="AlgoGuru workspace highlights"
+        className="relative hidden overflow-hidden border-l border-obsidian-border bg-[#080A0F] px-10 py-12 text-slate-100 lg:flex lg:flex-col lg:justify-between xl:px-14"
+      >
+        {/* Subtle atmospheric grid & top cobalt radiance */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 75% 50% at 50% 0%, rgba(59, 130, 246, 0.16), transparent 70%), linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "100% 100%, 48px 48px, 48px 48px",
+          }}
+        />
+
+        <div className="relative z-10 mx-auto flex w-full max-w-[540px] flex-1 flex-col justify-center">
+          <div className="mb-7">
+            <p className="inline-flex items-center gap-2 text-xs font-medium text-blue-400">
+              <Sparkles size={13} aria-hidden="true" />
+              <span>Engineering Prep Workspace</span>
+            </p>
+            <h2 className="mt-3 text-[1.85rem] font-semibold leading-[1.15] tracking-[-0.03em] text-white xl:text-[2.1rem]">
+              Structured mastery, built for real technical interviews.
+            </h2>
+            <p className="mt-3 max-w-md text-[13.5px] leading-6 text-slate-400">
+              Your DSA sheet progress, Guru AI hints, and timed coding contest
+              history stay synchronized across every session.
+            </p>
           </div>
 
-          {/* ── Value panel ── */}
-          <aside className="relative hidden border-l border-obsidian-border bg-obsidian-void p-10 md:flex md:flex-col md:justify-center">
-            <div>
-              <p className="lp-kicker mb-3">Why AlgoGuru</p>
-              <h2 className="text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground">
-                Learn deliberately.
-                <br />
-                Interview confidently.
-              </h2>
-              <p className="mt-3 max-w-sm text-[13.5px] leading-6 text-muted-foreground">
-                A focused workspace built around deliberate practice — not another
-                endless tutorial feed.
-              </p>
+          {/* Product Preview Window */}
+          <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#0D1017] shadow-[0_24px_70px_-24px_rgba(0,0,0,0.85)]">
+            {/* Window chrome */}
+            <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#121620] px-4 py-2.5">
+              <div className="flex items-center gap-1.5" aria-hidden="true">
+                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
+              </div>
+              <span className="truncate font-mono text-[11px] text-slate-400">
+                workspace / dsa-sheets · guru-ai
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10.5px] font-medium text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Synced
+              </span>
+            </div>
 
-              <ul className="mt-8 space-y-4">
-                {VALUE_POINTS.map(({ icon: Icon, title, body }) => (
-                  <li key={title} className="flex gap-3">
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-obsidian-border bg-obsidian-pane text-foreground/80">
-                      <Icon size={15} />
-                    </span>
-                    <div>
-                      <p className="text-[13px] font-medium text-foreground">{title}</p>
-                      <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                        {body}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-8 overflow-hidden rounded-[0.875rem] border border-obsidian-border bg-obsidian-pane">
-                <div className="flex items-center justify-between border-b border-obsidian-border px-4 py-2.5">
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    Today's session
+            <div className="space-y-4 p-4 sm:p-5">
+              {/* Interactive DSA Sheets Progress */}
+              <div>
+                <div className="mb-2.5 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    Interactive DSA Sheets
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-500">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    On track
+                  <span className="font-mono text-[11px] text-blue-400">
+                    74 / 94 solved
                   </span>
                 </div>
-                <div className="space-y-2.5 px-4 py-3.5">
-                  {[
-                    { label: "Warm up · Two Sum", done: true },
-                    { label: "Pattern · Sliding Window", done: false },
-                    { label: "Mock · 25 min timed set", done: false },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-2.5">
-                      <span
-                        className={cn(
-                          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px]",
-                          item.done
-                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                            : "border-obsidian-border bg-obsidian-elevated text-muted-foreground",
-                        )}
-                      >
-                        {item.done ? (
-                          <Check size={9} strokeWidth={3} />
-                        ) : (
-                          <span className="h-1 w-1 rounded-full bg-current" />
-                        )}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-xs",
-                          item.done ? "text-foreground" : "text-muted-foreground",
-                        )}
-                      >
-                        {item.label}
-                      </span>
+                <div className="space-y-2.5">
+                  {DSA_SHEETS.map((sheet) => (
+                    <div
+                      key={sheet.name}
+                      className="rounded-lg border border-white/[0.07] bg-white/[0.025] px-3 py-2.5"
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-100">
+                            {sheet.name}
+                          </span>
+                          <span className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
+                            {sheet.tag}
+                          </span>
+                        </div>
+                        <span className="font-mono text-[11px] tabular-nums text-slate-300">
+                          {sheet.progress}
+                        </span>
+                      </div>
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
+                          style={{ width: `${sheet.pct}%` }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
-                <div className="h-1 bg-obsidian-elevated">
-                  <div className="h-full w-1/3 rounded-r-full bg-primary" />
+              </div>
+
+              {/* Guru AI Tutor snippet + Timed Contest telemetry */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-violet-400/20 bg-violet-500/[0.07] p-3">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300">
+                    <BrainCircuit size={13} aria-hidden="true" />
+                    <span>Guru AI Hint</span>
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] leading-relaxed text-slate-300">
+                    &ldquo;Track seen complements in a single HashMap pass to
+                    drop lookup from{" "}
+                    <code className="rounded bg-white/[0.08] px-1 py-0.5 font-mono text-[10.5px] text-violet-200">
+                      O(n²)
+                    </code>{" "}
+                    to{" "}
+                    <code className="rounded bg-white/[0.08] px-1 py-0.5 font-mono text-[10.5px] text-violet-200">
+                      O(n)
+                    </code>
+                    .&rdquo;
+                  </p>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-lg border border-white/[0.08] bg-white/[0.025] p-3">
+                  <div className="flex items-center justify-between text-[11px] font-medium text-slate-300">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock size={12} className="text-amber-400" aria-hidden="true" />
+                      Timed Contest
+                    </span>
+                    <span className="font-mono text-emerald-400">12 / 12 pass</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/[0.07] pt-2.5">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                        Runtime
+                      </p>
+                      <p className="font-mono text-sm font-semibold text-white">
+                        0.2 ms
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                        Streak
+                      </p>
+                      <p className="font-mono text-sm font-semibold text-white">
+                        14 days
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </aside>
-        </Card>
-      </motion.div>
+          </div>
+
+          {/* 3-pillar summary */}
+          <ul className="mt-7 space-y-3.5">
+            {SHOWCASE_PILLARS.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/[0.1] bg-white/[0.04] text-blue-400">
+                  <Icon size={14} aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-medium text-slate-100">{title}</p>
+                  <p className="mt-0.5 text-xs leading-5 text-slate-400">
+                    {body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
     </main>
   );
 }

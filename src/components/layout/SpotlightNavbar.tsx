@@ -19,7 +19,8 @@ export const SpotlightNavbar = forwardRef<HTMLElement, SpotlightNavbarProps>(
       <header
         ref={ref}
         className={cn(
-          "relative isolate border-b border-obsidian-border bg-obsidian-void/85 backdrop-blur-xl",
+          "relative isolate border-b border-obsidian-border/80 bg-obsidian-void/85 supports-[backdrop-filter]:bg-obsidian-void/72 backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow] duration-200",
+          "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-foreground/[0.06] before:to-transparent",
           className,
         )}
         {...props}

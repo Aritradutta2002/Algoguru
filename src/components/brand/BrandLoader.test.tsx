@@ -71,4 +71,26 @@ describe("BrandLoader", () => {
     const { container } = render(<BrandLoader progress={50} />);
     expect(container.querySelector(".agl__meter")).toBeNull();
   });
+
+  it("supports hero sizing, optional sublabel, and determinate telemetry readout", () => {
+    const { container } = render(
+      <BrandLoader
+        size="hero"
+        variant="screen"
+        label="Booting workspace"
+        sublabel="Preparing editor and runtime"
+        progress={68.4}
+        showProgressValue
+      />,
+    );
+
+    const root = container.querySelector(".agl")!;
+    expect(root).toHaveAttribute("data-size", "hero");
+    const stage = container.querySelector(".agl__stage") as HTMLElement;
+    expect(stage.style.width).toBe("148px");
+    expect(stage.style.height).toBe("148px");
+    expect(container.querySelector(".agl__aperture")).not.toBeNull();
+    expect(screen.getByText("Preparing editor and runtime")).toBeInTheDocument();
+    expect(container.querySelector(".agl__telemetry")).toHaveTextContent("68%");
+  });
 });

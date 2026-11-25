@@ -1,36 +1,71 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { AlertCircle, Check, Loader2, Lock } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Check,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Loader2,
+  Lock,
+  Moon,
+  ShieldCheck,
+  Sun,
+} from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { useSettings } from "@/contexts/SettingsContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppTooltip } from "@/components/ui/tooltip";
+import { AlgoGuruLockup } from "@/components/brand/AlgoGuruLockup";
 import { cn } from "@/lib/utils";
 
-const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Must include an uppercase letter")
-    .regex(/[a-z]/, "Must include a lowercase letter")
-    .regex(/[0-9]/, "Must include a number"),
-});
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Must include an uppercase letter")
+      .regex(/[a-z]/, "Must include a lowercase letter")
+      .regex(/[0-9]/, "Must include a number"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+const PASSWORD_RULES = [
+  { label: "8+ chars", test: (value: string) => value.length >= 8 },
+  { label: "Uppercase", test: (value: string) => /[A-Z]/.test(value) },
+  { label: "Lowercase", test: (value: string) => /[a-z]/.test(value) },
+  { label: "Number", test: (value: string) => /[0-9]/.test(value) },
+] as const;
 
 export function ResetPasswordView() {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [error, setError] = useState("");
-  const [fieldError, setFieldError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
+
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
+  const { theme, toggleTheme } = useSettings();
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -49,7 +84,11 @@ export function ResetPasswordView() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!active) return;
-      if (session || hasRecoveryHash || window.location.hash.includes("type=recovery")) {
+      if (
+        session ||
+        hasRecoveryHash ||
+        window.location.hash.includes("type=recovery")
+      ) {
         setAuthorized(true);
         setChecking(false);
       } else {
@@ -68,11 +107,16 @@ export function ResetPasswordView() {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setFieldError("");
+    setFieldErrors({});
 
-    const result = resetPasswordSchema.safeParse({ password });
+    const result = resetPasswordSchema.safeParse({ password, confirmPassword });
     if (!result.success) {
-      setFieldError(result.error.errors[0].message);
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        const key = err.path[0] as string;
+        if (!errors[key]) errors[key] = err.message;
+      });
+      setFieldErrors(errors);
       return;
     }
 
@@ -91,95 +135,319 @@ export function ResetPasswordView() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-obsidian-void text-foreground">
+    <main className="relative flex min-h-[100dvh] flex-col justify-between bg-obsidian-void px-5 py-6 text-foreground sm:px-8">
+      {/* Top chrome bar */}
+      <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
+        <Link
+          href="/"
+          aria-label="AlgoGuru home"
+          className="inline-flex items-center rounded-lg py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <AlgoGuruLockup size={28} title={null} />
+          <span className="sr-only">AlgoGuru</span>
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/auth"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-obsidian-border bg-obsidian-pane px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ArrowLeft size={13} aria-hidden="true" />
+            <span>Back to sign in</span>
+          </Link>
+          <AppTooltip
+            content={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              className="h-8 w-8 rounded-lg border-obsidian-border bg-obsidian-pane text-muted-foreground hover:text-foreground"
+            >
+              {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </Button>
+          </AppTooltip>
+        </div>
+      </header>
+
+      {/* Center card */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto my-auto w-full max-w-[420px] py-10"
       >
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">
-            Reset password
+        <div className="mb-6">
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-obsidian-border bg-obsidian-pane px-2.5 py-1 text-[11px] font-medium text-primary">
+            <KeyRound size={12} aria-hidden="true" />
+            <span>Security update</span>
+          </p>
+          <h1 className="mt-3.5 text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
+            Choose a new password
           </h1>
-          <p className="text-sm mt-1 text-muted-foreground">Enter your new password</p>
+          <p className="mt-1.5 text-[13.5px] leading-6 text-muted-foreground">
+            Set a strong password to restore access to your AlgoGuru workspace.
+          </p>
         </div>
 
-        <Card className="rounded-[0.875rem] border-obsidian-border bg-obsidian-pane shadow-none">
+        <Card className="rounded-xl border-obsidian-border bg-obsidian-pane shadow-soft">
           <CardContent className="p-6">
             {checking || !authorized ? (
-              <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                <Loader2 size={15} className="animate-spin" />
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center justify-center gap-2.5 py-8 text-sm text-muted-foreground"
+              >
+                <Loader2
+                  size={16}
+                  className="animate-spin text-primary"
+                  aria-hidden="true"
+                />
                 <span>Verifying recovery session…</span>
               </div>
             ) : success ? (
-              <Alert className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 [&>svg]:text-emerald-400">
-                <Check className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  Password updated! Redirecting…
+              <Alert
+                role="status"
+                aria-live="polite"
+                className="rounded-lg border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400"
+              >
+                <Check className="h-4 w-4" aria-hidden="true" />
+                <AlertDescription className="text-sm font-medium">
+                  Password updated! Redirecting you to your workspace…
                 </AlertDescription>
               </Alert>
             ) : (
-              <form onSubmit={handleReset} className="space-y-4">
+              <form onSubmit={handleReset} noValidate className="space-y-4">
                 <div>
                   <Label
                     htmlFor="reset-new-password"
-                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                    className="mb-1.5 block text-xs font-medium text-foreground/85"
                   >
                     New password
                   </Label>
                   <div className="relative">
                     <Lock
                       size={14}
+                      aria-hidden="true"
                       className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                     />
                     <Input
                       id="reset-new-password"
-                      type="password"
-                      placeholder="New password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter a strong password"
                       value={password}
+                      disabled={loading}
                       onChange={(e) => {
                         setPassword(e.target.value);
-                        setFieldError("");
+                        setFieldErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.password;
+                          return next;
+                        });
                       }}
-                      required
-                      minLength={8}
                       autoComplete="new-password"
-                      aria-invalid={Boolean(fieldError)}
+                      aria-invalid={Boolean(fieldErrors.password)}
+                      aria-describedby={
+                        fieldErrors.password
+                          ? "reset-new-password-error"
+                          : "reset-password-rules"
+                      }
                       className={cn(
-                        "h-10 rounded-lg bg-obsidian-elevated pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/60 md:text-sm",
-                        fieldError
-                          ? "border-destructive/60 focus-visible:border-destructive"
-                          : "border-obsidian-border hover:border-obsidian-border focus-visible:border-foreground/40",
+                        "h-10 rounded-lg border-obsidian-border bg-obsidian-elevated pl-9 pr-10 text-sm text-foreground shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))] transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/60 hover:border-foreground/20 focus-visible:border-primary focus-visible:bg-obsidian-pane focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-0 md:text-sm",
+                        fieldErrors.password &&
+                          "border-destructive/80 hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/25",
                       )}
                     />
+                    <Button
+                      variant="bare"
+                      size="bare"
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      aria-pressed={showPassword}
+                      className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {showPassword ? (
+                        <EyeOff size={15} aria-hidden="true" />
+                      ) : (
+                        <Eye size={15} aria-hidden="true" />
+                      )}
+                    </Button>
                   </div>
-                  {fieldError && (
-                    <p className="text-xs mt-1.5 px-1 text-destructive">{fieldError}</p>
+                  {fieldErrors.password && (
+                    <p
+                      id="reset-new-password-error"
+                      role="alert"
+                      className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-destructive"
+                    >
+                      <AlertCircle
+                        size={12}
+                        className="shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span>{fieldErrors.password}</span>
+                    </p>
                   )}
-                  <p className="text-xs mt-1.5 px-1 text-muted-foreground">
-                    Min 8 chars, uppercase, lowercase, and a number
-                  </p>
+
+                  <div
+                    id="reset-password-rules"
+                    className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4"
+                    aria-label="Password requirements"
+                  >
+                    {PASSWORD_RULES.map((rule) => {
+                      const met = rule.test(password);
+                      return (
+                        <span
+                          key={rule.label}
+                          className={cn(
+                            "inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+                            met
+                              ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : "border-obsidian-border bg-obsidian-elevated text-muted-foreground",
+                          )}
+                        >
+                          <Check
+                            size={10}
+                            strokeWidth={2.5}
+                            className={cn(
+                              "shrink-0",
+                              met ? "opacity-100" : "opacity-35",
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span className="whitespace-nowrap">{rule.label}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <Label
+                    htmlFor="reset-confirm-password"
+                    className="mb-1.5 block text-xs font-medium text-foreground/85"
+                  >
+                    Confirm new password
+                  </Label>
+                  <div className="relative">
+                    <Lock
+                      size={14}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <Input
+                      id="reset-confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Re-enter your new password"
+                      value={confirmPassword}
+                      disabled={loading}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setFieldErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.confirmPassword;
+                          return next;
+                        });
+                      }}
+                      autoComplete="new-password"
+                      aria-invalid={Boolean(fieldErrors.confirmPassword)}
+                      aria-describedby={
+                        fieldErrors.confirmPassword
+                          ? "reset-confirm-password-error"
+                          : undefined
+                      }
+                      className={cn(
+                        "h-10 rounded-lg border-obsidian-border bg-obsidian-elevated pl-9 pr-10 text-sm text-foreground shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))] transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/60 hover:border-foreground/20 focus-visible:border-primary focus-visible:bg-obsidian-pane focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-0 md:text-sm",
+                        fieldErrors.confirmPassword &&
+                          "border-destructive/80 hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/25",
+                      )}
+                    />
+                    <Button
+                      variant="bare"
+                      size="bare"
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      aria-label={
+                        showConfirmPassword
+                          ? "Hide confirm password"
+                          : "Show confirm password"
+                      }
+                      aria-pressed={showConfirmPassword}
+                      className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={15} aria-hidden="true" />
+                      ) : (
+                        <Eye size={15} aria-hidden="true" />
+                      )}
+                    </Button>
+                  </div>
+                  {fieldErrors.confirmPassword && (
+                    <p
+                      id="reset-confirm-password-error"
+                      role="alert"
+                      className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-destructive"
+                    >
+                      <AlertCircle
+                        size={12}
+                        className="shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span>{fieldErrors.confirmPassword}</span>
+                    </p>
+                  )}
                 </div>
 
                 {error && (
                   <Alert
                     variant="destructive"
-                    className="rounded-lg border-destructive/30 bg-destructive/10 px-3 py-2 text-xs"
+                    className="rounded-lg border-destructive/35 bg-destructive/10 px-3.5 py-2.5 text-xs"
                   >
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    <AlertDescription className="text-xs">{error}</AlertDescription>
+                    <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                    <AlertDescription className="text-xs">
+                      {error}
+                    </AlertDescription>
                   </Alert>
                 )}
 
-                <Button type="submit" disabled={loading} className="w-full h-10 rounded-lg">
-                  {loading && <Loader2 size={15} className="animate-spin" />}
-                  {loading ? "Updating…" : "Update password"}
+                <Button
+                  type="submit"
+                  variant="accent"
+                  disabled={loading}
+                  className="h-10 w-full rounded-lg text-sm font-medium shadow-soft"
+                >
+                  {loading && (
+                    <Loader2
+                      size={15}
+                      className="animate-spin"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span>{loading ? "Updating password…" : "Update password"}</span>
                 </Button>
               </form>
             )}
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Footer */}
+      <footer className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 border-t border-obsidian-border pt-4 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <ShieldCheck size={12} className="text-primary/80" aria-hidden="true" />
+          <span>Recovery session verified via Supabase Auth</span>
+        </span>
+        <Link
+          href="/support"
+          className="transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Support
+        </Link>
+      </footer>
     </main>
   );
 }

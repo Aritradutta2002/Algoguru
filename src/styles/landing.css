@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   Home landing page (home-specific styles)
+   Home landing page (Enterprise SaaS surfaces, grid architecture, motion)
    ───────────────────────────────────────────────────────────────────────── */
 
 .landing-page {
@@ -13,7 +13,7 @@
   font-weight: 600;
 }
 
-.landing-page :is(#modules, #demo, #quiz) {
+.landing-page :is(#modules, #platform, #demo, #quiz, #workflow) {
   scroll-margin-top: 5rem;
 }
 
@@ -37,7 +37,7 @@
   }
 }
 
-/* ── Hero ─────────────────────────────────────────────────────────────── */
+/* ── Hero & architectural backdrop ────────────────────────────────────── */
 
 .lp-hero {
   position: relative;
@@ -45,26 +45,67 @@
   border-bottom: 1px solid hsl(var(--lp-line));
 }
 
-/* A single low-intensity light behind the product frame. */
+/* Subtle architectural grid + low-intensity focus glow behind the product frame */
 .lp-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, hsl(var(--foreground) / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 78% 64% at 50% 28%, #000 30%, transparent 90%);
+}
+
+.lp-hero::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(
-    ellipse 60% 42% at 50% 68%,
-    hsl(var(--lp-accent) / 0.09),
-    transparent 72%
+    ellipse 64% 44% at 50% 66%,
+    hsl(var(--lp-accent) / 0.11),
+    transparent 74%
   );
 }
 
 :root:not(.dark) .lp-hero::before {
+  background-image:
+    linear-gradient(to right, hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--foreground) / 0.035) 1px, transparent 1px);
+}
+
+:root:not(.dark) .lp-hero::after {
   background: radial-gradient(
-    ellipse 60% 42% at 50% 68%,
+    ellipse 64% 44% at 50% 66%,
     hsl(var(--lp-accent) / 0.06),
-    transparent 72%
+    transparent 74%
   );
+}
+
+.lp-eyebrow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid hsl(var(--lp-line));
+  border-radius: 9999px;
+  background: hsl(var(--lp-surface));
+  padding: 0.3125rem 0.75rem 0.3125rem 0.5625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+}
+
+.lp-status-dot {
+  height: 0.4375rem;
+  width: 0.4375rem;
+  border-radius: 9999px;
+  background: hsl(var(--lp-success));
+  box-shadow: 0 0 0 3px hsl(var(--lp-success) / 0.18);
 }
 
 .lp-stats {
@@ -99,6 +140,76 @@
   }
 }
 
+/* ── Capability strip ─────────────────────────────────────────────────── */
+
+.lp-capability-band {
+  border-bottom: 1px solid hsl(var(--lp-line));
+  background: hsl(var(--lp-surface));
+}
+
+.lp-capability-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lp-capability-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.125rem 0;
+  border-top: 1px solid hsl(var(--lp-line));
+}
+
+.lp-capability-item:first-child {
+  border-top: 0;
+}
+
+@container (min-width: 640px) {
+  .lp-capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lp-capability-item {
+    padding: 1.25rem 1.25rem;
+    border-top: 1px solid hsl(var(--lp-line));
+  }
+
+  .lp-capability-item:nth-child(-n + 2) {
+    border-top: 0;
+  }
+
+  .lp-capability-item:nth-child(odd) {
+    padding-left: 0;
+  }
+
+  .lp-capability-item:nth-child(even) {
+    border-left: 1px solid hsl(var(--lp-line));
+  }
+}
+
+@container (min-width: 1024px) {
+  .lp-capability-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .lp-capability-item,
+  .lp-capability-item:nth-child(odd),
+  .lp-capability-item:nth-child(even) {
+    border-top: 0;
+    border-left: 1px solid hsl(var(--lp-line));
+    padding: 1.375rem 1.25rem;
+  }
+
+  .lp-capability-item:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .lp-capability-item:last-child {
+    padding-right: 0;
+  }
+}
+
 /* ── Hero workspace preview ───────────────────────────────────────────── */
 
 .lp-frame-body {
@@ -116,11 +227,12 @@
 
 @container (min-width: 900px) {
   .lp-frame-body {
-    grid-template-columns: 15rem minmax(0, 1fr) 17.5rem;
+    grid-template-columns: 15rem minmax(0, 1fr) 18.5rem;
   }
 
   .lp-frame-side {
-    display: block;
+    display: flex;
+    flex-direction: column;
     border-right: 1px solid hsl(var(--lp-line));
   }
 
@@ -146,6 +258,8 @@
 }
 
 .lp-editor {
+  display: flex;
+  flex-direction: column;
   background: hsl(var(--lp-bg));
 }
 
@@ -169,6 +283,11 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: hsl(var(--muted-foreground));
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.lp-editor-tab:hover {
+  color: hsl(var(--foreground));
 }
 
 .lp-editor-tab.is-active {
@@ -187,6 +306,26 @@
   inset: auto 0 -1px;
   height: 1px;
   background: inherit;
+}
+
+.lp-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid hsl(var(--lp-line));
+  background: hsl(var(--lp-surface));
+  padding: 0.5rem 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.lp-guru-callout {
+  border: 1px solid hsl(var(--guru-accent) / 0.28);
+  border-radius: 0.5rem;
+  background: hsl(var(--guru-accent) / 0.06);
+  padding: 0.625rem 0.75rem;
 }
 
 .hero-goal-fill {
@@ -216,6 +355,70 @@
   to {
     opacity: 1;
   }
+}
+
+/* ── Bento Architecture Grid ──────────────────────────────────────────── */
+
+.lp-bento-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--lp-line));
+  border-radius: 0.875rem;
+  background: hsl(var(--lp-line));
+}
+
+.lp-bento-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: hsl(var(--lp-bg));
+  padding: 1.5rem;
+  transition: background-color 0.15s ease;
+}
+
+.lp-bento-card:hover {
+  background: hsl(var(--lp-surface));
+}
+
+@container (min-width: 720px) {
+  .lp-bento-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .lp-bento-wide {
+    grid-column: span 7;
+  }
+
+  .lp-bento-narrow {
+    grid-column: span 5;
+  }
+
+  .lp-bento-card {
+    padding: 1.75rem;
+  }
+}
+
+/* ── Workflow & Conversion CTA ────────────────────────────────────────── */
+
+.lp-cta-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid hsl(var(--lp-line));
+  border-radius: 1rem;
+  background: hsl(var(--lp-surface));
+}
+
+.lp-cta-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+  mask-image: radial-gradient(ellipse 65% 85% at 88% 50%, #000 10%, transparent 80%);
 }
 
 /* ── Code ─────────────────────────────────────────────────────────────── */

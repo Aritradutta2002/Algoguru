@@ -17,21 +17,27 @@ export function ProductFrame({
   ...props
 }: ProductFrameProps) {
   return (
-    <div className={cn("lp-frame", className)} {...props}>
+    <div
+      className={cn(
+        "lp-frame shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))]",
+        className,
+      )}
+      {...props}
+    >
       {(title != null || badge != null) && (
-        <div className="lp-frame-bar">
-          <div className="flex items-center gap-1.5" aria-hidden="true">
+        <div className="lp-frame-bar px-3.5">
+          <div className="flex items-center gap-1.5 shrink-0" aria-hidden="true">
             <span className="lp-dot" />
             <span className="lp-dot" />
             <span className="lp-dot" />
           </div>
           {title != null && (
-            <div className="ml-2 min-w-0 truncate text-[12.5px] text-muted-foreground">
+            <div className="ml-2 min-w-0 truncate text-[12px] font-medium tracking-[-0.01em] text-muted-foreground">
               {title}
             </div>
           )}
           {badge != null && (
-            <span className="lp-chip ml-auto hidden shrink-0 sm:inline-flex">
+            <span className="lp-chip ml-auto hidden shrink-0 bg-obsidian-void/60 font-mono text-[11px] tabular-nums sm:inline-flex">
               {badge}
             </span>
           )}

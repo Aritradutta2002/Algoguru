@@ -6,7 +6,7 @@ import { AlgoGuruMark } from "./AlgoGuruMark";
 import { BRAND_A, BRAND_ACCENT, BRAND_GLYPH_PATH, BRAND_RAMP } from "./brandGeometry";
 import "./brand.css";
 
-export type BrandLoaderSize = "sm" | "md" | "lg";
+export type BrandLoaderSize = "sm" | "md" | "lg" | "hero";
 export type BrandLoaderVariant = "inline" | "screen";
 
 export interface BrandLoaderProps {
@@ -18,11 +18,15 @@ export interface BrandLoaderProps {
   variant?: BrandLoaderVariant;
   /** Human-readable progress text. Pass `null` to omit it entirely. */
   label?: string | null;
+  /** Optional secondary telemetry/status line shown beneath `label` on `screen`. */
+  sublabel?: string | null;
   /**
    * Determinate progress, 0–100. When omitted the meter runs as an
    * indeterminate shimmer — which is the honest state for a network wait.
    */
   progress?: number;
+  /** Display tabular percentage alongside the determinate meter on `screen`. */
+  showProgressValue?: boolean;
   className?: string;
 }
 
@@ -30,6 +34,7 @@ const SIZES: Record<BrandLoaderSize, { mark: number; stage: number; hairline: nu
   sm: { mark: 22, stage: 38, hairline: 1 },
   md: { mark: 38, stage: 66, hairline: 1 },
   lg: { mark: 66, stage: 116, hairline: 2 },
+  hero: { mark: 88, stage: 148, hairline: 2 },
 };
 
 /**
@@ -47,29 +52,36 @@ const SIZES: Record<BrandLoaderSize, { mark: number; stage: number; hairline: nu
  * animates `transform` / `opacity` / `stroke-dashoffset`, so the loop stays on
  * the compositor and allocates no layout.
  *
- * `prefers-reduced-motion` freezes the finished frame and drops the meter; the
+ * `prefers-reduced-motion` freezes the finished frame and parks the meter; the
  * label carries the meaning.
  */
 export function BrandLoader({
   size = "md",
   variant = "inline",
   label = "Loading",
+  sublabel,
   progress,
+  showProgressValue = false,
   className,
 }: BrandLoaderProps) {
   const geometry = SIZES[size];
   const showLabel = variant !== "inline" && !!label;
+  const showSublabel = variant !== "inline" && !!sublabel;
+  const showAperture = variant === "screen" || size === "lg" || size === "hero";
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const burstId = `agl-burst-${uid}`;
   const sweepId = `agl-sweep-${uid}`;
   const clipId = `agl-clip-${uid}`;
 
   const determinate = typeof progress === "number" && Number.isFinite(progress);
-  const pct = determinate ? Math.min(100, Math.max(0, progress)) : null;
+  const pct = determinate ? Math.round(Math.min(100, Math.max(0, progress))) : null;
+  const pctRaw = determinate ? Math.min(100, Math.max(0, progress)) : null;
 
   return (
     <span
       className={cn("agl", `agl--${variant}`, className)}
+      data-size={size}
+      data-variant={variant}
       role="status"
       aria-live="polite"
       aria-busy="true"
@@ -81,6 +93,7 @@ export function BrandLoader({
         aria-hidden="true"
       >
         <span className="agl__wash" />
+        {showAperture ? <span className="agl__aperture" /> : null}
         <span className="agl__plate">
           <span className="agl__tile">
             <AlgoGuruMark
@@ -159,17 +172,29 @@ export function BrandLoader({
         </svg>
       </span>
 
-      {label ? <span className={cn("agl__label", !showLabel && "sr-only")}>{label}</span> : null}
+      {label ? (
+        <span className={cn("agl__copy", !showLabel && "sr-only")}>
+          <span className={cn("agl__label", !showLabel && "sr-only")}>{label}</span>
+          {showSublabel ? <span className="agl__sublabel">{sublabel}</span> : null}
+        </span>
+      ) : null}
 
       {variant === "screen" ? (
-        <span
-          className={cn("agl__meter", determinate && "agl__meter--determinate")}
-          aria-hidden="true"
-        >
+        <span className="agl__meter-wrap" aria-hidden="true">
           <span
-            className="agl__meter-bar"
-            style={determinate ? { width: `${pct}%` } : undefined}
-          />
+            className={cn("agl__meter", determinate && "agl__meter--determinate")}
+            aria-hidden="true"
+          >
+            <span
+              className="agl__meter-bar"
+              style={determinate ? { width: `${pctRaw}%` } : undefined}
+            />
+          </span>
+          {showProgressValue && pct !== null ? (
+            <span className="agl__telemetry" aria-hidden="true">
+              {pct}%
+            </span>
+          ) : null}
         </span>
       ) : null}
     </span>

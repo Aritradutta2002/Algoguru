@@ -33,6 +33,7 @@ import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useSettings } from "@/contexts/SettingsContext";
 import { GlobalSearchLauncher } from "@/components/layout/GlobalSearchLauncher";
 import { PageSkeleton } from "@/components/layout/RouteFallback";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -195,9 +196,11 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   // for programmatic fold/unfold so those animate smoothly.
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
-  // Detect mobile viewport (< lg breakpoint = 1024px). Declared here because
-  // the desktop sidebar panel must not mount at all on phones.
+  // Detect mobile viewport (< lg breakpoint = 1024px) for sidebar/dock,
+  // and narrow phone viewport (< md breakpoint = 768px) for top header controls.
   const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isSmallScreen = useMediaQuery("(max-width: 767px)");
+  const { theme, toggleTheme } = useSettings();
 
   // On the home page the left sidebar panel is hidden by default (including
   // its fold/unfold handle). It only becomes visible when the user clicks the
@@ -286,9 +289,9 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     return () => observer.disconnect();
   }, []);
 
-  const isHeaderNarrow = isMobile || (headerWidth > 0 && headerWidth < 680);
-  const isHeaderCompact = isMobile || (headerWidth > 0 && headerWidth < 980);
-  const isHeaderWide = !isMobile && (headerWidth === 0 || headerWidth >= 1200);
+  const isHeaderNarrow = isSmallScreen || (headerWidth > 0 && headerWidth < 680);
+  const isHeaderCompact = isSmallScreen || (headerWidth > 0 && headerWidth < 980);
+  const isHeaderWide = !isSmallScreen && headerWidth >= 1280;
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -518,16 +521,17 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                   data-scrolled={headerScrolled ? "true" : undefined}
                   data-route={pathname === "/" ? "home" : undefined}
                   className={cn(
-                    "app-header sticky top-0 z-50 h-16 shrink-0 border-b border-obsidian-border bg-obsidian-void/85 backdrop-blur-xl transition-shadow duration-200",
-                    headerScrolled && "shadow-[0_12px_32px_-24px_rgba(0,0,0,0.6)]",
+                    "app-header sticky top-0 z-50 h-16 shrink-0",
+                    headerScrolled &&
+                      "border-obsidian-border bg-obsidian-void/92 shadow-[0_1px_0_0_hsl(var(--obsidian-border)),0_12px_32px_-20px_rgba(15,23,42,0.14)] dark:shadow-[0_1px_0_0_hsl(var(--obsidian-border)),0_16px_40px_-22px_rgba(0,0,0,0.8)]",
                   )}
                 >
                   <div
                     ref={headerContainerRef}
-                    className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6"
+                    className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-2 sm:gap-3 px-4 sm:px-6"
                   >
                     {/* ── 1. Logo / Workspace Block ───── */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <AnimatePresence initial={false}>
                         {showSidebarPanel && isSidebarCollapsed && (
                           <motion.div
@@ -539,12 +543,14 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                             className="flex items-center overflow-hidden flex-shrink-0"
                           >
                             <AppTooltip content="Expand sidebar (Alt+B)">
-                              <Button variant="bare" size="bare"
+                              <Button
+                                variant="bare"
+                                size="bare"
                                 type="button"
                                 onClick={unfoldSidebar}
                                 aria-label="Expand sidebar"
                                 aria-keyshortcuts="Alt+B"
-                                className="group relative touch-manipulation inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                                className="group relative touch-manipulation inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-transparent text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 hover:border-obsidian-border hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                               >
                                 <NavIcon icon={PanelLeft} />
                               </Button>
@@ -567,7 +573,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                     <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2">
                       <GlobalSearchLauncher compact={isHeaderCompact || !isHeaderWide} />
 
-                      {!isHeaderNarrow && (
+                      {!isHeaderNarrow ? (
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <AiCommandLauncher
                             open={guruOpen}
@@ -577,21 +583,26 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                           />
                           <NotificationCenter />
                           <ThemeToggle />
+                          <span aria-hidden="true" className="mx-0.5 hidden h-4 w-px bg-obsidian-border sm:block" />
                           <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
                         </div>
+                      ) : (
+                        <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
                       )}
 
                       {/* ── 4. Mobile / Compact Menu Toggle (When header is narrow or mobile) ───── */}
                       {isHeaderNarrow && (
                         <AppTooltip content={mobileMenuOpen ? "Close menu" : "Open menu"}>
-                          <Button variant="bare" size="bare"
+                          <Button
+                            variant="bare"
+                            size="bare"
                             type="button"
                             onClick={() => setMobileMenuOpen((open) => !open)}
                             id="header-navigation-toggle"
                             aria-label="Toggle navigation menu"
                             aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
                             aria-expanded={mobileMenuOpen}
-                            className="header-menu-btn touch-manipulation inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 [&_svg]:text-slate-500 dark:[&_svg]:text-slate-400 transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 hover:[&_svg]:text-slate-900 dark:hover:[&_svg]:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                            className="header-menu-btn touch-manipulation inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent bg-transparent text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 hover:border-obsidian-border hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                           >
                             <NavIcon icon={mobileMenuOpen ? X : Menu} />
                           </Button>
@@ -608,6 +619,8 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                         onClose={closeMobileMenu}
                         onOpenLibrary={() => setMobileLibraryOpen(true)}
                         onToggleGuru={toggleGuruPanel}
+                        onToggleTheme={toggleTheme}
+                        isDark={theme === "dark"}
                       />
                     )}
                   </AnimatePresence>
@@ -802,6 +815,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                 <MobileNav
                   onMore={() => setMobileMenuOpen(true)}
                   moreActive={mobileMoreActive}
+                  moreOpen={mobileMenuOpen}
                 />
               )}
             </AnimatePresence>

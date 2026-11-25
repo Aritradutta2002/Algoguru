@@ -167,4 +167,19 @@ describe("WorkspaceDemoSection tabs", () => {
       "demo-panel-solution",
     );
   });
+
+  it("syncs left-column workflow steps with the active demo panel and preserves solver link", async () => {
+    render(<WorkspaceDemoSection />);
+
+    const testsStep = screen.getByRole("button", { name: /03\s*Tests/i });
+    fireEvent.click(testsStep);
+
+    expect(testsStep).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("tab", { name: "Tests" })).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("tabpanel", { name: "Tests" })).toHaveTextContent("Test suite");
+    expect(screen.getByRole("link", { name: /try in solver/i })).toHaveAttribute(
+      "href",
+      "/problem-solver",
+    );
+  });
 });
