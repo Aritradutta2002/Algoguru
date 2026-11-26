@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import type { ImperativePanelHandle } from "react-resizable-panels";
@@ -25,10 +26,12 @@ import { AppTooltip } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { NavIcon } from "@/components/layout/NavIcon";
 import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
 import { GuruAvatar } from "@/components/brand/GuruMark";
 import { BrandLoader } from "@/components/brand/BrandLoader";
+import { SurfaceLockup } from "@/components/brand/SurfaceLockup";
 import { SupportModal } from "@/components/SupportModal";
 import { Footer } from "@/components/Footer";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -38,6 +41,7 @@ import { GlobalSearchLauncher } from "@/components/layout/GlobalSearchLauncher";
 import { PageSkeleton } from "@/components/layout/RouteFallback";
 import { MobileNav } from "@/components/layout/MobileNav";
 import {
+  HOME_SECTION_LINKS,
   PrimaryNavigation,
   MobileNavigationMenu,
   isNavActive,
@@ -201,6 +205,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const isSmallScreen = useMediaQuery("(max-width: 767px)");
   const { theme, toggleTheme } = useSettings();
+  const { user } = useAuth();
 
   // On the home page the left sidebar panel is hidden by default (including
   // its fold/unfold handle). It only becomes visible when the user clicks the
@@ -289,7 +294,8 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     return () => observer.disconnect();
   }, []);
 
-  const isHeaderNarrow = isSmallScreen || (headerWidth > 0 && headerWidth < 680);
+  const isHeaderNarrow =
+    isSmallScreen || (headerWidth > 0 && headerWidth < (isHomeRoute ? 850 : 680));
   const isHeaderCompact = isSmallScreen || (headerWidth > 0 && headerWidth < 980);
   const isHeaderWide = !isSmallScreen && headerWidth >= 1280;
 
@@ -297,6 +303,10 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     setMobileMenuOpen(false);
     setMobileLibraryOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isHeaderNarrow && !isMobile) closeMobileMenu();
+  }, [closeMobileMenu, isHeaderNarrow, isMobile]);
 
   const handleContentScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
     const target = event.currentTarget;
@@ -447,7 +457,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
             Skip to content
           </a>
           <div
-            className="flex h-[100dvh] w-full overflow-hidden"
+            className="fixed inset-0 flex h-[100dvh] w-full overflow-clip"
             style={{ background: "hsl(var(--background))" }}
           >
             {/* ── Sidebar + Content split ── */}
@@ -518,17 +528,14 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                 className="flex flex-col min-h-0"
               >
                 <SpotlightNavbar
+                  data-narrow={isHeaderNarrow ? "true" : undefined}
                   data-scrolled={headerScrolled ? "true" : undefined}
                   data-route={pathname === "/" ? "home" : undefined}
-                  className={cn(
-                    "app-header sticky top-0 z-50 h-16 shrink-0",
-                    headerScrolled &&
-                      "border-obsidian-border bg-obsidian-void/92 shadow-[0_1px_0_0_hsl(var(--obsidian-border)),0_12px_32px_-20px_rgba(15,23,42,0.14)] dark:shadow-[0_1px_0_0_hsl(var(--obsidian-border)),0_16px_40px_-22px_rgba(0,0,0,0.8)]",
-                  )}
+                  className="ag-theme ag-header app-header sticky top-0 z-50 h-16 shrink-0"
                 >
                   <div
                     ref={headerContainerRef}
-                    className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-2 sm:gap-3 px-4 sm:px-6"
+                      className="ag-header__inner mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-2 sm:gap-3"
                   >
                     {/* ── 1. Logo / Workspace Block ───── */}
                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -559,12 +566,25 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                         )}
                       </AnimatePresence>
 
-                      <WorkspaceSwitcher compact={isHeaderCompact} />
+                      {isHomeRoute && !user ? (
+                        <Link href="/" aria-label="AlgoGuru home" className="ag-header__mark">
+                          <SurfaceLockup />
+                        </Link>
+                      ) : (
+                        <WorkspaceSwitcher compact={isHeaderCompact} />
+                      )}
                     </div>
 
                     {/* ── 2. Primary Navigation (Dynamic responsive with More dropdown) ───── */}
-                    {!isHeaderNarrow && (
-                      <div className="flex h-full items-center justify-center min-w-0 flex-1 px-1 sm:px-2">
+                    {isHomeRoute ? (
+                      <nav aria-label="Home navigation" className="ag-header__home-links">
+                        {HOME_SECTION_LINKS.map(({ label, path }) => (
+                          <a key={path} href={path}>{label}</a>
+                        ))}
+                        <Link href="/interview">Interview hub</Link>
+                      </nav>
+                    ) : (
+                      <div className="ag-header__workspace-nav flex h-full items-center justify-center min-w-0 flex-1 px-1 sm:px-2">
                         <PrimaryNavigation pathname={pathname} />
                       </div>
                     )}
@@ -573,8 +593,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                     <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2">
                       <GlobalSearchLauncher compact={isHeaderCompact || !isHeaderWide} />
 
-                      {!isHeaderNarrow ? (
-                        <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="ag-header__wide-tools flex items-center gap-1.5 sm:gap-2">
                           <AiCommandLauncher
                             open={guruOpen}
                             embedded={isProblemSolverRoute}
@@ -584,14 +603,10 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                           <NotificationCenter />
                           <ThemeToggle />
                           <span aria-hidden="true" className="mx-0.5 hidden h-4 w-px bg-obsidian-border sm:block" />
-                          <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
                         </div>
-                      ) : (
-                        <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
-                      )}
+                      <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
 
                       {/* ── 4. Mobile / Compact Menu Toggle (When header is narrow or mobile) ───── */}
-                      {isHeaderNarrow && (
                         <AppTooltip content={mobileMenuOpen ? "Close menu" : "Open menu"}>
                           <Button
                             variant="bare"
@@ -602,12 +617,11 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                             aria-label="Toggle navigation menu"
                             aria-controls={mobileMenuOpen ? "header-navigation-menu" : undefined}
                             aria-expanded={mobileMenuOpen}
-                            className="header-menu-btn touch-manipulation inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent bg-transparent text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 hover:border-obsidian-border hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                            className="ag-header__menu-toggle header-menu-btn touch-manipulation inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent bg-transparent text-muted-foreground [&_svg]:text-muted-foreground transition-colors duration-150 hover:border-obsidian-border hover:bg-foreground/[0.05] hover:text-foreground hover:[&_svg]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                           >
                             <NavIcon icon={mobileMenuOpen ? X : Menu} />
                           </Button>
                         </AppTooltip>
-                      )}
                     </div>
                   </div>
 
@@ -632,7 +646,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                   >
                     <div
                       ref={scrollProgressRef}
-                      className="route-progress h-full w-full bg-primary"
+                      className="ag-header__progress route-progress h-full w-full"
                       style={{ transform: "scaleX(0)" }}
                     />
                   </div>

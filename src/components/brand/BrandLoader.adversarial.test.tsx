@@ -340,7 +340,7 @@ describe("Adversarial Stress Test: Reduced Motion Styles in brand.css", () => {
       ".agl__plate",
       ".agl__sweep",
       ".agl__meter-bar",
-      ".agl-screen__dot",
+      ".agl-screen__trace",
       ".agl-skeleton::after",
     ];
 

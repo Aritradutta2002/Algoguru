@@ -1,7 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
-
 export type CodeToken = {
   text: string;
   className?: string;
@@ -9,16 +7,11 @@ export type CodeToken = {
 
 export function CodeLine({
   tokens,
-  index,
 }: {
   tokens: CodeToken[];
-  index?: number;
 }) {
   return (
-    <span
-      className="hero-code-line"
-      style={index === undefined ? undefined : ({ "--i": index } as CSSProperties)}
-    >
+    <span className="hero-code-line">
       {tokens.map((token, tokenIndex) => (
         <span key={tokenIndex} className={token.className}>
           {token.text}
@@ -33,6 +26,10 @@ export function CodeLine({
  * shipping a highlighter.
  */
 export const TWO_SUM_LINES: CodeToken[][] = [
+  [
+    { text: "import", className: "tok-k" },
+    { text: " java.util.*;" },
+  ],
   [
     { text: "class", className: "tok-k" },
     { text: " " },

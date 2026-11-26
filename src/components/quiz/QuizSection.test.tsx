@@ -28,7 +28,7 @@ describe("QuizSection", () => {
 
   it("is branded as the Contest MCQ mode rather than a separate Studio", () => {
     renderSection();
-    expect(screen.getByText(/Contest · MCQ Quiz/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Contest MCQ Quiz" })).toBeInTheDocument();
   });
 
   it("sends the main call to action to the Contest landing page", () => {

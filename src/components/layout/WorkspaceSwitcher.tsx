@@ -19,7 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AlgoGuruMark } from "@/components/brand/AlgoGuruMark";
+import { SurfaceLockup } from "@/components/brand/SurfaceLockup";
 import { cn } from "@/lib/utils";
 import { NavIcon } from "./NavIcon";
 
@@ -105,11 +105,7 @@ export function WorkspaceSwitcher({ className, compact = false }: WorkspaceSwitc
         aria-label="AlgoGuru Home"
         className="group inline-flex h-9 items-center gap-2 rounded-lg px-1.5 text-foreground transition-opacity duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian-void select-none"
       >
-        <AlgoGuruMark size={24} title={null} className="shrink-0" />
-        <span className="flex items-baseline text-[15px] font-semibold leading-none tracking-[-0.025em] text-foreground">
-          <span>Algo</span>
-          <span>Guru</span>
-        </span>
+        <SurfaceLockup />
       </Link>
 
       {/* Crisp Diagonal Slash Divider */}

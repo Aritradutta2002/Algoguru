@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { ArrowUpRight, Check, Code2, FileText, FlaskConical } from "lucide-react";
-import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EASE_OUT } from "@/lib/motion";
@@ -48,14 +47,13 @@ export function WorkspaceDemoSection() {
   return (
     <section id="demo" aria-labelledby="demo-heading" className="lp-band lp-section">
       <div className="lp-container lp-split">
-        <Reveal className="lg:sticky lg:top-24">
-          <p className="lp-kicker">Interactive workspace</p>
-          <h2 id="demo-heading" className="lp-h2 mt-3">
-            The whole loop, in one window.
+        <div className="lg:sticky lg:top-24">
+          <h2 id="demo-heading" className="lp-h2">
+            From problem to solution, one step at a time.
           </h2>
           <p className="lp-lead mt-4 max-w-md">
-            Read the problem, study the solution and run the tests without
-            switching tabs or setting up a local environment.
+            Walk through Valid Parentheses, then inspect the annotated Java solution
+            and sample test cases.
           </p>
 
           <ul className="mt-10 max-w-md border-y border-obsidian-border lp-list">
@@ -102,100 +100,98 @@ export function WorkspaceDemoSection() {
               );
             })}
           </ul>
-        </Reveal>
+        </div>
 
-        <Reveal delay={0.06}>
-          <div className="lp-frame">
-            <div className="lp-frame-bar">
-              <div className="flex items-center gap-1.5" aria-hidden="true">
-                <span className="lp-dot" />
-                <span className="lp-dot" />
-                <span className="lp-dot" />
-              </div>
-              <p className="ml-2 min-w-0 truncate text-[12.5px] text-muted-foreground">
-                Stack
-                <span className="mx-1.5 text-muted-foreground/50" aria-hidden="true">/</span>
-                <span className="font-medium text-foreground">{DEMO_SESSION.title}</span>
-              </p>
-              <div className="ml-auto flex shrink-0 items-center gap-2">
-                <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
-                  O(n) time · O(n) space
-                </span>
-                <span className="lp-chip hidden sm:inline-flex">Interactive demo</span>
-              </div>
+        <div className="lp-frame">
+          <div className="lp-frame-bar">
+            <div className="flex items-center gap-1.5" aria-hidden="true">
+              <span className="lp-dot" />
+              <span className="lp-dot" />
+              <span className="lp-dot" />
+            </div>
+            <p className="ml-2 min-w-0 truncate text-[12.5px] text-muted-foreground">
+              Stack
+              <span className="mx-1.5 text-muted-foreground/50" aria-hidden="true">/</span>
+              <span className="font-medium text-foreground">{DEMO_SESSION.title}</span>
+            </p>
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
+                O(n) time · O(n) space
+              </span>
+              <span className="lp-chip hidden sm:inline-flex">Interactive demo</span>
+            </div>
+          </div>
+
+          <Tabs
+            value={active}
+            onValueChange={(value) => setActive(value as DemoTabId)}
+            className="contents"
+          >
+            <div className="flex items-center justify-between border-b border-obsidian-border px-2 sm:px-3">
+              <TabsList
+                aria-label="Workspace demo views"
+                className="h-auto flex items-center justify-start gap-1 rounded-none border-b-0 bg-transparent p-0"
+              >
+                {DEMO_TABS.map((tab) => {
+                  const Icon = TAB_ICONS[tab.id];
+
+                  return (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      id={`demo-tab-${tab.id}`}
+                      aria-controls={`demo-panel-${tab.id}`}
+                      className="lp-tab h-auto rounded-none px-3.5 py-0 text-[13px] focus-visible:-outline-offset-2 data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none [&_svg]:shrink-0"
+                    >
+                      <Icon size={14} aria-hidden="true" />
+                      <span>{tab.label}</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+
+              <Link
+                href="/problem-solver"
+                className="hidden items-center gap-1 px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+              >
+                Try in solver
+                <ArrowUpRight size={13} aria-hidden="true" />
+              </Link>
             </div>
 
-            <Tabs
-              value={active}
-              onValueChange={(value) => setActive(value as DemoTabId)}
-              className="contents"
-            >
-              <div className="flex items-center justify-between border-b border-obsidian-border px-2 sm:px-3">
-                <TabsList
-                  aria-label="Workspace demo views"
-                  className="h-auto flex items-center justify-start gap-1 rounded-none border-b-0 bg-transparent p-0"
+            <div className="p-5 sm:p-7">
+              {reduceMotion ? (
+                <div
+                  role="tabpanel"
+                  id={`demo-panel-${active}`}
+                  aria-labelledby={`demo-tab-${active}`}
+                  tabIndex={0}
+                  className="demo-pane"
                 >
-                  {DEMO_TABS.map((tab) => {
-                    const Icon = TAB_ICONS[tab.id];
-
-                    return (
-                      <TabsTrigger
-                        key={tab.id}
-                        value={tab.id}
-                        id={`demo-tab-${tab.id}`}
-                        aria-controls={`demo-panel-${tab.id}`}
-                        className="lp-tab h-auto rounded-none px-3.5 py-0 text-[13px] focus-visible:-outline-offset-2 data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none [&_svg]:shrink-0"
-                      >
-                        <Icon size={14} aria-hidden="true" />
-                        <span>{tab.label}</span>
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
-
-                <Link
-                  href="/problem-solver"
-                  className="hidden items-center gap-1 px-2 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-                >
-                  Try in solver
-                  <ArrowUpRight size={13} aria-hidden="true" />
-                </Link>
-              </div>
-
-              <div className="p-5 sm:p-7">
-                {reduceMotion ? (
-                  <div
+                  {panel}
+                </div>
+              ) : (
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={active}
                     role="tabpanel"
                     id={`demo-panel-${active}`}
                     aria-labelledby={`demo-tab-${active}`}
                     tabIndex={0}
+                    variants={PANE_VARIANTS}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={PANE_TRANSITION}
                     className="demo-pane"
                   >
                     {panel}
-                  </div>
-                ) : (
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={active}
-                      role="tabpanel"
-                      id={`demo-panel-${active}`}
-                      aria-labelledby={`demo-tab-${active}`}
-                      tabIndex={0}
-                      variants={PANE_VARIANTS}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                      transition={PANE_TRANSITION}
-                      className="demo-pane"
-                    >
-                      {panel}
-                    </motion.div>
-                  </AnimatePresence>
-                )}
-              </div>
-            </Tabs>
-          </div>
-        </Reveal>
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </div>
+          </Tabs>
+        </div>
       </div>
     </section>
   );
@@ -306,7 +302,7 @@ function TestsPane({ reduceMotion }: { reduceMotion: boolean | null }) {
         <div className="flex items-center gap-3">
           <p className="text-[14px] font-medium text-foreground">Test suite</p>
           <span className="hidden font-mono text-[11.5px] text-muted-foreground sm:inline">
-            Avg 0.3 ms · Beats 98.4%
+            Sample results
           </span>
         </div>
         <span className="lp-chip lp-chip-success">

@@ -35,8 +35,7 @@ describe("WorkspaceSwitcher", () => {
     render(<WorkspaceSwitcher />);
 
     expect(screen.getByRole("button", { name: /current workspace: algoguru personal/i })).toBeInTheDocument();
-    expect(screen.getByText("Algo")).toBeInTheDocument();
-    expect(screen.getByText("Guru")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "AlgoGuru Home" })).toHaveAttribute("href", "/");
     expect(screen.getByText("Personal")).toBeInTheDocument();
   });
 
@@ -129,4 +128,3 @@ describe("WorkspaceSwitcher", () => {
     expect(screen.getByText("Owner")).toBeInTheDocument();
   });
 });
-

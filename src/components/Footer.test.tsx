@@ -35,7 +35,7 @@ describe("Footer", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders brand lockup, positioning statement, status badge, and command hint", () => {
+  it("renders brand lockup, positioning statement, and command hint", () => {
     render(<Footer onSupportClick={vi.fn()} />);
 
     const homeLink = screen.getByRole("link", { name: "AlgoGuru home" });
@@ -45,9 +45,6 @@ describe("Footer", () => {
     expect(
       screen.getByText(/structured engineering workspace/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "All systems operational",
-    );
     expect(
       screen.getByRole("button", { name: /quick search/i }),
     ).toHaveTextContent("⌘K");

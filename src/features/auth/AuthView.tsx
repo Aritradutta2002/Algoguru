@@ -3,29 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
 import {
   AlertCircle,
   ArrowLeft,
-  BrainCircuit,
   Check,
-  Clock,
   Eye,
   EyeOff,
-  KeyRound,
-  Layers,
   Loader2,
   Lock,
-  Moon,
-  ShieldCheck,
-  Sparkles,
-  Sun,
-  Trophy,
 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSettings } from "@/contexts/SettingsContext";
 import { getAuthRedirectUrl, sanitizeRedirectPath } from "@/lib/authUrl";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -33,8 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AppTooltip } from "@/components/ui/tooltip";
-import { AlgoGuruLockup } from "@/components/brand/AlgoGuruLockup";
+import { AuthIllustration, AuthSurfaceHeader } from "./AuthSurface";
 
 type AuthMode = "login" | "signup" | "forgot";
 
@@ -69,30 +57,6 @@ const PASSWORD_RULES = [
   { label: "Uppercase", test: (value: string) => /[A-Z]/.test(value) },
   { label: "Lowercase", test: (value: string) => /[a-z]/.test(value) },
   { label: "Number", test: (value: string) => /[0-9]/.test(value) },
-] as const;
-
-const DSA_SHEETS = [
-  { name: "Arrays & Hashing", progress: "42 / 50", pct: 84, tag: "Core" },
-  { name: "Sliding Window", progress: "18 / 24", pct: 75, tag: "Pattern" },
-  { name: "System Design Paths", progress: "14 / 20", pct: 70, tag: "Arch" },
-] as const;
-
-const SHOWCASE_PILLARS = [
-  {
-    icon: Layers,
-    title: "Interactive DSA sheets",
-    body: "Pattern-indexed tracks with difficulty coverage and instant test execution.",
-  },
-  {
-    icon: BrainCircuit,
-    title: "Guru AI tutor",
-    body: "Step-by-step reasoning hints that sharpen intuition without spoiling the solve.",
-  },
-  {
-    icon: Trophy,
-    title: "Timed coding contests",
-    body: "Exam-grade 45-minute problem sets with latency and accuracy telemetry.",
-  },
 ] as const;
 
 /* ── Field ─────────────────────────────────────────────────────── */
@@ -147,8 +111,8 @@ function Field({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            "h-10 rounded-lg border-obsidian-border bg-obsidian-elevated px-3.5 text-sm text-foreground shadow-[inset_0_1px_0_hsl(var(--obsidian-specular))] transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/60 hover:border-foreground/20 focus-visible:border-primary focus-visible:bg-obsidian-pane focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-0 md:text-sm",
-            rightSlot && "pr-10",
+            "ag-auth__input",
+            rightSlot && "pr-12",
             error &&
               "border-destructive/80 hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/25",
           )}
@@ -201,7 +165,6 @@ function GoogleIcon() {
 export function AuthView() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const reduceMotion = useReducedMotion();
 
   const redirectTarget = sanitizeRedirectPath(
     searchParams.get("redirect") ?? searchParams.get("next"),
@@ -233,7 +196,6 @@ export function AuthView() {
   const redirectedRef = useRef(false);
 
   const { session } = useAuth();
-  const { theme, toggleTheme } = useSettings();
 
   const isLogin = mode === "login";
   const isSignup = mode === "signup";
@@ -395,8 +357,8 @@ export function AuthView() {
   const headingDescription = isForgot
     ? "Enter your account email and we will send a secure recovery link."
     : isLogin
-      ? "Resume your DSA sheets, Guru AI sessions, and contest streaks."
-      : "Start tracking structured DSA tracks, system design paths, and timed contests.";
+      ? "Pick up where you left off in your interview prep."
+      : "Save your practice progress, study notes, and contest results in one place.";
 
   const submitLabel = loading
     ? isForgot
@@ -413,74 +375,15 @@ export function AuthView() {
           : "Create account";
 
   return (
-    <main className="grid min-h-[100dvh] w-full bg-obsidian-void text-foreground lg:grid-cols-[minmax(0,1fr)_minmax(0,1.06fr)]">
-      {/* ── Left Column: Authentication Workspace ─────────────────── */}
-      <section
-        aria-label="Authentication"
-        className="relative flex min-h-[100dvh] flex-col justify-between px-5 py-6 sm:px-10 md:px-14 lg:px-16"
-      >
-        {/* Top chrome bar */}
-        <header className="mx-auto flex w-full max-w-[420px] items-center justify-between gap-3">
-          <Link
-            href="/"
-            aria-label="AlgoGuru home"
-            className="inline-flex items-center rounded-lg py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <AlgoGuruLockup size={28} title={null} />
-            <span className="sr-only">AlgoGuru</span>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-obsidian-border bg-obsidian-pane px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <ArrowLeft size={13} aria-hidden="true" />
-              <span>Back to home</span>
-            </Link>
-            <AppTooltip
-              content={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                onClick={toggleTheme}
-                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-                className="h-8 w-8 rounded-lg border-obsidian-border bg-obsidian-pane text-muted-foreground hover:text-foreground"
-              >
-                {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-              </Button>
-            </AppTooltip>
-          </div>
-        </header>
-
-        {/* Centered form block */}
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto my-auto w-full max-w-[420px] py-10"
-        >
+    <main className="ag-auth__layout">
+      <section aria-label="Authentication" className="ag-auth__main">
+        <AuthSurfaceHeader returnHref="/" returnLabel="Back to home" />
+        <div className="ag-auth__form">
           <div className="mb-6">
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-obsidian-border bg-obsidian-pane px-2.5 py-1 text-[11px] font-medium text-primary">
-              {isForgot ? (
-                <KeyRound size={12} aria-hidden="true" />
-              ) : (
-                <ShieldCheck size={12} aria-hidden="true" />
-              )}
-              <span>
-                {isForgot
-                  ? "Account recovery"
-                  : isLogin
-                    ? "Workspace access"
-                    : "Start free workspace"}
-              </span>
-            </p>
-            <h1 className="mt-3.5 text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">
+            <h1 className="ag-auth__title">
               {headingTitle}
             </h1>
-            <p className="mt-1.5 text-[13.5px] leading-6 text-muted-foreground">
+            <p className="ag-auth__description">
               {headingDescription}
             </p>
           </div>
@@ -495,16 +398,14 @@ export function AuthView() {
                 }
                 className="mb-5"
               >
-                <TabsList className="grid h-10 w-full grid-cols-2 rounded-lg border border-obsidian-border bg-obsidian-elevated p-1">
+                <TabsList aria-label="Account access" className="ag-auth__switch grid grid-cols-2">
                   <TabsTrigger
                     value="login"
-                    className="rounded-md py-1.5 text-xs font-medium text-muted-foreground transition-all data-[state=active]:border data-[state=active]:border-obsidian-border data-[state=active]:bg-obsidian-pane data-[state=active]:text-foreground data-[state=active]:shadow-soft"
                   >
                     Sign in
                   </TabsTrigger>
                   <TabsTrigger
                     value="signup"
-                    className="rounded-md py-1.5 text-xs font-medium text-muted-foreground transition-all data-[state=active]:border data-[state=active]:border-obsidian-border data-[state=active]:bg-obsidian-pane data-[state=active]:text-foreground data-[state=active]:shadow-soft"
                   >
                     Create account
                   </TabsTrigger>
@@ -517,7 +418,7 @@ export function AuthView() {
                 variant="outline"
                 onClick={handleGoogleSignIn}
                 disabled={isDisabled}
-                className="h-10 w-full gap-2.5 rounded-lg border-obsidian-border bg-obsidian-pane text-[13px] font-medium text-foreground shadow-soft hover:border-foreground/20 hover:bg-obsidian-elevated"
+                className="ag-auth__google"
               >
                 <GoogleIcon />
                 <span>Continue with Google</span>
@@ -525,7 +426,7 @@ export function AuthView() {
 
               <div className="my-5 flex items-center gap-3" aria-hidden="true">
                 <div className="h-px flex-1 bg-obsidian-border" />
-                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80">
+                <span className="text-xs font-medium text-muted-foreground">
                   or with email
                 </span>
                 <div className="h-px flex-1 bg-obsidian-border" />
@@ -533,7 +434,7 @@ export function AuthView() {
             </>
           )}
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4" aria-busy={loading}>
             {isSignup && (
               <Field
                 id="auth-name"
@@ -711,14 +612,15 @@ export function AuthView() {
 
             <Button
               type="submit"
-              variant="accent"
+              variant="bare"
+              size="bare"
               disabled={isDisabled}
-              className="mt-1 h-10 w-full rounded-lg text-sm font-medium shadow-soft"
+              className="ag-button ag-button--primary mt-1 w-full"
             >
               {loading && (
                 <Loader2
                   size={15}
-                  className="animate-spin"
+                  className="motion-safe:animate-spin"
                   aria-hidden="true"
                 />
               )}
@@ -753,10 +655,10 @@ export function AuthView() {
               </Button>
             </p>
           )}
-        </motion.div>
+        </div>
 
         {/* Security / session trust footer */}
-        <footer className="mx-auto flex w-full max-w-[420px] flex-wrap items-center justify-between gap-2 border-t border-obsidian-border pt-4 text-[11px] text-muted-foreground">
+        <footer className="ag-auth__footer">
           <span className="inline-flex items-center gap-1.5">
             <Lock size={11} className="text-primary/80" aria-hidden="true" />
             <span>PKCE &amp; TLS encrypted session</span>
@@ -778,166 +680,7 @@ export function AuthView() {
         </footer>
       </section>
 
-      {/* ── Right Column: Editorial Dark Product Showcase (lg+) ───── */}
-      <aside
-        aria-label="AlgoGuru workspace highlights"
-        className="relative hidden overflow-hidden border-l border-obsidian-border bg-[#080A0F] px-10 py-12 text-slate-100 lg:flex lg:flex-col lg:justify-between xl:px-14"
-      >
-        {/* Subtle atmospheric grid & top cobalt radiance */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 75% 50% at 50% 0%, rgba(59, 130, 246, 0.16), transparent 70%), linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
-            backgroundSize: "100% 100%, 48px 48px, 48px 48px",
-          }}
-        />
-
-        <div className="relative z-10 mx-auto flex w-full max-w-[540px] flex-1 flex-col justify-center">
-          <div className="mb-7">
-            <p className="inline-flex items-center gap-2 text-xs font-medium text-blue-400">
-              <Sparkles size={13} aria-hidden="true" />
-              <span>Engineering Prep Workspace</span>
-            </p>
-            <h2 className="mt-3 text-[1.85rem] font-semibold leading-[1.15] tracking-[-0.03em] text-white xl:text-[2.1rem]">
-              Structured mastery, built for real technical interviews.
-            </h2>
-            <p className="mt-3 max-w-md text-[13.5px] leading-6 text-slate-400">
-              Your DSA sheet progress, Guru AI hints, and timed coding contest
-              history stay synchronized across every session.
-            </p>
-          </div>
-
-          {/* Product Preview Window */}
-          <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#0D1017] shadow-[0_24px_70px_-24px_rgba(0,0,0,0.85)]">
-            {/* Window chrome */}
-            <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#121620] px-4 py-2.5">
-              <div className="flex items-center gap-1.5" aria-hidden="true">
-                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-                <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-              </div>
-              <span className="truncate font-mono text-[11px] text-slate-400">
-                workspace / dsa-sheets · guru-ai
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10.5px] font-medium text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Synced
-              </span>
-            </div>
-
-            <div className="space-y-4 p-4 sm:p-5">
-              {/* Interactive DSA Sheets Progress */}
-              <div>
-                <div className="mb-2.5 flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Interactive DSA Sheets
-                  </span>
-                  <span className="font-mono text-[11px] text-blue-400">
-                    74 / 94 solved
-                  </span>
-                </div>
-                <div className="space-y-2.5">
-                  {DSA_SHEETS.map((sheet) => (
-                    <div
-                      key={sheet.name}
-                      className="rounded-lg border border-white/[0.07] bg-white/[0.025] px-3 py-2.5"
-                    >
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-slate-100">
-                            {sheet.name}
-                          </span>
-                          <span className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
-                            {sheet.tag}
-                          </span>
-                        </div>
-                        <span className="font-mono text-[11px] tabular-nums text-slate-300">
-                          {sheet.progress}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
-                          style={{ width: `${sheet.pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Guru AI Tutor snippet + Timed Contest telemetry */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-violet-400/20 bg-violet-500/[0.07] p-3">
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-violet-300">
-                    <BrainCircuit size={13} aria-hidden="true" />
-                    <span>Guru AI Hint</span>
-                  </div>
-                  <p className="mt-1.5 text-[11.5px] leading-relaxed text-slate-300">
-                    &ldquo;Track seen complements in a single HashMap pass to
-                    drop lookup from{" "}
-                    <code className="rounded bg-white/[0.08] px-1 py-0.5 font-mono text-[10.5px] text-violet-200">
-                      O(n²)
-                    </code>{" "}
-                    to{" "}
-                    <code className="rounded bg-white/[0.08] px-1 py-0.5 font-mono text-[10.5px] text-violet-200">
-                      O(n)
-                    </code>
-                    .&rdquo;
-                  </p>
-                </div>
-
-                <div className="flex flex-col justify-between rounded-lg border border-white/[0.08] bg-white/[0.025] p-3">
-                  <div className="flex items-center justify-between text-[11px] font-medium text-slate-300">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock size={12} className="text-amber-400" aria-hidden="true" />
-                      Timed Contest
-                    </span>
-                    <span className="font-mono text-emerald-400">12 / 12 pass</span>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/[0.07] pt-2.5">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
-                        Runtime
-                      </p>
-                      <p className="font-mono text-sm font-semibold text-white">
-                        0.2 ms
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
-                        Streak
-                      </p>
-                      <p className="font-mono text-sm font-semibold text-white">
-                        14 days
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3-pillar summary */}
-          <ul className="mt-7 space-y-3.5">
-            {SHOWCASE_PILLARS.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/[0.1] bg-white/[0.04] text-blue-400">
-                  <Icon size={14} aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="text-xs font-medium text-slate-100">{title}</p>
-                  <p className="mt-0.5 text-xs leading-5 text-slate-400">
-                    {body}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside>
+      <AuthIllustration />
     </main>
   );
 }

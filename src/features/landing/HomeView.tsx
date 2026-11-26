@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuizSection } from "@/components/quiz/QuizSection";
-import { Reveal } from "@/components/motion/Reveal";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { PlatformBentoSection } from "@/components/landing/PlatformBentoSection";
 import { WorkspaceDemoSection } from "@/components/landing/WorkspaceDemoSection";
@@ -86,7 +85,6 @@ const SECTIONS = [
     tag: "Java theory",
     topics: "JVM · GC · Reflection",
     route: "/java-advanced",
-    stats: "9 deep topics",
   },
   {
     id: "interview",
@@ -96,7 +94,6 @@ const SECTIONS = [
     tag: "Practice",
     topics: "Company & topic filters",
     route: "/practice",
-    stats: "500+ questions",
   },
   {
     id: "codechef",
@@ -106,7 +103,6 @@ const SECTIONS = [
     tag: "Playlist",
     topics: "Sliding window · Graphs · DP",
     route: "/arrays",
-    stats: "Pattern-wise problems",
   },
   {
     id: "leetcode",
@@ -116,7 +112,6 @@ const SECTIONS = [
     tag: "Architecture",
     topics: "Caches · Queues · Sharding",
     route: "/interview/java/system-design",
-    stats: "4 learning paths",
   },
   {
     id: "interview-prep",
@@ -126,7 +121,6 @@ const SECTIONS = [
     tag: "Experiences",
     topics: "Round-by-round debriefs",
     route: "/interview",
-    stats: "Real interview stories",
   },
   {
     id: "daily-challenge",
@@ -136,7 +130,6 @@ const SECTIONS = [
     tag: "Today",
     topics: "Daily prompt & Java runner",
     route: "/problem-solver",
-    stats: "Updated daily",
   },
 ] as const;
 
@@ -181,7 +174,7 @@ export function HomeView() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="landing-page relative min-h-screen overflow-hidden text-foreground selection:bg-primary/20">
+      <div className="ag-theme landing-page relative min-h-screen">
         <HeroSection
           onExplore={() => scrollToSection("modules")}
           onQuiz={() => scrollToSection("quiz")}
@@ -208,13 +201,12 @@ export function HomeView() {
         </section>
 
         {/* ── LEARNING PATHS ───────────────────────────────────────────── */}
-        <section id="modules" aria-labelledby="modules-heading" className="lp-section">
+        <section id="modules" tabIndex={-1} aria-labelledby="modules-heading" className="lp-section">
           <div className="lp-container">
-            <Reveal className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+            <div className="ag-section-heading">
               <div className="max-w-2xl">
-                <p className="lp-kicker">Learning paths</p>
-                <h2 id="modules-heading" className="lp-h2 mt-3">
-                  Choose where to focus next.
+                <h2 id="modules-heading" className="lp-h2">
+                  One goal. Six ways to prepare.
                 </h2>
                 <p className="lp-lead mt-4 max-w-xl">
                   Concise, practical material built around the skills real interviews
@@ -232,55 +224,28 @@ export function HomeView() {
                 <PanelLeft size={15} aria-hidden="true" />
                 {homeSidebarOpen ? "Hide library panel" : "Open library panel"}
               </Button>
-            </Reveal>
+            </div>
 
-            <Reveal>
-              <ul className="lp-grid">
-                {SECTIONS.map((section, index) => {
-                  const Icon = section.icon;
-                  return (
-                    <li key={section.id} className="lp-cell">
-                      <Link
-                        href={section.route}
-                        className="group flex h-full flex-col p-6 focus-visible:-outline-offset-2 sm:p-7"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="lp-icon">
-                            <Icon size={17} aria-hidden="true" />
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[11px] text-muted-foreground/70">
-                              0{index + 1}
-                            </span>
-                            <span className="lp-chip">{section.tag}</span>
-                          </div>
-                        </div>
-                        <h3 className="mt-6 text-[17px] tracking-[-0.015em] text-foreground">
-                          {section.title}
-                        </h3>
-                        <p className="mt-2 flex-1 text-[14px] leading-6 text-muted-foreground">
-                          {section.desc}
-                        </p>
-                        <p className="mt-4 font-mono text-[11.5px] text-muted-foreground/85">
-                          {section.topics}
-                        </p>
-                        <div className="mt-4 flex items-center justify-between border-t border-obsidian-border pt-4 text-[13px]">
-                          <span className="text-muted-foreground">{section.stats}</span>
-                          <span className="inline-flex items-center gap-1 font-medium text-foreground/85 transition-colors group-hover:text-foreground">
-                            Open
-                            <ArrowRight
-                              size={14}
-                              className="transition-transform duration-200 group-hover:translate-x-0.5"
-                              aria-hidden="true"
-                            />
-                          </span>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Reveal>
+            <ul className="ag-track-list">
+              {SECTIONS.map(({ id, icon: Icon, route, title, desc, tag, topics }) => (
+                <li key={id}>
+                  <Link href={route} className="ag-track">
+                    <span className="ag-track__icon">
+                      <Icon size={17} aria-hidden="true" />
+                    </span>
+                    <div className="ag-track__copy">
+                      <h3>{title}</h3>
+                      <p>{desc}</p>
+                    </div>
+                    <span className="ag-track__meta">
+                      <span>{tag}</span>
+                      {topics}
+                    </span>
+                    <ArrowRight size={18} className="ag-track__arrow" aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
@@ -296,114 +261,109 @@ export function HomeView() {
         {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
         <section
           id="workflow"
+          tabIndex={-1}
           aria-labelledby="how-heading"
           className="lp-section border-t border-obsidian-border"
         >
           <div className="lp-container">
-            <Reveal className="max-w-2xl">
-              <p className="lp-kicker">How it works</p>
-              <h2 id="how-heading" className="lp-h2 mt-3">
+            <div className="max-w-2xl">
+              <h2 id="how-heading" className="lp-h2">
                 A clear plan for every session.
               </h2>
               <p className="lp-lead mt-4 max-w-xl">
                 Move systematically from structured theory to timed execution without
                 guesswork.
               </p>
-            </Reveal>
+            </div>
 
-            <Reveal delay={0.05}>
-              <ol className="mt-12 grid gap-6 md:mt-14 md:grid-cols-3 md:gap-8">
-                {HOW_IT_WORKS.map((step, index) => (
-                  <li
-                    key={step.title}
-                    className="flex flex-col justify-between rounded-xl border border-obsidian-border bg-obsidian-pane p-6"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-[12px] text-[hsl(var(--lp-accent))]">
-                          0{index + 1}
-                        </span>
-                        <span className="lp-chip">{step.phase}</span>
-                      </div>
-                      <h3 className="mt-5 text-[17px] tracking-[-0.015em] text-foreground">
-                        {step.title}
-                      </h3>
-                      <p className="mt-2 text-[14.5px] leading-6 text-muted-foreground">
-                        {step.desc}
-                      </p>
+            <ol className="ag-workflow">
+              {HOW_IT_WORKS.map((step, index) => (
+                <li
+                  key={step.title}
+                    className="ag-workflow__step"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[12px] text-[hsl(var(--lp-accent))]">
+                        0{index + 1}
+                      </span>
+                      <span className="lp-chip">{step.phase}</span>
                     </div>
-                    <p className="mt-6 border-t border-obsidian-border pt-3.5 font-mono text-[11.5px] text-muted-foreground">
-                      Outcome: <span className="text-foreground/85">{step.outcome}</span>
+                    <h3 className="mt-5 text-[17px] tracking-[-0.015em] text-foreground">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-[14.5px] leading-6 text-muted-foreground">
+                      {step.desc}
                     </p>
-                  </li>
-                ))}
-              </ol>
-            </Reveal>
+                  </div>
+                  <p className="mt-6 border-t border-obsidian-border pt-3.5 font-mono text-[11.5px] text-muted-foreground">
+                    Outcome: <span className="text-foreground/85">{step.outcome}</span>
+                  </p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
         {/* ── FINAL CTA ────────────────────────────────────────────────── */}
         <section aria-labelledby="cta-heading" className="pb-24 md:pb-32">
           <div className="lp-container">
-            <Reveal>
-              <div className="lp-cta-panel px-6 py-10 sm:px-10 sm:py-12 lg:px-14">
-                <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="max-w-xl">
-                    <p className="lp-kicker">Ready to start</p>
-                    <h2 id="cta-heading" className="lp-h2 mt-2">
-                      Make your next session count.
-                    </h2>
-                    <p className="lp-lead mt-4">
-                      Pick a structured path and start building interview-ready skill
-                      today. Free to use, no credit card required.
-                    </p>
-                    <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12.5px] text-muted-foreground">
-                      {CONVERSION_ASSURANCES.map((item) => (
-                        <li key={item} className="inline-flex items-center gap-1.5">
-                          <Check size={13} strokeWidth={2.5} className="lp-success" aria-hidden="true" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+            <div className="lp-cta-panel px-6 py-10 sm:px-10 sm:py-12 lg:px-14">
+              <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-xl">
+                  <h2 id="cta-heading" className="lp-h2">
+                    Make your next session count.
+                  </h2>
+                  <p className="lp-lead mt-4">
+                    Pick a structured path and start building interview-ready skill
+                    today. Free to use, no credit card required.
+                  </p>
+                  <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12.5px] text-muted-foreground">
+                    {CONVERSION_ASSURANCES.map((item) => (
+                      <li key={item} className="inline-flex items-center gap-1.5">
+                        <Check size={13} strokeWidth={2.5} className="lp-success" aria-hidden="true" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-                  <div className="lp-hero-actions flex shrink-0 flex-col items-start gap-3 sm:items-end">
-                    <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-                      <Button
-                        variant="bare"
-                        size="bare"
-                        type="button"
-                        onClick={() => scrollToSection("modules")}
-                        className="lp-btn landing-primary group"
-                      >
-                        Start learning free
-                        <ArrowRight
-                          size={16}
-                          className="transition-transform duration-200 group-hover:translate-x-0.5"
-                          aria-hidden="true"
-                        />
-                      </Button>
-                      <Button
-                        variant="bare"
-                        size="bare"
-                        type="button"
-                        onClick={openRoadmap}
-                        className="lp-btn lp-btn-secondary"
-                      >
-                        <MapIcon size={15} aria-hidden="true" />
-                        View roadmap
-                      </Button>
-                    </div>
-                    <Link
-                      href="/auth"
-                      className="lp-link text-[12.5px] text-muted-foreground"
+                <div className="lp-hero-actions flex shrink-0 flex-col items-start gap-3 sm:items-end">
+                  <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+                    <Button
+                      variant="bare"
+                      size="bare"
+                      type="button"
+                      onClick={() => scrollToSection("modules")}
+                      className="lp-btn landing-primary group"
                     >
-                      Already have an account? Sign in
-                    </Link>
+                      Start learning free
+                      <ArrowRight
+                        size={16}
+                        className="transition-transform duration-200 group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
+                    </Button>
+                    <Button
+                      variant="bare"
+                      size="bare"
+                      type="button"
+                      onClick={openRoadmap}
+                      className="lp-btn lp-btn-secondary"
+                    >
+                      <MapIcon size={15} aria-hidden="true" />
+                      View roadmap
+                    </Button>
                   </div>
+                  <Link
+                    href="/auth"
+                    className="lp-link text-[12.5px] text-muted-foreground"
+                  >
+                    Already have an account? Sign in
+                  </Link>
                 </div>
               </div>
-            </Reveal>
+            </div>
           </div>
         </section>
 
@@ -413,7 +373,7 @@ export function HomeView() {
             onClose={() => setRoadmapOpen(false)}
           />
         )}
-      </main>
+      </div>
     </MotionConfig>
   );
 }

@@ -41,7 +41,7 @@ export function MobileNav({ onMore, moreActive, moreOpen = false }: MobileNavPro
       animate={{ opacity: 1, y: 0 }}
       exit={reduceMotion ? undefined : { opacity: 0, y: 16 }}
       transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-      className="mobile-dock nav-glass pointer-events-auto fixed inset-x-3 z-40 mx-auto flex max-w-md items-stretch gap-0.5 rounded-2xl border p-1.5 backdrop-blur-xl backdrop-saturate-150 lg:hidden"
+      className="ag-theme ag-mobile-dock mobile-dock pointer-events-auto fixed inset-x-3 z-40 mx-auto flex max-w-md items-stretch gap-0.5 rounded-2xl border p-1.5 lg:hidden"
     >
       {ITEMS.map((item) => {
         const active = isActive(pathname, item.path);

@@ -15,8 +15,7 @@ describe("AppLoadingScreen", () => {
     const shell = container.querySelector(".agl-screen");
     expect(shell).not.toBeNull();
     expect(shell).toHaveClass("min-h-[100dvh]");
-    expect(container.querySelector(".agl-screen__grid")).toHaveAttribute("aria-hidden", "true");
-    expect(container.querySelector(".agl-screen__aurora")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
   it("supports custom label, sublabel, determinate progress, and className", () => {
@@ -32,9 +31,8 @@ describe("AppLoadingScreen", () => {
     expect(screen.getByText("Restoring your session")).toBeInTheDocument();
     expect(screen.getByText("Verifying workspace tokens")).toBeInTheDocument();
     expect(container.querySelector(".agl-screen")).toHaveClass("custom-loading-screen");
-    expect(container.querySelector(".agl__meter")).toHaveClass("agl__meter--determinate");
-    expect((container.querySelector(".agl__meter-bar") as HTMLElement).style.width).toBe("75%");
-    expect(container.querySelector(".agl__telemetry")).toHaveTextContent("75%");
+    expect(screen.getByRole("progressbar", { name: "Restoring your session" })).toHaveAttribute("value", "75");
+    expect(screen.getByText("75%")).toBeInTheDocument();
   });
 
   it("renders root app/loading.tsx cleanly", () => {

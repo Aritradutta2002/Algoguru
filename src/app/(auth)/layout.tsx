@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+import "@/styles/auth.css";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-[100dvh] bg-obsidian-void text-foreground antialiased selection:bg-primary/20">
+    <div className="ag-theme ag-auth">
       {children}
     </div>
   );

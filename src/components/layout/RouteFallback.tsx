@@ -1,14 +1,10 @@
 import type { CSSProperties } from "react";
 import { BrandLoader } from "@/components/brand/BrandLoader";
+import { SurfaceLockup } from "@/components/brand/SurfaceLockup";
 import "@/components/brand/brand.css";
 import { cn } from "@/lib/utils";
 
-/**
- * Full-viewport loading state used while a top-level route chunk resolves.
- *
- * One ambient wash behind the brand story — tuned for both paper day mode and
- * obsidian night mode so transitions never flash or jump.
- */
+/** Full-viewport fallback for route navigation and session restoration. */
 export function AppLoadingScreen({
   label = "Loading your workspace",
   sublabel,
@@ -22,35 +18,42 @@ export function AppLoadingScreen({
   progress?: number;
   className?: string;
 }) {
+  const percent = typeof progress === "number" && Number.isFinite(progress)
+    ? Math.round(Math.min(100, Math.max(0, progress)))
+    : null;
+
   return (
     <div
       className={cn(
-        "agl-screen relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-obsidian-void px-6 text-foreground",
+        "ag-theme agl-screen min-h-[100dvh]",
         className,
       )}
     >
-      <div className="agl-screen__grid" aria-hidden="true" />
-      <div className="agl-screen__aurora" aria-hidden="true" />
-
-      <div className="relative z-10 flex flex-col items-center">
-        <BrandLoader
-          variant="screen"
-          size="lg"
-          label={label}
-          sublabel={sublabel}
-          progress={progress}
-          showProgressValue={typeof progress === "number"}
-        />
-      </div>
-
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-7 z-10 flex justify-center px-4"
-        aria-hidden="true"
-      >
-        <div className="agl-screen__badge">
-          <span className="agl-screen__dot" />
-          <span>AlgoGuru Workspace</span>
+      <div className="agl-screen__inner">
+        <SurfaceLockup />
+        <svg viewBox="0 0 248 84" fill="none" aria-hidden="true" focusable="false" className="agl-screen__diagram">
+          <path className="agl-screen__track" d="M18 42h46l28-24h64l28 24h46M64 42l28 24h64l28-24" />
+          {percent === null && (
+            <path className="agl-screen__trace" pathLength="100" d="M18 42h46l28-24h64l28 24h46" />
+          )}
+          <g className="agl-screen__nodes">
+            <circle cx="18" cy="42" r="4" />
+            <circle cx="92" cy="66" r="4" />
+            <circle cx="156" cy="66" r="4" />
+            <circle cx="230" cy="42" r="4" />
+          </g>
+          <rect x="117" y="11" width="14" height="14" rx="3" className="agl-screen__node" />
+        </svg>
+        <div role="status" aria-live="polite" aria-busy="true" className="agl-screen__copy">
+          <p>{label}</p>
+          {sublabel && <p className="agl-screen__caption">{sublabel}</p>}
         </div>
+        {percent !== null && (
+          <div className="agl-screen__progress">
+            <progress aria-label={label} max={100} value={percent} />
+            <span aria-hidden="true">{percent}%</span>
+          </div>
+        )}
       </div>
     </div>
   );

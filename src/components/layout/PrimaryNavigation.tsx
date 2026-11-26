@@ -59,6 +59,12 @@ export interface NavLinkItem {
   megaMenu?: MegaMenuEntry[];
 }
 
+export const HOME_SECTION_LINKS = [
+  { label: "Learning paths", path: "#modules", icon: BookOpen },
+  { label: "Workspace demo", path: "#workspace-preview", icon: SquareTerminal },
+  { label: "How it works", path: "#workflow", icon: Route },
+] as const;
+
 export const MEGA_MENUS: Record<string, MegaMenuEntry[]> = {
   "/practice": [
     {
@@ -673,7 +679,7 @@ export function MobileNavigationMenu({
         aria-labelledby="header-navigation-menu-title"
         aria-describedby="header-navigation-menu-description"
         showClose={false}
-        className="header-menu-sheet fixed inset-x-0 top-16 bottom-0 z-50 flex h-[calc(100dvh-4rem)] w-full flex-col justify-between overflow-y-auto border-t border-obsidian-border bg-obsidian-elevated/95 p-4 shadow-2xl backdrop-blur-xl sm:left-auto sm:w-80 sm:border-l"
+        className="ag-theme header-menu-sheet fixed inset-x-0 top-16 bottom-0 z-50 flex h-[calc(100dvh-4rem)] w-full flex-col justify-between overflow-y-auto border-t border-obsidian-border bg-obsidian-pane p-4 text-foreground shadow-2xl sm:left-auto sm:w-80 sm:border-l"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           (
@@ -708,6 +714,18 @@ export function MobileNavigationMenu({
 
         <nav aria-label="Mobile primary" className="flex flex-1 flex-col justify-between gap-6">
           <div className="space-y-5">
+            {pathname === "/" && (
+              <ul className="ag-header__mobile-sections">
+                {HOME_SECTION_LINKS.map(({ label, path, icon }) => (
+                  <li key={path}>
+                    <a href={path} onClick={onClose}>
+                      <NavIcon icon={icon} />
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
             {/* Primary Links */}
             <div className="space-y-1.5">
               <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/75">

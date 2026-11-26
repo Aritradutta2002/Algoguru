@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
 import "./globals.css";
 import "@/styles/ui.css";
+import "@/styles/surfaces.css";
 
 const inter = Inter({
   subsets: ["latin"],

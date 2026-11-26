@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
 import { mockRouter, resetNextNavigationMocks } from "@/test/nextNavigationMock";
 import { HomeView } from "./HomeView";
@@ -49,10 +49,14 @@ describe("Home landing page", () => {
   it("renders a visible reduced-motion hero and clearly labels the sample workspace", () => {
     renderHome();
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Prepare for coding interviews with a plan.");
+    expect(heading).toHaveTextContent(/practice with a plan/i);
     expect(heading.parentElement).not.toHaveStyle({ opacity: "0" });
     expect(screen.getByText("Workspace preview")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /explore learning paths/i })).toHaveClass("landing-primary");
+    const demo = screen.getByRole("link", { name: /try the demo/i });
+    expect(demo).toHaveAttribute("href", "#workspace-preview");
+    expect(document.getElementById("workspace-preview")).toContainElement(
+      screen.getByRole("button", { name: "Run example" }),
+    );
     expect(screen.getByLabelText("Example Java solution for Two Sum")).toHaveAttribute("tabindex", "0");
   });
 
@@ -111,30 +115,18 @@ describe("Home landing page", () => {
     expect(toggle).toHaveBeenCalledOnce();
   });
 
-  it("shows the finished hero session immediately for reduced motion", () => {
-    vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList);
-    renderHome();
-    expect(screen.getByText("All tests passed")).toBeInTheDocument();
-    expect(screen.getByText("12 / 12")).toBeInTheDocument();
-    expect(screen.getByText("500+")).toBeInTheDocument();
-    expect(document.querySelector(".hero-goal-fill")).toBeInTheDocument();
-  });
-
-  it("runs the hero session once and keeps a single settled result row", () => {
-    motionPreference.reduced = false;
-    vi.useFakeTimers();
+  it("shows the selected Two Sum input and waits for the visitor to run it", () => {
     renderHome();
 
-    expect(screen.queryByText("All tests passed")).not.toBeInTheDocument();
-
-    act(() => vi.advanceTimersByTime(1200));
-    expect(screen.getByText("Running 12 tests…")).toBeInTheDocument();
-
-    act(() => vi.advanceTimersByTime(500));
-    expect(screen.getAllByText("All tests passed")).toHaveLength(1);
-
-    act(() => vi.advanceTimersByTime(2000));
-    expect(screen.getAllByText("All tests passed")).toHaveLength(1);
+    const run = screen.getByRole("button", { name: "Run example" });
+    expect(screen.queryByText("Returned indices")).not.toBeInTheDocument();
+    fireEvent.click(run);
+    expect(screen.getByText("[0, 1]", { exact: true })).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Example input" }), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("option", { name: "[3, 2, 4] → 6" }), { key: "Enter" });
+    expect(screen.queryByText("Returned indices")).not.toBeInTheDocument();
+    fireEvent.click(run);
+    expect(screen.getByText("[1, 2]", { exact: true })).toBeInTheDocument();
   });
 
   it("switches the workspace demo with clicks and with arrow keys", async () => {
@@ -191,7 +183,7 @@ describe("Home landing page", () => {
     renderHome();
 
     expect(screen.getByRole("region", { name: "Platform capabilities" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /built like an engineering workstation/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /a focused practice session/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open problem solver/i })).toHaveAttribute("href", "/problem-solver");
     expect(screen.getByRole("link", { name: /open contest hub/i })).toHaveAttribute("href", "/contest");
     expect(screen.getByRole("link", { name: /launch playground/i })).toHaveAttribute("href", "/playground");

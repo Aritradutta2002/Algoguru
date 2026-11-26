@@ -504,75 +504,46 @@
 /* ── Route Fallback Screen & Enterprise Skeletons ─────────────── */
 
 .agl-screen {
-  --agl-screen-grid-dot: hsl(220 15% 45% / 0.14);
-  --agl-screen-aurora: radial-gradient(
-    46rem 32rem at 50% 42%,
-    hsl(239 84% 62% / 0.1),
-    hsl(199 89% 56% / 0.05) 42%,
-    transparent 74%
-  );
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  color: var(--ag-ink);
+  background: var(--ag-paper);
 }
 
-.dark .agl-screen {
-  --agl-screen-grid-dot: hsl(215 25% 75% / 0.09);
-  --agl-screen-aurora: radial-gradient(
-    46rem 32rem at 50% 42%,
-    hsl(239 84% 67% / 0.18),
-    hsl(199 89% 58% / 0.07) 44%,
-    transparent 74%
-  );
+.agl-screen__inner {
+  display: grid;
+  width: min(100%, 24rem);
+  justify-items: center;
+  padding: clamp(1.5rem, 5vw, 2.5rem) 1rem;
+  border: 1px solid var(--ag-line);
+  border-radius: 0.875rem;
+  background: var(--ag-panel);
+  text-align: center;
 }
 
-.agl-screen__grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(var(--agl-screen-grid-dot) 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(ellipse 68% 58% at 50% 45%, #000 18%, transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse 68% 58% at 50% 45%, #000 18%, transparent 80%);
+.agl-screen__diagram { width: min(100%, 15.5rem); margin-block: 0.85rem; }
+.agl-screen__track { stroke: var(--ag-line); stroke-width: 2; }
+.agl-screen__nodes { fill: var(--ag-panel); stroke: var(--ag-green); stroke-width: 1.5; }
+.agl-screen__node { fill: var(--ag-green); }
+
+.agl-screen__trace {
+  stroke: var(--ag-green);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 19 100;
+  animation: agl-screen-trace 1.9s cubic-bezier(0.4, 0, 0.4, 1) infinite;
 }
 
-.agl-screen__aurora {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: var(--agl-screen-aurora);
-}
+.agl-screen__copy { font-family: var(--font-display); font-size: 1.22rem; font-weight: 650; }
+.agl-screen__copy .agl-screen__caption { margin-top: 0.4rem; color: var(--ag-text-quiet); font-family: var(--font-sans); font-size: 0.83rem; font-weight: 400; }
+.agl-screen__progress { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; color: var(--ag-text-quiet); font-variant-numeric: tabular-nums; font-size: 0.8rem; }
+.agl-screen__progress progress { width: min(9rem, 45vw); accent-color: var(--ag-green); }
 
-.agl-screen__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid hsl(var(--obsidian-border));
-  background: hsl(var(--obsidian-pane) / 0.85);
-  padding: 0.3125rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: hsl(var(--muted-foreground));
-  box-shadow: 0 1px 0 hsl(var(--obsidian-specular)) inset;
-}
-
-.agl-screen__dot {
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, var(--agl-indigo), var(--agl-cyan));
-  animation: agl-dot-pulse 2.4s var(--agl-ease-sweep) infinite;
-}
-
-@keyframes agl-dot-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.92);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
+@keyframes agl-screen-trace {
+  0% { stroke-dashoffset: 19; opacity: 0; }
+  12%, 85% { opacity: 1; }
+  100% { stroke-dashoffset: -100; opacity: 0; }
 }
 
 /* Compositor-only skeleton shimmer for RouteFallback / PageSkeleton */
@@ -633,7 +604,7 @@
   .agl__burst,
   .agl__spark,
   .agl__meter-bar,
-  .agl-screen__dot,
+  .agl-screen__trace,
   .agl-skeleton::after {
     animation: none;
   }
@@ -660,9 +631,12 @@
     transform: none;
   }
 
-  .agl__spark,
-  .agl-screen__dot {
+  .agl__spark {
     transform: none;
+  }
+
+  .agl-screen__trace {
+    stroke-dasharray: none;
   }
 
   .agl__meter {

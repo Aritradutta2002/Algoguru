@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MCQ_QUESTIONS } from "@/lib/mcqQuizBank";
-import { Reveal } from "@/components/motion/Reveal";
 
 function openQuizFullscreen() {
   // Fullscreen needs a user gesture; direct page visits enter it on Start quiz.
@@ -61,10 +60,9 @@ export function QuizSection() {
   return (
     <section id="quiz" aria-labelledby="quiz-heading" className="lp-section">
       <div className="lp-container lp-split lp-split--even">
-        <Reveal>
-          <p className="lp-kicker">Contest · MCQ Quiz</p>
-          <h2 id="quiz-heading" className="lp-h2 mt-3">
-            Find out where you stand under exam conditions.
+        <div>
+          <h2 id="quiz-heading" className="lp-h2">
+            Contest MCQ Quiz
           </h2>
           <p className="lp-lead mt-4 max-w-lg">
             A fresh set of random multiple-choice questions in a strict exam
@@ -104,41 +102,39 @@ export function QuizSection() {
               />
             </Link>
           </Button>
-        </Reveal>
+        </div>
 
-        <Reveal delay={0.06}>
-          <Card className="overflow-hidden rounded-[0.875rem] border-obsidian-border bg-obsidian-pane shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-obsidian-border px-6 py-4">
-              <p className="text-[14px] font-medium text-foreground">Exam rules</p>
-              <Badge variant="outline" className="lp-chip">
-                MCQ
-              </Badge>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ul className="lp-list">
-                {rules.map((item) => (
-                  <li key={item.title} className="flex items-start gap-4 px-6 py-5">
-                    <item.icon
-                      size={17}
-                      aria-hidden="true"
-                      className={
-                        item.highlight
-                          ? "mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
-                          : "mt-0.5 shrink-0 text-muted-foreground"
-                      }
-                    />
-                    <div>
-                      <h3 className="text-[14.5px] text-foreground">{item.title}</h3>
-                      <p className="mt-1 text-[13.5px] leading-6 text-muted-foreground">
-                        {item.text}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </Reveal>
+        <Card className="overflow-hidden rounded-[0.875rem] border-obsidian-border bg-obsidian-pane shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-obsidian-border px-6 py-4">
+            <p className="text-[14px] font-medium text-foreground">Exam rules</p>
+            <Badge variant="outline" className="lp-chip">
+              MCQ
+            </Badge>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ul className="lp-list">
+              {rules.map((item) => (
+                <li key={item.title} className="flex items-start gap-4 px-6 py-5">
+                  <item.icon
+                    size={17}
+                    aria-hidden="true"
+                    className={
+                      item.highlight
+                        ? "mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        : "mt-0.5 shrink-0 text-muted-foreground"
+                    }
+                  />
+                  <div>
+                    <h3 className="text-[14.5px] text-foreground">{item.title}</h3>
+                    <p className="mt-1 text-[13.5px] leading-6 text-muted-foreground">
+                      {item.text}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );
