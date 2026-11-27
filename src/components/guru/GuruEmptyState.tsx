@@ -60,7 +60,7 @@ export function GuruEmptyState({
       )}
 
       <div className="w-full space-y-2 text-left">
-        <p className="px-1 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-guru-muted/80">
+        <p className="px-1 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-guru-muted">
           Try asking
         </p>
         <div className="grid w-full grid-cols-1 gap-1.5">
@@ -94,7 +94,7 @@ export function GuruEmptyState({
         </div>
       </div>
 
-      <p className="text-[10.5px] leading-relaxed text-guru-muted/60">
+      <p className="text-[10.5px] leading-relaxed text-guru-muted">
         Guru can make mistakes — verify important code.
       </p>
     </div>

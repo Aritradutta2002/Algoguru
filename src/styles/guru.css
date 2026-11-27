@@ -1,7 +1,7 @@
 /* ─────────────────────────────────────────────────────────────
    Guru AI cockpit
    Scoped styles for the assistant surface. Colour tokens live in
-   index.css (`--guru-*`) and switch with the app's `.dark` class, so every
+   globals.css (`--guru-*`) and switch with the app's `.dark` class, so every
    part of Guru follows the same day/night control as the surrounding page.
    ───────────────────────────────────────────────────────────── */
 
@@ -82,8 +82,7 @@
   scrollbar-color: var(--guru-scroll-thumb) transparent;
 }
 
-/* Fold the mascot loops for users who ask for less motion. The global rule in
-   index.css already covers most of it; this keeps Guru honest on its own. */
+/* Respect reduced motion for the mascot and chat UI within the Guru panel. */
 @media (prefers-reduced-motion: reduce) {
   .guru-cockpit *,
   .guru-cockpit *::before,

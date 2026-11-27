@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
  *
  * Deliberately dependency-free (no lucide, no framer-motion, no CSS import) so
  * the app shell can render the launcher without pulling the chat bundle in.
- * Animation is transform/opacity only and is disabled under reduced motion via
- * the global `prefers-reduced-motion` rule in index.css.
+ * Animation is transform/opacity only. The app header and Guru panel disable
+ * it for reduced motion; static placements can opt out with `animated`.
  */
 
 export type GuruMood = "idle" | "thinking" | "happy";

@@ -41,7 +41,7 @@ function ReasoningDisclosure({ reasoning }: { reasoning: string }) {
         />
         Thought process
       </summary>
-      <div className="max-h-56 overflow-y-auto border-t border-guru-line/40 px-2.5 py-2 text-[12px] leading-relaxed whitespace-pre-wrap text-guru-muted/90">
+      <div className="max-h-56 overflow-y-auto border-t border-guru-line/40 px-2.5 py-2 text-[12px] leading-relaxed whitespace-pre-wrap text-guru-muted">
         {reasoning}
       </div>
     </details>
@@ -84,7 +84,7 @@ function ErrorCard({
           </div>
           {info.detail && (
             <details className="mt-2">
-              <summary className="cursor-pointer text-[11px] text-guru-muted/80 hover:text-guru-muted">
+              <summary className="cursor-pointer text-[11px] text-guru-muted hover:text-guru-text">
                 Technical details
               </summary>
               <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap rounded bg-guru-text/[0.06] p-2 font-mono text-[10.5px] leading-relaxed text-guru-muted">
@@ -217,7 +217,7 @@ export const GuruMessage = memo(function GuruMessage({
           >
             <Pencil size={12} />
           </GuruIconButton>
-          <span className="ml-1 text-[10.5px] text-guru-muted/70">
+          <span className="ml-1 text-[10.5px] text-guru-muted">
             {formatClock(message.createdAt)}
           </span>
         </div>
@@ -239,7 +239,7 @@ export const GuruMessage = memo(function GuruMessage({
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-2">
           <span className="text-[12px] font-semibold text-guru-text">GuruBot</span>
-          <span className="text-[10.5px] text-guru-muted/70">
+          <span className="text-[10.5px] text-guru-muted">
             {formatClock(message.createdAt)}
           </span>
           {message.status === "aborted" && (

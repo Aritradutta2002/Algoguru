@@ -111,7 +111,7 @@ export function GuruHistoryPanel({
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search chats"
             aria-label="Search chats"
-            className="h-8 w-full rounded-lg border border-guru-line/80 bg-guru-surface/60 pl-8 pr-2.5 py-0 text-[12px] text-guru-text shadow-none outline-none transition-colors placeholder:text-guru-muted/70 focus:border-guru-accent/50 focus-visible:border-guru-accent/50 focus-visible:bg-guru-surface/60 focus-visible:ring-0 hover:border-guru-line/80 md:text-[12px]"
+            className="h-8 w-full rounded-lg border border-guru-line/80 bg-guru-surface/60 pl-8 pr-2.5 py-0 text-[12px] text-guru-text shadow-none outline-none transition-colors placeholder:text-guru-muted focus:border-guru-accent/50 focus-visible:border-guru-accent/50 focus-visible:bg-guru-surface/60 focus-visible:ring-0 hover:border-guru-line/80 md:text-[12px]"
           />
         </div>
       </div>
@@ -134,7 +134,7 @@ export function GuruHistoryPanel({
         ) : (
           groups.map((group) => (
             <div key={group.label} className="mb-2.5">
-              <p className="px-1.5 py-1 text-xs font-medium text-guru-muted/70">
+              <p className="px-1.5 py-1 text-xs font-medium text-guru-muted">
                 {group.label}
               </p>
               <ul className="space-y-0.5">
@@ -204,7 +204,7 @@ export function GuruHistoryPanel({
                               >
                                 {session.title}
                               </span>
-                              <span className="mt-0.5 flex items-center gap-1.5 text-[10px] text-guru-muted/80">
+                              <span className="mt-0.5 flex items-center gap-1.5 text-[10px] text-guru-muted">
                                 <span>{formatRelativeTime(session.date)}</span>
                                 <span aria-hidden="true">·</span>
                                 <span>{session.messages.length} msgs</span>

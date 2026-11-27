@@ -192,9 +192,8 @@ export function GuruComposer({
 
       <div
         className={cn(
-          "relative rounded-2xl border bg-guru-surface shadow-[0_1px_2px_hsl(var(--guru-text)/0.04)]",
-          "border-guru-line transition-[border-color,box-shadow] duration-200",
-          "focus-within:border-guru-accent/45 focus-within:shadow-[0_0_0_3px_hsl(var(--guru-accent)/0.12)]",
+          "relative rounded-2xl border border-guru-line bg-guru-surface shadow-[0_1px_2px_hsl(var(--guru-text)/0.04)]",
+          "focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-guru-accent",
         )}
       >
         <label htmlFor={inputId} className="sr-only">
@@ -211,7 +210,7 @@ export function GuruComposer({
           aria-describedby={hintId}
           className={cn(
             "w-full resize-none border-0 bg-transparent px-3.5 pb-2 pt-3 pr-14 text-[13.5px] leading-relaxed text-guru-text",
-            "outline-none placeholder:text-guru-muted/80 focus-visible:bg-transparent focus-visible:ring-0",
+            "outline-none placeholder:text-guru-muted focus-visible:bg-transparent focus-visible:ring-0",
             "min-h-[48px] max-h-[184px] shadow-none md:text-[13.5px]",
           )}
         />
@@ -264,7 +263,7 @@ export function GuruComposer({
 
         <div
           id={hintId}
-          className="ml-auto flex items-center gap-1.5 text-[10.5px] text-guru-muted/80"
+          className="ml-auto flex items-center gap-1.5 text-[10.5px] text-guru-muted"
         >
           {value.trim() ? (
             <span className="tabular-nums">~{estimateTokens(value)} tokens</span>
