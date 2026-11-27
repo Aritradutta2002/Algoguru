@@ -21,12 +21,12 @@ import {
   Play,
   Route,
   Server,
-  Sparkles,
   SquareTerminal,
   Sun,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
+import { GuruMark } from "@/components/brand/GuruMark";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -785,8 +785,12 @@ export function MobileNavigationMenu({
                     className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-obsidian-border bg-foreground/[0.03] px-3 text-left text-sm font-medium text-foreground/85 [&_svg]:text-muted-foreground transition-colors duration-150 hover:bg-foreground/[0.05] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
                     <span className="flex items-center gap-2.5">
-                      <span className="relative inline-flex items-center justify-center">
-                        <NavIcon icon={Sparkles} />
+                      <span
+                        aria-hidden="true"
+                        className="relative inline-flex h-7 w-7 items-center justify-center rounded-lg bg-guru-accent/10 ring-1 ring-inset ring-guru-accent/20"
+                      >
+                        <GuruMark size={20} title={null} />
+                        <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-guru-success ring-2 ring-background" />
                       </span>
                       <span>Ask Guru</span>
                     </span>

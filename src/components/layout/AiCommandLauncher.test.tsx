@@ -33,6 +33,19 @@ describe("AiCommandLauncher", () => {
     expect(button).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("uses the Guru mascot instead of a generic sparkles glyph", () => {
+    render(
+      <TooltipProvider>
+        <AiCommandLauncher open={false} onClick={() => undefined} />
+      </TooltipProvider>,
+    );
+
+    const button = screen.getByRole("button", { name: /open guru ai command center/i });
+    expect(button.querySelector(".lucide-sparkles")).toBeNull();
+    expect(button.querySelector("svg[viewBox='0 0 64 64']")).not.toBeNull();
+    expect(button).toHaveTextContent("Ask Guru");
+  });
+
   it("renders embedded mode indicator when on problem solver page", () => {
     render(
       <TooltipProvider>
