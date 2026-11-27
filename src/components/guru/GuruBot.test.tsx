@@ -186,6 +186,30 @@ describe("GuruBot", () => {
     expect(screen.getByLabelText("Message Guru")).toHaveValue("Why does test 3 fail?");
   });
 
+  it("keeps the user message readable on the pine bubble", () => {
+    const now = Date.now();
+    localStorage.setItem(
+      "guru-chat-history:guest:global",
+      JSON.stringify([
+        {
+          id: "styled-chat",
+          title: "Styled chat",
+          messages: [
+            { id: "u1", role: "user", content: "Explain two pointers", createdAt: now },
+          ],
+          model: "openrouter",
+          date: now,
+          pinned: false,
+        },
+      ]),
+    );
+
+    renderGuru();
+    const bubble = screen.getByText("Explain two pointers");
+    expect(bubble.className).toContain("bg-guru-accent");
+    expect(bubble.className).toContain("text-guru-on-accent");
+  });
+
   it("renders stored tool-call replies as readable coaching text", () => {
     const now = Date.now();
     localStorage.setItem(

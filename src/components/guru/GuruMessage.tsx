@@ -152,7 +152,7 @@ export const GuruMessage = memo(function GuruMessage({
     return (
       <article className="group flex flex-col items-end" data-message-id={message.id}>
         {editing ? (
-          <div className="w-full max-w-[92%] rounded-xl border border-guru-accent/40 bg-guru-raised/80 p-2">
+          <div className="w-full max-w-[92%] rounded-xl border border-guru-accent/40 bg-guru-surface p-2">
             <Textarea
               ref={editRef}
               value={draft}
@@ -194,7 +194,7 @@ export const GuruMessage = memo(function GuruMessage({
             </div>
           </div>
         ) : (
-          <div className="max-w-[92%] rounded-2xl rounded-br-md border border-guru-line/60 bg-guru-raised px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap break-words text-guru-text">
+          <div className="max-w-[92%] rounded-2xl rounded-br-md border border-guru-accent bg-guru-accent px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap break-words text-guru-on-accent shadow-[0_8px_20px_-16px_hsl(var(--guru-accent)/0.8)]">
             {message.content}
           </div>
         )}
@@ -256,7 +256,7 @@ export const GuruMessage = memo(function GuruMessage({
         {showBubble && (
           <div
             className={cn(
-              "rounded-xl rounded-tl-sm border border-guru-line/70 bg-guru-surface/60 px-3.5 py-2.5",
+              "rounded-xl rounded-tl-sm border border-guru-line/80 bg-guru-surface px-3.5 py-2.5 shadow-[0_1px_0_hsl(var(--guru-text)/0.03)]",
               isStreaming && "border-guru-accent/25",
             )}
           >
