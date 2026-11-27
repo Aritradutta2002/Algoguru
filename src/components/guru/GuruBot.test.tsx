@@ -120,6 +120,11 @@ describe("GuruBot", () => {
     expect(screen.getByLabelText("Message Guru")).toBeInTheDocument();
   });
 
+  it("shows a live status pill in the Guru header", () => {
+    renderGuru();
+    expect(screen.getByRole("status")).toHaveTextContent("Ready");
+  });
+
   it("shows coaching copy in debug mode", () => {
     renderGuru({ debugMode: true, questionId: "1", initialContext: "class Solution {}" });
     expect(screen.getByText("Let's debug this together")).toBeInTheDocument();

@@ -56,13 +56,13 @@ export function GuruHeader({
   return (
     <header
       className={cn(
-        "relative z-20 flex shrink-0 items-center justify-between gap-2 border-b border-guru-line/70 bg-guru-bg/95 px-3 py-2.5 backdrop-blur",
+        "relative z-20 flex shrink-0 items-center justify-between gap-2 border-b border-guru-line/80 bg-guru-bg/95 px-3.5 py-3 backdrop-blur",
         className,
       )}
     >
       <div className="flex min-w-0 items-center gap-2.5">
         <GuruAvatar
-          size={32}
+          size={36}
           ring
           glow={busy}
           mood={busy ? "thinking" : "idle"}
@@ -71,18 +71,22 @@ export function GuruHeader({
         />
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <h2 className="truncate text-[13.5px] font-semibold tracking-tight text-guru-text">
+            <h2 className="truncate font-display text-[14.5px] font-semibold tracking-tight text-guru-text">
               {title}
             </h2>
             {!compact && (
-              <span className="rounded border border-guru-accent/25 bg-guru-accent/10 px-1 py-px text-[9px] font-semibold uppercase tracking-wider text-guru-accent">
+              <span className="rounded-full border border-guru-accent/25 bg-guru-accent/10 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.12em] text-guru-accent">
                 AI
               </span>
             )}
           </div>
-          <p className="flex items-center gap-1.5 truncate text-[10.5px] text-guru-muted">
+          <p
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-1.5 truncate text-[10.5px] text-guru-muted"
+          >
             <GuruStatusDot tone={busy ? "busy" : status === "error" ? "error" : "idle"} />
-            <span aria-live="polite">{statusLabel(status, elapsedMs)}</span>
+            <span>{statusLabel(status, elapsedMs)}</span>
             {!compact && (
               <>
                 <span aria-hidden="true" className="text-guru-muted/40">
@@ -121,6 +125,7 @@ export function GuruHeader({
             </GuruIconButton>
           </AppTooltip>
         )}
+        <span aria-hidden="true" className="mx-1 hidden h-4 w-px bg-guru-line/80 sm:block" />
         <AppTooltip content="Close Guru" side="bottom">
           <GuruIconButton label="Close Guru" onClick={onClose}>
             <X size={16} />

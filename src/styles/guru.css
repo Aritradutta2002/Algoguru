@@ -20,6 +20,15 @@
   color: hsl(var(--guru-text));
 }
 
+/* A dotted stage behind the mascot in the empty state — the same diagram
+   texture the public site uses, softened so it never competes with copy. */
+.guru-empty-stage {
+  background-image: radial-gradient(hsl(var(--guru-accent) / 0.18) 1px, transparent 1px);
+  background-size: 10px 10px;
+  -webkit-mask-image: radial-gradient(circle, black 35%, transparent 72%);
+  mask-image: radial-gradient(circle, black 35%, transparent 72%);
+}
+
 /* Slim, quiet scrollbars — the transcript is the only scrolling surface. */
 .guru-scroll {
   scrollbar-width: thin;
