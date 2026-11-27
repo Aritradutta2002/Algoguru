@@ -46,6 +46,19 @@ describe("AiCommandLauncher", () => {
     expect(button).toHaveTextContent("Ask Guru");
   });
 
+  it("renders the mascot large enough to show its signature detail", () => {
+    render(
+      <TooltipProvider>
+        <AiCommandLauncher open={false} onClick={() => undefined} />
+      </TooltipProvider>,
+    );
+
+    const mark = screen
+      .getByRole("button", { name: /open guru ai command center/i })
+      .querySelector("svg[viewBox='0 0 64 64']");
+    expect(Number(mark?.getAttribute("width"))).toBeGreaterThanOrEqual(24);
+  });
+
   it("renders embedded mode indicator when on problem solver page", () => {
     render(
       <TooltipProvider>

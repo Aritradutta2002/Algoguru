@@ -21,10 +21,10 @@ function GuruGlyph() {
   return (
     <span
       aria-hidden="true"
-      className="relative inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[0.55rem] bg-guru-accent/10 ring-1 ring-inset ring-guru-accent/20"
+      className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.65rem] bg-guru-accent/10 shadow-[0_2px_6px_-3px_hsl(var(--guru-accent)/0.5)] ring-1 ring-inset ring-guru-accent/20"
     >
-      <GuruMark size={18} title={null} />
-      <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-guru-success ring-2 ring-background" />
+      <GuruMark size={24} detail title={null} />
+      <span className="absolute -bottom-0.5 -right-0.5 h-[7px] w-[7px] rounded-full bg-guru-success ring-2 ring-background" />
     </span>
   );
 }
@@ -42,8 +42,8 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
         <AppTooltip content="Guru AI is embedded in the problem description panel">
           <span
             className={cn(
-              "inline-flex h-9 items-center rounded-full border border-guru-line bg-guru-surface/70 text-sm font-medium text-guru-text",
-              compact ? "w-9 justify-center px-0 gap-0" : "pl-1.5 pr-3 gap-2",
+              "inline-flex h-9 items-center rounded-full border border-guru-line bg-guru-surface/70 text-sm font-medium text-guru-text max-lg:min-h-[44px] max-lg:min-w-[44px]",
+              compact ? "min-h-[44px] min-w-[44px] justify-center px-0 gap-0" : "pl-1.5 pr-3 gap-2",
               className,
             )}
           >
@@ -65,9 +65,10 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
           aria-keyshortcuts="Control+J Meta+J"
           className={cn(
             "group relative inline-flex h-9 shrink-0 touch-manipulation select-none items-center rounded-full border text-sm font-medium leading-none",
+            "max-lg:min-h-[44px] max-lg:min-w-[44px]",
             "transition-[background-color,border-color,color,box-shadow] duration-150 ease-out",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-            compact ? "w-9 justify-center px-0 gap-0" : "gap-2 pl-1.5 pr-2",
+            compact ? "min-h-[44px] min-w-[44px] justify-center px-0 gap-0" : "gap-2 pl-1.5 pr-2",
             open
               ? "border-guru-accent/35 bg-guru-accent/10 text-guru-text shadow-[inset_0_1px_0_hsl(var(--guru-surface)/0.65)]"
               : "border-guru-line bg-guru-surface/65 text-guru-text hover:border-guru-accent/30 hover:bg-guru-surface",

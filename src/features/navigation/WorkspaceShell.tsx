@@ -585,16 +585,18 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                     <div className="header-actions flex shrink-0 items-center gap-1.5 sm:gap-2">
                       <GlobalSearchLauncher compact={isHeaderCompact || !isHeaderWide} />
 
-                        <div className="ag-header__wide-tools flex items-center gap-1.5 sm:gap-2">
-                          <AiCommandLauncher
-                            open={guruOpen}
-                            embedded={isProblemSolverRoute}
-                            compact={isHeaderCompact}
-                            onClick={toggleGuruPanel}
-                          />
-                          <ThemeToggle />
-                          <span aria-hidden="true" className="mx-0.5 hidden h-4 w-px bg-obsidian-border sm:block" />
-                        </div>
+                      <AiCommandLauncher
+                        open={guruOpen}
+                        embedded={isProblemSolverRoute}
+                        compact={isHeaderCompact}
+                        onClick={toggleGuruPanel}
+                        className="max-[359px]:hidden"
+                      />
+
+                      <div className="ag-header__wide-tools flex items-center gap-1.5 sm:gap-2">
+                        <ThemeToggle />
+                        <span aria-hidden="true" className="mx-0.5 hidden h-4 w-px bg-obsidian-border sm:block" />
+                      </div>
                       <UserMenu onOpenLibrary={() => setMobileLibraryOpen(true)} />
 
                       {/* ── 4. Mobile / Compact Menu Toggle (When header is narrow or mobile) ───── */}

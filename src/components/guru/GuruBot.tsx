@@ -469,7 +469,12 @@ function GuruBotSurface({
         aria-live="polite"
         aria-busy={busy}
       >
-        <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4">
+        <div
+          className={cn(
+            "mx-auto flex w-full max-w-[760px] flex-col gap-4",
+            messages.length === 0 && !busy && "min-h-full justify-center",
+          )}
+        >
           {messages.length === 0 && !busy && (
             <GuruEmptyState
               debugMode={debugMode}

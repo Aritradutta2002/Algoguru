@@ -787,10 +787,10 @@ export function MobileNavigationMenu({
                     <span className="flex items-center gap-2.5">
                       <span
                         aria-hidden="true"
-                        className="relative inline-flex h-7 w-7 items-center justify-center rounded-lg bg-guru-accent/10 ring-1 ring-inset ring-guru-accent/20"
+                        className="relative inline-flex h-8 w-8 items-center justify-center rounded-[0.7rem] bg-guru-accent/10 shadow-[0_2px_6px_-3px_hsl(var(--guru-accent)/0.5)] ring-1 ring-inset ring-guru-accent/20"
                       >
-                        <GuruMark size={20} title={null} />
-                        <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-guru-success ring-2 ring-background" />
+                        <GuruMark size={26} detail title={null} />
+                        <span className="absolute -bottom-0.5 -right-0.5 h-[7px] w-[7px] rounded-full bg-guru-success ring-2 ring-background" />
                       </span>
                       <span>Ask Guru</span>
                     </span>
