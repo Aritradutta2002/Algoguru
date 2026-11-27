@@ -134,7 +134,8 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className={cn(fontVariables, "font-sans antialiased")}>
+      {/* Browser extensions such as Grammarly may add attributes to body before hydration. */}
+      <body suppressHydrationWarning className={cn(fontVariables, "font-sans antialiased")}>
         <Providers>{children}</Providers>
       </body>
     </html>

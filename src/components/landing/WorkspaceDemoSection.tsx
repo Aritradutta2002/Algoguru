@@ -15,7 +15,6 @@ const PANE_TRANSITION = { duration: 0.2, ease: EASE_OUT };
 const ROW_TRANSITION = { duration: 0.25, ease: EASE_OUT };
 
 const PANE_VARIANTS: Variants = {
-  enter: { opacity: 0 },
   center: { opacity: 1 },
   exit: { opacity: 0 },
 };
@@ -160,35 +159,26 @@ export function WorkspaceDemoSection() {
             </div>
 
             <div className="p-5 sm:p-7">
-              {reduceMotion ? (
-                <div
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={active}
                   role="tabpanel"
                   id={`demo-panel-${active}`}
                   aria-labelledby={`demo-tab-${active}`}
                   tabIndex={0}
+                  variants={PANE_VARIANTS}
+                  initial={false}
+                  animate="center"
+                  exit="exit"
+                  transition={{
+                    ...PANE_TRANSITION,
+                    duration: reduceMotion ? 0 : PANE_TRANSITION.duration,
+                  }}
                   className="demo-pane"
                 >
                   {panel}
-                </div>
-              ) : (
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={active}
-                    role="tabpanel"
-                    id={`demo-panel-${active}`}
-                    aria-labelledby={`demo-tab-${active}`}
-                    tabIndex={0}
-                    variants={PANE_VARIANTS}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={PANE_TRANSITION}
-                    className="demo-pane"
-                  >
-                    {panel}
-                  </motion.div>
-                </AnimatePresence>
-              )}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </Tabs>
         </div>
