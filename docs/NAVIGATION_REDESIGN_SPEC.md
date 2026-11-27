@@ -11,22 +11,22 @@
 
 AlgoGuru is a developer-first platform for algorithmic problem solving, system design architecture, and engineering interview mastery. Developers and interview candidates live in high-focus, high-cognitive-load states. The navigation must never compete for attention with the code, diagram, or problem context.
 
-Drawing from the world-class design systems of **Linear**, **Stripe**, **Notion**, and **Vercel**, this redesign transforms AlgoGuru's top navigation into a premium, unified developer workspace shell:
+Drawing from the world-class design systems of **Linear**, **Stripe**, **Notion**, and **Vercel**, this redesign transforms AlgoGuru's top navigation into a clean, unified developer workspace shell:
 
 1. **Linear Precision:** 
    - Micro-borders (`hsl(var(--border) / 0.6)`), floating pill active states with physics-based spring dampening, and high-contrast typography.
    - Elimination of visual clutter: removed redundant zoom clusters and cramped button groups.
 
 2. **Stripe Trust & Polish:** 
-   - Strict 8-point spatial rhythm (`72px` header height, `40px` action targets, `8px`/`16px`/`24px` padding scales).
-   - Glassmorphic backdrop blur (`blur(20px) saturate(180%)`) with interior light edge reflections (`box-shadow: 0 1px 0 inset`).
+   - Strict 8-point spatial rhythm (`64px`/`72px` header proportions, aligned action targets, `8px`/`16px`/`24px` padding scales).
+   - Glassmorphic backdrop blur with interior light edge reflections.
 
-3. **Notion Contextual Flexibility:** 
-   - Multi-tenant **Workspace Switcher** (`AlgoGuru ▼`) ready for **Personal**, **Team**, and **Enterprise** workspaces with plan indicators, member badges, and fast switcher dropdowns.
+3. **Focused Brand Identity:** 
+   - Clean `AlgoGuru` home brand lockup (`SurfaceLockup`) without fake tenant or plan switchers.
 
 4. **Vercel Developer Ergonomics & AI Centricity:** 
-   - **Command Palette First-Class Citizen:** Command search input with `"Search problems, topics, roadmaps, AI..."` placeholder and `⌘K` keyboard badge.
-   - **Guru AI Command Center:** Embedded live status beacon, gradient pill treatment, and `⌘J` shortcut directly in the navigation.
+   - **Command Palette First-Class Citizen:** Command search input with `"Search..."` launcher and `⌘K` keyboard badge.
+   - **Guru AI Command Center:** Embedded launcher treatment and `⌘J` shortcut directly in the navigation.
 
 ---
 
@@ -43,10 +43,10 @@ To eliminate the cognitive fatigue of giving every navigation item identical vis
 │ Tier 1: Platform Context │ Tier 2: Core Engineering    │ Tier 3: Command & Utilities   │
 ├──────────────────────────┼─────────────────────────────┼───────────────────────────────┤
 │ • AlgoGuru Brand         │ • Practice (Core Daily)     │ • Search Palette (⌘K)         │
-│ • Workspace Selector     │ • Interview Hub (SysDesign) │ • Guru AI Command Center (⌘J) │
-│   - Personal (Free/Pro)  │ • Playground (Live IDE)     │ • Notification Center         │
-│   - Team (12 Seats)      │ • Roadmap (Career Tracks)   │ • Theme Toggle                │
-│   - Enterprise (SSO)     │ • Contest (Live Compete)    │ • User Profile / Settings     │
+│ • Sidebar Expander       │ • Interview Hub (SysDesign) │ • Guru AI Command Center (⌘J) │
+│   (Contextual Alt+B)     │ • Playground (Live IDE)     │ • Theme Toggle                │
+│                          │ • Roadmap (Career Tracks)   │ • User Profile / Settings     │
+│                          │ • Contest (Live Compete)    │                               │
 │                          │ • Home (Dashboard)          │                               │
 └──────────────────────────┴─────────────────────────────┴───────────────────────────────┘
 ```
@@ -54,12 +54,10 @@ To eliminate the cognitive fatigue of giving every navigation item identical vis
 ### 2.2 Navigation Tree
 
 ```
-Top Navbar (72px)
-├── [Left Zone: Context & Tenancy]
+Top Navbar
+├── [Left Zone: Context]
 │   ├── Collapsed Sidebar Expander (Contextual Alt+B)
-│   └── Workspace Switcher (`AlgoGuru ▼`)
-│       ├── Workspaces List: Personal (Active) | Team | Enterprise
-│       └── Management: Create Workspace | Workspace Settings
+│   └── AlgoGuru Home Lockup (`SurfaceLockup`)
 ├── [Center-Left Zone: Primary Navigation]
 │   └── Segmented Pill Group (6 Core Destinations)
 │       ├── Home (/)
@@ -70,13 +68,11 @@ Top Navbar (72px)
 │       └── Contest (/contest) [Live Beacon]
 ├── [Center-Right Zone: First-Class Search]
 │   └── Command Palette Launcher
-│       ├── Icon: AlgoGuru SearchMark
-│       ├── Placeholder: "Search problems, topics, roadmaps, AI..."
+│       ├── Icon: Search
 │       └── Shortcut: ⌘K / Ctrl+K
 └── [Right Zone: Utilities & AI Actions]
-    ├── Guru AI Command Center (Sparkles / Avatar + "Guru AI" + ⌘J + Status Dot)
-    ├── Subtle Hairline Divider (h-5 w-px)
-    ├── Notification Center (Bell + Live Unread Dot + Dropdown Tabs)
+    ├── Guru AI Command Center (Sparkles + "Ask Guru" + ⌘J)
+    ├── Subtle Hairline Divider
     ├── Theme Toggle (Sun/Moon Smooth Vector Transform)
     └── User Menu (Avatar / Initials + Dropdown Settings)
 ```
@@ -93,21 +89,9 @@ Top Navbar (72px)
 - **Rationale:** Simple underline borders feel like 2012 web design and suffer from pixel jitter during container resizes.
 - **Solution:** A floating pill segment (`motion.span layoutId="primary-nav-pill"`) rendered behind the active route link with spring physics (`stiffness: 420, damping: 34`). In light mode, it uses `bg-background/95 border border-border/80 shadow-xs`; in dark mode, it uses `bg-card/90` with crisp text contrast.
 
-### Decision 3: Multi-Tenant Workspace Selector (`AlgoGuru ▼`)
-- **Rationale:** Modern developers switch between individual study ("Personal"), company engineering cohorts ("Team"), and organization-wide enterprise portals ("Enterprise").
-- **Solution:** Replaced static brand lockup with an interactive Workspace Switcher. The trigger displays the AlgoGuru gradient mark, "AlgoGuru" wordmark, active workspace name, and `ChevronDown` (▼). The dropdown features instant switching, plan badges ("Pro Member", "12 seats", "SSO"), and localStorage persistence.
-
-### Decision 4: Search as a First-Class Citizen
-- **Rationale:** Search was formerly buried as an icon button on small screens and squeezed on desktop.
-- **Solution:** Command palette style launcher integrated directly into the top row across Desktop, Tablet, and Mobile. Displays the exact placeholder `"Search problems, topics, roadmaps, AI..."` with elevated `⌘K` badge.
-
-### Decision 5: Dedicated AI Command Center
-- **Rationale:** AI is no longer a peripheral novelty; for an interview and coding platform, Guru AI is the primary intelligent partner.
-- **Solution:** Elevated Guru AI from a corner button into an AI Command Center trigger with an iridescent gradient ring, live status beacon ("Ready"), text label, and `⌘J` shortcut badge.
-
-### Decision 6: Simplified Right Section & Visual Decluttering
-- **Rationale:** Zoom in/out buttons in the navbar added visual noise and broke enterprise design standards (Linear, Stripe, and Vercel never place zoom toggles in headers).
-- **Solution:** Streamlined the right utility rail into **Notifications**, **Theme toggle**, and **Profile menu**.
+### Decision 3: Simplified Right Section & Visual Decluttering
+- **Rationale:** Zoom in/out buttons and fake workspace/notification controls added visual noise without real functionality.
+- **Solution:** Streamlined the header left slot to the direct `AlgoGuru` lockup and the right utility rail to **Ask Guru (`⌘J`)**, **Theme toggle**, and **Profile menu**.
 
 ---
 
@@ -236,24 +220,15 @@ transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
 
 ## 7. Production Code Deliverables Summary
 
-The following production components have been created and integrated into the repository:
+The following production components are integrated into the repository:
 
-1. **`src/components/layout/WorkspaceSwitcher.tsx`**:
-   - Multi-tenant workspace selector supporting Personal, Team, and Enterprise workspaces.
-   - Plan tier metadata, member counters, role labels, and persistent local storage.
-2. **`src/components/layout/NotificationCenter.tsx`**:
-   - Enterprise notification popover with unread indicator badge, tab filters (All / Unread), and real-time read status updates.
-3. **`src/components/layout/ThemeToggle.tsx`**:
+1. **`src/components/layout/ThemeToggle.tsx`**:
    - Clean 8px-aligned light/dark mode vector toggle with rotation transition.
-4. **`src/components/layout/AiCommandLauncher.tsx`**:
-   - First-class AI Command Center entry point in the navbar with `⌘J` shortcut and live engine status indicator.
-5. **`src/components/layout/GlobalSearchLauncher.tsx`**:
-   - Command palette style search launcher with `"Search problems, topics, roadmaps, AI..."` placeholder and `⌘K` keyboard badge.
-6. **`src/components/layout/PrimaryNavigation.tsx`**:
-   - Updated with floating premium pill active state, live indicators for active contests, and elevated mobile navigation drawer.
-7. **`src/App.tsx`**:
-   - Refactored header into 72px enterprise layout supporting Desktop, Tablet, and Mobile responsive states.
-8. **`src/index.css`**:
-   - 72px height, 20px blur glassmorphic elevation, and removal of underline indicator.
-9. **Full Unit Test Suite**:
-   - `PrimaryNavigation.test.tsx`, `WorkspaceSwitcher.test.tsx`, `NotificationCenter.test.tsx`, `ThemeToggle.test.tsx`, `AiCommandLauncher.test.tsx`.
+2. **`src/components/layout/AiCommandLauncher.tsx`**:
+   - First-class AI Command Center entry point in the navbar with `⌘J` shortcut.
+3. **`src/components/layout/GlobalSearchLauncher.tsx`**:
+   - Command palette style search launcher with `⌘K` keyboard badge.
+4. **`src/components/layout/PrimaryNavigation.tsx`**:
+   - Updated with floating pill active state, live indicators for active contests, and elevated mobile navigation drawer.
+5. **Unit Test Suite**:
+   - `PrimaryNavigation.test.tsx`, `ThemeToggle.test.tsx`, `AiCommandLauncher.test.tsx`, `GlobalSearchLauncher.test.tsx`.

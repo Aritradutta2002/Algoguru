@@ -80,21 +80,6 @@ export default function InterviewComingSoonLayout({
                   Structured questions, curated explanations, and coding scenarios will be
                   available here soon.
                 </p>
-
-                <div className="pt-4 flex flex-wrap gap-2.5">
-                  <Badge
-                    variant="outline"
-                    className="rounded-md border-obsidian-border bg-obsidian-elevated px-2.5 py-1 text-xs text-muted-foreground"
-                  >
-                    Content verified
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="rounded-md border-obsidian-border bg-obsidian-elevated px-2.5 py-1 text-xs text-muted-foreground"
-                  >
-                    Expert reviewed
-                  </Badge>
-                </div>
               </div>
             </Card>
           </motion.div>

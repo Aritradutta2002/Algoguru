@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SupportModal } from "./SupportModal";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 function renderSupportModal() {
   const onClose = vi.fn();
@@ -78,6 +82,9 @@ describe("SupportModal", () => {
   });
 
   it("switches payment tabs and reveals the selected payment content", async () => {
+    vi.stubEnv("NEXT_PUBLIC_UPI_ID", "creator@okicici");
+    vi.stubEnv("NEXT_PUBLIC_RAZORPAY_URL", "https://rzp.io/rzp/algoguru");
+    vi.stubEnv("NEXT_PUBLIC_PAYPAL_URL", "https://paypal.me/YourName");
     renderSupportModal();
 
     const upiTab = screen.getByRole("tab", { name: /UPI/ });
@@ -96,5 +103,27 @@ describe("SupportModal", () => {
     expect(
       screen.getByRole("link", { name: /Buy me a coffee/ }),
     ).toHaveAttribute("href", "/buy-me-a-coffee");
+    expect(
+      screen.getByRole("link", { name: /Razorpay checkout/ }),
+    ).toHaveAttribute("href", "https://rzp.io/rzp/algoguru");
+    expect(
+      screen.queryByRole("link", { name: /PayPal global/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides placeholder UPI and dead # links when env vars are unset or placeholders", () => {
+    vi.stubEnv("NEXT_PUBLIC_UPI_ID", "your-upi@id");
+    vi.stubEnv("NEXT_PUBLIC_RAZORPAY_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_PAYPAL_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_BUYMEACOFFEE_URL", "https://buymeacoffee.com/YourName");
+    renderSupportModal();
+
+    expect(screen.queryByRole("tab", { name: /UPI/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("your-upi@id")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Razorpay checkout/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /PayPal global/ })).not.toBeInTheDocument();
+    for (const link of screen.getAllByRole("link")) {
+      expect(link).not.toHaveAttribute("href", "#");
+    }
   });
 });

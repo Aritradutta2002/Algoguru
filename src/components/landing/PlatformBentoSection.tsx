@@ -11,6 +11,8 @@ import {
   TerminalSquare,
   Timer,
 } from "lucide-react";
+import { CODING_CONTEST_DURATION_SECONDS } from "@/lib/contest/config";
+import { formatExamTime } from "@/lib/formatTime";
 
 const ROADMAP_STEPS = [
   { label: "Arrays & Hashing", count: "9 / 9", done: true },
@@ -116,7 +118,9 @@ export function PlatformBentoSection() {
             <div className="lp-well space-y-2.5 p-3.5">
               <div className="flex items-center justify-between font-mono text-[12px]">
                 <span className="text-muted-foreground">Session timer</span>
-                <span className="tabular-nums font-medium text-foreground">45:00</span>
+                <span className="tabular-nums font-medium text-foreground">
+                  {formatExamTime(CODING_CONTEST_DURATION_SECONDS)}
+                </span>
               </div>
               <div className="flex items-center justify-between border-t border-obsidian-border pt-2.5 text-[12.5px]">
                 <span className="flex items-center gap-1.5 text-muted-foreground">

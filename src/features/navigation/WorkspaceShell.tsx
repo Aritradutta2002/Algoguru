@@ -26,7 +26,6 @@ import { AppTooltip } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { NavIcon } from "@/components/layout/NavIcon";
 import { HomeSidebarContext } from "@/contexts/HomeSidebarContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { UserMenu } from "@/components/UserMenu";
 import { GURU_PANEL_CONSTANTS } from "@/lib/guruPanel";
 import { GuruAvatar } from "@/components/brand/GuruMark";
@@ -46,8 +45,6 @@ import {
   MobileNavigationMenu,
   isNavActive,
 } from "@/components/layout/PrimaryNavigation";
-import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
-import { NotificationCenter } from "@/components/layout/NotificationCenter";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { AiCommandLauncher } from "@/components/layout/AiCommandLauncher";
 import { SpotlightNavbar } from "@/components/layout/SpotlightNavbar";
@@ -205,7 +202,6 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const isSmallScreen = useMediaQuery("(max-width: 767px)");
   const { theme, toggleTheme } = useSettings();
-  const { user } = useAuth();
 
   // On the home page the left sidebar panel is hidden by default (including
   // its fold/unfold handle). It only becomes visible when the user clicks the
@@ -537,7 +533,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                     ref={headerContainerRef}
                       className="ag-header__inner mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-2 sm:gap-3"
                   >
-                    {/* ── 1. Logo / Workspace Block ───── */}
+                    {/* ── 1. Brand Block ───── */}
                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <AnimatePresence initial={false}>
                         {showSidebarPanel && isSidebarCollapsed && (
@@ -566,13 +562,9 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                         )}
                       </AnimatePresence>
 
-                      {isHomeRoute && !user ? (
-                        <Link href="/" aria-label="AlgoGuru home" className="ag-header__mark">
-                          <SurfaceLockup />
-                        </Link>
-                      ) : (
-                        <WorkspaceSwitcher compact={isHeaderCompact} />
-                      )}
+                      <Link href="/" aria-label="AlgoGuru home" className="ag-header__mark">
+                        <SurfaceLockup />
+                      </Link>
                     </div>
 
                     {/* ── 2. Primary Navigation (Dynamic responsive with More dropdown) ───── */}
@@ -600,7 +592,6 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                             compact={isHeaderCompact}
                             onClick={toggleGuruPanel}
                           />
-                          <NotificationCenter />
                           <ThemeToggle />
                           <span aria-hidden="true" className="mx-0.5 hidden h-4 w-px bg-obsidian-border sm:block" />
                         </div>

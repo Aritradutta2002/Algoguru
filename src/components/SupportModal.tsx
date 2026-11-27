@@ -4,26 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { X, Copy, Check, Heart, ExternalLink, Coffee, CreditCard, Shield } from "lucide-react";
-import { publicEnv } from "@/lib/env";
+import { getSupportConfig } from "@/lib/supportConfig";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const UPI_ID = publicEnv.upiId || "your-upi@id";
-const RAZORPAY_URL = publicEnv.razorpayUrl || "";
-const PAYPAL_URL = publicEnv.paypalUrl || "";
-const CRYPTO_ADDRESS = publicEnv.cryptoAddress || "";
-
 const AMOUNTS = [49, 99, 199, 499];
 
-const TABS = [
-  { id: "upi", label: "UPI", flag: "🇮🇳" },
-  { id: "web", label: "Web", flag: "🌍" },
-  { id: "crypto", label: "Crypto", flag: "₿", hidden: !CRYPTO_ADDRESS },
-] as const;
-type Tab = (typeof TABS)[number]["id"];
+type Tab = "upi" | "web" | "crypto";
 
 function UpiQRCode({ upiId, amount }: { upiId: string; amount: number }) {
   const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=AlgoGuru%20Support&am=${amount}&cu=INR&tn=Support%20AlgoGuru`;
@@ -65,7 +55,19 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function SupportModal({ onClose }: { onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<Tab>("upi");
+  const {
+    upiId,
+    buyMeACoffeeUrl,
+    razorpayUrl,
+    paypalUrl,
+    cryptoAddress,
+  } = getSupportConfig();
+  const visibleTabs: ReadonlyArray<{ id: Tab; label: string; flag: string }> = [
+    ...(upiId ? [{ id: "upi" as const, label: "UPI", flag: "🇮🇳" }] : []),
+    { id: "web" as const, label: "Web", flag: "🌍" },
+    ...(cryptoAddress ? [{ id: "crypto" as const, label: "Crypto", flag: "₿" }] : []),
+  ];
+  const [activeTab, setActiveTab] = useState<Tab>(() => (upiId ? "upi" : "web"));
   const [amount, setAmount] = useState(99);
   const [custom, setCustom] = useState("");
   const [isPaid, setIsPaid] = useState(false);
@@ -76,7 +78,6 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
   }
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
-  const visibleTabs = TABS.filter((t) => !("hidden" in t && t.hidden));
 
   const displayAmount = custom ? parseInt(custom, 10) || amount : amount;
 
@@ -143,65 +144,67 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 md:px-6 py-4">
-              <TabsContent value="upi" className="outline-none">
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                    {isPaid ? (
-                      <div className="py-10 text-center space-y-3">
-                        <div className="w-12 h-12 mx-auto rounded-lg bg-obsidian-elevated border border-obsidian-border flex items-center justify-center text-xl">🎉</div>
-                        <h3 className="text-base font-semibold text-foreground">Huge thanks!</h3>
-                        <p className="text-sm text-muted-foreground px-6">Your support fuels new features and high-quality content.</p>
-                        <Badge variant="outline" className="inline-flex items-center gap-2 px-3 py-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-xs font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Closing…
-                        </Badge>
-                      </div>
-                    ) : (
-                      <>
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-muted-foreground">Select amount (₹)</span>
-                            <span className="text-xs font-medium text-foreground tabular-nums">{displayAmount} INR</span>
-                          </div>
-                          <div className="grid grid-cols-4 gap-2">
-                            {AMOUNTS.map((a) => (
-                              <Button
-                                key={a}
-                                type="button"
-                                variant={amount === a && !custom ? "default" : "outline"}
-                                onClick={() => { setAmount(a); setCustom(""); }}
-                                className="h-9 rounded-md text-sm font-medium"
-                              >
-                                ₹{a}
-                              </Button>
-                            ))}
-                          </div>
-                          <div className="mt-3 flex items-center gap-2 rounded-md border border-obsidian-border bg-obsidian-elevated px-3 focus-within:border-primary">
-                            <span className="text-muted-foreground text-sm">₹</span>
-                            <Input
-                              value={custom}
-                              onChange={(e) => setCustom(e.target.value)}
-                              placeholder="Custom amount"
-                              className="h-9 flex-1 border-0 bg-transparent px-0 py-2 text-sm shadow-none focus-visible:ring-0"
-                            />
-                          </div>
+              {upiId && (
+                <TabsContent value="upi" className="outline-none">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                      {isPaid ? (
+                        <div className="py-10 text-center space-y-3">
+                          <div className="w-12 h-12 mx-auto rounded-lg bg-obsidian-elevated border border-obsidian-border flex items-center justify-center text-xl">🎉</div>
+                          <h3 className="text-base font-semibold text-foreground">Huge thanks!</h3>
+                          <p className="text-sm text-muted-foreground px-6">Your support fuels new features and high-quality content.</p>
+                          <Badge variant="outline" className="inline-flex items-center gap-2 px-3 py-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-xs font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Closing…
+                          </Badge>
                         </div>
-
-                        <UpiQRCode upiId={UPI_ID} amount={displayAmount} />
-
-                        <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-obsidian-elevated border border-obsidian-border">
-                          <div className="min-w-0">
-                            <div className="text-xs text-muted-foreground">UPI ID</div>
-                            <div className="text-sm font-medium truncate text-foreground">{UPI_ID}</div>
+                      ) : (
+                        <>
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium text-muted-foreground">Select amount (₹)</span>
+                              <span className="text-xs font-medium text-foreground tabular-nums">{displayAmount} INR</span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
+                              {AMOUNTS.map((a) => (
+                                <Button
+                                  key={a}
+                                  type="button"
+                                  variant={amount === a && !custom ? "default" : "outline"}
+                                  onClick={() => { setAmount(a); setCustom(""); }}
+                                  className="h-9 rounded-md text-sm font-medium"
+                                >
+                                  ₹{a}
+                                </Button>
+                              ))}
+                            </div>
+                            <div className="mt-3 flex items-center gap-2 rounded-md border border-obsidian-border bg-obsidian-elevated px-3 focus-within:border-primary">
+                              <span className="text-muted-foreground text-sm">₹</span>
+                              <Input
+                                value={custom}
+                                onChange={(e) => setCustom(e.target.value)}
+                                placeholder="Custom amount"
+                                className="h-9 flex-1 border-0 bg-transparent px-0 py-2 text-sm shadow-none focus-visible:ring-0"
+                              />
+                            </div>
                           </div>
-                          <CopyButton text={UPI_ID} />
-                        </div>
 
-                        <Button type="button" onClick={() => setIsPaid(true)} className="w-full rounded-md text-sm font-medium">
-                          <Check size={14} className="mr-1.5" /> I have paid via UPI
-                        </Button>
-                      </>
-                    )}
-                </motion.div>
-              </TabsContent>
+                          <UpiQRCode upiId={upiId} amount={displayAmount} />
+
+                          <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-obsidian-elevated border border-obsidian-border">
+                            <div className="min-w-0">
+                              <div className="text-xs text-muted-foreground">UPI ID</div>
+                              <div className="text-sm font-medium truncate text-foreground">{upiId}</div>
+                            </div>
+                            <CopyButton text={upiId} />
+                          </div>
+
+                          <Button type="button" onClick={() => setIsPaid(true)} className="w-full rounded-md text-sm font-medium">
+                            <Check size={14} className="mr-1.5" /> I have paid via UPI
+                          </Button>
+                        </>
+                      )}
+                  </motion.div>
+                </TabsContent>
+              )}
 
               <TabsContent value="web" className="outline-none">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
@@ -218,37 +221,54 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                       <ExternalLink size={14} className="text-muted-foreground" />
                     </Link>
 
-                    <a href={RAZORPAY_URL || "#"} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
-                      <div className="w-9 h-9 rounded-md bg-obsidian-pane border border-obsidian-border flex items-center justify-center text-foreground">
-                        <CreditCard size={16} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-foreground">Razorpay checkout</div>
-                        <div className="text-xs text-muted-foreground">UPI / Cards / Netbanking</div>
-                      </div>
-                      <ExternalLink size={14} className="text-muted-foreground" />
-                    </a>
+                    {buyMeACoffeeUrl && (
+                      <a href={buyMeACoffeeUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
+                        <div className="w-9 h-9 rounded-md bg-[#FFDD00] flex items-center justify-center text-black">
+                          <Coffee size={16} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-foreground">Buy Me a Coffee</div>
+                          <div className="text-xs text-muted-foreground">Card · Apple Pay · Global</div>
+                        </div>
+                        <ExternalLink size={14} className="text-muted-foreground" />
+                      </a>
+                    )}
 
-                    <a href={PAYPAL_URL || "#"} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
-                      <div className="w-9 h-9 rounded-md bg-obsidian-pane border border-obsidian-border flex items-center justify-center text-foreground font-semibold text-xs">P</div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-foreground">PayPal global</div>
-                        <div className="text-xs text-muted-foreground">Any currency · Secure</div>
-                      </div>
-                      <ExternalLink size={14} className="text-muted-foreground" />
-                    </a>
+                    {razorpayUrl && (
+                      <a href={razorpayUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
+                        <div className="w-9 h-9 rounded-md bg-obsidian-pane border border-obsidian-border flex items-center justify-center text-foreground">
+                          <CreditCard size={16} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-foreground">Razorpay checkout</div>
+                          <div className="text-xs text-muted-foreground">UPI / Cards / Netbanking</div>
+                        </div>
+                        <ExternalLink size={14} className="text-muted-foreground" />
+                      </a>
+                    )}
+
+                    {paypalUrl && (
+                      <a href={paypalUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-obsidian-border bg-obsidian-elevated hover:bg-foreground/[0.05] transition-colors">
+                        <div className="w-9 h-9 rounded-md bg-obsidian-pane border border-obsidian-border flex items-center justify-center text-foreground font-semibold text-xs">P</div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-foreground">PayPal global</div>
+                          <div className="text-xs text-muted-foreground">Any currency · Secure</div>
+                        </div>
+                        <ExternalLink size={14} className="text-muted-foreground" />
+                      </a>
+                    )}
 
                     <p className="text-center text-xs text-muted-foreground pt-2">Your contribution funds development, maintenance, and high-quality free content.</p>
                 </motion.div>
               </TabsContent>
 
-              {CRYPTO_ADDRESS && (
+              {cryptoAddress && (
                 <TabsContent value="crypto" className="outline-none">
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                     <div className="rounded-lg bg-obsidian-elevated border border-obsidian-border p-3">
-                      <div className="text-xs font-mono break-all text-foreground">{CRYPTO_ADDRESS}</div>
+                      <div className="text-xs font-mono break-all text-foreground">{cryptoAddress}</div>
                       <div className="mt-2 flex justify-end">
-                        <CopyButton text={CRYPTO_ADDRESS} />
+                        <CopyButton text={cryptoAddress} />
                       </div>
                     </div>
                     <p className="text-center text-xs text-muted-foreground">BTC, ETH, SOL and EVM tokens supported.</p>
