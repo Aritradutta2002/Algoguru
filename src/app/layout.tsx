@@ -130,7 +130,7 @@ export default function RootLayout({
   );
 
   return (
-    <html lang="en" suppressHydrationWarning className={fontVariables}>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning className={fontVariables}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>

@@ -135,6 +135,8 @@
   .ag-hero__description { margin-top: 1.25rem; }
   .ag-hero__actions { margin-top: 1.25rem; }
   .ag-hero__actions > * { flex: 1 1 100%; }
+  .ag-hero__actions .ag-button { min-height: 44px; }
+  .ag-preview :is(.ag-preview__select, .ag-button--run, .ag-preview__tabs button) { min-height: 44px; }
   .ag-preview__code .hero-code-line { padding-left: 1.9rem; }
   .ag-preview__code .hero-code-line::before { width: 1.35rem; }
 }

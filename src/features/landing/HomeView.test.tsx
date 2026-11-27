@@ -62,7 +62,6 @@ describe("Home landing page", () => {
 
   it.each([
     ["Explore learning paths", "modules"],
-    ["Start learning free", "modules"],
     ["Or take a 10-question quiz", "quiz"],
   ])("scrolls %s to its existing section", (name, id) => {
     const scroll = vi.spyOn(Element.prototype, "scrollIntoView");
@@ -70,6 +69,15 @@ describe("Home landing page", () => {
     fireEvent.click(screen.getByRole("button", { name }));
     expect(scroll).toHaveBeenCalledWith({ behavior: "smooth" });
     expect(scroll.mock.instances[0]).toBe(document.getElementById(id));
+    expect(document.getElementById(id)).toHaveFocus();
+  });
+
+  it("takes visitors from the final CTA to registration and then practice", () => {
+    renderHome();
+    expect(screen.getByRole("link", { name: "Start learning free" })).toHaveAttribute(
+      "href",
+      "/auth?mode=signup&redirect=%2Fpractice",
+    );
   });
 
   it("uses instant section scrolling when the browser requests reduced motion", () => {

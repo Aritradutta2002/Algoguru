@@ -167,9 +167,9 @@ export function HomeView() {
 
   const scrollToSection = (id: string) => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    const section = document.getElementById(id);
+    section?.focus({ preventScroll: true });
+    section?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
   };
 
   return (
@@ -331,18 +331,19 @@ export function HomeView() {
                 <div className="lp-hero-actions flex shrink-0 flex-col items-start gap-3 sm:items-end">
                   <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
                     <Button
+                      asChild
                       variant="bare"
                       size="bare"
-                      type="button"
-                      onClick={() => scrollToSection("modules")}
                       className="lp-btn landing-primary group"
                     >
-                      Start learning free
-                      <ArrowRight
-                        size={16}
-                        className="transition-transform duration-200 group-hover:translate-x-0.5"
-                        aria-hidden="true"
-                      />
+                      <Link href="/auth?mode=signup&redirect=%2Fpractice">
+                        Start learning free
+                        <ArrowRight
+                          size={16}
+                          className="transition-transform duration-200 group-hover:translate-x-0.5"
+                          aria-hidden="true"
+                        />
+                      </Link>
                     </Button>
                     <Button
                       variant="bare"

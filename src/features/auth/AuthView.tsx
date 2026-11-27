@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -180,7 +180,12 @@ export function AuthView() {
       ? "Authentication could not be completed. Please try signing in again."
       : "";
 
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [mode, setMode] = useState<AuthMode>(() =>
+    searchParams.get("mode") === "signup" ? "signup" : "login",
+  );
+  const accessId = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusHeadingOnModeChange = useRef(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -235,9 +240,17 @@ export function AuthView() {
 
   const switchMode = (nextMode: AuthMode, preserveEmail = false) => {
     if (nextMode === mode) return;
+    focusHeadingOnModeChange.current = nextMode === "forgot" || mode === "forgot";
     setMode(nextMode);
     resetForm(preserveEmail);
   };
+
+  useEffect(() => {
+    if (focusHeadingOnModeChange.current) {
+      focusHeadingOnModeChange.current = false;
+      headingRef.current?.focus();
+    }
+  }, [mode]);
 
   const handleFieldChange = (field: string, value: string, setter: (v: string) => void) => {
     setter(value);
@@ -380,7 +393,7 @@ export function AuthView() {
         <AuthSurfaceHeader returnHref="/" returnLabel="Back to home" />
         <div className="ag-auth__form">
           <div className="mb-6">
-            <h1 className="ag-auth__title">
+            <h1 ref={headingRef} tabIndex={-1} className="ag-auth__title">
               {headingTitle}
             </h1>
             <p className="ag-auth__description">
@@ -389,122 +402,202 @@ export function AuthView() {
           </div>
 
           {!isForgot && (
-            <>
-              {/* Segmented Sign In / Create Account switch */}
-              <Tabs
-                value={isLogin ? "login" : "signup"}
-                onValueChange={(value) =>
-                  switchMode(value === "login" ? "login" : "signup")
-                }
-                className="mb-5"
-              >
-                <TabsList aria-label="Account access" className="ag-auth__switch grid grid-cols-2">
-                  <TabsTrigger
-                    value="login"
-                  >
-                    Sign in
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="signup"
-                  >
-                    Create account
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              {/* Google SSO */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGoogleSignIn}
-                disabled={isDisabled}
-                className="ag-auth__google"
-              >
-                <GoogleIcon />
-                <span>Continue with Google</span>
-              </Button>
-
-              <div className="my-5 flex items-center gap-3" aria-hidden="true">
-                <div className="h-px flex-1 bg-obsidian-border" />
-                <span className="text-xs font-medium text-muted-foreground">
-                  or with email
-                </span>
-                <div className="h-px flex-1 bg-obsidian-border" />
-              </div>
-            </>
+            <Tabs
+              value={isLogin ? "login" : "signup"}
+              onValueChange={(value) =>
+                switchMode(value === "login" ? "login" : "signup")
+              }
+              className="mb-5"
+            >
+              <TabsList aria-label="Account access" className="ag-auth__switch grid grid-cols-2">
+                <TabsTrigger
+                  value="login"
+                  id={`${accessId}-login`}
+                  aria-controls={`${accessId}-form`}
+                >
+                  Sign in
+                </TabsTrigger>
+                <TabsTrigger
+                  value="signup"
+                  id={`${accessId}-signup`}
+                  aria-controls={`${accessId}-form`}
+                >
+                  Create account
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           )}
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4" aria-busy={loading}>
-            {isSignup && (
-              <Field
-                id="auth-name"
-                label="Full name"
-                type="text"
-                placeholder="Ada Lovelace"
-                value={name}
-                disabled={loading}
-                onChange={(v) => handleFieldChange("name", v, setName)}
-                error={fieldErrors.name}
-                autoComplete="name"
-              />
+          <div
+            id={`${accessId}-form`}
+            role={isForgot ? undefined : "tabpanel"}
+            aria-labelledby={isForgot ? undefined : `${accessId}-${mode}`}
+          >
+            {!isForgot && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogleSignIn}
+                  disabled={isDisabled}
+                  className="ag-auth__google"
+                >
+                  <GoogleIcon />
+                  <span>Continue with Google</span>
+                </Button>
+
+                <div className="my-5 flex items-center gap-3" aria-hidden="true">
+                  <div className="h-px flex-1 bg-obsidian-border" />
+                  <span className="text-xs font-medium text-muted-foreground">
+                    or with email
+                  </span>
+                  <div className="h-px flex-1 bg-obsidian-border" />
+                </div>
+              </>
             )}
 
-            <Field
-              id="auth-email"
-              label="Email address"
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              disabled={loading}
-              onChange={(v) => handleFieldChange("email", v, setEmail)}
-              error={fieldErrors.email}
-              autoComplete="email"
-            />
-
-            {!isForgot && (
-              <div>
+            <form onSubmit={handleSubmit} noValidate className="space-y-4" aria-busy={loading}>
+              {isSignup && (
                 <Field
-                  id="auth-password"
-                  label="Password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={
-                    isLogin
-                      ? "Enter your password"
-                      : "8+ chars, upper, lower, number"
-                  }
-                  value={password}
+                  id="auth-name"
+                  label="Full name"
+                  type="text"
+                  placeholder="Ada Lovelace"
+                  value={name}
                   disabled={loading}
-                  onChange={(v) =>
-                    handleFieldChange("password", v, setPassword)
-                  }
-                  error={fieldErrors.password}
-                  autoComplete={isLogin ? "current-password" : "new-password"}
-                  labelRightSlot={
-                    isLogin ? (
+                  onChange={(v) => handleFieldChange("name", v, setName)}
+                  error={fieldErrors.name}
+                  autoComplete="name"
+                />
+              )}
+
+              <Field
+                id="auth-email"
+                label="Email address"
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                disabled={loading}
+                onChange={(v) => handleFieldChange("email", v, setEmail)}
+                error={fieldErrors.email}
+                autoComplete="email"
+              />
+
+              {!isForgot && (
+                <div>
+                  <Field
+                    id="auth-password"
+                    label="Password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={
+                      isLogin
+                        ? "Enter your password"
+                        : "8+ chars, upper, lower, number"
+                    }
+                    value={password}
+                    disabled={loading}
+                    onChange={(v) =>
+                      handleFieldChange("password", v, setPassword)
+                    }
+                    error={fieldErrors.password}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                    labelRightSlot={
+                      isLogin ? (
+                        <Button
+                          variant="bare"
+                          size="bare"
+                          type="button"
+                          onClick={() => switchMode("forgot", true)}
+                          className="rounded text-xs font-medium text-primary transition-colors hover:text-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          Forgot password?
+                        </Button>
+                      ) : undefined
+                    }
+                    rightSlot={
                       <Button
                         variant="bare"
                         size="bare"
                         type="button"
-                        onClick={() => switchMode("forgot", true)}
-                        className="rounded text-xs font-medium text-primary transition-colors hover:text-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                        aria-pressed={showPassword}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        Forgot password?
+                        {showPassword ? (
+                          <EyeOff size={15} aria-hidden="true" />
+                        ) : (
+                          <Eye size={15} aria-hidden="true" />
+                        )}
                       </Button>
-                    ) : undefined
+                    }
+                  />
+
+                  {isSignup && (
+                    <div
+                      className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4"
+                      aria-label="Password requirements"
+                    >
+                      {PASSWORD_RULES.map((rule) => {
+                        const met = rule.test(password);
+                        return (
+                          <span
+                            key={rule.label}
+                            className={cn(
+                              "inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+                              met
+                                ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                : "border-obsidian-border bg-obsidian-pane text-muted-foreground",
+                            )}
+                          >
+                            <Check
+                              size={10}
+                              strokeWidth={2.5}
+                              className={cn(
+                                "shrink-0",
+                                met ? "opacity-100" : "opacity-35",
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="whitespace-nowrap">{rule.label}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {isSignup && (
+                <Field
+                  id="auth-confirm-password"
+                  label="Confirm password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Re-enter your password"
+                  value={confirmPassword}
+                  disabled={loading}
+                  onChange={(v) =>
+                    handleFieldChange("confirmPassword", v, setConfirmPassword)
                   }
+                  error={fieldErrors.confirmPassword}
+                  autoComplete="new-password"
                   rightSlot={
                     <Button
                       variant="bare"
                       size="bare"
                       type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
                       aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                        showConfirmPassword
+                          ? "Hide confirm password"
+                          : "Show confirm password"
                       }
-                      aria-pressed={showPassword}
+                      aria-pressed={showConfirmPassword}
                       className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {showPassword ? (
+                      {showConfirmPassword ? (
                         <EyeOff size={15} aria-hidden="true" />
                       ) : (
                         <Eye size={15} aria-hidden="true" />
@@ -512,121 +605,51 @@ export function AuthView() {
                     </Button>
                   }
                 />
-
-                {isSignup && (
-                  <div
-                    className="mt-2.5 grid grid-cols-2 gap-1.5 sm:grid-cols-4"
-                    aria-label="Password requirements"
-                  >
-                    {PASSWORD_RULES.map((rule) => {
-                      const met = rule.test(password);
-                      return (
-                        <span
-                          key={rule.label}
-                          className={cn(
-                            "inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
-                            met
-                              ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                              : "border-obsidian-border bg-obsidian-pane text-muted-foreground",
-                          )}
-                        >
-                          <Check
-                            size={10}
-                            strokeWidth={2.5}
-                            className={cn(
-                              "shrink-0",
-                              met ? "opacity-100" : "opacity-35",
-                            )}
-                            aria-hidden="true"
-                          />
-                          <span className="whitespace-nowrap">{rule.label}</span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {isSignup && (
-              <Field
-                id="auth-confirm-password"
-                label="Confirm password"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Re-enter your password"
-                value={confirmPassword}
-                disabled={loading}
-                onChange={(v) =>
-                  handleFieldChange("confirmPassword", v, setConfirmPassword)
-                }
-                error={fieldErrors.confirmPassword}
-                autoComplete="new-password"
-                rightSlot={
-                  <Button
-                    variant="bare"
-                    size="bare"
-                    type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    aria-label={
-                      showConfirmPassword
-                        ? "Hide confirm password"
-                        : "Show confirm password"
-                    }
-                    aria-pressed={showConfirmPassword}
-                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff size={15} aria-hidden="true" />
-                    ) : (
-                      <Eye size={15} aria-hidden="true" />
-                    )}
-                  </Button>
-                }
-              />
-            )}
-
-            {error && (
-              <Alert
-                variant="destructive"
-                className="rounded-lg border-destructive/35 bg-destructive/10 px-3.5 py-2.5 text-xs leading-5"
-              >
-                <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                <AlertDescription className="text-xs leading-5">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {message && (
-              <Alert
-                role="status"
-                aria-live="polite"
-                className="rounded-lg border-emerald-500/35 bg-emerald-500/10 px-3.5 py-2.5 text-xs leading-5 text-emerald-700 dark:text-emerald-400 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400"
-              >
-                <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                <AlertDescription className="text-xs leading-5">
-                  {message}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              variant="bare"
-              size="bare"
-              disabled={isDisabled}
-              className="ag-button ag-button--primary mt-1 w-full"
-            >
-              {loading && (
-                <Loader2
-                  size={15}
-                  className="motion-safe:animate-spin"
-                  aria-hidden="true"
-                />
               )}
-              <span>{submitLabel}</span>
-            </Button>
-          </form>
+
+              {error && (
+                <Alert
+                  variant="destructive"
+                  className="rounded-lg border-destructive/35 bg-destructive/10 px-3.5 py-2.5 text-xs leading-5"
+                >
+                  <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                  <AlertDescription className="text-xs leading-5">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {message && (
+                <Alert
+                  role="status"
+                  aria-live="polite"
+                  className="rounded-lg border-emerald-500/35 bg-emerald-500/10 px-3.5 py-2.5 text-xs leading-5 text-emerald-700 dark:text-emerald-400 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400"
+                >
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                  <AlertDescription className="text-xs leading-5">
+                    {message}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Button
+                type="submit"
+                variant="bare"
+                size="bare"
+                disabled={isDisabled}
+                className="ag-button ag-button--primary mt-1 w-full"
+              >
+                {loading && (
+                  <Loader2
+                    size={15}
+                    className="motion-safe:animate-spin"
+                    aria-hidden="true"
+                  />
+                )}
+                <span>{submitLabel}</span>
+              </Button>
+            </form>
+          </div>
 
           {isForgot ? (
             <div className="mt-5 text-center">

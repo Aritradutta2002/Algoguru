@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
@@ -185,6 +186,35 @@ describe("AuthView", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Authentication could not be completed. Please try signing in again.",
     );
+  });
+
+  it("associates the selected account tab with the form after switching modes", () => {
+    renderAuthView();
+    const signInTab = screen.getByRole("tab", { name: "Sign in" });
+    const signInPanel = screen.getByRole("tabpanel", { name: "Sign in" });
+    expect(signInTab).toHaveAttribute("aria-controls", signInPanel.id);
+    expect(within(signInPanel).getByLabelText("Password")).toBeInTheDocument();
+    expect(within(signInPanel).getByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
+
+    switchToCreateAccountTab();
+    const signupPanel = screen.getByRole("tabpanel", { name: "Create account" });
+    expect(within(signupPanel).getByLabelText("Full name")).toBeInTheDocument();
+  });
+
+  it("opens registration directly from a signup link", () => {
+    setMockSearchParams({ mode: "signup", redirect: "/practice" });
+    renderAuthView();
+    expect(screen.getByRole("heading", { name: "Create your account" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Full name")).toBeInTheDocument();
+  });
+
+  it("moves focus to the new heading when entering and leaving recovery", () => {
+    renderAuthView();
+    fireEvent.click(screen.getByRole("button", { name: "Forgot password?" }));
+    expect(screen.getByRole("heading", { name: "Reset your password" })).toHaveFocus();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to sign in" }));
+    expect(screen.getByRole("heading", { name: "Sign in to AlgoGuru" })).toHaveFocus();
   });
 
   describe("Sign in", () => {

@@ -58,7 +58,7 @@ export function QuizSection() {
   ];
 
   return (
-    <section id="quiz" aria-labelledby="quiz-heading" className="lp-section">
+    <section id="quiz" tabIndex={-1} aria-labelledby="quiz-heading" className="lp-section">
       <div className="lp-container lp-split lp-split--even">
         <div>
           <h2 id="quiz-heading" className="lp-h2">
