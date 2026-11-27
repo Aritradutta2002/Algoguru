@@ -128,9 +128,9 @@ export function GuruComposer({
   const canSend = value.trim().length > 0;
 
   return (
-    <div className="border-t border-guru-line/70 bg-guru-bg/95 px-3 pb-2.5 pt-2.5">
+    <div className="border-t border-guru-line/80 bg-guru-bg/95 px-3 pb-3 pt-3">
       {queuedPrompt && (
-        <div className="mb-2 flex items-center gap-2 rounded-lg border border-guru-accent/25 bg-guru-accent/[0.08] px-2.5 py-1.5">
+        <div className="mb-2 flex items-center gap-2 rounded-xl border border-guru-accent/25 bg-guru-accent/[0.08] px-2.5 py-1.5">
           <ArrowUp size={12} className="shrink-0 text-guru-accent" />
           <p className="min-w-0 flex-1 truncate text-[11.5px] text-guru-muted">
             Queued: <span className="text-guru-text/90">{queuedPrompt}</span>
@@ -192,8 +192,9 @@ export function GuruComposer({
 
       <div
         className={cn(
-          "relative rounded-2xl border bg-guru-surface/70 transition-colors duration-200",
-          "border-guru-line focus-within:border-guru-accent/55 focus-within:bg-guru-surface",
+          "relative rounded-2xl border bg-guru-surface shadow-[0_1px_2px_hsl(var(--guru-text)/0.04)]",
+          "border-guru-line transition-[border-color,box-shadow] duration-200",
+          "focus-within:border-guru-accent/45 focus-within:shadow-[0_0_0_3px_hsl(var(--guru-accent)/0.12)]",
         )}
       >
         <label htmlFor={inputId} className="sr-only">
@@ -222,10 +223,10 @@ export function GuruComposer({
           aria-label={busy ? "Stop generating" : "Send message"}
           className={cn(
             "absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-150",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guru-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-guru-bg",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guru-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-guru-surface",
             busy
               ? "bg-guru-danger/15 text-guru-danger hover:bg-guru-danger/25"
-              : "bg-gradient-to-br from-guru-accent to-guru-accent-2 text-guru-on-accent shadow-[0_6px_18px_-8px_hsl(var(--guru-accent)/0.9)] hover:brightness-110",
+              : "bg-guru-accent text-guru-on-accent shadow-[0_6px_18px_-10px_hsl(var(--guru-accent)/0.9)] hover:brightness-110",
             !busy && !canSend && "opacity-40",
           )}
         >
@@ -247,7 +248,7 @@ export function GuruComposer({
             "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
             attachCode
               ? "border-guru-accent/35 bg-guru-accent/10 text-guru-accent"
-              : "border-guru-line bg-guru-text/[0.025] text-guru-muted hover:border-guru-line/80 hover:text-guru-text",
+              : "border-guru-line bg-guru-surface/60 text-guru-muted hover:border-guru-accent/30 hover:text-guru-text",
           )}
         >
           <Code2 size={11} className="shrink-0" />

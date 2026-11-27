@@ -133,6 +133,13 @@ describe("GuruBot", () => {
     ).toBeInTheDocument();
   });
 
+  it("labels the empty-state suggestions and the composer hint", () => {
+    renderGuru();
+    expect(screen.getByText("Try asking")).toBeInTheDocument();
+    expect(screen.getByText(/AI study partner/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Message Guru")).toBeInTheDocument();
+  });
+
   it("fills the composer from a suggestion without sending", () => {
     renderGuru({ suggestedPrompts: ["Explain two pointers"] });
     fireEvent.click(screen.getByRole("button", { name: /Explain two pointers/ }));
