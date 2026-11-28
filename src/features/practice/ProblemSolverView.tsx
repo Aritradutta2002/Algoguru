@@ -7,6 +7,7 @@
 // User code is persisted to Supabase `daily_challenge_user_code` for logged-in users.
 
 "use client";
+import { GuruMark } from "@/components/brand/GuruMark";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -42,8 +43,6 @@ import {
   Terminal,
   Maximize2,
   Minimize2,
-  BrainCircuit,
-  Sparkles,
 } from "lucide-react";
 
 import { useDailyChallenge } from "@/hooks/useDailyChallenge";
@@ -2100,7 +2099,7 @@ function EditorialBody({
 const LEFT_TABS = [
   { label: "Description", icon: FileText },
   { label: "Editorial", icon: BookOpen },
-  { label: "Guru AI", icon: Sparkles },
+  { label: "Guru AI", icon: GuruMark },
 ] as const;
 
 /** Token-driven difficulty treatment shared with the rest of the app. */
@@ -2215,7 +2214,7 @@ function ProblemDetails({
                   : "font-medium text-muted-foreground hover:text-foreground",
               )}
             >
-              <Icon className="h-3.5 w-3.5" />
+              {Icon === GuruMark ? <GuruMark size={16} title={null} /> : <Icon className="h-3.5 w-3.5" />}
               {tab.label}
 
             </Button>
@@ -2383,7 +2382,7 @@ function ProblemDetails({
                       {
                         label: "Ask Guru AI",
                         action: () => onActiveTabChange(2),
-                        icon: <BrainCircuit size={14} />,
+                        icon: <GuruMark size={16} title={null} />,
                       },
                     ].map((l) =>
                       l.action ? (

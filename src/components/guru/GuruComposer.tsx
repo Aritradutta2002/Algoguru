@@ -128,7 +128,7 @@ export function GuruComposer({
   const canSend = value.trim().length > 0;
 
   return (
-    <div className="border-t border-guru-line/80 bg-guru-bg/95 px-3 pb-3 pt-3">
+    <div className="shrink-0 border-t border-guru-line/60 bg-guru-bg px-3 pb-3 pt-3">
       {queuedPrompt && (
         <div className="mb-2 flex items-center gap-2 rounded-xl border border-guru-accent/25 bg-guru-accent/[0.08] px-2.5 py-1.5">
           <ArrowUp size={12} className="shrink-0 text-guru-accent" />
@@ -192,7 +192,7 @@ export function GuruComposer({
 
       <div
         className={cn(
-          "relative rounded-2xl border border-guru-line bg-guru-surface shadow-[0_1px_2px_hsl(var(--guru-text)/0.04)]",
+          "relative rounded-2xl border border-guru-line bg-guru-surface shadow-[0_4px_18px_-8px_hsl(var(--guru-text)/0.18)]",
           "focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-guru-accent",
         )}
       >

@@ -136,7 +136,6 @@ describe("GuruBot", () => {
   it("labels the empty-state suggestions and the composer hint", () => {
     renderGuru();
     expect(screen.getByText("Try asking")).toBeInTheDocument();
-    expect(screen.getByText(/AI study partner/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Message Guru")).toBeInTheDocument();
   });
 

@@ -21,34 +21,17 @@ export function GuruEmptyState({
   contextAttached,
 }: GuruEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center gap-5 px-1 py-6 text-center">
-      <div className="relative flex h-24 w-24 items-center justify-center">
-        <span aria-hidden="true" className="guru-empty-stage absolute inset-0 rounded-full" />
-        <span
-          aria-hidden="true"
-          className="absolute inset-3 -z-10 rounded-full bg-guru-accent/20 blur-2xl"
-        />
-        <GuruAvatar
-          size={72}
-          ring
-          mood="idle"
-          className="relative animate-fade-in"
-          title={null}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-guru-line bg-guru-surface/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-guru-muted">
-          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-guru-success" />
-          AI study partner
-        </span>
-        <h3 className="font-display text-[19px] font-semibold tracking-tight text-guru-text">
+    <div className="guru-welcome mx-auto flex w-full max-w-[560px] flex-col gap-5 py-4">
+      <div className="guru-welcome-hero relative isolate overflow-hidden rounded-3xl border border-guru-line px-5 pb-5 pt-4">
+        <span aria-hidden="true" className="guru-empty-stage absolute right-0 top-0 -z-10 h-32 w-40" />
+        <GuruAvatar size={76} mood="happy" title={null} />
+        <h3 className="mt-3 max-w-[18ch] font-display text-[clamp(1.45rem,6cqi,2.15rem)] font-semibold leading-[1.08] tracking-tight text-guru-text">
           {debugMode ? "Let's debug this together" : "What are we working on?"}
         </h3>
-        <p className="mx-auto max-w-[32ch] text-[12.5px] leading-relaxed text-guru-muted">
+        <p className="mt-2 max-w-[42ch] text-sm leading-relaxed text-guru-muted">
           {debugMode
             ? "Guru coaches you toward the fix — hints first, full solution when you ask for it."
-            : "Algorithms, complexity, Java, SQL or interview prep. Paste code and ask away."}
+            : "Bring a question, paste some code, or pick a starting point below."}
         </p>
       </div>
 
@@ -63,7 +46,7 @@ export function GuruEmptyState({
         <p className="px-1 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-guru-muted">
           Try asking
         </p>
-        <div className="grid w-full grid-cols-1 gap-1.5">
+        <div className="guru-prompts grid w-full gap-2">
           {suggestions.slice(0, 4).map((suggestion, index) => {
             const Icon = ICONS[index % ICONS.length];
             return (
@@ -72,7 +55,7 @@ export function GuruEmptyState({
                 type="button"
                 onClick={() => onPick(suggestion)}
                 className={cn(
-                  "group flex min-h-[48px] items-center gap-2.5 rounded-xl border border-guru-line/80 bg-guru-surface/60 px-3 py-2.5 text-left",
+                  "group flex min-h-[52px] whitespace-normal items-center gap-2.5 rounded-xl border border-guru-line/80 bg-guru-surface/60 px-3 py-2.5 text-left",
                   "transition-[background-color,border-color,transform,box-shadow] duration-150",
                   "hover:-translate-y-px hover:border-guru-accent/35 hover:bg-guru-surface hover:shadow-[0_4px_14px_-10px_hsl(var(--guru-accent)/0.6)]",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guru-accent/60",
@@ -94,7 +77,7 @@ export function GuruEmptyState({
         </div>
       </div>
 
-      <p className="text-[10.5px] leading-relaxed text-guru-muted">
+      <p className="text-center text-[11px] leading-relaxed text-guru-muted">
         Guru can make mistakes — verify important code.
       </p>
     </div>

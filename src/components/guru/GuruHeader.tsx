@@ -17,7 +17,7 @@ interface GuruHeaderProps {
   onToggleFullscreen?: () => void;
   isFullscreen?: boolean;
   title?: string;
-  /** Panel is narrow: drop the secondary identity copy to protect the status. */
+  /** Use a smaller mark in narrow panels. */
   compact?: boolean;
   className?: string;
 }
@@ -62,23 +62,16 @@ export function GuruHeader({
     >
       <div className="flex min-w-0 items-center gap-2.5">
         <GuruAvatar
-          size={36}
-          ring
+          size={compact ? 28 : 36}
           glow={busy}
           mood={busy ? "thinking" : "idle"}
-          status={busy ? "busy" : status === "error" ? "error" : "ready"}
           title={null}
         />
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <h2 className="truncate font-display text-[14.5px] font-semibold tracking-tight text-guru-text">
+            <h2 className="truncate font-display text-base font-semibold tracking-tight text-guru-text">
               {title}
             </h2>
-            {!compact && (
-              <span className="rounded-full border border-guru-accent/25 bg-guru-accent/10 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.12em] text-guru-accent">
-                AI
-              </span>
-            )}
           </div>
           <p
             role="status"
@@ -87,14 +80,6 @@ export function GuruHeader({
           >
             <GuruStatusDot tone={busy ? "busy" : status === "error" ? "error" : "idle"} />
             <span>{statusLabel(status, elapsedMs)}</span>
-            {!compact && (
-              <>
-                <span aria-hidden="true" className="text-guru-muted/40">
-                  ·
-                </span>
-                <span className="truncate">AlgoGuru tutor</span>
-              </>
-            )}
           </p>
         </div>
       </div>

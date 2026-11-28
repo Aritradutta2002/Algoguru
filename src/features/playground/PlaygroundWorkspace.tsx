@@ -31,7 +31,6 @@ import {
   Bug,
   StickyNote,
   Lock,
-  Lightbulb,
   Clock,
   Layers,
   Target,
@@ -5078,7 +5077,7 @@ function PlaygroundWorkspaceContent({
               style={{ color: "var(--lc-yellow)" }}
               aria-label="Ask GuruBot for a hint"
             >
-              <Lightbulb size={12} />
+              <GuruAvatar size={16} title={null} />
               <span>Hint</span>
             </Button>
           </AppTooltip>

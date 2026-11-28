@@ -88,7 +88,7 @@ export function GuruHistoryPanel({
               <ArrowLeft size={14} />
             </GuruIconButton>
           )}
-          <h3 className="text-xs font-semibold text-guru-muted">
+          <h3 className="font-display text-sm font-semibold text-guru-text">
             History
           </h3>
           <span className="rounded-full bg-guru-text/[0.06] px-1.5 py-px text-[10px] tabular-nums text-guru-muted">
@@ -111,7 +111,7 @@ export function GuruHistoryPanel({
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search chats"
             aria-label="Search chats"
-            className="h-8 w-full rounded-lg border border-guru-line/80 bg-guru-surface/60 pl-8 pr-2.5 py-0 text-[12px] text-guru-text shadow-none outline-none transition-colors placeholder:text-guru-muted focus:border-guru-accent/50 focus-visible:border-guru-accent/50 focus-visible:bg-guru-surface/60 focus-visible:ring-0 hover:border-guru-line/80 md:text-[12px]"
+            className="h-9 w-full rounded-xl border border-guru-line/80 bg-guru-surface/60 pl-8 pr-2.5 py-0 text-[12px] text-guru-text shadow-none outline-none transition-colors placeholder:text-guru-muted focus:border-guru-accent/50 focus-visible:border-guru-accent/50 focus-visible:bg-guru-surface/60 focus-visible:ring-2 focus-visible:ring-guru-accent/40 hover:border-guru-line/80 md:text-[12px]"
           />
         </div>
       </div>

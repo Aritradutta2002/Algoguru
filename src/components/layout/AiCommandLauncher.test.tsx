@@ -46,7 +46,7 @@ describe("AiCommandLauncher", () => {
     expect(button).toHaveTextContent("Ask Guru");
   });
 
-  it("renders the mascot large enough to show its signature detail", () => {
+  it("uses the simplified, still mascot in the navigation", () => {
     render(
       <TooltipProvider>
         <AiCommandLauncher open={false} onClick={() => undefined} />
@@ -57,6 +57,7 @@ describe("AiCommandLauncher", () => {
       .getByRole("button", { name: /open guru ai command center/i })
       .querySelector("svg[viewBox='0 0 64 64']");
     expect(Number(mark?.getAttribute("width"))).toBeGreaterThanOrEqual(24);
+    expect(mark?.querySelector("linearGradient, [class*=animate-]")).toBeNull();
   });
 
   it("renders embedded mode indicator when on problem solver page", () => {

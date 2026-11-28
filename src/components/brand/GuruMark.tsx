@@ -32,25 +32,17 @@ export interface GuruMarkProps {
    * - knockout : line art only, no head fill
    */
   variant?: GuruMarkVariant;
-  /** Force sparkles/cheeks on or off. Default: auto (off below 24px). */
+  /** Enable full facial detail and gradient shading. Defaults on above 24 px. */
   detail?: boolean;
-  /** Play the idea-spark pulse / blink loop. Default: true for idle + thinking. */
+  /** Allow the thinking expression to blink. */
   animated?: boolean;
   className?: string;
   /** Accessible name. Pass `null` when a neighbouring label already names it. */
   title?: string | null;
 }
 
-/* ── Geometry (64 grid) ───────────────────────────────────────────
-   Broad curves and a generously inset face keep the silhouette readable at
-   favicon-like sizes. The spark, rather than a generic antenna, is Guru's
-   distinguishing feature. */
-const HEAD = { x: 7.5, y: 14, w: 49, h: 43, r: 16 };
-const FACE = { x: 14, y: 21, w: 36, h: 28, r: 11 };
-
-const CHEEK = "#FF8FB1";
-const INK = "#28234F";
-const ORB = "#FFC95C";
+// The speech-tail silhouette stays visible even in a 16 px toolbar icon.
+const SHELL = "M5 30C5 17 14 10 29 10h6c12 0 22 8 23 21l1 8c1 10-6 16-17 16H25l-11 6 1-8C8 50 4 44 4 37Z";
 
 export function GuruMark({
   size = 32,
@@ -61,207 +53,38 @@ export function GuruMark({
   className,
   title = "Guru",
 }: GuruMarkProps) {
-  const rawId = useId();
-  const uid = rawId.replace(/[^a-zA-Z0-9_-]/g, "");
-  const headGrad = `guru-head-${uid}`;
-  const orbGrad = `guru-orb-${uid}`;
-  const shineGrad = `guru-shine-${uid}`;
-  const faceGrad = `guru-face-${uid}`;
-  const headClip = `guru-clip-${uid}`;
-
-  const showDetail = detail ?? size >= 24;
-  const isLine = variant === "knockout";
-  const faceFill =
-    variant === "mono" || variant === "knockout" ? "none" : `url(#${faceGrad})`;
-  // Mono is a silhouette: the head is one colour and the features are punched
-  // out of it with the surrounding cockpit colour.
-  const ink = variant === "mono" ? "hsl(var(--guru-bg))" : isLine ? "currentColor" : INK;
-  const headFill = isLine
-    ? "none"
-    : variant === "mono"
-      ? "currentColor"
-      : variant === "flat"
-        ? "hsl(var(--guru-accent))"
-        : `url(#${headGrad})`;
-  const rimStroke =
-    isLine || variant === "mono" ? "none" : "hsl(var(--guru-accent-2) / 0.42)";
-  const blink = animated && mood !== "happy";
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const detailed = detail ?? size > 24;
+  const outline = variant === "knockout";
+  const singleColor = outline || variant === "mono";
+  const shaded = detailed && variant === "gradient";
+  const shell = outline ? "none" : singleColor ? "currentColor" : shaded ? `url(#guru-shell-${id})` : "#8063D9";
+  const ink = outline ? "currentColor" : variant === "mono" ? "hsl(var(--guru-bg))" : "#30254F";
 
   return (
-    <svg
-      viewBox="0 0 64 64"
-      width={size}
-      height={size}
-      fill="none"
-      className={cn("shrink-0 overflow-visible", className)}
-      role={title ? "img" : "presentation"}
-      aria-label={title ?? undefined}
-      aria-hidden={title ? undefined : true}
-      focusable="false"
-    >
-      {title ? <title>{title}</title> : null}
-
-      <defs>
-        <linearGradient id={headGrad} x1="12" y1="12" x2="53" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#9A91FF" />
-          <stop offset="42%" stopColor="#7968F2" />
-          <stop offset="76%" stopColor="#7352DF" />
-          <stop offset="100%" stopColor="#A050D4" />
-        </linearGradient>
-        <linearGradient id={orbGrad} x1="28" y1="2" x2="36" y2="12" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFF3C4" />
-          <stop offset="45%" stopColor="#FFDC7E" />
-          <stop offset="100%" stopColor={ORB} />
-        </linearGradient>
-        <linearGradient id={shineGrad} x1="32" y1="14" x2="32" y2="48" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.42" />
-          <stop offset="55%" stopColor="#FFFFFF" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-        </linearGradient>
-        <linearGradient id={faceGrad} x1="22" y1="20" x2="42" y2="50" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="58%" stopColor="#F7F6FF" />
-          <stop offset="100%" stopColor="#EAE7FA" />
-        </linearGradient>
-        <clipPath id={headClip}>
-          <rect x={HEAD.x} y={HEAD.y} width={HEAD.w} height={HEAD.h} rx={HEAD.r} />
-        </clipPath>
-      </defs>
-
-      {/* Signature idea-spark + stem */}
-      <g opacity={isLine ? 0.9 : 1}>
-        <circle
-          cx="32"
-          cy="6.6"
-          r="6"
-          fill={isLine ? "none" : `url(#${orbGrad})`}
-          opacity={isLine ? 0 : 0.2}
-          className={animated && mood !== "happy" ? "animate-guru-orb" : undefined}
-          style={{ transformBox: "fill-box", transformOrigin: "center" }}
-        />
-        <path
-          d="M32 1.4c.72 3.45 1.95 4.68 5.4 5.4-3.45.72-4.68 1.95-5.4 5.4-.72-3.45-1.95-4.68-5.4-5.4 3.45-.72 4.68-1.95 5.4-5.4Z"
-          fill={isLine ? "currentColor" : `url(#${orbGrad})`}
-          stroke={isLine ? "currentColor" : "#FFF4CF"}
-          strokeWidth={isLine ? 1.2 : 0.55}
-          strokeLinejoin="round"
-        />
-        <rect
-          x="31"
-          y="11"
-          width="2"
-          height="4.5"
-          rx="1"
-          fill={isLine ? "currentColor" : "hsl(252 70% 66%)"}
-        />
+    <svg width={size} height={size} style={{ width: size, height: size }} viewBox="0 0 64 64" fill="none"
+      className={cn("shrink-0", className)} role={title ? "img" : "presentation"}
+      aria-label={title ?? undefined} aria-hidden={title ? undefined : true} focusable="false">
+      {title && <title>{title}</title>}
+      {shaded && (
+        <defs>
+          <linearGradient id={`guru-shell-${id}`} x1="14" y1="10" x2="47" y2="57" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#BAA8FF" />
+            <stop offset=".48" stopColor="#9170E7" />
+            <stop offset="1" stopColor="#6245A7" />
+          </linearGradient>
+        </defs>
+      )}
+      <path d={SHELL} fill={shell} stroke={outline ? "currentColor" : "none"} strokeWidth="3" />
+      {!singleColor && <path d="M12 32c0-8 6-13 15-13h10c9 0 15 5 15 13v2c0 9-6 14-15 14H27c-9 0-15-5-15-14Z" fill="#FAF6FF" />}
+      <g stroke={ink} strokeWidth={detailed ? 4 : 5} strokeLinecap="round"
+        className={animated && mood === "thinking" ? "animate-guru-blink" : undefined}
+        style={{ transformOrigin: "center", transformBox: "fill-box" }}>
+        <path d={detailed && mood === "happy" ? "M20 33q3-5 6 0m10 0q3-5 6 0" : "M24 29v6m15-6v6"} />
+        {detailed && <path d="M28 40q4 3 8-1" strokeWidth="2.3" />}
       </g>
-
-      {/* Ears */}
-      <rect
-        x="3.2"
-        y="29.5"
-        width="6.4"
-        height="12.5"
-        rx="3.2"
-        fill={headFill}
-        stroke={rimStroke}
-        strokeWidth={isLine ? 1.6 : 0.8}
-      />
-      <rect
-        x="54.4"
-        y="29.5"
-        width="6.4"
-        height="12.5"
-        rx="3.2"
-        fill={headFill}
-        stroke={rimStroke}
-        strokeWidth={isLine ? 1.6 : 0.8}
-      />
-
-      {/* Head */}
-      <rect
-        x={HEAD.x}
-        y={HEAD.y}
-        width={HEAD.w}
-        height={HEAD.h}
-        rx={HEAD.r}
-        fill={headFill}
-        stroke={rimStroke}
-        strokeWidth={isLine ? 1.8 : 0.8}
-      />
-      {!isLine && variant !== "mono" && (
-        <>
-          <rect
-            x={HEAD.x}
-            y={HEAD.y}
-            width={HEAD.w}
-            height={HEAD.h}
-            rx={HEAD.r}
-            fill={`url(#${shineGrad})`}
-            clipPath={`url(#${headClip})`}
-          />
-          <path
-            d="M12 49.5c10.5 5.2 29.5 5.2 40 0-2.1 4.7-6.2 7-12.5 7h-15c-6.3 0-10.4-2.3-12.5-7Z"
-            fill="#382484"
-            opacity="0.16"
-            clipPath={`url(#${headClip})`}
-          />
-        </>
-      )}
-
-      {/* Face plate */}
-      <rect
-        x={FACE.x}
-        y={FACE.y}
-        width={FACE.w}
-        height={FACE.h}
-        rx={FACE.r}
-        fill={faceFill}
-        stroke={variant === "mono" ? "none" : isLine ? "currentColor" : "rgba(255,255,255,0.72)"}
-        strokeWidth={isLine ? 1.4 : 0.9}
-      />
-
-      {/* Eyes — happy uses the classic "^ ^" arc, idle blinks periodically */}
-      {mood === "happy" ? (
-        <>
-          <path d="M21.2 32.6c1.5-2.3 4.3-2.3 5.8 0" stroke={ink} strokeWidth="2.3" strokeLinecap="round" />
-          <path d="M37 32.6c1.5-2.3 4.3-2.3 5.8 0" stroke={ink} strokeWidth="2.3" strokeLinecap="round" />
-        </>
-      ) : (
-        <g
-          fill={ink}
-          className={blink ? "animate-guru-blink" : undefined}
-          style={{ transformBox: "fill-box", transformOrigin: "center" }}
-        >
-          <ellipse cx="24.2" cy="32.8" rx="2.5" ry="3.4" />
-          <ellipse cx="39.8" cy="32.8" rx="2.5" ry="3.4" />
-          {!isLine && (
-            <>
-              <circle cx="25.1" cy="31.6" r="0.95" fill="#FFFFFF" opacity="0.92" />
-              <circle cx="40.7" cy="31.6" r="0.95" fill="#FFFFFF" opacity="0.92" />
-            </>
-          )}
-        </g>
-      )}
-
-      {/* Smile */}
-      <path
-        d={mood === "happy" ? "M27.4 38.6c1.7 3.4 7.5 3.4 9.2 0" : "M28 39.2c1.5 2.6 6.5 2.6 8 0"}
-        stroke={variant === "mono" ? "hsl(var(--guru-bg))" : isLine ? "currentColor" : INK}
-        strokeWidth="2"
-        strokeLinecap="round"
-        fill="none"
-      />
-
-      {showDetail && !isLine && (
-        <>
-          <ellipse cx="19.4" cy="38.6" rx="3" ry="1.9" fill={CHEEK} opacity="0.42" />
-          <ellipse cx="44.6" cy="38.6" rx="3" ry="1.9" fill={CHEEK} opacity="0.42" />
-          {/* Four-point sparkles, echoing the PNG's accents */}
-          <path d="M6.6 16.4c.6 1.9 1.2 2.5 3.1 3.1-1.9.6-2.5 1.2-3.1 3.1-.6-1.9-1.2-2.5-3.1-3.1 1.9-.6 2.5-1.2 3.1-3.1Z" fill={ORB} opacity="0.9" />
-          <path d="M57.6 12.8c.5 1.5.9 2 2.4 2.4-1.5.4-2 .9-2.4 2.4-.5-1.5-.9-2-2.4-2.4 1.5-.4 2-.9 2.4-2.4Z" fill={ORB} opacity="0.7" />
-        </>
-      )}
+      <path d="M51 1q2 9 11 11-9 2-11 11-2-9-11-11 9-2 11-11Z"
+        fill={singleColor ? "currentColor" : "#F2BC56"} />
     </svg>
   );
 }

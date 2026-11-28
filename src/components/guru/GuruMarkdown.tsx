@@ -34,12 +34,12 @@ export const GuruMarkdown = memo(function GuruMarkdown({
 
   const components: Components = {
     h1: ({ children }) => (
-      <h3 className="mb-2 mt-4 text-[15px] font-semibold tracking-tight text-guru-text first:mt-0">
+      <h3 className="mb-2 mt-5 text-[15px] font-semibold tracking-tight text-guru-text first:mt-0">
         {children}
       </h3>
     ),
     h2: ({ children }) => (
-      <h3 className="mb-2 mt-4 text-[14.5px] font-semibold tracking-tight text-guru-text first:mt-0">
+      <h3 className="mb-2 mt-5 text-[14.5px] font-semibold tracking-tight text-guru-text first:mt-0">
         {children}
       </h3>
     ),
@@ -54,7 +54,7 @@ export const GuruMarkdown = memo(function GuruMarkdown({
       </h5>
     ),
     p: ({ children }) => (
-      <p className="my-2 text-[13.5px] leading-[1.7] text-guru-text/90 first:mt-0 last:mb-0">
+      <p className="my-2.5 text-sm leading-[1.7] text-guru-text/90 first:mt-0 last:mb-0">
         {children}
       </p>
     ),

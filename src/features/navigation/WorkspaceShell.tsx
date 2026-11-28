@@ -138,6 +138,7 @@ function ScrollToTopOnRouteChange({
 
 export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
+  const guruLauncherRef = useRef<HTMLButtonElement>(null);
   const [guruOpen, setGuruOpen] = useState(false);
   const contentScrollRef = useRef<HTMLElement | null>(null);
   // Deterministic initial state for SSR hydration; saved preference hydrates on mount.
@@ -403,6 +404,11 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const closeGuruPanel = useCallback(() => {
+    setGuruOpen(false);
+    requestAnimationFrame(() => guruLauncherRef.current?.focus({ preventScroll: true }));
+  }, []);
+
   const toggleGuruPanel = useCallback(() => {
     setGuruOpen((isOpen) => {
       const nextOpen = !isOpen;
@@ -586,6 +592,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                       <GlobalSearchLauncher compact={isHeaderCompact || !isHeaderWide} />
 
                       <AiCommandLauncher
+                        ref={guruLauncherRef}
                         open={guruOpen}
                         embedded={isProblemSolverRoute}
                         compact={isHeaderCompact}
@@ -654,7 +661,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                         <div className={contentSurfaceClass}>{pageContent}</div>
                       </main>
                       {/* GuruBot full-screen overlay */}
-                      <GuruBot open={guruOpen} onClose={() => setGuruOpen(false)} />
+                      <GuruBot open={guruOpen} onClose={closeGuruPanel} />
                     </>
                   ) : (
                     /* ── Desktop: Resizable split with collapsible Guru panel ── */
@@ -786,7 +793,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                           <div className="h-full min-w-0 overflow-hidden flex flex-col border-l border-border bg-background">
                             <GuruBot
                               open={guruOpen}
-                              onClose={() => setGuruOpen(false)}
+                              onClose={closeGuruPanel}
                               embedded
                               showGuruTitle
                               onToggleFullscreen={() => {

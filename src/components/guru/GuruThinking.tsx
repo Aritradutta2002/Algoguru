@@ -47,21 +47,10 @@ export function GuruThinking({
             thinking{seconds > 0 ? ` · ${seconds}s` : "…"}
           </span>
         </div>
-        <div className="rounded-xl rounded-tl-sm border border-guru-line/70 bg-guru-surface/60 px-3.5 py-3">
+        <div className="border-l-2 border-guru-accent/25 py-1 pl-3">
           <p key={phrase} className="animate-fade-in text-[13px] text-guru-muted">
             {phrase}
           </p>
-          <div className="mt-2.5 space-y-1.5" aria-hidden="true">
-            {[100, 82, 58].map((width) => (
-              <div
-                key={width}
-                className="relative h-1.5 overflow-hidden rounded-full bg-guru-text/[0.06]"
-                style={{ width: `${width}%` }}
-              >
-                <div className="absolute inset-0 animate-guru-shimmer bg-gradient-to-r from-transparent via-guru-accent/35 to-transparent" />
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

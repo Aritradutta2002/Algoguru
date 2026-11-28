@@ -61,7 +61,7 @@ function ErrorCard({
   return (
     <div
       role="alert"
-      className="rounded-xl border border-guru-danger/25 bg-guru-danger/[0.07] px-3.5 py-3"
+      className="rounded-xl border-l-2 border-guru-danger/50 bg-guru-danger/[0.07] px-3.5 py-3"
     >
       <div className="flex items-start gap-2">
         <AlertTriangle size={14} className="mt-0.5 shrink-0 text-guru-danger" />
@@ -256,7 +256,7 @@ export const GuruMessage = memo(function GuruMessage({
         {showBubble && (
           <div
             className={cn(
-              "rounded-xl rounded-tl-sm border border-guru-line/80 bg-guru-surface px-3.5 py-2.5 shadow-[0_1px_0_hsl(var(--guru-text)/0.03)]",
+              "min-w-0 border-l-2 border-guru-line/70 py-1 pl-3",
               isStreaming && "border-guru-accent/25",
             )}
           >

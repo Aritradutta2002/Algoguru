@@ -21,9 +21,9 @@ function GuruGlyph() {
   return (
     <span
       aria-hidden="true"
-      className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.65rem] bg-guru-accent/10 shadow-[0_2px_6px_-3px_hsl(var(--guru-accent)/0.5)] ring-1 ring-inset ring-guru-accent/20"
+      className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.65rem] bg-guru-surface"
     >
-      <GuruMark size={24} detail title={null} />
+      <GuruMark size={24} animated={false} title={null} />
       <span className="absolute -bottom-0.5 -right-0.5 h-[7px] w-[7px] rounded-full bg-guru-success ring-2 ring-background" />
     </span>
   );
@@ -67,7 +67,7 @@ export const AiCommandLauncher = forwardRef<HTMLButtonElement, AiCommandLauncher
             "group relative inline-flex h-9 shrink-0 touch-manipulation select-none items-center rounded-full border text-sm font-medium leading-none",
             "max-lg:min-h-[44px] max-lg:min-w-[44px]",
             "transition-[background-color,border-color,color,box-shadow] duration-150 ease-out",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guru-accent",
             compact ? "min-h-[44px] min-w-[44px] justify-center px-0 gap-0" : "gap-2 pl-1.5 pr-2",
             open
               ? "border-guru-accent/35 bg-guru-accent/10 text-guru-text shadow-[inset_0_1px_0_hsl(var(--guru-surface)/0.65)]"

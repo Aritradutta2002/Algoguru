@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot } from "lucide-react";
+import { GuruMark } from "@/components/brand/GuruMark";
 import { Button } from "@/components/ui/button";
 import {
   GURU_SELECTION_ACTIONS,
@@ -29,7 +29,7 @@ export function GuruSelectionMenu({
         className="flex items-center gap-1.5 px-2.5 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider"
         style={{ color: "var(--lc-muted)" }}
       >
-        <Bot size={11} />
+        <GuruMark size={16} title={null} />
         GuruBot
       </div>
       {GURU_SELECTION_ACTIONS.map((action) => (

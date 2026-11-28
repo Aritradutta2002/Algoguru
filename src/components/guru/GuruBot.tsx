@@ -462,7 +462,7 @@ function GuruBotSurface({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="guru-scroll min-h-0 flex-1 overflow-y-auto px-3 py-3"
+        className="guru-scroll min-h-0 flex-1 overflow-y-auto px-4 py-4"
         style={{ overscrollBehavior: "contain" }}
         role="log"
         aria-label="Conversation with Guru"
@@ -471,7 +471,7 @@ function GuruBotSurface({
       >
         <div
           className={cn(
-            "mx-auto flex w-full max-w-[760px] flex-col gap-4",
+            "mx-auto flex w-full max-w-[68ch] flex-col gap-5",
             messages.length === 0 && !busy && "min-h-full justify-center",
           )}
         >
